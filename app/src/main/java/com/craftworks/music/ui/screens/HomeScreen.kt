@@ -14,6 +14,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -71,7 +72,7 @@ fun HomeScreen() {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize
             )
             /* SONGS ROW */
-            SongsRow(songsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10), onSongSelected = { song ->
+            SongsRow(songsList = remember { songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10) }, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 songState = true
             })
@@ -92,7 +93,7 @@ fun HomeScreen() {
             )
 
             /* SONGS ROW */
-            SongsRow(songsList = songsList.sortedByDescending { song: Song -> song.dateAdded }, onSongSelected = { song ->
+            SongsRow(songsList = remember { songsList.sortedByDescending { song: Song -> song.dateAdded } }, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 songState = true
             })
@@ -112,7 +113,7 @@ fun HomeScreen() {
             )
 
             /* SONGS ROW */
-            SongsRow(songsList = songsList.sortedByDescending { song: Song -> song.timesPlayed }, onSongSelected = { song ->
+            SongsRow(songsList = remember { songsList.sortedByDescending { song: Song -> song.timesPlayed } }, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 songState = true
             })

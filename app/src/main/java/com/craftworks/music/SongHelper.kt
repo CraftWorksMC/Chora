@@ -9,6 +9,7 @@ import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.lyrics.songLyrics
 import com.craftworks.music.navidrome.markSongAsPlayed
+import kotlin.math.abs
 
 class SongHelper {
     companion object{
@@ -115,8 +116,7 @@ class SongHelper {
         }
 
         private fun onPlayerComplete(){
-            if (mediaPlayer?.currentPosition != playingSong.selectedSong?.duration || playingSong.selectedSong?.isRadio == true) return
-
+            if (abs(sliderPos.intValue - playingSong.selectedSong?.duration!!) > 1000 || playingSong.selectedSong?.isRadio == true) return
             playingSong.selectedSong?.let { nextSong(it)}
         }
     }

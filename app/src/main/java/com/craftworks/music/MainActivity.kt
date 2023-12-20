@@ -252,11 +252,6 @@ class MainActivity : ComponentActivity() {
                 ActivityResultContracts.RequestPermission()
             ) { isGranted: Boolean ->
                 Log.d("PERMISSIONS", "READ_MEDIA_AUDIO: $isGranted")
-                if (isGranted) {
-                    getSongsOnDevice(this)
-                } else {
-                    // Do NOTHING
-                }
             }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
