@@ -14,7 +14,6 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -36,10 +35,8 @@ import com.craftworks.music.ui.elements.SongsRow
     wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE
 )
 fun HomeScreen() {
-    /*var randomSongList by remember { mutableStateOf(emptyList<Song>()) }*/
-    //var songListUpdated by remember { mutableStateOf(songsList) }
-
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
+
     Column(modifier = Modifier
         .padding(start = leftPadding)
         .fillMaxWidth()
@@ -95,7 +92,7 @@ fun HomeScreen() {
             )
 
             /* SONGS ROW */
-            SongsRow(songsList = remember { songsList.sortedByDescending { song: Song -> song.dateAdded }}, onSongSelected = { song ->
+            SongsRow(songsList = songsList.sortedByDescending { song: Song -> song.dateAdded }, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 songState = true
             })
@@ -115,7 +112,7 @@ fun HomeScreen() {
             )
 
             /* SONGS ROW */
-            SongsRow(songsList = remember { songsList.sortedByDescending { song: Song -> song.timesPlayed } }, onSongSelected = { song ->
+            SongsRow(songsList = songsList.sortedByDescending { song: Song -> song.timesPlayed }, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 songState = true
             })

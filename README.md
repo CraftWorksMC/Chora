@@ -1,6 +1,6 @@
 ## ![Chora Logo](https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/ChoraBannerTransparent.png?raw=true)
 
-Chora is a light-weight simple app that can stream music from a Subsonic or Navidrome server, or from the phone's storage.
+Chora is a simple, light-weight app that streams music from a Subsonic or Navidrome server, or from the phone's storage.
 
 ## Features:
     Subsonic Integration.
@@ -9,6 +9,7 @@ Chora is a light-weight simple app that can stream music from a Subsonic or Navi
     Gapless Playback. [TODO]
     Internet Radio.
     Transcoding Support. [TODO]
+    Synced And Unsynced Lyrics [From LRCLIB.net]
 
 ## Screenshots
 

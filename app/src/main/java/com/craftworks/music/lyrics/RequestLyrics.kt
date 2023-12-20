@@ -12,9 +12,9 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 
-var SyncedLyric = mutableStateListOf<Lyric>(Lyric(0, "GETTING LYRICS", false))
+var SyncedLyric = mutableStateListOf<Lyric>(Lyric(0, "Getting Lyrics... \n No Lyrics Found", false))
 object songLyrics{
-    var SongLyrics by mutableStateOf("Getting Lyrics... / No Lyrics Found")
+    var SongLyrics by mutableStateOf("Getting Lyrics... \n No Lyrics Found")
 }
 
 
@@ -85,7 +85,7 @@ fun mmssToMilliseconds(mmss: String): Long {
     return 0L
 }
 fun getTimeStamps(input: String): List<String> {
-    val regex = Regex("\\[(.*?)\\]")
+    val regex = Regex("\\[(.*?)]")
     val matches = regex.findAll(input)
 
     val result = mutableListOf<String>()
