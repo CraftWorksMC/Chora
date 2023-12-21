@@ -222,7 +222,9 @@ class MainActivity : ComponentActivity() {
                     ) {
                         paddingValues -> SetupNavGraph(navController = navController, paddingValues)
                         BottomSheetScaffold(
-                            modifier = Modifier.fillMaxWidth().requiredWidth(LocalConfiguration.current.screenWidthDp.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .requiredWidth(LocalConfiguration.current.screenWidthDp.dp),
                             sheetContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
                             sheetPeekHeight =
                             if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
@@ -282,7 +284,6 @@ class MainActivity : ComponentActivity() {
 
             override fun onActivityPreStopped(activity: Activity) {
                 saveManager(this@MainActivity).saveSettings()
-                SongHelper.releasePlayer()
             }
 
             override fun onActivityStopped(activity: Activity) {
@@ -378,7 +379,6 @@ fun getSongsOnDevice(context: Context){
     }
     cursor?.close()
 }
-
 fun formatMilliseconds(milliseconds: Float): String {
     val format = SimpleDateFormat("mm:ss", Locale.getDefault())
     return format.format(Date(milliseconds.toLong()))
