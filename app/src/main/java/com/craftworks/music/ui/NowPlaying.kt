@@ -155,26 +155,6 @@ fun NowPlayingContent(
                     }
                 }
             }, contentAlignment = Alignment.Center) {
-            TextButton(
-                onClick = {
-                    coroutineScope.launch {
-                        if (scaffoldState?.bottomSheetState?.currentValue == SheetValue.Expanded) {
-                            scaffoldState.bottomSheetState.partialExpand()
-                        }
-                    }
-                },
-                modifier = Modifier.offset(y = -(12).dp).alpha(1 - miniPlayerAlpha),
-                enabled = scaffoldState?.bottomSheetState?.currentValue == SheetValue.Expanded
-            ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    contentDescription = "Previous Song",
-                    modifier = Modifier
-                        .height(32.dp)
-                        .size(32.dp)
-                )
-            }
             Row {
                 AsyncImage(
                     model = playingSong.selectedSong?.imageUrl,

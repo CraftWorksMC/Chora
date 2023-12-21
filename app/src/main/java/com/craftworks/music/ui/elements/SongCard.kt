@@ -37,7 +37,7 @@ import com.craftworks.music.formatMilliseconds
 fun SongsCard(song: Song, onClick: () -> Unit){
                 Card(
                     onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
-                    modifier = Modifier.padding(0.dp, 48.dp, 12.dp, 0.dp),
+                    modifier = Modifier.padding(12.dp, 48.dp, 0.dp, 0.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.background,

@@ -25,7 +25,7 @@ fun SetupNavGraph(
 ){
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
-        modifier = Modifier.padding(12.dp, top = 32.dp, bottom = 72.dp + /* Stupid PaddingValues Error. */ (paddingValues.calculateBottomPadding() * 0)),
+        modifier = Modifier.padding(top = 32.dp, bottom = (72.dp + /* Stupid PaddingValues Error. */ (paddingValues.calculateBottomPadding() * 0)) ),
         enterTransition = { fadeIn() },
         exitTransition = { fadeOut() }
     )

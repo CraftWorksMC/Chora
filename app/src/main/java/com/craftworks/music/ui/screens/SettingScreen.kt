@@ -91,7 +91,7 @@ fun SettingScreen() {
             color = MaterialTheme.colorScheme.onBackground
         )
         /* ACTUAL SETTINGS */
-        Box(Modifier.padding(0.dp,64.dp,0.dp,0.dp)){
+        Box(Modifier.padding(12.dp,64.dp,12.dp,12.dp)){
             Column {
                 /* -SEPARATOR */
                 Row (verticalAlignment = Alignment.CenterVertically) {

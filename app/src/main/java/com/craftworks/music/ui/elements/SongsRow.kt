@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.elements
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,11 +35,11 @@ import java.net.URL
 fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
     LazyRow(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(end = 12.dp)
     ) {
         items(songsList) {song ->
             SongsCard(song = song, onClick = {
-                Log.d("Click", "Clicked Song")
                 isSongSelected = true
                 SongHelper.stopStream()
                 sliderPos.intValue = 0
@@ -66,11 +65,10 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
     var isSongSelected by remember { mutableStateOf(false) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 72.dp)
+        contentPadding = PaddingValues(bottom = 92.dp)
     ) {
         items(songsList) {song ->
             HorizontalSongCard(song = song, onClick = {
-                Log.d("Click", "Clicked Song")
                 isSongSelected = true
                 SongHelper.stopStream()
                 sliderPos.intValue = 0
@@ -112,7 +110,6 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
             SongsCard(
                 song = song,
                 onClick = {
-                Log.d("Click", "Clicked Song")
                 isSongSelected = true
                 SongHelper.stopStream()
                 sliderPos.intValue = 0

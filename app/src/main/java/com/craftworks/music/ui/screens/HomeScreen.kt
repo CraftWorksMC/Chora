@@ -3,6 +3,7 @@ package com.craftworks.music.ui.screens
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -44,15 +46,37 @@ fun HomeScreen() {
         .wrapContentHeight()
         .verticalScroll(rememberScrollState())) {
 
-        /* GREETING */
-        Box {
-            Text(
-                text = stringResource(R.string.welcome_text) + ",\n " + username.value,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold,
-                fontSize = MaterialTheme.typography.headlineLarge.fontSize
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            /* GREETING */
+            Box(Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.welcome_text) + ",\n " + username.value,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            }
+            /*Box(Modifier.padding(end = 12.dp)) {
+                Button(
+                    onClick = { /* TO DO: NAVIGATE TO SETTINGS.*/},
+                    shape = CircleShape,
+                    modifier = Modifier.size(48.dp),
+                    contentPadding = PaddingValues(2.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Settings,
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        contentDescription = "Settings",
+                        modifier = Modifier
+                            .height(48.dp)
+                            .size(48.dp)
+                    )
+                }
+            }*/
         }
+
 
         Divider(
             modifier = Modifier.padding(12.dp),
@@ -69,7 +93,8 @@ fun HomeScreen() {
                 text = stringResource(R.string.recently_played) + ":",
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                modifier = Modifier.padding(start = 12.dp)
             )
             /* SONGS ROW */
             SongsRow(songsList = remember { songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10) }, onSongSelected = { song ->
@@ -90,6 +115,7 @@ fun HomeScreen() {
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                modifier = Modifier.padding(start = 12.dp)
             )
 
             /* SONGS ROW */
@@ -110,6 +136,7 @@ fun HomeScreen() {
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                modifier = Modifier.padding(start = 12.dp)
             )
 
             /* SONGS ROW */
@@ -129,7 +156,8 @@ fun HomeScreen() {
                 text = stringResource(R.string.random_songs) + ":",
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                modifier = Modifier.padding(start = 12.dp)
             )
             /* SONGS ROW */
             SongsRow(songsList = songsList.take(10).shuffled(), onSongSelected = { song ->
