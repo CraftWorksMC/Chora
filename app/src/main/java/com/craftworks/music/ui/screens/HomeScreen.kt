@@ -97,7 +97,7 @@ fun HomeScreen() {
                 modifier = Modifier.padding(start = 12.dp)
             )
             /* SONGS ROW */
-            SongsRow(songsList = remember { songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10) }, onSongSelected = { song ->
+            SongsRow(songsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10), onSongSelected = { song ->
                 playingSong.selectedSong = song
                 songState = true
             })
