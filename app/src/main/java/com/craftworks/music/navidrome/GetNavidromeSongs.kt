@@ -62,7 +62,7 @@ fun parseXml(input: BufferedReader, xpath: String, songList: MutableList<Song>){
 
     val elementNodeList = xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
 
-    for (a in 0 until elementNodeList.length - 1) {
+    for (a in 0 until elementNodeList.length) {
 
         val firstElement = elementNodeList.item(a)
 
@@ -97,6 +97,7 @@ fun parseXml(input: BufferedReader, xpath: String, songList: MutableList<Song>){
             songMimeType = if (attribute.nodeName == "suffix") attribute.textContent.uppercase() else songMimeType
             songBitrate = if (attribute.nodeName == "bitRate") attribute.textContent else songBitrate
             songLastPlayed = if (attribute.nodeName == "played") attribute.textContent else songLastPlayed
+            if (attribute.nodeName == "title") Log.d("NAVIDROME", "Added song: ${attribute.textContent}")
         }
 
 

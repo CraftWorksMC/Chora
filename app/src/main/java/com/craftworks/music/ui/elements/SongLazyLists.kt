@@ -105,6 +105,7 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
                 artist = "Internet Radio",
                 duration = 0,
                 album = "Internet Radio",
+                year = "2023",
                 isRadio = true)
 
             SongsCard(
