@@ -1,6 +1,7 @@
 package com.craftworks.music.navidrome
 
 import android.net.Uri
+import android.os.Environment
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import com.craftworks.music.data.Playlist
@@ -11,7 +12,10 @@ import com.craftworks.music.ui.screens.useNavidromeServer
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import org.xmlpull.v1.XmlPullParserException
+import java.io.BufferedInputStream
 import java.io.BufferedReader
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.StringReader
 import java.net.HttpURLConnection
@@ -217,4 +221,60 @@ fun markSongAsPlayed(song: Song){
         }
         thread.start()
     }
+}
+
+fun downloadNavidromeSong(url: String) {
+    val thread = Thread {
+        try {
+            println("\nSent 'GET' request to URL : $url")
+            val destinationFolder =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).absolutePath
+            println("MUSIC_DIR: $destinationFolder")
+            val fileUrl = URL(url)
+            val connection: HttpURLConnection = fileUrl.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+            val inputStream = BufferedInputStream(connection.inputStream)
+
+            //val fileName = playingSong.selectedSong?.title + "." + playingSong.selectedSong?.format
+            val contentDisposition = connection.getHeaderField("Content-Disposition")
+            val fileName = extractNavidromeSongName(contentDisposition) ?: "downloaded_song.mp3"
+            val outputFile = File(destinationFolder, fileName)
+            val outputStream = FileOutputStream(outputFile)
+
+            val bufferSize = 1024
+            val buffer = ByteArray(bufferSize)
+            var bytesRead: Int
+
+            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                outputStream.write(buffer, 0, bytesRead)
+            }
+
+            inputStream.close()
+            outputStream.close()
+            connection.disconnect()
+            println("Song downloaded to: ${outputFile.absolutePath}")
+
+        } catch (e: Exception) {
+            println(e)
+        }
+    }
+    thread.start()
+}
+fun extractNavidromeSongName(contentDisposition: String?): String? {
+    if (contentDisposition == null) return null
+
+    val startIndex = contentDisposition.indexOf("filename=")
+    if (startIndex == -1) return null
+
+    var endIndex = contentDisposition.indexOf(";", startIndex)
+    if (endIndex == -1) {
+        endIndex = contentDisposition.length
+    }
+
+    var fileName = contentDisposition.substring(startIndex + 9, endIndex).trim('\"')
+
+    // Remove any path or folder structure and keep only the base filename
+    fileName = fileName.substringAfterLast('/')
+
+    return fileName
 }

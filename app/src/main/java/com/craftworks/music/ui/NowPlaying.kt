@@ -80,6 +80,10 @@ import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.songLyrics
+import com.craftworks.music.navidrome.downloadNavidromeSong
+import com.craftworks.music.navidrome.navidromePassword
+import com.craftworks.music.navidrome.navidromeServerIP
+import com.craftworks.music.navidrome.navidromeUsername
 import com.craftworks.music.playingSong
 import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
@@ -387,15 +391,14 @@ fun NowPlayingContent(
                             }
                         }
 
-                        Box(modifier = Modifier
+                        Row(modifier = Modifier
                             .height(64.dp)
                             .width(256.dp)
                             .weight(1f)
-                            .padding(bottom = 12.dp)) {
+                            .padding(bottom = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
                             /* Show/Hide Lyrics */
                             Box(modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .align(Alignment.Center), contentAlignment = Alignment.Center)
+                                .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
                             {
                                 Button(
                                     onClick = { lyricsOpen = !lyricsOpen },
@@ -411,6 +414,31 @@ fun NowPlayingContent(
                                         imageVector = ImageVector.vectorResource(R.drawable.icons8_apple_music_lyrics),
                                         tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                                         contentDescription = "View Lyrics",
+                                        modifier = Modifier
+                                            .height(52.dp)
+                                            .size(52.dp)
+                                    )
+                                }
+                            }
+
+                            /* Download Song */
+                            Box(modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
+                            {
+                                Button(
+                                    onClick = { downloadNavidromeSong("${navidromeServerIP.value}/rest/download.view?id=${playingSong.selectedSong?.navidromeID}&submission=true&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora") },
+                                    shape = CircleShape,
+                                    modifier = Modifier.height(64.dp),
+                                    contentPadding = PaddingValues(2.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent
+                                    )
+                                ) {
+                                    // Inner content including an icon and a text label
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
+                                        tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                                        contentDescription = "Download Song",
                                         modifier = Modifier
                                             .height(52.dp)
                                             .size(52.dp)

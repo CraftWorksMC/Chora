@@ -73,6 +73,10 @@ val songsList: MutableList<Song> = mutableStateListOf()
 
 var sliderPos = mutableIntStateOf(0)
 var mediaFolder = mutableStateOf("/Music/")
+var repeatSong = mutableStateOf(false)
+var shuffleSongs = mutableStateOf(false)
+
+var songState by mutableStateOf(false)
 
 object playingSong{
     var selectedList:List<Song> = emptyList()
@@ -303,12 +307,6 @@ class MainActivity : ComponentActivity() {
         })
     }
 }
-
-
-var repeatSong = mutableStateOf(false)
-var shuffleSongs = mutableStateOf(false)
-
-var songState by mutableStateOf(false)
 @Composable
 fun PlayPause(context: Context) {
     if (songState) {
@@ -322,7 +320,6 @@ fun PlayPause(context: Context) {
         SongHelper.pauseStream()
     }
 }
-
 fun getSongsOnDevice(context: Context){
     val contentResolver: ContentResolver = context.contentResolver
     val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -389,7 +386,6 @@ fun formatMilliseconds(milliseconds: Float): String {
     val format = SimpleDateFormat("mm:ss", Locale.getDefault())
     return format.format(Date(milliseconds.toLong()))
 }
-
 fun Modifier.fadingEdge(brush: Brush) = this
     .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
     .drawWithContent {

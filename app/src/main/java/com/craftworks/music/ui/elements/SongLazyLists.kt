@@ -46,7 +46,7 @@ fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
                 SongHelper.stopStream()
                 sliderPos.intValue = 0
                 onSongSelected(song)
-                SongLyrics = "Getting Lyrics... / No Lyrics Found"
+                SongLyrics = "Getting Lyrics... \n No Lyrics Found"
                 SyncedLyric.clear()
                 getLyrics()
                 markSongAsPlayed(song)
@@ -75,7 +75,7 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
                 SongHelper.stopStream()
                 sliderPos.intValue = 0
                 onSongSelected(song)
-                SongLyrics = "Getting Lyrics... / No Lyrics Found"
+                SongLyrics = "Getting Lyrics... \n No Lyrics Found"
                 SyncedLyric.clear()
                 getLyrics()
                 markSongAsPlayed(song)
