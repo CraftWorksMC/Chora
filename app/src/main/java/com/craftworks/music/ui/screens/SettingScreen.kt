@@ -56,6 +56,7 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.getSongsOnDevice
 import com.craftworks.music.mediaFolder
 import com.craftworks.music.navidrome.getNavidromePlaylists
+import com.craftworks.music.navidrome.getNavidromeRadios
 import com.craftworks.music.navidrome.getNavidromeSongs
 import com.craftworks.music.navidrome.navidromePassword
 import com.craftworks.music.navidrome.navidromeServerIP
@@ -258,6 +259,8 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                                 try {
                                     saveManager(context).saveSettings()
                                     getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=musicApp"))
+                                    getNavidromePlaylists()
+                                    getNavidromeRadios()
                                 } catch (_: Exception){
                                     // DO NOTHING
                                 }
@@ -314,6 +317,7 @@ class saveManager(private val context: Context){
             try {
                 getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora"))
                 getNavidromePlaylists()
+                getNavidromeRadios()
             } catch (_: Exception){
                 // DO NOTHING
             }

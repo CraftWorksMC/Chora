@@ -5,9 +5,12 @@ import android.os.Environment
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import com.craftworks.music.data.Playlist
+import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
+import com.craftworks.music.playingSong
 import com.craftworks.music.songsList
 import com.craftworks.music.ui.screens.playlistList
+import com.craftworks.music.ui.screens.radioList
 import com.craftworks.music.ui.screens.useNavidromeServer
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
@@ -56,7 +59,6 @@ fun getNavidromeSongs(url: URL){
     }
     thread.start()
 }
-
 @Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromePlaylists(){
     if (navidromeUsername.value == "" ||
@@ -75,6 +77,32 @@ fun getNavidromePlaylists(){
 
                 inputStream.bufferedReader().use {
                     parsePlaylistXML(it, "/subsonic-response/playlists/playlist", playlistList)
+                }
+            }
+        } catch (e: Exception) {
+            Log.d("Exception", e.toString())
+        }
+    }
+    thread.start()
+}
+@Throws(XmlPullParserException::class, IOException::class)
+fun getNavidromeRadios(){
+    if (navidromeUsername.value == "" ||
+        navidromePassword.value == "") return
+
+    val thread = Thread {
+        try {
+            val url = URL("${navidromeServerIP.value}/rest/getInternetRadioStations.view?&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+
+            radioList.clear()
+
+            with(url.openConnection() as HttpURLConnection) {
+                requestMethod = "GET"  // optional default is GET
+
+                Log.d("GET","\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+
+                inputStream.bufferedReader().use {
+                    parseRadioXML(it, "/subsonic-response/internetRadioStations/internetRadioStation", radioList)
                 }
             }
         } catch (e: Exception) {
@@ -151,7 +179,6 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
         ))
     }
 }
-
 fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: MutableList<Playlist>){
     val dbFactory = DocumentBuilderFactory.newInstance()
     val dBuilder = dbFactory.newDocumentBuilder()
@@ -202,6 +229,45 @@ fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: Mutable
         ))
     }
 }
+fun parseRadioXML(input: BufferedReader, xpath: String, radiosList: MutableList<Radio>){
+    val dbFactory = DocumentBuilderFactory.newInstance()
+    val dBuilder = dbFactory.newDocumentBuilder()
+    val xmlInput = InputSource(StringReader(input.readText()))
+    val doc = dBuilder.parse(xmlInput)
+
+    val xpFactory = XPathFactory.newInstance()
+    val xPath = xpFactory.newXPath()
+
+    val elementNodeList = xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
+
+    for (a in 0 until elementNodeList.length) {
+
+        val firstElement = elementNodeList.item(a)
+
+        var radioID = ""
+        var radioName = ""
+        var radioUrl = Uri.EMPTY
+        var radioImage = Uri.EMPTY
+
+
+        @Suppress("ReplaceRangeToWithUntil")
+        for (i in 0..firstElement.attributes.length - 1) {
+            val attribute = firstElement.attributes.item(i)
+            radioID = if (attribute.nodeName == "id") attribute.textContent else radioID
+            radioName = if (attribute.nodeName == "name") attribute.textContent else radioName
+            radioUrl = if (attribute.nodeName == "streamUrl") Uri.parse(attribute.textContent) else radioUrl
+            radioImage = if (attribute.nodeName == "homePageUrl") Uri.parse(attribute.textContent + "/favicon.ico") else radioImage
+            if (attribute.nodeName == "name") Log.d("NAVIDROME", "Added Radio: ${attribute.textContent}")
+        }
+
+        radiosList.add(Radio(
+            name = radioName,
+            imageUrl = radioImage,
+            media = radioUrl,
+            navidromeID = radioID
+        ))
+    }
+}
 
 fun markSongAsPlayed(song: Song){
     if (useNavidromeServer.value) {
@@ -226,6 +292,7 @@ fun markSongAsPlayed(song: Song){
 fun downloadNavidromeSong(url: String) {
     val thread = Thread {
         try {
+            if (playingSong.selectedSong?.isRadio == true || !useNavidromeServer.value) return@Thread
             println("\nSent 'GET' request to URL : $url")
             val destinationFolder =
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).absolutePath

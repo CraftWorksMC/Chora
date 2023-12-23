@@ -96,7 +96,7 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
 fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
     LazyVerticalGrid(
-        columns = GridCells.FixedSize(128.dp),
+        columns = GridCells.FixedSize(152.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         items(radioList) {radio ->
