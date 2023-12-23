@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,10 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -44,7 +49,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
+import com.craftworks.music.data.Screen
 import com.craftworks.music.getSongsOnDevice
 import com.craftworks.music.mediaFolder
 import com.craftworks.music.navidrome.getNavidromePlaylists
@@ -65,7 +73,7 @@ var useNavidromeServer = mutableStateOf(false)
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
 )
 @Composable
-fun SettingScreen() {
+fun SettingScreen(navHostController: NavHostController = rememberNavController()) {
     val context = LocalContext.current.applicationContext
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     Box(modifier = Modifier
@@ -83,8 +91,27 @@ fun SettingScreen() {
                 text = stringResource(R.string.settings),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
-                fontSize = MaterialTheme.typography.headlineLarge.fontSize
+                fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                modifier = Modifier.weight(1f)
             )
+            Box(Modifier.padding(end = 12.dp)) {
+                Button(
+                    onClick = { navHostController.navigate(Screen.Home.route) },
+                    shape = CircleShape,
+                    modifier = Modifier.size(32.dp),
+                    contentPadding = PaddingValues(2.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ArrowBack,
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        contentDescription = "Settings",
+                        modifier = Modifier
+                            .height(32.dp)
+                            .size(32.dp)
+                    )
+                }
+            }
         }
         Divider(
             modifier = Modifier.padding(12.dp,56.dp,12.dp,0.dp),

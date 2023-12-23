@@ -27,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -150,12 +149,12 @@ class MainActivity : ComponentActivity() {
                         unselectedIcon = ImageVector.vectorResource(R.drawable.placeholder),
                         screenRoute = "playlist_screen"
                     ),
-                    BottomNavigationItem(
+                    /*BottomNavigationItem(
                         title = "Settings",
                         selectedIcon = Icons.Rounded.Settings,
                         unselectedIcon = Icons.Outlined.Settings,
                         screenRoute = "setting_screen"
-                    )
+                    )*/
                 )
                 var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
                 val scaffoldState = rememberBottomSheetScaffoldState()

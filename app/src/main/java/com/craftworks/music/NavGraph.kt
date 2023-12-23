@@ -1,7 +1,10 @@
 package com.craftworks.music
 
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -27,12 +30,20 @@ fun SetupNavGraph(
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
         modifier = Modifier.padding(top = 32.dp, bottom = (72.dp + /* Stupid PaddingValues Error. */ (paddingValues.calculateBottomPadding() * 0)) ),
-        enterTransition = { fadeIn() },
-        exitTransition = { fadeOut() }
+        enterTransition = {
+            slideInVertically(animationSpec = tween(durationMillis = 200)) { fullHeight ->
+                -fullHeight / 4
+            } + fadeIn(animationSpec = tween(durationMillis = 200))
+        },
+        exitTransition = {
+            slideOutVertically(animationSpec = tween(durationMillis = 200)) { fullHeight ->
+                -fullHeight / 4
+            } + fadeOut(animationSpec = tween(durationMillis = 200))
+        }
     )
     {
         composable(route = Screen.Home.route) {
-            HomeScreen()
+            HomeScreen(navController)
         }
         composable(route = Screen.Song.route) {
             SongsScreen()
@@ -44,7 +55,7 @@ fun SetupNavGraph(
             PlaylistScreen()
         }
         composable(route = Screen.Setting.route) {
-            SettingScreen()
+            SettingScreen(navController)
         }
     }
 }

@@ -4,16 +4,10 @@ import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -71,24 +64,6 @@ fun PlaylistScreen() {
                 fontWeight = FontWeight.Bold,
                 fontSize = MaterialTheme.typography.headlineLarge.fontSize
             )
-            Spacer(modifier = Modifier.weight(1f))
-            Button(
-                onClick = { showAddDialog.value = true },
-                shape = CircleShape,
-                modifier = Modifier.size(48.dp),
-                contentPadding = PaddingValues(2.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-            ) {
-                // Inner content including an icon and a text label
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.rounded_add_24),
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    contentDescription = "Previous Song",
-                    modifier = Modifier
-                        .height(32.dp)
-                        .size(32.dp)
-                )
-            }
         }
         Divider(
             modifier = Modifier.padding(12.dp,56.dp,12.dp,0.dp),
