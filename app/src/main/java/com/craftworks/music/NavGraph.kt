@@ -56,7 +56,7 @@ fun SetupNavGraph(
             PlaylistScreen(navController)
         }
         composable(route = Screen.PlaylistDetails.route) {
-            PlaylistDetails()
+            PlaylistDetails(navController)
         }
         composable(route = Screen.Setting.route) {
             SettingScreen(navController)
