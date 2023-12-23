@@ -75,6 +75,7 @@ var sliderPos = mutableIntStateOf(0)
 var mediaFolder = mutableStateOf("/Music/")
 
 object playingSong{
+    var selectedList:List<Song> = emptyList()
     var selectedSong by mutableStateOf<Song?>(Song(title = "Song Title", artist = "Song Artist", duration = 0, imageUrl = Uri.EMPTY, dateAdded = "", year = "2023", album = "Album"))
 }
 

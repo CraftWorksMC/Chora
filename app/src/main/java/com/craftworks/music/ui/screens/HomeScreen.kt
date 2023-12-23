@@ -108,9 +108,11 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
+            val recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
             /* SONGS ROW */
-            SongsRow(songsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10), onSongSelected = { song ->
+            SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
+                playingSong.selectedList = recentlyPlayedSongsList
                 songState = true
             })
         }
@@ -129,10 +131,11 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-
+            val recentSongsList = remember { songsList.sortedByDescending { song: Song -> song.dateAdded } }
             /* SONGS ROW */
-            SongsRow(songsList = remember { songsList.sortedByDescending { song: Song -> song.dateAdded } }, onSongSelected = { song ->
+            SongsRow(songsList = recentSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
+                playingSong.selectedList = recentSongsList
                 songState = true
             })
         }
@@ -150,10 +153,11 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-
+            val mostPlayedList = remember { songsList.sortedByDescending { song: Song -> song.timesPlayed } }
             /* SONGS ROW */
-            SongsRow(songsList = remember { songsList.sortedByDescending { song: Song -> song.timesPlayed } }, onSongSelected = { song ->
+            SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
                 playingSong.selectedSong = song
+                playingSong.selectedList = mostPlayedList
                 songState = true
             })
         }
@@ -171,9 +175,11 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
+            val shuffledSongsList = songsList.take(10).shuffled()
             /* SONGS ROW */
-            SongsRow(songsList = songsList.take(10).shuffled(), onSongSelected = { song ->
+            SongsRow(songsList = shuffledSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
+                playingSong.selectedList = shuffledSongsList
                 songState = true
             })
         }

@@ -176,11 +176,25 @@ fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: Mutable
             playlistCover = if (attribute.nodeName == "coverArt") Uri.parse("${navidromeServerIP.value}/rest/getCoverArt.view?id=${attribute.textContent}&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora") else playlistCover
             if (attribute.nodeName == "title") Log.d("NAVIDROME", "Added Playlist: ${attribute.textContent}")
         }
+        // GET PLAYLIST SONGS
+        var playlistSongs:MutableList<Song> = mutableListOf()
+        val playlistSongsURL = URL("${navidromeServerIP.value}/rest/getPlaylist.view?id=${playlistID}&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+        with(playlistSongsURL.openConnection() as HttpURLConnection) {
+            requestMethod = "GET"  // optional default is GET
+
+            Log.d("GET","\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+
+            inputStream.bufferedReader().use {
+                parseSongXML(it, "/subsonic-response/playlist/entry", playlistSongs)
+            }
+        }
+
 
         playlistList.add(Playlist(
             name = playlistName,
             coverArt = playlistCover,
             navidromeID = playlistID,
+            songs = playlistSongs
         ))
     }
 }

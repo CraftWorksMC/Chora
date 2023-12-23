@@ -61,7 +61,7 @@ class SongHelper {
         fun previousSong(song: Song){
             Log.d("MEDIAPLAYER", "Skipping to previous song")
 
-            val currentSongIndex = songsList.indexOfFirst{it.media == playingSong.selectedSong?.media}
+            val currentSongIndex = playingSong.selectedList.indexOfFirst{it.media == playingSong.selectedSong?.media}
 
             if (repeatSong.value){
                 mediaPlayer?.seekTo(0)
@@ -69,14 +69,14 @@ class SongHelper {
             }
 
             if (shuffleSongs.value
-                && songsList.size > 0){
-                playingSong.selectedSong = songsList[(0..songsList.size - 1).random()]
+                && playingSong.selectedList.size > 0){
+                playingSong.selectedSong = playingSong.selectedList[(0..playingSong.selectedList.size - 1).random()]
             }
             // Play Previous only if there is actually a song behind, and not shuffling or repeating.
             if ( (currentSongIndex - 1) >= 0
                 && !repeatSong.value
                 && !shuffleSongs.value){
-                playingSong.selectedSong = songsList[currentSongIndex - 1]
+                playingSong.selectedSong = playingSong.selectedList[currentSongIndex - 1]
             }
             stopStream()
             sliderPos.intValue = 0
@@ -89,19 +89,19 @@ class SongHelper {
         fun nextSong(song: Song){
             Log.d("MEDIAPLAYER", "Skipping to next song")
 
-            val currentSongIndex = songsList.indexOfFirst{it.media == playingSong.selectedSong?.media}
+            val currentSongIndex = playingSong.selectedList.indexOfFirst{it.media == playingSong.selectedSong?.media}
 
             if (repeatSong.value){
                 mediaPlayer?.seekTo(0)
                 mediaPlayer?.start()
             }
             if (shuffleSongs.value
-                && songsList.size > 0)
-                playingSong.selectedSong = songsList[(0..songsList.size - 1).random()]
-            if (currentSongIndex < songsList.size-1
+                && playingSong.selectedList.size > 0)
+                playingSong.selectedSong = playingSong.selectedList[(0..playingSong.selectedList.size - 1).random()]
+            if (currentSongIndex < playingSong.selectedList.size-1
                 && !repeatSong.value
                 && !shuffleSongs.value)
-                playingSong.selectedSong = songsList[currentSongIndex + 1]
+                playingSong.selectedSong = playingSong.selectedList[currentSongIndex + 1]
             stopStream()
             sliderPos.intValue = 0
             songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"

@@ -57,8 +57,10 @@ fun SongsScreen() {
         )
 
         Column(modifier = Modifier.padding(0.dp,64.dp,0.dp,0.dp)) {
-            SongsHorizontalColumn(songsList = remember { songsList.sortedBy { song: Song -> song.title } }, onSongSelected = { song ->
+            val allSongsList = remember { songsList.sortedBy { song: Song -> song.title } }
+            SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
+                playingSong.selectedList = allSongsList
                 songState = true })
         }
     }

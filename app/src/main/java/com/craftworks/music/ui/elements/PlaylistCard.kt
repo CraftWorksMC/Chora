@@ -29,7 +29,7 @@ import com.craftworks.music.data.Playlist
 @Composable
 fun PlaylistCard(playlist: Playlist, onClick: () -> Unit){
     Card(
-        onClick = {  },
+        onClick = { onClick() },
         modifier = Modifier.padding(12.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(

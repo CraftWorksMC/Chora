@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.elements
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -124,15 +125,17 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
 
 @ExperimentalFoundationApi
 @Composable
-fun PlaylistGrid(playlists: List<Playlist>, onSongSelected: (song: Song) -> Unit){
-    var isSongSelected by remember { mutableStateOf(false) }
+fun PlaylistGrid(playlists: List<Playlist>, onPlaylistSelected: (playlist: Playlist) -> Unit){
     LazyVerticalGrid(
         columns = GridCells.FixedSize(152.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         items(playlists) {playlist ->
-            PlaylistCard(playlist = playlist) {
-            }
+            PlaylistCard(playlist = playlist,
+                onClick = {
+                    onPlaylistSelected(playlist)
+                    Log.d("PLAYLISTS", "CLICKED PLAYLIST!")
+                })
         }
     }
 }
