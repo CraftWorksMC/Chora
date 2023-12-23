@@ -10,6 +10,7 @@ Chora is a simple, light-weight app that streams music from a Subsonic or Navidr
     Internet Radio.
     Transcoding Support. [TODO]
     Synced And Unsynced Lyrics [From LRCLIB.net]
+    Playlists [From Navidrome/Subsonic. Local Creation Not Yet Supported.]
 
 ## Screenshots
 
