@@ -12,7 +12,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 
-var SyncedLyric = mutableStateListOf<Lyric>(Lyric(0, "Getting Lyrics... \n No Lyrics Found", false))
+var SyncedLyric = mutableStateListOf(Lyric(0, "Getting Lyrics... \n No Lyrics Found", false))
 object songLyrics{
     var SongLyrics by mutableStateOf("Getting Lyrics... \n No Lyrics Found")
 }

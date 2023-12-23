@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.craftworks.music.data.Screen
 import com.craftworks.music.ui.screens.HomeScreen
+import com.craftworks.music.ui.screens.PlaylistScreen
 import com.craftworks.music.ui.screens.RadioScreen
 import com.craftworks.music.ui.screens.SettingScreen
 import com.craftworks.music.ui.screens.SongsScreen
@@ -38,6 +39,9 @@ fun SetupNavGraph(
         }
         composable(route = Screen.Radio.route) {
             RadioScreen()
+        }
+        composable(route = Screen.Playlists.route) {
+            PlaylistScreen()
         }
         composable(route = Screen.Setting.route) {
             SettingScreen()

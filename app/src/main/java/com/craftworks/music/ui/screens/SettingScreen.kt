@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
 import com.craftworks.music.getSongsOnDevice
 import com.craftworks.music.mediaFolder
+import com.craftworks.music.navidrome.getNavidromePlaylists
 import com.craftworks.music.navidrome.getNavidromeSongs
 import com.craftworks.music.navidrome.navidromePassword
 import com.craftworks.music.navidrome.navidromeServerIP
@@ -284,7 +285,8 @@ class saveManager(private val context: Context){
 
         if (useNavidromeServer.value && (navidromeUsername.value != "" || navidromePassword.value !="" || navidromeServerIP.value != ""))
             try {
-                getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=musicApp"))
+                getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora"))
+                getNavidromePlaylists()
             } catch (_: Exception){
                 // DO NOTHING
             }

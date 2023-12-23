@@ -3,8 +3,10 @@ package com.craftworks.music.navidrome
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Song
 import com.craftworks.music.songsList
+import com.craftworks.music.ui.screens.playlistList
 import com.craftworks.music.ui.screens.useNavidromeServer
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
@@ -41,7 +43,7 @@ fun getNavidromeSongs(url: URL){
                 Log.d("GET","\nSent 'GET' request to URL : $url; Response Code : $responseCode")
 
                 inputStream.bufferedReader().use {
-                    parseXml(it, "/subsonic-response/searchResult3/song", songsList)
+                    parseSongXML(it, "/subsonic-response/searchResult3/song", songsList)
                 }
             }
         } catch (e: Exception) {
@@ -51,7 +53,34 @@ fun getNavidromeSongs(url: URL){
     thread.start()
 }
 
-fun parseXml(input: BufferedReader, xpath: String, songList: MutableList<Song>){
+@Throws(XmlPullParserException::class, IOException::class)
+fun getNavidromePlaylists(){
+    if (navidromeUsername.value == "" ||
+        navidromePassword.value == "") return
+
+    val thread = Thread {
+        try {
+            val url = URL("${navidromeServerIP.value}/rest/getPlaylists.view?&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+
+            playlistList.clear()
+
+            with(url.openConnection() as HttpURLConnection) {
+                requestMethod = "GET"  // optional default is GET
+
+                Log.d("GET","\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+
+                inputStream.bufferedReader().use {
+                    parsePlaylistXML(it, "/subsonic-response/playlists/playlist", playlistList)
+                }
+            }
+        } catch (e: Exception) {
+            Log.d("Exception", e.toString())
+        }
+    }
+    thread.start()
+}
+
+fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Song>){
     val dbFactory = DocumentBuilderFactory.newInstance()
     val dBuilder = dbFactory.newDocumentBuilder()
     val xmlInput = InputSource(StringReader(input.readText()))
@@ -115,6 +144,43 @@ fun parseXml(input: BufferedReader, xpath: String, songList: MutableList<Song>){
             bitrate = songBitrate,
             dateAdded = songDateAdded,
             lastPlayed = songLastPlayed
+        ))
+    }
+}
+
+fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: MutableList<Playlist>){
+    val dbFactory = DocumentBuilderFactory.newInstance()
+    val dBuilder = dbFactory.newDocumentBuilder()
+    val xmlInput = InputSource(StringReader(input.readText()))
+    val doc = dBuilder.parse(xmlInput)
+
+    val xpFactory = XPathFactory.newInstance()
+    val xPath = xpFactory.newXPath()
+
+    val elementNodeList = xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
+
+    for (a in 0 until elementNodeList.length) {
+
+        val firstElement = elementNodeList.item(a)
+
+        var playlistID = ""
+        var playlistName = ""
+        var playlistCover = Uri.EMPTY
+
+
+        @Suppress("ReplaceRangeToWithUntil")
+        for (i in 0..firstElement.attributes.length - 1) {
+            val attribute = firstElement.attributes.item(i)
+            playlistID = if (attribute.nodeName == "id") attribute.textContent else playlistID
+            playlistName = if (attribute.nodeName == "name") attribute.textContent else playlistName
+            playlistCover = if (attribute.nodeName == "coverArt") Uri.parse("${navidromeServerIP.value}/rest/getCoverArt.view?id=${attribute.textContent}&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora") else playlistCover
+            if (attribute.nodeName == "title") Log.d("NAVIDROME", "Added Playlist: ${attribute.textContent}")
+        }
+
+        playlistList.add(Playlist(
+            name = playlistName,
+            coverArt = playlistCover,
+            navidromeID = playlistID,
         ))
     }
 }

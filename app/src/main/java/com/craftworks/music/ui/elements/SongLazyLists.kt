@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.SongHelper
+import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.SyncedLyric
@@ -50,7 +51,7 @@ fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
                 markSongAsPlayed(song)
                 if (useNavidromeServer.value && (navidromeUsername.value != "" || navidromePassword.value !="" || navidromeServerIP.value != "")){
                     try {
-                        getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=musicApp"))
+                        getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora"))
                     } catch (_: Exception){
                         // DO NOTHING
                     }
@@ -79,7 +80,7 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
                 markSongAsPlayed(song)
                 if (useNavidromeServer.value && (navidromeUsername.value != "" || navidromePassword.value !="" || navidromeServerIP.value != "")){
                     try {
-                        getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=musicApp"))
+                        getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora"))
                     } catch (_: Exception){
                         // DO NOTHING
                     }
@@ -94,7 +95,7 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
 fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 128.dp),
+        columns = GridCells.FixedSize(128.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         items(radioList) {radio ->
@@ -117,6 +118,21 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
                 onSongSelected(song)
                 SongLyrics = "No Lyrics For Internet Radio"
             })
+        }
+    }
+}
+
+@ExperimentalFoundationApi
+@Composable
+fun PlaylistGrid(playlists: List<Playlist>, onSongSelected: (song: Song) -> Unit){
+    var isSongSelected by remember { mutableStateOf(false) }
+    LazyVerticalGrid(
+        columns = GridCells.FixedSize(152.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(playlists) {playlist ->
+            PlaylistCard(playlist = playlist) {
+            }
         }
     }
 }
