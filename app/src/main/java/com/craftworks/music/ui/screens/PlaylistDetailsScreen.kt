@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -29,6 +30,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -53,7 +55,7 @@ fun PlaylistDetails(navHostController: NavHostController = rememberNavController
         .padding(start = leftPadding)) {
         Box (modifier = Modifier
             .padding(horizontal = 12.dp)
-            .height(192.dp)
+            .height(128.dp)
             .fillMaxWidth()) {
             AsyncImage(
                 model = selectedPlaylist?.coverArt,
@@ -65,21 +67,25 @@ fun PlaylistDetails(navHostController: NavHostController = rememberNavController
                     .fillMaxWidth()
                     .fadingEdge(imageFadingEdge)
                     .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
-                    .alpha(0.85f)
+                    .blur(8.dp)
+                    .alpha(0.75f)
             )
             selectedPlaylist?.name?.let {
                 Text(
                     text = it,
                     color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                    modifier = Modifier.align(Alignment.BottomCenter)
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
             Button(
                 onClick = { navHostController.navigate(Screen.Playlists.route) },
                 shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.padding(top = 12.dp, start = 12.dp).size(32.dp),
+                modifier = Modifier
+                    .padding(top = 12.dp, start = 12.dp)
+                    .size(32.dp),
                 contentPadding = PaddingValues(2.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
@@ -94,12 +100,12 @@ fun PlaylistDetails(navHostController: NavHostController = rememberNavController
             }
         }
         Divider(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(12.dp, 0.dp, 12.dp, 0.dp),
             thickness = 2.dp,
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(12.dp, top = 0.dp)) {
             selectedPlaylist?.songs?.let {
                 SongsHorizontalColumn(it, onSongSelected = { song ->
                     playingSong.selectedSong = song

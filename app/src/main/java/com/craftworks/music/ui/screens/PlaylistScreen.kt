@@ -49,7 +49,7 @@ var playlistList:MutableList<Playlist> = mutableStateListOf(
         coverArt = Uri.parse(R.drawable.placeholder.toString()),
         songs = songsList)*/
 )
-var selectedPlaylist by mutableStateOf<Playlist?>(Playlist("My Awesome Playlist", Uri.EMPTY))
+var selectedPlaylist by mutableStateOf<Playlist?>(Playlist("My Very Awesome Playlist With A Long Name", Uri.EMPTY))
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = false)
 @Composable

@@ -53,11 +53,7 @@ import com.craftworks.music.playingSong
 import com.craftworks.music.songState
 import com.craftworks.music.ui.elements.RadiosGrid
 
-var radioList:MutableList<Radio> = mutableStateListOf(Radio(
-    imageUrl = Uri.parse("https://upload.wikimedia.org/wikipedia/commons/b/b1/TruckersFM_Logo.png"),
-    "Truckers FM",
-    media = Uri.parse("https://radio.truckers.fm")))
-
+var radioList:MutableList<Radio> = mutableStateListOf()
 var showAddDialog = mutableStateOf(false)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)
