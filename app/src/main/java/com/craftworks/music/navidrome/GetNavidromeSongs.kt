@@ -345,3 +345,62 @@ fun extractNavidromeSongName(contentDisposition: String?): String? {
 
     return fileName
 }
+
+fun createNavidromeRadioStation(name:String, url:String, homePage:String){
+    if (navidromeUsername.value == "" ||
+        navidromePassword.value == "") return
+
+    val thread = Thread {
+        try {
+            Log.d("useNavidromeServer", "URL: $url")
+
+            val navidromeUrl = URL("${navidromeServerIP.value}/rest/createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+
+            with(navidromeUrl.openConnection() as HttpURLConnection) {
+                requestMethod = "GET"  // optional default is GET
+                Log.d("GET","\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+            }
+        } catch (e: Exception) {
+            Log.d("Exception", e.toString())
+        }
+    }
+    thread.start()
+}
+fun deleteNavidromeRadioStation(id:String){
+    if (navidromeUsername.value == "" ||
+        navidromePassword.value == "") return
+
+    val thread = Thread {
+        try {
+            val navidromeUrl = URL("${navidromeServerIP.value}/rest/deleteInternetRadioStation.view?id=$id&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+
+            with(navidromeUrl.openConnection() as HttpURLConnection) {
+                requestMethod = "GET"  // optional default is GET
+                Log.d("GET","\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+            }
+        } catch (e: Exception) {
+            Log.d("Exception", e.toString())
+        }
+    }
+    thread.start()
+}
+fun modifyNavidromeRadoStation(id:String, name:String, url:String, homePage:String){
+    if (navidromeUsername.value == "" ||
+        navidromePassword.value == "") return
+
+    val thread = Thread {
+        try {
+            val navidromeUrl = URL("${navidromeServerIP.value}/rest/updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&id=$id&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+
+            with(navidromeUrl.openConnection() as HttpURLConnection) {
+                requestMethod = "GET"  // optional default is GET
+                Log.d("GET","\nSent 'GET' request to URL : $navidromeUrl; Response Code : $responseCode")
+            }
+
+            getNavidromeRadios()
+        } catch (e: Exception) {
+            Log.d("Exception", e.toString())
+        }
+    }
+    thread.start()
+}

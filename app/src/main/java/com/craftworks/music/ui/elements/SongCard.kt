@@ -3,6 +3,8 @@ package com.craftworks.music.ui.elements
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,13 +33,22 @@ import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Song
 import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.ui.screens.radioList
+import com.craftworks.music.ui.screens.selectedRadioIndex
+import com.craftworks.music.ui.screens.showRadioModifyDialog
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongsCard(song: Song, onClick: () -> Unit){
                 Card(
-                    onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
-                    modifier = Modifier.padding(12.dp, 48.dp, 0.dp, 0.dp),
+                    modifier = Modifier
+                        .padding(12.dp, 48.dp, 0.dp, 0.dp)
+                        .combinedClickable(
+                            onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
+                            onLongClick = { if (song.isRadio == false) return@combinedClickable
+                                showRadioModifyDialog.value = true
+                                selectedRadioIndex.intValue = radioList.indexOf(radioList.firstOrNull { it.name == song.title && it.media == song.media }) },
+                            onLongClickLabel = "Modify Radio"),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.background,
