@@ -1,14 +1,18 @@
 package com.craftworks.music
 
 import android.content.Context
+import android.content.Context.WIFI_SERVICE
 import android.media.MediaPlayer
 import android.net.Uri
+import android.net.wifi.WifiManager
+import android.os.PowerManager
 import android.util.Log
 import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.lyrics.songLyrics
 import com.craftworks.music.navidrome.markSongAsPlayed
+import com.craftworks.music.ui.screens.useNavidromeServer
 import kotlin.math.abs
 
 class SongHelper {
@@ -28,6 +32,7 @@ class SongHelper {
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(context, url)
                 prepareAsync()
+                setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK)
             }
             mediaPlayer?.setOnPreparedListener { mediaPlayer ->
                 mediaPlayer.seekTo(currentPosition)
@@ -35,6 +40,12 @@ class SongHelper {
             }
             mediaPlayer?.setOnCompletionListener { _ ->
                 onPlayerComplete()
+            }
+
+            if (useNavidromeServer.value){
+                val wifiManager = context.applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
+                val wifiLock: WifiManager.WifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "Navidrome Lock")
+                wifiLock.acquire()
             }
         }
 
@@ -68,8 +79,7 @@ class SongHelper {
                 mediaPlayer?.start()
             }
 
-            if (shuffleSongs.value
-                && playingSong.selectedList.size > 0){
+            if (shuffleSongs.value && playingSong.selectedList.isNotEmpty()){
                 playingSong.selectedSong = playingSong.selectedList[(0..playingSong.selectedList.size - 1).random()]
             }
             // Play Previous only if there is actually a song behind, and not shuffling or repeating.
@@ -95,8 +105,7 @@ class SongHelper {
                 mediaPlayer?.seekTo(0)
                 mediaPlayer?.start()
             }
-            if (shuffleSongs.value
-                && playingSong.selectedList.size > 0)
+            if (shuffleSongs.value && playingSong.selectedList.isNotEmpty())
                 playingSong.selectedSong = playingSong.selectedList[(0..playingSong.selectedList.size - 1).random()]
             if (currentSongIndex < playingSong.selectedList.size-1
                 && !repeatSong.value

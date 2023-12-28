@@ -90,7 +90,6 @@ fun RadioScreen() {
                 contentPadding = PaddingValues(2.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
-                // Inner content including an icon and a text label
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.rounded_add_24),
                     tint = MaterialTheme.colorScheme.onBackground,
@@ -120,6 +119,7 @@ fun RadioScreen() {
         ModifyRadioDialog(setShowDialog = { showRadioModifyDialog.value = it }, radio = radioList[selectedRadioIndex.intValue])
 }
 
+// DIALOGS
 @Composable
 fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
     var radioName by remember { mutableStateOf("") }

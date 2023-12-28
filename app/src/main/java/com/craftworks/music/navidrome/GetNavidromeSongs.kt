@@ -12,6 +12,7 @@ import com.craftworks.music.songsList
 import com.craftworks.music.ui.screens.playlistList
 import com.craftworks.music.ui.screens.radioList
 import com.craftworks.music.ui.screens.useNavidromeServer
+import com.craftworks.music.ui.screens.username
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import org.xmlpull.v1.XmlPullParserException
@@ -48,6 +49,11 @@ fun getNavidromeSongs(url: URL){
                 requestMethod = "GET"  // optional default is GET
 
                 Log.d("GET","\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+
+                //Set Username To Navidrome Login Username.
+                if (responseCode == 200){
+                    username.value = navidromeUsername.value
+                }
 
                 inputStream.bufferedReader().use {
                     parseSongXML(it, "/subsonic-response/searchResult3/song", songsList)

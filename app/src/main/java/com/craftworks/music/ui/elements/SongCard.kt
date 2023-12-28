@@ -4,6 +4,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,10 +47,14 @@ fun SongsCard(song: Song, onClick: () -> Unit){
                         .padding(12.dp, 48.dp, 0.dp, 0.dp)
                         .combinedClickable(
                             onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
-                            onLongClick = { if (song.isRadio == false) return@combinedClickable
+                            onLongClick = {
+                                if (song.isRadio == false) return@combinedClickable
                                 showRadioModifyDialog.value = true
-                                selectedRadioIndex.intValue = radioList.indexOf(radioList.firstOrNull { it.name == song.title && it.media == song.media }) },
-                            onLongClickLabel = "Modify Radio"),
+                                selectedRadioIndex.intValue =
+                                    radioList.indexOf(radioList.firstOrNull { it.name == song.title && it.media == song.media })
+                            },
+                            onLongClickLabel = "Modify Radio"
+                        ),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.background,
@@ -64,7 +70,10 @@ fun SongsCard(song: Song, onClick: () -> Unit){
                     ) {
 
                         AsyncImage(
-                            model = song.imageUrl,
+                            model =
+                            if (song.imageUrl == Uri.EMPTY && song.isRadio == true)
+                                R.drawable.rounded_cell_tower_24
+                            else song.imageUrl,
                             placeholder = painterResource(R.drawable.placeholder),
                             fallback = painterResource(R.drawable.placeholder),
                             contentScale = ContentScale.FillHeight,
@@ -73,6 +82,7 @@ fun SongsCard(song: Song, onClick: () -> Unit){
                                 .height(128.dp)
                                 .width(128.dp)
                                 .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp))
                         )
 
                         Spacer(modifier = Modifier.height(4.dp))
@@ -134,7 +144,10 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            Column (Modifier.padding(end = 12.dp).weight(1f)) {
+            Column (
+                Modifier
+                    .padding(end = 12.dp)
+                    .weight(1f)) {
                 Text(
                     text = song.title,
                     style = MaterialTheme.typography.titleLarge,

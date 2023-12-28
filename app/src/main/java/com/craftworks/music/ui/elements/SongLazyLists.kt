@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.elements
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
@@ -101,7 +102,7 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
     ) {
         items(radioList) {radio ->
             val song = Song(
-                imageUrl = radio.imageUrl,
+                imageUrl = if (radio.imageUrl == Uri.EMPTY) radio.imageUrl else Uri.EMPTY,
                 title = radio.name,
                 media = radio.media,
                 artist = "Internet Radio",

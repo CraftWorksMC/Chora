@@ -411,7 +411,7 @@ fun NowPlayingContent(
                                 ) {
                                     // Inner content including an icon and a text label
                                     Icon(
-                                        imageVector = ImageVector.vectorResource(R.drawable.icons8_apple_music_lyrics),
+                                        imageVector = ImageVector.vectorResource(R.drawable.round_lyrics_24),
                                         tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                                         contentDescription = "View Lyrics",
                                         modifier = Modifier
@@ -652,7 +652,7 @@ fun NowPlayingContent(
                                     ) {
                                         // Inner content including an icon and a text label
                                         Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.icons8_apple_music_lyrics),
+                                            imageVector = ImageVector.vectorResource(R.drawable.round_lyrics_24),
                                             tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                                             contentDescription = "View Lyrics",
                                             modifier = Modifier

@@ -305,6 +305,7 @@ class MainActivity : ComponentActivity() {
             override fun onActivityDestroyed(activity: Activity) {
             }
         })
+
     }
 }
 @Composable
