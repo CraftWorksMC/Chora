@@ -66,6 +66,7 @@ import java.net.URL
 
 var username = mutableStateOf("Username")
 var useBlurredBackground = mutableStateOf(true)
+var useMovingBackground = mutableStateOf(false)
 var showMoreInfo = mutableStateOf(true)
 var useNavidromeServer = mutableStateOf(false)
 

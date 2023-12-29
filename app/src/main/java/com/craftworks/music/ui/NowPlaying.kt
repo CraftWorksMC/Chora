@@ -3,10 +3,19 @@ package com.craftworks.music.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Matrix
 import android.net.Uri
+import android.provider.MediaStore
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -38,11 +48,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -54,12 +67,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.LinearGradientShader
+import androidx.compose.ui.graphics.Shader
+import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -72,6 +93,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
@@ -91,6 +113,7 @@ import com.craftworks.music.sliderPos
 import com.craftworks.music.songState
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.useBlurredBackground
+import com.craftworks.music.ui.screens.useMovingBackground
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -132,6 +155,76 @@ fun NowPlayingContent(
                     .fillMaxSize()
                     .blur(128.dp)
                     .alpha(0.5f))
+        }
+        /* MOVING BLURRED BACKGROUND */
+        if (useMovingBackground.value){
+            Surface(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                var size by remember { mutableStateOf(Size.Zero) }
+
+                if (song.imageUrl == Uri.EMPTY) return@Surface;
+
+                val palette = Palette.from(MediaStore.Images.Media.getBitmap(context.contentResolver, song.imageUrl)).generate()
+
+                val shaderA = LinearGradientShader(
+                    Offset(size.width / 2f, 0f),
+                    Offset(size.width / 2f, size.height),
+                    listOf(
+                        Color(palette.getMutedColor(0)),
+                        Color(palette.getVibrantColor(0)),
+                    ),
+                    listOf(0f, 1f)
+                )
+
+                val shaderB = LinearGradientShader(
+                    Offset(size.width / 2f, 0f),
+                    Offset(size.width / 2f, size.height),
+                    listOf(
+                        Color(palette.getDarkMutedColor(0)),
+                        Color(palette.getDarkVibrantColor(0)),
+                    ),
+                    listOf(0f, 1f)
+                )
+                val shaderMask = LinearGradientShader(
+                    Offset(size.width / 2f, 0f),
+                    Offset(size.width / 2f, size.height),
+                    listOf(
+                        Color.White,
+                        Color.Transparent,
+                    ),
+                    listOf(0f, 1f)
+                )
+
+                val brushA by animateBrushRotation(shaderA, size, 20_000, true)
+                val brushB by animateBrushRotation(shaderB, size, 12_000, false)
+                val brushMask by animateBrushRotation(shaderMask, size, 15_000, true)
+
+                Box(
+                    modifier = Modifier
+                        .requiredSize(300.dp)
+                        .onSizeChanged {
+                            size = Size(it.width.toFloat(), it.height.toFloat())
+                        }
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, Color.White, RoundedCornerShape(16.dp))
+                        .drawBehind {
+                            drawRect(brushA)
+                            drawRect(brushMask, blendMode = BlendMode.DstOut)
+                            drawRect(brushB, blendMode = BlendMode.DstAtop)
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .border(1.dp, Color.White, RoundedCornerShape(4.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        text = "FLUID",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Light
+                    )
+                }
+            }
         }
 
         val miniPlayerAlpha: Float by animateFloatAsState(if (scaffoldState!!.bottomSheetState.targetValue == SheetValue.Expanded) 0f else 1f,
@@ -224,9 +317,6 @@ fun NowPlayingContent(
                 Spacer(modifier = Modifier.width(12.dp))
             }
         }
-
-
-
         /* EXPANDED-PLAYER UI */
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
             // VERTICAL PHONES
@@ -464,7 +554,9 @@ fun NowPlayingContent(
                         }
                     }
                     },
-                    modifier = Modifier.offset(y = -(48).dp).alpha(1 - miniPlayerAlpha),
+                    modifier = Modifier
+                        .offset(y = -(48).dp)
+                        .alpha(1 - miniPlayerAlpha),
                     enabled = scaffoldState?.bottomSheetState?.currentValue == SheetValue.Expanded
                 ) {
                     Icon(
@@ -1078,3 +1170,30 @@ fun LandscapeLyricsView() {
 
 }
 
+@Composable
+fun animateBrushRotation(
+    shader: Shader,
+    size: Size,
+    duration: Int,
+    clockwise: Boolean
+): State<ShaderBrush> {
+    val infiniteTransition = rememberInfiniteTransition(label = "Animated Blurred Background")
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f * if (clockwise) 1f else -1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(duration, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ), label = "Blur Animation"
+    )
+
+    return remember(shader, size) {
+        derivedStateOf {
+            val matrix = Matrix().apply {
+                postRotate(angle, size.width / 2, size.height / 2)
+            }
+            shader.setLocalMatrix(matrix)
+            ShaderBrush(shader)
+        }
+    }
+}
