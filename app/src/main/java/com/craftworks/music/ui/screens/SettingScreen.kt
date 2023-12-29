@@ -22,6 +22,7 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -71,6 +72,7 @@ var showMoreInfo = mutableStateOf(true)
 var useNavidromeServer = mutableStateOf(false)
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
 )
@@ -154,8 +156,22 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start
                     )
-                    Switch(checked = useBlurredBackground.value, onCheckedChange = { useBlurredBackground.value = it })
+                    Switch(checked = useBlurredBackground.value, onCheckedChange = { useBlurredBackground.value = it; useMovingBackground.value = false })
                 }
+                /* USE MOVING BACKGROUND */
+                Row (verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Use Animated Background",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start
+                    )
+                    Switch(checked = useMovingBackground.value, onCheckedChange = { useMovingBackground.value = it; useBlurredBackground.value = false })
+                }
+
                 /* SHOW MORE SONG INFO */
                 Row (verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -304,6 +320,7 @@ class saveManager(private val context: Context){
 
         sharedPreferences.edit().putString("username", username.value).apply()
         sharedPreferences.edit().putBoolean("useBlurredBackground", useBlurredBackground.value).apply()
+        sharedPreferences.edit().putBoolean("useMovingBackground", useMovingBackground.value).apply()
         sharedPreferences.edit().putBoolean("showMoreInfo", showMoreInfo.value).apply()
     }
 
@@ -327,7 +344,8 @@ class saveManager(private val context: Context){
 
         /* PREFERENCES */
         username.value = sharedPreferences.getString("username", "Username") ?: "Username"
-        useBlurredBackground.value = sharedPreferences.getBoolean("useBlurredBackground", true)
+        useBlurredBackground.value = sharedPreferences.getBoolean("useBlurredBackground", false)
+        useMovingBackground.value = sharedPreferences.getBoolean("useMovingBackground", true)
         showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
 
         Log.d("LOAD", "Loaded Settings!")
