@@ -65,8 +65,8 @@ import com.craftworks.music.songsList
 import java.net.URL
 
 var username = mutableStateOf("Username")
-var useBlurredBackground = mutableStateOf(true)
-var useMovingBackground = mutableStateOf(false)
+var useBlurredBackground = mutableStateOf(false)
+var useMovingBackground = mutableStateOf(true)
 var showMoreInfo = mutableStateOf(true)
 var useNavidromeServer = mutableStateOf(false)
 

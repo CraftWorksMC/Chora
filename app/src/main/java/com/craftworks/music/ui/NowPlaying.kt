@@ -3,7 +3,9 @@ package com.craftworks.music.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.compose.animation.Crossfade
@@ -14,8 +16,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +31,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -67,7 +68,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -94,7 +94,10 @@ import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.palette.graphics.Palette
+import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Song
@@ -114,6 +117,7 @@ import com.craftworks.music.songState
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.useBlurredBackground
 import com.craftworks.music.ui.screens.useMovingBackground
+import com.craftworks.music.ui.screens.useNavidromeServer
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -156,16 +160,28 @@ fun NowPlayingContent(
                     .blur(128.dp)
                     .alpha(0.5f))
         }
-        /* MOVING BLURRED BACKGROUND */
+
+        /* MOVING BLURRED BACKGROUND
+        * BASED ON: https://gist.github.com/KlassenKonstantin/d5f6ed1d74b3ddbdca699d66c6b9a3b2 */
         if (useMovingBackground.value){
             Surface(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                color = Color.Transparent
             ) {
                 var size by remember { mutableStateOf(Size.Zero) }
 
-                if (song.imageUrl == Uri.EMPTY) return@Surface;
+                if (playingSong.selectedSong?.imageUrl == Uri.EMPTY) return@Surface;
 
-                val palette = Palette.from(MediaStore.Images.Media.getBitmap(context.contentResolver, song.imageUrl)).generate()
+                var bitmap by remember { mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))}
+                LaunchedEffect(playingSong.selectedSong?.imageUrl){
+                    bitmap =
+                        if (useNavidromeServer.value)
+                            getNavidromeBitmap(context)
+                        else
+                            MediaStore.Images.Media.getBitmap(context.contentResolver, playingSong.selectedSong?.imageUrl);
+                }
+
+                val palette = Palette.from(bitmap).generate()
 
                 val shaderA = LinearGradientShader(
                     Offset(size.width / 2f, 0f),
@@ -202,27 +218,17 @@ fun NowPlayingContent(
 
                 Box(
                     modifier = Modifier
-                        .requiredSize(300.dp)
+                        .fillMaxSize()
                         .onSizeChanged {
                             size = Size(it.width.toFloat(), it.height.toFloat())
-                        }
-                        .clip(RoundedCornerShape(16.dp))
-                        .border(1.dp, Color.White, RoundedCornerShape(16.dp))
-                        .drawBehind {
-                            drawRect(brushA)
-                            drawRect(brushMask, blendMode = BlendMode.DstOut)
-                            drawRect(brushB, blendMode = BlendMode.DstAtop)
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        modifier = Modifier
-                            .border(1.dp, Color.White, RoundedCornerShape(4.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        text = "FLUID",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Light
-                    )
+                    Canvas(modifier = Modifier.fillMaxSize().alpha(0.5f)){
+                        drawRect(brushA)
+                        drawRect(brushMask, blendMode = BlendMode.DstOut)
+                        drawRect(brushB, blendMode = BlendMode.DstAtop)
+                    }
                 }
             }
         }
@@ -1196,4 +1202,14 @@ fun animateBrushRotation(
             ShaderBrush(shader)
         }
     }
+}
+
+private suspend fun getNavidromeBitmap(context: Context): Bitmap {
+    val loading = ImageLoader(context)
+    val request = ImageRequest.Builder(context)
+        .data("${navidromeServerIP.value}/rest/getCoverArt.view?&id=${playingSong.selectedSong?.navidromeID}&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+        .build()
+    val result = (loading.execute(request) as SuccessResult).drawable
+    println("GOT NAVIDROME BITMAP!!!")
+    return (result as BitmapDrawable).bitmap.copy(Bitmap.Config.RGBA_F16, true)
 }

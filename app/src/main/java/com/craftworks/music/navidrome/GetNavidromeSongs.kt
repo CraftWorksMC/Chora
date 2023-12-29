@@ -164,7 +164,6 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             songMimeType = if (attribute.nodeName == "suffix") attribute.textContent.uppercase() else songMimeType
             songBitrate = if (attribute.nodeName == "bitRate") attribute.textContent else songBitrate
             songLastPlayed = if (attribute.nodeName == "played") attribute.textContent else songLastPlayed
-            if (attribute.nodeName == "title") Log.d("NAVIDROME", "Added song: ${attribute.textContent}")
         }
 
 
