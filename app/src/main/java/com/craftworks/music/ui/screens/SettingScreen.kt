@@ -22,13 +22,17 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,10 +70,16 @@ import com.craftworks.music.songsList
 import java.net.URL
 
 var username = mutableStateOf("Username")
-var useBlurredBackground = mutableStateOf(false)
-var useMovingBackground = mutableStateOf(true)
 var showMoreInfo = mutableStateOf(true)
 var useNavidromeServer = mutableStateOf(false)
+
+// BACKGROUND TYPES
+val backgroundTypes = listOf(
+    "Plain",
+    "Static Blur",
+    "Animated Blur"
+)
+var backgroundType = mutableStateOf(backgroundTypes[2])
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -145,6 +155,20 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     singleLine = true
                 )
 
+                Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 12.dp)) {
+                    Text(
+                        text = "Background",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start
+                    )
+                    BackgroundDropdown()
+                }
+
+                /*
                 /* USE BLURRED BACKGROUND */
                 Row (verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -170,7 +194,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         textAlign = TextAlign.Start
                     )
                     Switch(checked = useMovingBackground.value, onCheckedChange = { useMovingBackground.value = it; useBlurredBackground.value = false })
-                }
+                }*/
 
                 /* SHOW MORE SONG INFO */
                 Row (verticalAlignment = Alignment.CenterVertically) {
@@ -307,6 +331,52 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BackgroundDropdown() {
+
+    var expanded by remember { mutableStateOf(false) }
+    // menu box
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = {
+            expanded = !expanded
+        },
+        modifier = Modifier.width(192.dp)
+    ) {
+        TextField(
+            modifier = Modifier
+                .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+            readOnly = true,
+            value = backgroundType.value,
+            onValueChange = {},
+            label = { Text("Background Type") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+        )
+
+        // menu
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {
+                expanded = false
+            },
+        ) {
+            // menu items
+            backgroundTypes.forEach { selectionOption ->
+                DropdownMenuItem(
+                    text = { Text(selectionOption) },
+                    onClick = {
+                        backgroundType.value = selectionOption
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
+        }
+    }
+}
+
 
 class saveManager(private val context: Context){
     private val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
@@ -319,8 +389,7 @@ class saveManager(private val context: Context){
         sharedPreferences.edit().putString("navidromePassword", navidromePassword.value).apply()
 
         sharedPreferences.edit().putString("username", username.value).apply()
-        sharedPreferences.edit().putBoolean("useBlurredBackground", useBlurredBackground.value).apply()
-        sharedPreferences.edit().putBoolean("useMovingBackground", useMovingBackground.value).apply()
+        sharedPreferences.edit().putString("backgroundType", backgroundType.value).apply()
         sharedPreferences.edit().putBoolean("showMoreInfo", showMoreInfo.value).apply()
     }
 
@@ -344,8 +413,7 @@ class saveManager(private val context: Context){
 
         /* PREFERENCES */
         username.value = sharedPreferences.getString("username", "Username") ?: "Username"
-        useBlurredBackground.value = sharedPreferences.getBoolean("useBlurredBackground", false)
-        useMovingBackground.value = sharedPreferences.getBoolean("useMovingBackground", true)
+        backgroundType.value = sharedPreferences.getString("backgroundType", "Animated Blur") ?: "Animated Blur"
         showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
 
         Log.d("LOAD", "Loaded Settings!")

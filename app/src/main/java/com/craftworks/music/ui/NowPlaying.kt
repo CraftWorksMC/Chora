@@ -114,9 +114,8 @@ import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
 import com.craftworks.music.songState
+import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
-import com.craftworks.music.ui.screens.useBlurredBackground
-import com.craftworks.music.ui.screens.useMovingBackground
 import com.craftworks.music.ui.screens.useNavidromeServer
 import kotlinx.coroutines.launch
 
@@ -149,8 +148,10 @@ fun NowPlayingContent(
     Box (modifier = Modifier
         .wrapContentHeight()
         .fillMaxWidth()) {
-        /* BLURRED BACKGROUND */
-        if (useBlurredBackground.value){
+
+
+        // BLURRED BACKGROUND
+        if (backgroundType.value == "Static Blur"){
             AsyncImage(
                 model = playingSong.selectedSong?.imageUrl,
                 contentDescription = "Blurred Background",
@@ -161,9 +162,9 @@ fun NowPlayingContent(
                     .alpha(0.5f))
         }
 
-        /* MOVING BLURRED BACKGROUND
-        * BASED ON: https://gist.github.com/KlassenKonstantin/d5f6ed1d74b3ddbdca699d66c6b9a3b2 */
-        if (useMovingBackground.value){
+        // MOVING BLURRED BACKGROUND
+        // BASED ON: https://gist.github.com/KlassenKonstantin/d5f6ed1d74b3ddbdca699d66c6b9a3b2
+        if (backgroundType.value == "Animated Blur"){
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = Color.Transparent
@@ -224,7 +225,7 @@ fun NowPlayingContent(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Canvas(modifier = Modifier.fillMaxSize().alpha(0.5f)){
+                    Canvas(modifier = Modifier.fillMaxSize().alpha(0.75f)){
                         drawRect(brushA)
                         drawRect(brushMask, blendMode = BlendMode.DstOut)
                         drawRect(brushB, blendMode = BlendMode.DstAtop)
@@ -233,6 +234,7 @@ fun NowPlayingContent(
             }
         }
 
+        // ANIMATED VALUES
         val miniPlayerAlpha: Float by animateFloatAsState(if (scaffoldState!!.bottomSheetState.targetValue == SheetValue.Expanded) 0f else 1f,
             label = "Animated Alpha"
         )
