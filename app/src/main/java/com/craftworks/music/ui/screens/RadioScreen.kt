@@ -52,6 +52,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Radio
 import com.craftworks.music.navidrome.createNavidromeRadioStation
 import com.craftworks.music.navidrome.deleteNavidromeRadioStation
+import com.craftworks.music.navidrome.getNavidromeRadios
 import com.craftworks.music.navidrome.modifyNavidromeRadoStation
 import com.craftworks.music.playingSong
 import com.craftworks.music.songState
@@ -66,6 +67,8 @@ var selectedRadioIndex = mutableIntStateOf(0)
 @Composable
 fun RadioScreen() {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
+    if (radioList.isEmpty()) getNavidromeRadios()
+
     /* RADIO ICON + TEXT */
     Box(modifier = Modifier
         .fillMaxWidth()

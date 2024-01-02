@@ -33,28 +33,18 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Screen
+import com.craftworks.music.navidrome.getNavidromePlaylists
 import com.craftworks.music.ui.elements.PlaylistGrid
 
-var playlistList:MutableList<Playlist> = mutableStateListOf(
-    /*Playlist(
-        "My Awesome Playlist",
-        coverArt = Uri.parse(R.drawable.placeholder.toString()),
-        songs = songsList),
-    Playlist(
-        "Second Playlist!",
-        coverArt = Uri.parse(R.drawable.placeholder.toString()),
-        songs = songsList),
-    Playlist(
-        "Second Playlist!",
-        coverArt = Uri.parse(R.drawable.placeholder.toString()),
-        songs = songsList)*/
-)
+var playlistList:MutableList<Playlist> = mutableStateListOf()
 var selectedPlaylist by mutableStateOf<Playlist?>(Playlist("My Very Awesome Playlist With A Long Name", Uri.EMPTY))
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = false)
 @Composable
 fun PlaylistScreen(navHostController: NavHostController = rememberNavController()) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
+    if (playlistList.isEmpty()) getNavidromePlaylists()
+
     /* RADIO ICON + TEXT */
     Box(modifier = Modifier
         .fillMaxWidth()

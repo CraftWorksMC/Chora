@@ -26,3 +26,6 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/RadioScreen.png?raw=true" width=200>
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/SettingScreen.png?raw=true" width=200>
 </p>
+
+> Lyrics icon provided by [Remix Icon](https://remixicon.com/ "Remix Icon")
+> Other icons are provided by [Google Icons](https://fonts.google.com/icons "Google Icons")

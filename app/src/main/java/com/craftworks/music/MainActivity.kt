@@ -23,10 +23,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -132,8 +130,8 @@ class MainActivity : ComponentActivity() {
                 val bottomNavigationItems = listOf(
                     BottomNavigationItem(
                         title = "Home",
-                        selectedIcon = Icons.Rounded.Home,
-                        unselectedIcon = Icons.Outlined.Home,
+                        selectedIcon = ImageVector.vectorResource(R.drawable.rounded_home_24),
+                        unselectedIcon = ImageVector.vectorResource(R.drawable.rounded_home_24),
                         screenRoute = "home_screen"
                     ),
                     BottomNavigationItem(

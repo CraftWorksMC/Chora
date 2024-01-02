@@ -225,7 +225,9 @@ fun NowPlayingContent(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Canvas(modifier = Modifier.fillMaxSize().alpha(0.75f)){
+                    Canvas(modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(0.75f)){
                         drawRect(brushA)
                         drawRect(brushMask, blendMode = BlendMode.DstOut)
                         drawRect(brushB, blendMode = BlendMode.DstAtop)
@@ -507,15 +509,31 @@ fun NowPlayingContent(
                                         containerColor = Color.Transparent
                                     )
                                 ) {
-                                    // Inner content including an icon and a text label
-                                    Icon(
-                                        imageVector = ImageVector.vectorResource(R.drawable.round_lyrics_24),
-                                        tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                                        contentDescription = "View Lyrics",
-                                        modifier = Modifier
-                                            .height(52.dp)
-                                            .size(52.dp)
-                                    )
+                                    Crossfade(targetState = lyricsOpen, label = "Lyrics Icon Crossfade") { open ->
+                                        when (open) {
+                                            true -> Icon(
+                                                imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
+                                                tint = MaterialTheme.colorScheme.onBackground.copy(
+                                                    alpha = 0.5f
+                                                ),
+                                                contentDescription = "Close Lyrics",
+                                                modifier = Modifier
+                                                    .height(52.dp)
+                                                    .size(52.dp)
+                                            )
+
+                                            false -> Icon(
+                                                imageVector = ImageVector.vectorResource(R.drawable.lyrics_inactive),
+                                                tint = MaterialTheme.colorScheme.onBackground.copy(
+                                                    alpha = 0.5f
+                                                ),
+                                                contentDescription = "View Lyrics",
+                                                modifier = Modifier
+                                                    .height(52.dp)
+                                                    .size(52.dp)
+                                            )
+                                        }
+                                    }
                                 }
                             }
 
@@ -750,15 +768,31 @@ fun NowPlayingContent(
                                             containerColor = Color.Transparent
                                         )
                                     ) {
-                                        // Inner content including an icon and a text label
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.round_lyrics_24),
-                                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                                            contentDescription = "View Lyrics",
-                                            modifier = Modifier
-                                                .height(48.dp)
-                                                .size(48.dp)
-                                        )
+                                        Crossfade(targetState = lyricsOpen, label = "Lyrics Icon Crossfade") { open ->
+                                            when (open) {
+                                                true -> Icon(
+                                                    imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
+                                                    tint = MaterialTheme.colorScheme.onBackground.copy(
+                                                        alpha = 0.5f
+                                                    ),
+                                                    contentDescription = "Close Lyrics",
+                                                    modifier = Modifier
+                                                        .height(52.dp)
+                                                        .size(52.dp)
+                                                )
+
+                                                false -> Icon(
+                                                    imageVector = ImageVector.vectorResource(R.drawable.lyrics_inactive),
+                                                    tint = MaterialTheme.colorScheme.onBackground.copy(
+                                                        alpha = 0.5f
+                                                    ),
+                                                    contentDescription = "View Lyrics",
+                                                    modifier = Modifier
+                                                        .height(52.dp)
+                                                        .size(52.dp)
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                                 /* Shuffle Button */
