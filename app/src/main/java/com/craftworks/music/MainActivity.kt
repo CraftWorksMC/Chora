@@ -120,6 +120,15 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        val scaffoldState = BottomSheetScaffoldState(
+            bottomSheetState = SheetState(
+                skipPartiallyExpanded = false, // pass false here
+                initialValue = SheetValue.PartiallyExpanded,
+                skipHiddenState = true
+            ),
+            snackbarHostState = SnackbarHostState()
+        )
+
         setContent {
             PlayPause(context = this)
             MusicPlayerTheme {
@@ -160,7 +169,7 @@ class MainActivity : ComponentActivity() {
                     )*/
                 )
                 var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
-                val scaffoldState = rememberBottomSheetScaffoldState()
+
 
                 val coroutineScope = rememberCoroutineScope()
 
