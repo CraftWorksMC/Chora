@@ -5,8 +5,12 @@ import android.content.Context.WIFI_SERVICE
 import android.media.MediaPlayer
 import android.net.Uri
 import android.net.wifi.WifiManager
-import android.os.PowerManager
 import android.util.Log
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaController
+import androidx.media3.session.MediaSession
 import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
@@ -17,11 +21,45 @@ import kotlin.math.abs
 
 class SongHelper {
     companion object{
+        // LEGACY VARS
         var mediaPlayer: MediaPlayer? = null
-        var currentPosition = 0
+        //var currentPosition = 0
         var isSeeking = false
 
+        // MEDIA3 VARS
+        lateinit var player: ExoPlayer
+        private lateinit var mediaSession: MediaSession
+        private lateinit var controller: MediaController
+        var currentPosition: Long = 0
+
+        fun initPlayer(context: Context){
+            player = ExoPlayer.Builder(context).build()
+            mediaSession = MediaSession.Builder(context, player).build()
+        }
         fun playStream(context: Context, url: Uri) {
+            // Stop If It's Playing
+            if (player.isPlaying){
+                player.stop()
+                player.clearMediaItems()
+            }
+
+            // Initialize Player With Media
+            val mediaItem = MediaItem.fromUri(url)
+            player.setMediaItem(mediaItem)
+            player.prepare()
+            player.seekTo(currentPosition)
+            player.playWhenReady = true
+
+            // Add OnComplete Listener
+            player.addListener(object : Player.Listener {
+                override fun onPlaybackStateChanged(state: Int) {
+                    if (state == Player.STATE_ENDED) {
+                        onPlayerComplete()
+                    }
+                }
+            })
+
+            /* LEGACY MEDIAPLAYER
             mediaPlayer?.let {
                 if (it.isPlaying) {
                     mediaPlayer?.stop()
@@ -41,31 +79,37 @@ class SongHelper {
             mediaPlayer?.setOnCompletionListener { _ ->
                 onPlayerComplete()
             }
+            */
 
+            // Set WakeLock For Navidrome Streaming
             if (useNavidromeServer.value){
                 val wifiManager = context.applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
-                val wifiLock: WifiManager.WifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "Navidrome Lock")
+                val wifiLock: WifiManager.WifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "Navidrome Wake Lock")
                 wifiLock.acquire()
             }
         }
 
         fun pauseStream(){
+            /* LEGACY PAUSE
             mediaPlayer?.let {
                 currentPosition = it.currentPosition
+                it.pause()
+            }*/
+            player.let {
+                currentPosition = it.currentPosition
+                it.playWhenReady = false
                 it.pause()
             }
         }
 
         fun stopStream(){
+            /* LEGACY
             mediaPlayer?.stop()
             mediaPlayer?.reset()
             currentPosition = 0
-        }
-
-        fun releasePlayer(){
-            mediaPlayer?.reset()
-            mediaPlayer?.release()
-            mediaPlayer = null
+            */
+            player.stop()
+            player.clearMediaItems()
             currentPosition = 0
         }
 
@@ -75,8 +119,8 @@ class SongHelper {
             val currentSongIndex = playingSong.selectedList.indexOfFirst{it.media == playingSong.selectedSong?.media}
 
             if (repeatSong.value){
-                mediaPlayer?.seekTo(0)
-                mediaPlayer?.start()
+                player.seekTo(0)
+                player.play()
             }
 
             if (shuffleSongs.value && playingSong.selectedList.isNotEmpty()){
@@ -102,8 +146,8 @@ class SongHelper {
             val currentSongIndex = playingSong.selectedList.indexOfFirst{it.media == playingSong.selectedSong?.media}
 
             if (repeatSong.value){
-                mediaPlayer?.seekTo(0)
-                mediaPlayer?.start()
+                player.seekTo(0)
+                player.play()
             }
             if (shuffleSongs.value && playingSong.selectedList.isNotEmpty())
                 playingSong.selectedSong = playingSong.selectedList[(0..playingSong.selectedList.size - 1).random()]
@@ -120,8 +164,13 @@ class SongHelper {
         }
 
         fun updateCurrentPos(){
+            /* LEGACY
             sliderPos.intValue = mediaPlayer!!.currentPosition
             currentPosition = sliderPos.intValue
+            */
+            sliderPos.intValue = player.currentPosition.toInt()
+            println("${player.currentPosition} ; $currentPosition")
+            currentPosition = sliderPos.intValue.toLong()
         }
 
         private fun onPlayerComplete(){

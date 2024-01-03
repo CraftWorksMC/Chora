@@ -863,11 +863,11 @@ fun SliderUpdating(){
         value = animatedSliderValue,
         onValueChange = {
             sliderPos.intValue = it.toInt()
-            SongHelper.currentPosition = it.toInt()
+            SongHelper.currentPosition = it.toLong()
             SongHelper.isSeeking = true },
         onValueChangeFinished = {
             SongHelper.isSeeking = false
-            SongHelper.mediaPlayer?.seekTo(sliderPos.intValue)},
+            SongHelper.player.seekTo(sliderPos.intValue.toLong())},
         valueRange = 0f..(playingSong.selectedSong?.duration?.toFloat() ?: 0f),
         colors = SliderDefaults.colors(
             activeTrackColor = MaterialTheme.colorScheme.onBackground,
@@ -925,11 +925,11 @@ fun LandscapeSliderUpdating(){
         value = animatedSliderValue,
         onValueChange = {
             sliderPos.intValue = it.toInt()
-            SongHelper.currentPosition = it.toInt()
+            SongHelper.currentPosition = it.toLong()
             SongHelper.isSeeking = true },
         onValueChangeFinished = {
             SongHelper.isSeeking = false
-            SongHelper.mediaPlayer?.seekTo(sliderPos.intValue)},
+            SongHelper.player.seekTo(sliderPos.intValue.toLong())},
         valueRange = 0f..(playingSong.selectedSong?.duration?.toFloat() ?: 0f),
         colors = SliderDefaults.colors(
             activeTrackColor = MaterialTheme.colorScheme.onBackground,
@@ -1093,16 +1093,20 @@ fun LyricsView() {
         .padding(horizontal = 12.dp)
         .padding(top = 48.dp)
         .fadingEdge(topBottomFade)
-        .verticalScroll(state), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally){
-        if (SyncedLyric.size > 1){
-            Box(modifier = Modifier
-                .height(dpToSp.dp)
-                .fillMaxWidth())
+        .verticalScroll(state), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally) {
+        if (SyncedLyric.size > 1) {
+            Box(
+                modifier = Modifier
+                    .height(dpToSp.dp)
+                    .fillMaxWidth()
+            )
             SyncedLyric.forEachIndexed { index, lyric ->
-                val lyricAlpha: Float by animateFloatAsState(if (lyric.isCurrentLyric) 1f else 0.5f,
+                val lyricAlpha: Float by animateFloatAsState(
+                    if (lyric.isCurrentLyric) 1f else 0.5f,
                     label = "Current Lyric Alpha"
                 )
-                val lyricScale: Float by animateFloatAsState(if (lyric.isCurrentLyric) 1f else 0.9f,
+                val lyricScale: Float by animateFloatAsState(
+                    if (lyric.isCurrentLyric) 1f else 0.9f,
                     label = "Current Lyric Scale"
                 )
 
@@ -1111,10 +1115,11 @@ fun LyricsView() {
                 Box(modifier = Modifier
                     .height((dpToSp).dp)
                     .clickable {
-                        SongHelper.mediaPlayer?.seekTo(lyric.timestamp)
+                        SongHelper.player.seekTo(lyric.timestamp.toLong())
                         currentLyricIndex = index
                         lyric.isCurrentLyric = false
-                    }, contentAlignment = Alignment.Center){
+                    }, contentAlignment = Alignment.Center
+                ) {
                     Text(
                         text = if (lyric.content == "") "• • •" else lyric.content,
                         style = MaterialTheme.typography.headlineSmall,
@@ -1128,8 +1133,7 @@ fun LyricsView() {
                     )
                 }
             }
-        }
-        else{
+        } else {
             Text(
                 text = songLyrics.SongLyrics,
                 style = MaterialTheme.typography.headlineSmall,
@@ -1141,7 +1145,6 @@ fun LyricsView() {
             )
         }
     }
-
 }
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
@@ -1180,7 +1183,7 @@ fun LandscapeLyricsView() {
                 Box(modifier = Modifier
                     .height((dpToSp).dp)
                     .clickable {
-                        SongHelper.mediaPlayer?.seekTo(lyric.timestamp)
+                        SongHelper.player.seekTo(lyric.timestamp.toLong())
                         currentLyricIndex = index
                         lyric.isCurrentLyric = false
                     }, contentAlignment = Alignment.Center){

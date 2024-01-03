@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.media3.session.MediaSessionService
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.craftworks.music.data.Song
@@ -90,14 +91,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-
         Timer().scheduleAtFixedRate(object : TimerTask() {
             private val handler = Handler(Looper.getMainLooper())
             override fun run() {
                 handler.post {
                     try {
-                        if (SongHelper.isSeeking || SongHelper.mediaPlayer?.isPlaying == true) SongHelper.updateCurrentPos()
+                        if (SongHelper.isSeeking || SongHelper.player.isPlaying) SongHelper.updateCurrentPos()
 
                         /* SYNCED LYRICS */
                         for (a in 0 until SyncedLyric.size - 1) {
@@ -122,7 +121,7 @@ class MainActivity : ComponentActivity() {
 
         val scaffoldState = BottomSheetScaffoldState(
             bottomSheetState = SheetState(
-                skipPartiallyExpanded = false, // pass false here
+                skipPartiallyExpanded = false,
                 initialValue = SheetValue.PartiallyExpanded,
                 skipHiddenState = true
             ),
@@ -291,6 +290,7 @@ class MainActivity : ComponentActivity() {
 
             override fun onActivityStarted(activity: Activity) {
                 saveManager(this@MainActivity).loadSettings()
+                SongHelper.initPlayer(this@MainActivity)
             }
 
             override fun onActivityResumed(activity: Activity) {
