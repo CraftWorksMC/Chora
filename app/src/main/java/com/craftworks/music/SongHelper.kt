@@ -2,7 +2,6 @@ package com.craftworks.music
 
 import android.content.Context
 import android.content.Context.WIFI_SERVICE
-import android.media.MediaPlayer
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.util.Log
@@ -19,14 +18,10 @@ import com.craftworks.music.navidrome.markSongAsPlayed
 import com.craftworks.music.ui.screens.useNavidromeServer
 import kotlin.math.abs
 
+
 class SongHelper {
     companion object{
-        // LEGACY VARS
-        var mediaPlayer: MediaPlayer? = null
-        //var currentPosition = 0
         var isSeeking = false
-
-        // MEDIA3 VARS
         lateinit var player: ExoPlayer
         private lateinit var mediaSession: MediaSession
         private lateinit var controller: MediaController
@@ -59,28 +54,6 @@ class SongHelper {
                 }
             })
 
-            /* LEGACY MEDIAPLAYER
-            mediaPlayer?.let {
-                if (it.isPlaying) {
-                    mediaPlayer?.stop()
-                    mediaPlayer?.reset()
-                }
-            }
-            mediaPlayer?.release()
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(context, url)
-                prepareAsync()
-                setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK)
-            }
-            mediaPlayer?.setOnPreparedListener { mediaPlayer ->
-                mediaPlayer.seekTo(currentPosition)
-                mediaPlayer.start()
-            }
-            mediaPlayer?.setOnCompletionListener { _ ->
-                onPlayerComplete()
-            }
-            */
-
             // Set WakeLock For Navidrome Streaming
             if (useNavidromeServer.value){
                 val wifiManager = context.applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
@@ -90,11 +63,6 @@ class SongHelper {
         }
 
         fun pauseStream(){
-            /* LEGACY PAUSE
-            mediaPlayer?.let {
-                currentPosition = it.currentPosition
-                it.pause()
-            }*/
             player.let {
                 currentPosition = it.currentPosition
                 it.playWhenReady = false
@@ -103,11 +71,6 @@ class SongHelper {
         }
 
         fun stopStream(){
-            /* LEGACY
-            mediaPlayer?.stop()
-            mediaPlayer?.reset()
-            currentPosition = 0
-            */
             player.stop()
             player.clearMediaItems()
             currentPosition = 0
@@ -164,10 +127,6 @@ class SongHelper {
         }
 
         fun updateCurrentPos(){
-            /* LEGACY
-            sliderPos.intValue = mediaPlayer!!.currentPosition
-            currentPosition = sliderPos.intValue
-            */
             sliderPos.intValue = player.currentPosition.toInt()
             println("${player.currentPosition} ; $currentPosition")
             currentPosition = sliderPos.intValue.toLong()
