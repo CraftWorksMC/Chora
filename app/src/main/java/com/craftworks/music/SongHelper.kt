@@ -1,7 +1,6 @@
 package com.craftworks.music
 
 import android.content.Context
-import android.content.Context.WIFI_SERVICE
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.util.Log
@@ -10,6 +9,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSessionService
 import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
@@ -19,15 +19,18 @@ import com.craftworks.music.ui.screens.useNavidromeServer
 import kotlin.math.abs
 
 
-class SongHelper {
+class SongHelper: MediaSessionService() {
     companion object{
         var isSeeking = false
         lateinit var player: ExoPlayer
         private lateinit var mediaSession: MediaSession
         private lateinit var controller: MediaController
         var currentPosition: Long = 0
-
         fun initPlayer(context: Context){
+            // Do NOT Re-Initialize Player and MediaSession
+            // Because this function gets called when re-focusing the app.
+            if (this::player.isInitialized || this::mediaSession.isInitialized) return
+
             player = ExoPlayer.Builder(context).build()
             mediaSession = MediaSession.Builder(context, player).build()
         }
@@ -37,6 +40,8 @@ class SongHelper {
                 player.stop()
                 player.clearMediaItems()
             }
+
+            mediaSession.player = player
 
             // Initialize Player With Media
             val mediaItem = MediaItem.fromUri(url)
@@ -128,7 +133,6 @@ class SongHelper {
 
         fun updateCurrentPos(){
             sliderPos.intValue = player.currentPosition.toInt()
-            println("${player.currentPosition} ; $currentPosition")
             currentPosition = sliderPos.intValue.toLong()
         }
 
@@ -136,5 +140,9 @@ class SongHelper {
             if (abs(sliderPos.intValue - playingSong.selectedSong?.duration!!) > 1000 || playingSong.selectedSong?.isRadio == true) return
             playingSong.selectedSong?.let { nextSong(it)}
         }
+    }
+
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+        TODO("Not yet implemented")
     }
 }
