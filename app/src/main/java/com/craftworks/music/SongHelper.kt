@@ -2,8 +2,9 @@ package com.craftworks.music
 
 import android.content.Context
 import android.net.Uri
-import android.net.wifi.WifiManager
 import android.util.Log
+import androidx.media3.common.C.WAKE_MODE_LOCAL
+import androidx.media3.common.C.WAKE_MODE_NETWORK
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -59,11 +60,12 @@ class SongHelper: MediaSessionService() {
                 }
             })
 
-            // Set WakeLock For Navidrome Streaming
+            // Set WakeLock
             if (useNavidromeServer.value){
-                val wifiManager = context.applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
-                val wifiLock: WifiManager.WifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "Navidrome Wake Lock")
-                wifiLock.acquire()
+                player.setWakeMode(WAKE_MODE_NETWORK)
+            }
+            else {
+                player.setWakeMode(WAKE_MODE_LOCAL)
             }
         }
 
