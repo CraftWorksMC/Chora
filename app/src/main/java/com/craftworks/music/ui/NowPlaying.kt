@@ -119,6 +119,7 @@ import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.useNavidromeServer
 import kotlinx.coroutines.launch
 
+var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
@@ -173,16 +174,16 @@ fun NowPlayingContent(
 
                 if (playingSong.selectedSong?.imageUrl == Uri.EMPTY) return@Surface;
 
-                var bitmap by remember { mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))}
+                //var bitmap by remember { mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))}
                 LaunchedEffect(playingSong.selectedSong?.imageUrl){
-                    bitmap =
+                    bitmap.value =
                         if (useNavidromeServer.value)
                             getNavidromeBitmap(context)
                         else
                             MediaStore.Images.Media.getBitmap(context.contentResolver, playingSong.selectedSong?.imageUrl);
                 }
 
-                val palette = Palette.from(bitmap).generate()
+                val palette = Palette.from(bitmap.value).generate()
 
                 val shaderA = LinearGradientShader(
                     Offset(size.width / 2f, 0f),
@@ -1243,7 +1244,7 @@ fun animateBrushRotation(
     }
 }
 
-private suspend fun getNavidromeBitmap(context: Context): Bitmap {
+suspend fun getNavidromeBitmap(context: Context): Bitmap {
     val loading = ImageLoader(context)
     val request = ImageRequest.Builder(context)
         .data("${navidromeServerIP.value}/rest/getCoverArt.view?&id=${playingSong.selectedSong?.navidromeID}&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")

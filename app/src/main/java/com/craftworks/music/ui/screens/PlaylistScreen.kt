@@ -2,7 +2,6 @@ package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -70,7 +69,6 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
 
         Column(modifier = Modifier.padding(12.dp,64.dp,12.dp,12.dp)) {
             PlaylistGrid(playlistList , onPlaylistSelected = { playlist ->
-                Log.d("PLAYLISTS", "CLICKED PLAYLIST!")
                 navHostController.navigate(Screen.PlaylistDetails.route)
                 selectedPlaylist = playlist})
         }

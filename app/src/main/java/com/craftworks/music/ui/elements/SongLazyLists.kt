@@ -4,7 +4,9 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -129,7 +131,7 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
 fun PlaylistGrid(playlists: List<Playlist>, onPlaylistSelected: (playlist: Playlist) -> Unit){
     LazyVerticalGrid(
         columns = GridCells.FixedSize(152.dp),
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.wrapContentWidth().fillMaxHeight()
     ) {
         items(playlists) {playlist ->
             PlaylistCard(playlist = playlist,

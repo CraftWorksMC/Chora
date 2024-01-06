@@ -42,6 +42,7 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+        <receiver android:name=".ActionReceiver"></receiver>
     </application>
 
 </manifest>

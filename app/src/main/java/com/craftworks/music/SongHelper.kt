@@ -1,39 +1,72 @@
-package com.craftworks.music
+@file:OptIn(UnstableApi::class) package com.craftworks.music
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.net.Uri
-import android.util.Log
+import androidx.annotation.OptIn
+import androidx.core.app.NotificationCompat
 import androidx.media3.common.C.WAKE_MODE_LOCAL
 import androidx.media3.common.C.WAKE_MODE_NETWORK
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
 import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.lyrics.songLyrics
 import com.craftworks.music.navidrome.markSongAsPlayed
+import com.craftworks.music.ui.bitmap
 import com.craftworks.music.ui.screens.useNavidromeServer
 import kotlin.math.abs
 
 
-class SongHelper: MediaSessionService() {
+class SongHelper {
     companion object{
         var isSeeking = false
         lateinit var player: ExoPlayer
         private lateinit var mediaSession: MediaSession
-        private lateinit var controller: MediaController
+
+        private lateinit var notification: Notification
+        private lateinit var notificationManager: NotificationManager
+
         var currentPosition: Long = 0
         fun initPlayer(context: Context){
             // Do NOT Re-Initialize Player and MediaSession
-            // Because this function gets called when re-focusing the app.
+            // Because this function gets called when re-focusing the app
             if (this::player.isInitialized || this::mediaSession.isInitialized) return
 
             player = ExoPlayer.Builder(context).build()
             mediaSession = MediaSession.Builder(context, player).build()
+
+            // FINALLY Implement the new Media Controls Notification
+
+            // Create a Notification Channel
+            val channel = NotificationChannel(
+                    "Chora",
+                    "Chora Notifications",
+                    NotificationManager.IMPORTANCE_LOW
+            )
+            notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+
+            /*  Do not create the notification when the app opens. [SUBJECT TO CHANGE]
+
+            // Create a notification
+            notification = NotificationCompat.Builder(context, "Chora")
+                .setSmallIcon(R.drawable.ic_notification_icon)
+                .setContentTitle(playingSong.selectedSong?.title)
+                .setContentText(playingSong.selectedSong?.artist)
+                .setOngoing(true) // Don't dismiss it
+                .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionCompatToken))
+                .build()
+            // Actually Create The Notification
+            notificationManager.notify(2, notification)
+
+            */
         }
         fun playStream(context: Context, url: Uri) {
             // Stop If It's Playing
@@ -50,6 +83,16 @@ class SongHelper: MediaSessionService() {
             player.prepare()
             player.seekTo(currentPosition)
             player.playWhenReady = true
+
+            notification = NotificationCompat.Builder(context, "Chora")
+                .setSmallIcon(R.drawable.ic_notification_icon)
+                .setContentTitle(mediaItem.mediaMetadata.title)
+                .setContentText(mediaItem.mediaMetadata.artist)
+                .setLargeIcon(bitmap.value)
+                .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionCompatToken))
+                .setOngoing(true) // Don't dismiss it
+                .build()
+            notificationManager.notify(2, notification)
 
             // Add OnComplete Listener
             player.addListener(object : Player.Listener {
@@ -83,9 +126,12 @@ class SongHelper: MediaSessionService() {
             currentPosition = 0
         }
 
-        fun previousSong(song: Song){
-            Log.d("MEDIAPLAYER", "Skipping to previous song")
+        fun releasePlayer(){
+            player.release()
+            mediaSession.release()
+        }
 
+        fun previousSong(song: Song){
             val currentSongIndex = playingSong.selectedList.indexOfFirst{it.media == playingSong.selectedSong?.media}
 
             if (repeatSong.value){
@@ -111,8 +157,6 @@ class SongHelper: MediaSessionService() {
         }
 
         fun nextSong(song: Song){
-            Log.d("MEDIAPLAYER", "Skipping to next song")
-
             val currentSongIndex = playingSong.selectedList.indexOfFirst{it.media == playingSong.selectedSong?.media}
 
             if (repeatSong.value){
@@ -142,9 +186,5 @@ class SongHelper: MediaSessionService() {
             if (abs(sliderPos.intValue - playingSong.selectedSong?.duration!!) > 1000 || playingSong.selectedSong?.isRadio == true) return
             playingSong.selectedSong?.let { nextSong(it)}
         }
-    }
-
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
-        TODO("Not yet implemented")
     }
 }
