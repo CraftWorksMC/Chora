@@ -209,7 +209,7 @@ fun NowPlayingContent(
                     Offset(size.width / 2f, size.height),
                     listOf(
                         Color.White,
-                        Color.Transparent,
+                        Color.Transparent
                     ),
                     listOf(0f, 1f)
                 )

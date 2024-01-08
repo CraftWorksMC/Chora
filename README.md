@@ -4,6 +4,7 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 ## Features
 
 - Subsonic Integration.
+- Transcoding
 - Material 3 UI.
 - Streaming and Offline Mode.
 - Internet Radio.
@@ -11,7 +12,6 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 - Playlists
 ## Roadmap
 
-- Transcoding
 - Gapless Playback
 - Offline Playlists
 

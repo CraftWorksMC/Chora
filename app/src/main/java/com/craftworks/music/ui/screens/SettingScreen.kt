@@ -82,6 +82,18 @@ val backgroundTypes = listOf(
 var backgroundType = mutableStateOf(backgroundTypes[2])
 
 
+// TRANSCODING
+val transcodingBitrateList = listOf(
+    "1",
+    "96",
+    "128",
+    "192",
+    "256",
+    "320",
+    "No Transcoding"
+)
+var transcodingBitrate = mutableStateOf(transcodingBitrateList[6])
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
@@ -133,7 +145,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
             color = MaterialTheme.colorScheme.onBackground
         )
         /* ACTUAL SETTINGS */
-        Box(Modifier.padding(12.dp,64.dp,12.dp,12.dp)){
+        Box(Modifier.padding(12.dp,64.dp,12.dp,84.dp)){
             Column {
                 /* -SEPARATOR */
                 Row (verticalAlignment = Alignment.CenterVertically) {
@@ -168,33 +180,6 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     BackgroundDropdown()
                 }
 
-                /*
-                /* USE BLURRED BACKGROUND */
-                Row (verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Use Blurred Background",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start
-                    )
-                    Switch(checked = useBlurredBackground.value, onCheckedChange = { useBlurredBackground.value = it; useMovingBackground.value = false })
-                }
-                /* USE MOVING BACKGROUND */
-                Row (verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Use Animated Background",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start
-                    )
-                    Switch(checked = useMovingBackground.value, onCheckedChange = { useMovingBackground.value = it; useBlurredBackground.value = false })
-                }*/
 
                 /* SHOW MORE SONG INFO */
                 Row (verticalAlignment = Alignment.CenterVertically) {
@@ -309,6 +294,19 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         ) {
                             Text("Login")
                         }
+
+                        Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 12.dp)) {
+                            Text(
+                                text = "Transcoding",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.weight(1f),
+                                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Start
+                            )
+                            TranscodingDropdown()
+                        }
                     }
 
                     // LOCAL FOLDER
@@ -334,7 +332,6 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackgroundDropdown() {
-
     var expanded by remember { mutableStateOf(false) }
     // menu box
     ExposedDropdownMenuBox(
@@ -376,7 +373,50 @@ fun BackgroundDropdown() {
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TranscodingDropdown() {
+    var expanded by remember { mutableStateOf(false) }
+    // menu box
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = {
+            expanded = !expanded
+        },
+        modifier = Modifier.width(192.dp)
+    ) {
+        TextField(
+            modifier = Modifier
+                .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+            readOnly = true,
+            value = transcodingBitrate.value,
+            onValueChange = {},
+            label = { Text("Background Type") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+        )
 
+        // menu
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {
+                expanded = false
+            },
+        ) {
+            // menu items
+            transcodingBitrateList.forEach { selectionOption ->
+                DropdownMenuItem(
+                    text = { Text(selectionOption) },
+                    onClick = {
+                        transcodingBitrate.value = selectionOption
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
+        }
+    }
+}
 
 class saveManager(private val context: Context){
     private val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
@@ -387,6 +427,7 @@ class saveManager(private val context: Context){
         sharedPreferences.edit().putString("navidromeServerIP", navidromeServerIP.value).apply()
         sharedPreferences.edit().putString("navidromeUsername", navidromeUsername.value).apply()
         sharedPreferences.edit().putString("navidromePassword", navidromePassword.value).apply()
+        sharedPreferences.edit().putString("transcodingBitRate", transcodingBitrate.value).apply()
 
         sharedPreferences.edit().putString("username", username.value).apply()
         sharedPreferences.edit().putString("backgroundType", backgroundType.value).apply()
@@ -399,6 +440,7 @@ class saveManager(private val context: Context){
         navidromeServerIP.value = sharedPreferences.getString("navidromeServerIP", "") ?: ""
         navidromeUsername.value = sharedPreferences.getString("navidromeUsername", "") ?: ""
         navidromePassword.value = sharedPreferences.getString("navidromePassword", "") ?: ""
+        transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
 
         if (useNavidromeServer.value && (navidromeUsername.value != "" || navidromePassword.value !="" || navidromeServerIP.value != ""))
             try {

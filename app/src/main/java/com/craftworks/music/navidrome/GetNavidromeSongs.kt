@@ -11,6 +11,7 @@ import com.craftworks.music.playingSong
 import com.craftworks.music.songsList
 import com.craftworks.music.ui.screens.playlistList
 import com.craftworks.music.ui.screens.radioList
+import com.craftworks.music.ui.screens.transcodingBitrate
 import com.craftworks.music.ui.screens.useNavidromeServer
 import com.craftworks.music.ui.screens.username
 import org.w3c.dom.NodeList
@@ -147,7 +148,6 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
         var songBitrate = ""
         var songLastPlayed = ""
 
-
         @Suppress("ReplaceRangeToWithUntil")
         for (i in 0..firstElement.attributes.length - 1) {
             val attribute = firstElement.attributes.item(i)
@@ -156,7 +156,11 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             songAlbum = if (attribute.nodeName == "album") attribute.textContent else songAlbum
             songArtist = if (attribute.nodeName == "artist") attribute.textContent else songArtist
             songDuration = if (attribute.nodeName == "duration") attribute.textContent.toInt() else songDuration
-            songMedia = Uri.parse("${navidromeServerIP.value}/rest/stream.view?&id=$songId&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+            songMedia =
+                if (transcodingBitrate.value != "None")
+                    Uri.parse("${navidromeServerIP.value}/rest/stream.view?&id=$songId&u=${navidromeUsername.value}&p=${navidromePassword.value}&format=mp3&maxBitRate=${transcodingBitrate.value}&v=1.12.0&c=Chora")
+                else
+                    Uri.parse("${navidromeServerIP.value}/rest/stream.view?&id=$songId&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
             songImageUrl = Uri.parse("${navidromeServerIP.value}/rest/getCoverArt.view?&id=$songId&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
             songYear = if (attribute.nodeName == "year") attribute.textContent else songYear
             songPlayCount = if (attribute.nodeName == "playCount") attribute.textContent.toInt() else songPlayCount

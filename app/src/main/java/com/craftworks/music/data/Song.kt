@@ -10,7 +10,6 @@ data class Song (
     val duration: Int,
     val isRadio: Boolean? = false,
     val media: Uri? = null,
-    val mediaUri: Uri? = null,
     var timesPlayed: Int? = 0,
     val dateAdded: String? = "",
     val year: String? = "",
