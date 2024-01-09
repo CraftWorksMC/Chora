@@ -94,7 +94,6 @@ val transcodingBitrateList = listOf(
 )
 var transcodingBitrate = mutableStateOf(transcodingBitrateList[6])
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
 )

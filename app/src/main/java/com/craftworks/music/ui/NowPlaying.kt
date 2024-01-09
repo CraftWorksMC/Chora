@@ -172,7 +172,7 @@ fun NowPlayingContent(
             ) {
                 var size by remember { mutableStateOf(Size.Zero) }
 
-                if (playingSong.selectedSong?.imageUrl == Uri.EMPTY) return@Surface;
+                if (playingSong.selectedSong?.imageUrl == Uri.EMPTY) return@Surface
 
                 //var bitmap by remember { mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))}
                 LaunchedEffect(playingSong.selectedSong?.imageUrl){
@@ -180,7 +180,7 @@ fun NowPlayingContent(
                         if (useNavidromeServer.value)
                             getNavidromeBitmap(context)
                         else
-                            MediaStore.Images.Media.getBitmap(context.contentResolver, playingSong.selectedSong?.imageUrl);
+                            MediaStore.Images.Media.getBitmap(context.contentResolver, playingSong.selectedSong?.imageUrl)
                 }
 
                 val palette = Palette.from(bitmap.value).generate()
@@ -189,8 +189,8 @@ fun NowPlayingContent(
                     Offset(size.width / 2f, 0f),
                     Offset(size.width / 2f, size.height),
                     listOf(
-                        Color(palette.getMutedColor(0)),
-                        Color(palette.getVibrantColor(0)),
+                        Color(palette.getLightVibrantColor(0)),
+                        Color(palette.getDarkVibrantColor(0)),
                     ),
                     listOf(0f, 1f)
                 )
@@ -199,8 +199,8 @@ fun NowPlayingContent(
                     Offset(size.width / 2f, 0f),
                     Offset(size.width / 2f, size.height),
                     listOf(
-                        Color(palette.getDarkMutedColor(0)),
-                        Color(palette.getDarkVibrantColor(0)),
+                        Color(palette.getMutedColor(0)),
+                        Color(palette.getDominantColor(0)),
                     ),
                     listOf(0f, 1f)
                 )
