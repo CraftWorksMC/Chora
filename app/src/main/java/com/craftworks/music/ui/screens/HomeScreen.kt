@@ -21,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -131,7 +130,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val recentSongsList = remember { songsList.sortedByDescending { song: Song -> song.dateAdded } }
+            val recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
             /* SONGS ROW */
             SongsRow(songsList = recentSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
@@ -153,7 +152,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val mostPlayedList = remember { songsList.sortedByDescending { song: Song -> song.timesPlayed } }
+            val mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
             /* SONGS ROW */
             SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
                 playingSong.selectedSong = song
@@ -184,7 +183,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
             })
         }
 
-        Spacer(modifier = Modifier.height(72.dp))
+        Spacer(modifier = Modifier.height(72.dp + 80.dp))
     }
 }
 

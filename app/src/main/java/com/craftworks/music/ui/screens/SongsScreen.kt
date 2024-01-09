@@ -12,7 +12,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -57,7 +56,7 @@ fun SongsScreen() {
         )
 
         Column(modifier = Modifier.padding(0.dp,64.dp,0.dp,0.dp)) {
-            val allSongsList = remember { songsList.sortedBy { song: Song -> song.title } }
+            val allSongsList = songsList.sortedBy { song: Song -> song.title }
             SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 playingSong.selectedList = allSongsList

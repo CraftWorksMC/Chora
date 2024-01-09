@@ -30,7 +30,7 @@ fun SetupNavGraph(
 ){
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
-        modifier = Modifier.padding(top = 32.dp, bottom = (72.dp + /* Stupid PaddingValues Error. */ (paddingValues.calculateBottomPadding() * 0)) ),
+        modifier = Modifier.padding(top = 32.dp, bottom = (0.dp + /* Stupid PaddingValues Error. */ (paddingValues.calculateBottomPadding() * 0)) ),
         enterTransition = {
             slideInVertically(animationSpec = tween(durationMillis = 200)) { fullHeight ->
                 -fullHeight / 4
