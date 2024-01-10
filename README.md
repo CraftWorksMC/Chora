@@ -1,6 +1,8 @@
 ![Logo](https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/ChoraBannerTransparent.png?raw=true)
 
 A simple and light-weight app that streams music from a Subsonic or Navidrome server, or from the phone's storage.
+
+Awaiting Google Play Store review.
 ## Features
 
 - Subsonic Integration.
