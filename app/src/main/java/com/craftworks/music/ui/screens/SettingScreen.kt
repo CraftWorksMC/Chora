@@ -390,7 +390,7 @@ fun TranscodingDropdown() {
             readOnly = true,
             value = transcodingBitrate.value,
             onValueChange = {},
-            label = { Text("Background Type") },
+            label = { Text("Bitrate") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.textFieldColors(),
         )

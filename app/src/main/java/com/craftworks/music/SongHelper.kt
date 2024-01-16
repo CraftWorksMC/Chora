@@ -3,7 +3,10 @@
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
@@ -33,6 +36,7 @@ class SongHelper {
         private lateinit var notification: Notification
         private lateinit var notificationManager: NotificationManager
 
+
         var currentPosition: Long = 0
         fun initPlayer(context: Context){
             // Do NOT Re-Initialize Player and MediaSession
@@ -41,6 +45,9 @@ class SongHelper {
 
             player = ExoPlayer.Builder(context).build()
             mediaSession = MediaSession.Builder(context, player).build()
+
+            player.shuffleModeEnabled = false
+            player.repeatMode = Player.REPEAT_MODE_OFF
 
             // FINALLY Implement the new Media Controls Notification
 
@@ -52,21 +59,6 @@ class SongHelper {
             )
             notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
-
-            /*  Do not create the notification when the app opens. [SUBJECT TO CHANGE]
-
-            // Create a notification
-            notification = NotificationCompat.Builder(context, "Chora")
-                .setSmallIcon(R.drawable.ic_notification_icon)
-                .setContentTitle(playingSong.selectedSong?.title)
-                .setContentText(playingSong.selectedSong?.artist)
-                .setOngoing(true) // Don't dismiss it
-                .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionCompatToken))
-                .build()
-            // Actually Create The Notification
-            notificationManager.notify(2, notification)
-
-            */
         }
         fun playStream(context: Context, url: Uri) {
             // Stop If It's Playing
@@ -77,8 +69,19 @@ class SongHelper {
 
             mediaSession.player = player
 
+            //val index = playingSong.selectedList.indexOfFirst { it.media == playingSong.selectedSong?.media }
+
             // Initialize Player With Media
             val mediaItem = MediaItem.fromUri(url)
+
+            /*
+            for (song in playingSong.selectedList){
+                song.media?.let {
+                    MediaItem.fromUri(it)
+                }?.let {
+                    player.addMediaItem(it)
+                }
+            }*/
             player.setMediaItem(mediaItem)
             player.prepare()
             player.seekTo(currentPosition)
@@ -91,6 +94,11 @@ class SongHelper {
                 .setLargeIcon(bitmap.value)
                 .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionCompatToken))
                 .setOngoing(true) // Don't dismiss it
+                .setContentIntent(PendingIntent.getActivity( // Open app on notification click
+                    context,
+                    0,
+                    Intent(context.applicationContext,MainActivity::class.java),
+                    PendingIntent.FLAG_IMMUTABLE))
                 .build()
             notificationManager.notify(2, notification)
 
@@ -186,5 +194,15 @@ class SongHelper {
             if (abs(sliderPos.intValue - playingSong.selectedSong?.duration!!) > 1000 || playingSong.selectedSong?.isRadio == true) return
             playingSong.selectedSong?.let { nextSong(it)}
         }
+
+
+        class NotificationActionReceiver : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                if ("ACTION_SKIP_FORWARD" == intent.action) {
+                    playingSong.selectedSong?.let { nextSong(it)}
+                }
+            }
+        }
+
     }
 }

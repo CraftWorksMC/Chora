@@ -313,7 +313,6 @@ fun NowPlayingContent(
                             ImageVector.vectorResource(R.drawable.round_pause_24)
                         else
                             Icons.Rounded.PlayArrow,
-
                         tint = MaterialTheme.colorScheme.onBackground,
                         contentDescription = "Play/Pause",
                         modifier = Modifier
