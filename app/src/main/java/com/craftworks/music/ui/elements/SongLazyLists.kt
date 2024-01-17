@@ -7,6 +7,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -23,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.SongHelper
+import com.craftworks.music.data.Album
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
@@ -71,7 +74,7 @@ fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
 fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.wrapContentHeight().fillMaxWidth(),
         contentPadding = PaddingValues(
             bottom = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE)
                         80.dp + 72.dp + 12.dp //BottomNavBar + NowPlayingScreen + 12dp Padding
@@ -101,6 +104,21 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
     }
 }
 
+@ExperimentalFoundationApi
+@Composable
+fun AlbumGrid(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = Modifier.wrapContentWidth().fillMaxHeight()
+    ) {
+        items(albums) {album ->
+            AlbumCard(album = album,
+                onClick = {
+                    onAlbumSelected(album)
+                })
+        }
+    }
+}
 @ExperimentalFoundationApi
 @Composable
 fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){

@@ -155,17 +155,17 @@ class MainActivity : ComponentActivity() {
                         screenRoute = "radio_screen"
                     ),
                     BottomNavigationItem(
+                        title = "Albums",
+                        selectedIcon = ImageVector.vectorResource(R.drawable.rounded_library_music_24),
+                        unselectedIcon = ImageVector.vectorResource(R.drawable.rounded_library_music_24),
+                        screenRoute = "album_screen"
+                    ),
+                    BottomNavigationItem(
                         title = "Playlists",
                         selectedIcon = ImageVector.vectorResource(R.drawable.placeholder),
                         unselectedIcon = ImageVector.vectorResource(R.drawable.placeholder),
                         screenRoute = "playlist_screen"
-                    ),
-                    /*BottomNavigationItem(
-                        title = "Settings",
-                        selectedIcon = Icons.Rounded.Settings,
-                        unselectedIcon = Icons.Outlined.Settings,
-                        screenRoute = "setting_screen"
-                    )*/
+                    )
                 )
                 var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
 

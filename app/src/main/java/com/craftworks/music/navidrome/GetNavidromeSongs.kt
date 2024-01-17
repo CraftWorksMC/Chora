@@ -4,11 +4,13 @@ import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import com.craftworks.music.data.Album
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
 import com.craftworks.music.playingSong
 import com.craftworks.music.songsList
+import com.craftworks.music.ui.screens.albumList
 import com.craftworks.music.ui.screens.playlistList
 import com.craftworks.music.ui.screens.radioList
 import com.craftworks.music.ui.screens.transcodingBitrate
@@ -170,8 +172,7 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             songLastPlayed = if (attribute.nodeName == "played") attribute.textContent else songLastPlayed
         }
 
-
-        songList.add(Song(
+        val song = Song(
             title = songTitle,
             album = songAlbum,
             artist = songArtist,
@@ -185,7 +186,20 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             bitrate = songBitrate,
             dateAdded = songDateAdded,
             lastPlayed = songLastPlayed
-        ))
+        )
+
+        songList.add(song)
+
+        // Add songs to album
+        val album = Album(
+            name = songAlbum,
+            artist = songArtist,
+            year = songYear,
+            coverArt = songImageUrl
+        )
+        if (!albumList.contains(album)){
+            albumList.add(album)
+        }
     }
 }
 fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: MutableList<Playlist>){
