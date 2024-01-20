@@ -224,14 +224,17 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         )
                         Switch(checked = useNavidromeServer.value, onCheckedChange = {
                             useNavidromeServer.value = it
+                            // Clear everything!
                             songsList.clear()
+                            albumList.clear()
+                            radioList.clear()
+                            playlistList.clear()
                             if (it && (navidromeUsername.value != "" || navidromePassword.value !="" || navidromeServerIP.value != ""))
                                 try {
                                     getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=musicApp"))
                                 } catch (_: Exception){
                                     // DO NOTHING
                                 }
-
                             else
                                 getSongsOnDevice(context)
                         })

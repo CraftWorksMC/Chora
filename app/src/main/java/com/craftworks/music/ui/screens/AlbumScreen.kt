@@ -25,7 +25,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
-import com.craftworks.music.navidrome.getNavidromePlaylists
 import com.craftworks.music.ui.elements.AlbumGrid
 
 @ExperimentalFoundationApi
@@ -33,7 +32,6 @@ import com.craftworks.music.ui.elements.AlbumGrid
 @Composable
 fun AlbumScreen(navHostController: NavHostController = rememberNavController()) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-    if (playlistList.isEmpty()) getNavidromePlaylists()
 
     /* RADIO ICON + TEXT */
     Box(modifier = Modifier

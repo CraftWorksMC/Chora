@@ -42,7 +42,7 @@ var selectedPlaylist by mutableStateOf<Playlist?>(Playlist("My Very Awesome Play
 @Composable
 fun PlaylistScreen(navHostController: NavHostController = rememberNavController()) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-    if (playlistList.isEmpty()) getNavidromePlaylists()
+    if (playlistList.isEmpty() && useNavidromeServer.value) getNavidromePlaylists()
 
     /* RADIO ICON + TEXT */
     Box(modifier = Modifier

@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
@@ -65,7 +66,8 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                    modifier = Modifier.padding(start = 12.dp)
+                    modifier = Modifier.padding(start = 12.dp),
+                    lineHeight = 28.sp
                 )
             }
             Box(Modifier.padding(end = 12.dp)) {
@@ -90,7 +92,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
 
 
         Divider(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(12.dp, 0.dp, 12.dp, 12.dp),
             thickness = 2.dp,
             color = MaterialTheme.colorScheme.onBackground
         )

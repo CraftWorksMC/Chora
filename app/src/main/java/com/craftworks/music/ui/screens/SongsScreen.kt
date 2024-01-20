@@ -55,7 +55,7 @@ fun SongsScreen() {
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        Column(modifier = Modifier.padding(0.dp,64.dp,0.dp,0.dp)) {
+        Column(modifier = Modifier.padding(12.dp,64.dp,12.dp,12.dp)) {
             val allSongsList = songsList.sortedBy { song: Song -> song.title }
             SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song

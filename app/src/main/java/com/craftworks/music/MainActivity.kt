@@ -47,12 +47,17 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import com.craftworks.music.data.Album
 import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.ui.NowPlayingContent
+import com.craftworks.music.ui.screens.albumList
+import com.craftworks.music.ui.screens.playlistList
+import com.craftworks.music.ui.screens.radioList
 import com.craftworks.music.ui.screens.saveManager
 import com.craftworks.music.ui.theme.MusicPlayerTheme
 import kotlinx.coroutines.launch
+import java.io.FileNotFoundException
 import java.sql.Date
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -143,6 +148,12 @@ class MainActivity : ComponentActivity() {
                         screenRoute = "home_screen"
                     ),
                     BottomNavigationItem(
+                        title = "Albums",
+                        selectedIcon = ImageVector.vectorResource(R.drawable.rounded_library_music_24),
+                        unselectedIcon = ImageVector.vectorResource(R.drawable.rounded_library_music_24),
+                        screenRoute = "album_screen"
+                    ),
+                    BottomNavigationItem(
                         title = "Songs",
                         selectedIcon = ImageVector.vectorResource(R.drawable.round_music_note_24),
                         unselectedIcon = ImageVector.vectorResource(R.drawable.round_music_note_24),
@@ -153,12 +164,6 @@ class MainActivity : ComponentActivity() {
                         selectedIcon = ImageVector.vectorResource(R.drawable.rounded_radio),
                         unselectedIcon = ImageVector.vectorResource(R.drawable.rounded_radio),
                         screenRoute = "radio_screen"
-                    ),
-                    BottomNavigationItem(
-                        title = "Albums",
-                        selectedIcon = ImageVector.vectorResource(R.drawable.rounded_library_music_24),
-                        unselectedIcon = ImageVector.vectorResource(R.drawable.rounded_library_music_24),
-                        screenRoute = "album_screen"
                     ),
                     BottomNavigationItem(
                         title = "Playlists",
@@ -335,7 +340,11 @@ fun getSongsOnDevice(context: Context){
     val selectionArgs = arrayOf("%${mediaFolder.value}%")
     val cursor: Cursor? = contentResolver.query(uri, null, selection, selectionArgs, null)
 
+    // Clear everything!
     songsList.clear()
+    albumList.clear()
+    radioList.clear()
+    playlistList.clear()
 
     MediaScannerConnection.scanFile(
         context, arrayOf(Environment.getExternalStorageDirectory().path), null
@@ -370,7 +379,15 @@ fun getSongsOnDevice(context: Context){
                 val thisAlbum = cursor.getString(albumColumn)
 
                 val contentUri: Uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, thisId)
-                val imageUri: Uri = Uri.parse("content://media/external/audio/media/$thisId/albumart")
+
+                var imageUri:Uri = Uri.EMPTY
+                try {
+                    imageUri = Uri.parse("content://media/external/audio/media/$thisId/albumart")
+                } catch (_:FileNotFoundException){
+                    println("No Album Art!")
+                }
+
+                // Add Song
                 val song = Song(
                     title = thisTitle,
                     artist = thisArtist,
@@ -381,9 +398,20 @@ fun getSongsOnDevice(context: Context){
                     dateAdded = thisDateAdded,
                     year = thisYear,
                     format = thisFormat.uppercase().drop(6),
-                    bitrate = (thisBitrate.toInt() / 1000).toString()
+                    bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else ""
                 )
                 songsList.add(song)
+
+                // Add songs to album
+                val album = Album(
+                    name = thisAlbum,
+                    artist = thisArtist,
+                    year = if (!thisYear.isNullOrBlank()) thisYear else "",
+                    coverArt = imageUri
+                )
+                if (!albumList.contains(album)){
+                    albumList.add(album)
+                }
 
             } while (cursor.moveToNext())
         }

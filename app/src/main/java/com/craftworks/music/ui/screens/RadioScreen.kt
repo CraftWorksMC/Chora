@@ -67,7 +67,7 @@ var selectedRadioIndex = mutableIntStateOf(0)
 @Composable
 fun RadioScreen() {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-    if (radioList.isEmpty()) getNavidromeRadios()
+    if (radioList.isEmpty() && useNavidromeServer.value) getNavidromeRadios()
 
     /* RADIO ICON + TEXT */
     Box(modifier = Modifier

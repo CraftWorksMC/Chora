@@ -46,7 +46,11 @@ fun getNavidromeSongs(url: URL){
         try {
             Log.d("useNavidromeServer", "URL: $url")
 
+            // Clear everything!
             songsList.clear()
+            albumList.clear()
+            radioList.clear()
+            playlistList.clear()
 
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET

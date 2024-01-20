@@ -118,6 +118,7 @@ import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.useNavidromeServer
 import kotlinx.coroutines.launch
+import java.io.FileNotFoundException
 
 var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
 @OptIn(ExperimentalMaterial3Api::class)
@@ -179,8 +180,9 @@ fun NowPlayingContent(
                     bitmap.value =
                         if (useNavidromeServer.value)
                             getNavidromeBitmap(context)
-                        else
-                            MediaStore.Images.Media.getBitmap(context.contentResolver, playingSong.selectedSong?.imageUrl)
+                        else //Don't crash if there's no album art!
+                            try{ MediaStore.Images.Media.getBitmap(context.contentResolver, playingSong.selectedSong?.imageUrl) }
+                            catch (_:FileNotFoundException) { Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888) }
                 }
 
                 val palette = Palette.from(bitmap.value).generate()
