@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -30,14 +32,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,7 +86,7 @@ var selectedAlbum by mutableStateOf<Album?>(
 @Composable
 fun AlbumDetails(navHostController: NavHostController = rememberNavController()) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-    val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red, Color.Transparent))
+    val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
     val albumSongs = songsList.filter { it.album == selectedAlbum?.name }
 
@@ -92,9 +95,14 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
 
     Column(modifier = Modifier
         .fillMaxWidth()
-        .padding(start = leftPadding)
-        .verticalScroll(rememberScrollState())
-        .wrapContentHeight()) {
+        .padding(
+            start = leftPadding,
+            bottom = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE)
+                        80.dp + 72.dp + 12.dp //BottomNavBar + NowPlayingScreen + 12dp Padding
+                    else
+                        72.dp)
+        .wrapContentHeight()
+        .verticalScroll(rememberScrollState())) {
         Box (modifier = Modifier
             .padding(horizontal = 12.dp)
             .height(192.dp)
@@ -110,7 +118,6 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                     .fadingEdge(imageFadingEdge)
                     .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
                     .blur(8.dp)
-                    .alpha(0.75f)
             )
             Button(
                 onClick = { navHostController.navigate(Screen.Albums.route) },
@@ -130,41 +137,44 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                         .size(32.dp)
                 )
             }
-            selectedAlbum?.name?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    lineHeight = 32.sp
-                )
-            }
-        }
-        // Album name, artist and duration
-            Row (modifier = Modifier.fillMaxWidth() ,horizontalArrangement = Arrangement.Center) {
-                selectedAlbum?.artist?.let {
+            // Album Name and Artist
+            Column(modifier = Modifier.align(Alignment.BottomCenter)){
+                selectedAlbum?.name?.let {
                     Text(
-                        text = "$it • ",
+                        text = it,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        lineHeight = 32.sp
+                    )
+                }
+                Row (modifier = Modifier.fillMaxWidth() ,horizontalArrangement = Arrangement.Center) {
+                    selectedAlbum?.artist?.let {
+                        Text(
+                            text = "$it • ",
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    var albumDuration = 0
+                    for (song in albumSongs){
+                        albumDuration += song.duration
+                    }
+                    Text(
+                        text = formatMilliseconds(albumDuration.toFloat()),
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Normal,
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         textAlign = TextAlign.Center
                     )
                 }
-                var albumDuration: Int = 0
-                for (song in albumSongs){
-                    albumDuration += song.duration
-                }
-                Text(
-                    text = formatMilliseconds(albumDuration.toFloat()),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                    textAlign = TextAlign.Center
-                )
             }
+        }
+
 
         // Play and shuffle buttons
         Row (modifier = Modifier
@@ -177,9 +187,16 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                     playingSong.selectedSong = albumSongs[0]
                     playingSong.selectedList = albumSongs
                     songState = true
-                }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onBackground),
+                modifier = Modifier.width(128.dp)
             ) {
-                Text("Play All")
+                Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(24.dp)) {
+                    Icon(Icons.Rounded.PlayArrow, "Play Album")
+                    Text("Play")
+                }
             }
             Button(
                 onClick = {
@@ -187,15 +204,22 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                     playingSong.selectedSong = albumSongs[albumSongs.indices.random()]
                     playingSong.selectedList = albumSongs
                     songState = true
-                }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onBackground),
+                modifier = Modifier.width(128.dp)
             ) {
-                Text("Shuffle")
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(24.dp)) {
+                    Icon(ImageVector.vectorResource(R.drawable.round_shuffle_28), "Shuffle Album")
+                    Text("Shuffle")
+                }
             }
         }
 
         // Songs List
         Column(modifier = Modifier
-            .padding(start = 12.dp,end = 12.dp, top = 0.dp)
+            .padding(start = 12.dp, end = 12.dp, top = 0.dp)
             .wrapContentHeight()
         ) {
             /*
@@ -204,7 +228,9 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                 playingSong.selectedList = albumSongs
                 songState = true })*/
             Column(
-                modifier = Modifier.wrapContentHeight().fillMaxWidth()
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
             ) {
                 for(song in albumSongs){
                     HorizontalSongCard(song = song, onClick = {
@@ -235,6 +261,7 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(256.dp)
+                    .padding(top = 12.dp)
             ) {
                 Text(
                     text = "More Songs From " + selectedAlbum?.artist,
