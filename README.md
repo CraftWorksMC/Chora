@@ -2,7 +2,7 @@
 
 A simple and light-weight app that streams music from a Subsonic or Navidrome server, or from the phone's storage.
 
-<a href='https://play.google.com/store/apps/details?id=com.craftworks.music&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img style="height:250px" alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
+<a href='https://play.google.com/store/apps/details?id=com.craftworks.music&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img width=256px alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
 ## Features
 
 - Subsonic Integration.
