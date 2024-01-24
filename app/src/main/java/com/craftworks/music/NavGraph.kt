@@ -3,7 +3,9 @@ package com.craftworks.music
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,6 +25,7 @@ import com.craftworks.music.ui.screens.PlaylistScreen
 import com.craftworks.music.ui.screens.RadioScreen
 import com.craftworks.music.ui.screens.SettingScreen
 import com.craftworks.music.ui.screens.SongsScreen
+import com.craftworks.music.ui.screens.settings.S_AppearanceScreen
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -74,6 +77,14 @@ fun SetupNavGraph(
         //Settings
         composable(route = Screen.Setting.route) {
             SettingScreen(navController)
+        }
+        composable(route = Screen.S_Appearance.route,
+            enterTransition = { slideInHorizontally(animationSpec = tween(durationMillis = 200)){ fullWidth ->
+                fullWidth }},
+            exitTransition = {slideOutHorizontally(animationSpec = tween(durationMillis = 200)){ fullWidth ->
+                fullWidth }}
+        ) {
+            S_AppearanceScreen(navController)
         }
     }
 }

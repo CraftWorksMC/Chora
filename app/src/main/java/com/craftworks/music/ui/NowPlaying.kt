@@ -8,6 +8,7 @@ import android.graphics.Matrix
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.provider.MediaStore
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -144,6 +145,7 @@ fun NowPlayingContent(
     context: Context = LocalContext.current,
     scaffoldState: BottomSheetScaffoldState? = rememberBottomSheetScaffoldState()
 ){
+
     var lyricsOpen by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 

@@ -18,6 +18,7 @@ import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateDpAsState
@@ -48,6 +49,7 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.craftworks.music.data.Album
+import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.ui.NowPlayingContent
@@ -267,6 +269,23 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+            }
+
+            val coroutineScope = rememberCoroutineScope()
+            // handle back presses
+            BackHandler {
+                if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded){
+                    coroutineScope.launch {
+                        scaffoldState.bottomSheetState.partialExpand()
+                    }
+                    return@BackHandler
+                }
+                if (navController.currentBackStackEntry?.destination?.route == Screen.Setting.route){
+                    navController.navigate(Screen.Home.route)
+                    return@BackHandler
+                }
+
+                navController.popBackStack()
             }
         }
 

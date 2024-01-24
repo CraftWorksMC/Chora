@@ -48,6 +48,7 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
     Box(modifier = Modifier
         .fillMaxWidth()
         .padding(start = leftPadding)) {
+        /* HEADER */
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.placeholder),

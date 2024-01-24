@@ -9,4 +9,7 @@
     <string name="random_songs">Explore From Your Library</string>
     <string name="radios">Internet Radio</string>
     <string name="playlists">Playlists</string>
+    <string name="S_Appearance">Appearance</string>
+    <string name="S_Media">Media Providers</string>
+    <string name="S_A_Background">Background Style</string>
 </resources>

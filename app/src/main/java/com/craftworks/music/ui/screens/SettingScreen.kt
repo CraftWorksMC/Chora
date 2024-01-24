@@ -3,22 +3,26 @@ package com.craftworks.music.ui.screens
 import android.content.Context
 import android.content.res.Configuration
 import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
@@ -27,10 +31,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -40,6 +41,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
@@ -47,10 +50,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
@@ -59,14 +58,12 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.getSongsOnDevice
-import com.craftworks.music.mediaFolder
 import com.craftworks.music.navidrome.getNavidromePlaylists
 import com.craftworks.music.navidrome.getNavidromeRadios
 import com.craftworks.music.navidrome.getNavidromeSongs
 import com.craftworks.music.navidrome.navidromePassword
 import com.craftworks.music.navidrome.navidromeServerIP
 import com.craftworks.music.navidrome.navidromeUsername
-import com.craftworks.music.songsList
 import java.net.URL
 
 var username = mutableStateOf("Username")
@@ -101,14 +98,16 @@ var transcodingBitrate = mutableStateOf(transcodingBitrateList[6])
 fun SettingScreen(navHostController: NavHostController = rememberNavController()) {
     val context = LocalContext.current.applicationContext
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-    Box(modifier = Modifier
+    val bottomPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 80.dp + 72.dp + 12.dp else 72.dp
+    Column(modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState())
         .padding(start = leftPadding)) {
-        /* SETTINGS ICON + TEXT */
-        Row(verticalAlignment = Alignment.CenterVertically) {
+
+        /* HEADER */
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
             Icon(
-                imageVector = Icons.Rounded.Settings,
+                imageVector = ImageVector.vectorResource(R.drawable.rounded_settings_24),
                 contentDescription = "Settings Icon",
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(48.dp))
@@ -119,7 +118,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                 fontSize = MaterialTheme.typography.headlineLarge.fontSize,
                 modifier = Modifier.weight(1f)
             )
-            Box(Modifier.padding(end = 12.dp)) {
+            Box {
                 Button(
                     onClick = { navHostController.navigate(Screen.Home.route) },
                     shape = CircleShape,
@@ -138,14 +137,84 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                 }
             }
         }
+
         Divider(
-            modifier = Modifier.padding(12.dp,56.dp,12.dp,0.dp),
+            modifier = Modifier.padding(horizontal = 12.dp),
             thickness = 2.dp,
             color = MaterialTheme.colorScheme.onBackground
         )
-        /* ACTUAL SETTINGS */
-        Box(Modifier.padding(12.dp,64.dp,12.dp,84.dp)){
+
+        /* Settings */
+        Box(Modifier.padding(12.dp,12.dp,12.dp,bottomPadding)){
             Column {
+                /* NEW SETTINGS */
+
+                //Appearance
+                Row (modifier = Modifier
+                    .height(76.dp)
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable{
+                        navHostController.navigate(Screen.S_Appearance.route)
+                    },
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.rounded_palette_24),
+                        contentDescription = stringResource(R.string.S_Appearance),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(48.dp).padding(start = 12.dp))
+                    Text(
+                        text = stringResource(R.string.S_Appearance),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                    Spacer(Modifier.weight(1f).fillMaxHeight())
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
+                        contentDescription = stringResource(R.string.S_Appearance),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(48.dp).padding(end = 12.dp).rotate(-90f))
+                }
+
+                //Media Providers
+                Row (modifier = Modifier
+                    .height(76.dp)
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable{
+
+                    },
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.rounded_palette_24),
+                        contentDescription = stringResource(R.string.S_Media),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(48.dp).padding(start = 12.dp))
+                    Text(
+                        text = stringResource(R.string.S_Media),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                    Spacer(Modifier.weight(1f).fillMaxHeight())
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
+                        contentDescription = stringResource(R.string.S_Media),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(48.dp).padding(end = 12.dp).rotate(-90f))
+                }
+
+                /*
+
                 /* -SEPARATOR */
                 Row (verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -166,18 +235,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     singleLine = true
                 )
 
-                Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 12.dp)) {
-                    Text(
-                        text = "Background",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start
-                    )
-                    BackgroundDropdown()
-                }
+
 
 
                 /* SHOW MORE SONG INFO */
@@ -323,58 +381,13 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     }
                 }
 
-
-                Spacer(modifier = Modifier.height(72.dp))
-            }
-        }
-
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BackgroundDropdown() {
-    var expanded by remember { mutableStateOf(false) }
-    // menu box
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = {
-            expanded = !expanded
-        },
-        modifier = Modifier.width(192.dp)
-    ) {
-        TextField(
-            modifier = Modifier
-                .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
-            readOnly = true,
-            value = backgroundType.value,
-            onValueChange = {},
-            label = { Text("Background Type") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-        )
-
-        // menu
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-            },
-        ) {
-            // menu items
-            backgroundTypes.forEach { selectionOption ->
-                DropdownMenuItem(
-                    text = { Text(selectionOption) },
-                    onClick = {
-                        backgroundType.value = selectionOption
-                        expanded = false
-                    },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                )
+                */
             }
         }
     }
 }
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TranscodingDropdown() {
