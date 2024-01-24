@@ -162,7 +162,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.rounded_palette_24),
+                        imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
                         contentDescription = stringResource(R.string.S_Appearance),
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(48.dp).padding(start = 12.dp))
@@ -194,7 +194,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.rounded_palette_24),
+                        imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
                         contentDescription = stringResource(R.string.S_Media),
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(48.dp).padding(start = 12.dp))
@@ -215,57 +215,10 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
 
                 /*
 
-                /* -SEPARATOR */
-                Row (verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "- - - PERSONALIZATION - - -",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center
-                    )
-                }
                 /* USERNAME */
-                OutlinedTextField(
-                    value = username.value,
-                    onValueChange = { username.value = it },
-                    label = { Text("Username:") },
-                    singleLine = true
-                )
 
 
 
-
-                /* SHOW MORE SONG INFO */
-                Row (verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Show More Song Info",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start
-                    )
-                    Switch(checked = showMoreInfo.value, onCheckedChange = { showMoreInfo.value = it })
-                }
-
-                /* -SEPARATOR */
-                Row (verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "- - - MEDIA - - -",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(top = 24.dp),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center
-                    )
-                }
 
                 /* USE NAVIDROME SERVER */
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,16 +20,13 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +54,8 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.backgroundTypes
+import com.craftworks.music.ui.screens.showMoreInfo
+import com.craftworks.music.ui.screens.username
 
 @Composable
 @Preview(showSystemUi = false, showBackground = true)
@@ -83,7 +81,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             modifier = Modifier.padding(horizontal = 12.dp)
         ) {
             Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.rounded_palette_24),
+                imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
                 contentDescription = "Settings Icon",
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(48.dp)
@@ -121,28 +119,39 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        Column(Modifier.padding(12.dp,12.dp,12.dp,bottomPadding)){
-            Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 12.dp)) {
-                Text(
-                    text = stringResource(R.string.S_A_Background),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Start
+        Column(Modifier.padding(12.dp,12.dp,24.dp,bottomPadding)){
+
+            //Username
+            Row (verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(vertical = 6.dp)) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.s_a_username),
+                    contentDescription = "Settings Icon",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .size(32.dp)
                 )
-                BackgroundDropdown()
+                OutlinedTextField(
+                    value = username.value,
+                    onValueChange = { username.value = it },
+                    label = { Text("Username:") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
             }
+
+
             //Background Style
             Row (verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(vertical = 12.dp)
+                    .padding(vertical = 6.dp)
                     .clickable {
                         showBackgroundDialog = true
                     }) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.rounded_palette_24),
+                    imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
                     contentDescription = "Settings Icon",
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
@@ -171,57 +180,33 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 }
             }
 
-
-
+            // More Song Info
+            Row (verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(vertical = 6.dp)) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
+                    contentDescription = "Settings Icon",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .size(32.dp)
+                )
+                Text(
+                    text = stringResource(R.string.S_A_MoreInfo),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Start
+                )
+                Switch(checked = showMoreInfo.value, onCheckedChange = { showMoreInfo.value = it })
+            }
         }
 
         if(showBackgroundDialog)
             BackgroundDialog(setShowDialog = { showBackgroundDialog = it })
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BackgroundDropdown() {
-    var expanded by remember { mutableStateOf(false) }
-    // menu box
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = {
-            expanded = !expanded
-        },
-        modifier = Modifier.width(192.dp)
-    ) {
-        TextField(
-            modifier = Modifier
-                .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
-            readOnly = true,
-            value = backgroundType.value,
-            onValueChange = {},
-            label = { Text("Background Type") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-        )
-
-        // menu
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-            },
-        ) {
-            // menu items
-            backgroundTypes.forEach { selectionOption ->
-                DropdownMenuItem(
-                    text = { Text(selectionOption) },
-                    onClick = {
-                        backgroundType.value = selectionOption
-                        expanded = false
-                    },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                )
-            }
-        }
     }
 }
 
