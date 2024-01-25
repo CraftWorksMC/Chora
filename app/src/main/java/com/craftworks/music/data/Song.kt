@@ -1,6 +1,7 @@
 package com.craftworks.music.data
 
 import android.net.Uri
+import androidx.compose.runtime.mutableStateListOf
 
 data class Song (
     val imageUrl: Uri,
@@ -18,3 +19,5 @@ data class Song (
     val navidromeID: String? = "",
     val lastPlayed: String? = ""
 )
+
+val songsList: MutableList<Song> = mutableStateListOf()

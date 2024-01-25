@@ -37,7 +37,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Album
 import com.craftworks.music.playingSong
 import com.craftworks.music.songState
-import com.craftworks.music.songsList
+import com.craftworks.music.data.songsList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

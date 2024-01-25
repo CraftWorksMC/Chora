@@ -2,12 +2,13 @@ package com.craftworks.music
 
 import android.content.Context
 import android.util.Log
-import com.craftworks.music.navidrome.getNavidromePlaylists
-import com.craftworks.music.navidrome.getNavidromeRadios
-import com.craftworks.music.navidrome.getNavidromeSongs
-import com.craftworks.music.navidrome.navidromePassword
-import com.craftworks.music.navidrome.navidromeServerIP
-import com.craftworks.music.navidrome.navidromeUsername
+import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.getNavidromePlaylists
+import com.craftworks.music.providers.navidrome.getNavidromeRadios
+import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.providers.navidrome.navidromePassword
+import com.craftworks.music.providers.navidrome.navidromeServerIP
+import com.craftworks.music.providers.navidrome.navidromeUsername
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.transcodingBitrate

@@ -40,7 +40,7 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.playingSong
 import com.craftworks.music.songState
-import com.craftworks.music.songsList
+import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.elements.SongsRow
 
 

@@ -45,7 +45,7 @@ import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Song
 import com.craftworks.music.formatMilliseconds
-import com.craftworks.music.ui.screens.radioList
+import com.craftworks.music.data.radioList
 import com.craftworks.music.ui.screens.selectedRadioIndex
 import com.craftworks.music.ui.screens.showRadioModifyDialog
 

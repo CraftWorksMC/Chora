@@ -106,10 +106,10 @@ import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.songLyrics
-import com.craftworks.music.navidrome.downloadNavidromeSong
-import com.craftworks.music.navidrome.navidromePassword
-import com.craftworks.music.navidrome.navidromeServerIP
-import com.craftworks.music.navidrome.navidromeUsername
+import com.craftworks.music.providers.navidrome.downloadNavidromeSong
+import com.craftworks.music.providers.navidrome.navidromePassword
+import com.craftworks.music.providers.navidrome.navidromeServerIP
+import com.craftworks.music.providers.navidrome.navidromeUsername
 import com.craftworks.music.playingSong
 import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs

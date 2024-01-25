@@ -20,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,15 +32,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
-import com.craftworks.music.data.Radio
-import com.craftworks.music.navidrome.getNavidromeRadios
+import com.craftworks.music.data.radioList
+import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.playingSong
 import com.craftworks.music.songState
 import com.craftworks.music.ui.elements.AddRadioDialog
 import com.craftworks.music.ui.elements.ModifyRadioDialog
 import com.craftworks.music.ui.elements.RadiosGrid
 
-var radioList:MutableList<Radio> = mutableStateListOf()
 var showRadioAddDialog = mutableStateOf(false)
 var showRadioModifyDialog = mutableStateOf(false)
 var selectedRadioIndex = mutableIntStateOf(0)

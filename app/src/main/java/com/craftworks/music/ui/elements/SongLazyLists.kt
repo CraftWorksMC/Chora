@@ -32,11 +32,11 @@ import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.lyrics.songLyrics.SongLyrics
-import com.craftworks.music.navidrome.getNavidromeSongs
-import com.craftworks.music.navidrome.markSongAsPlayed
-import com.craftworks.music.navidrome.navidromePassword
-import com.craftworks.music.navidrome.navidromeServerIP
-import com.craftworks.music.navidrome.navidromeUsername
+import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.providers.navidrome.markSongAsPlayed
+import com.craftworks.music.providers.navidrome.navidromePassword
+import com.craftworks.music.providers.navidrome.navidromeServerIP
+import com.craftworks.music.providers.navidrome.navidromeUsername
 import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.screens.useNavidromeServer
 import java.net.URL

@@ -3,19 +3,13 @@ package com.craftworks.music
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
-import android.content.ContentResolver
-import android.content.ContentUris
 import android.content.Context
 import android.content.res.Configuration
-import android.database.Cursor
-import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -30,7 +24,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,32 +41,19 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
-import com.craftworks.music.data.Album
+import com.craftworks.music.data.BottomNavigationItem
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.ui.NowPlayingContent
-import com.craftworks.music.ui.screens.albumList
-import com.craftworks.music.ui.screens.playlistList
-import com.craftworks.music.ui.screens.radioList
 import com.craftworks.music.ui.theme.MusicPlayerTheme
 import kotlinx.coroutines.launch
-import java.io.FileNotFoundException
 import java.sql.Date
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
 
-
-data class BottomNavigationItem(
-    val title: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
-    val screenRoute: String,
-)
-
-val songsList: MutableList<Song> = mutableStateListOf()
 
 var sliderPos = mutableIntStateOf(0)
 var mediaFolder = mutableStateOf("/Music/")
@@ -341,6 +321,7 @@ class MainActivity : ComponentActivity() {
 
     }
 }
+
 @Composable
 fun PlayPause(context: Context) {
     if (songState) {
@@ -354,91 +335,7 @@ fun PlayPause(context: Context) {
         SongHelper.pauseStream()
     }
 }
-fun getSongsOnDevice(context: Context){
-    val contentResolver: ContentResolver = context.contentResolver
-    val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-    val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DATA} LIKE ?"
-    val selectionArgs = arrayOf("%${mediaFolder.value}%")
-    val cursor: Cursor? = contentResolver.query(uri, null, selection, selectionArgs, null)
 
-    // Clear everything!
-    songsList.clear()
-    albumList.clear()
-    radioList.clear()
-    playlistList.clear()
-
-    MediaScannerConnection.scanFile(
-        context, arrayOf(Environment.getExternalStorageDirectory().path), null
-    ) { _, _ -> Log.i("Scan For Files", "Media Scan Completed") }
-
-    when {
-        cursor == null -> {
-            // query failed, handle error.
-        }
-        !cursor.moveToFirst() -> {
-            // no media on the device
-        }
-        else -> {
-            val idColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
-            val titleColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
-            val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
-            val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-            val dateAddedColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
-            val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
-            val durationColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
-            val formatColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE)
-            val bitrateColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.BITRATE)
-            do {
-                val thisId = cursor.getLong(idColumn)
-                val thisArtist = cursor.getString(artistColumn)
-                val thisTitle = cursor.getString(titleColumn)
-                val thisDuration = cursor.getInt(durationColumn)
-                val thisDateAdded = cursor.getString(dateAddedColumn)
-                val thisYear = cursor.getString(yearColumn)
-                val thisFormat = cursor.getString(formatColumn)
-                val thisBitrate = cursor.getString(bitrateColumn)
-                val thisAlbum = cursor.getString(albumColumn)
-
-                val contentUri: Uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, thisId)
-
-                var imageUri:Uri = Uri.EMPTY
-                try {
-                    imageUri = Uri.parse("content://media/external/audio/media/$thisId/albumart")
-                } catch (_:FileNotFoundException){
-                    println("No Album Art!")
-                }
-
-                // Add Song
-                val song = Song(
-                    title = thisTitle,
-                    artist = thisArtist,
-                    album = thisAlbum,
-                    imageUrl = imageUri,
-                    media = contentUri,
-                    duration = thisDuration,
-                    dateAdded = thisDateAdded,
-                    year = thisYear,
-                    format = thisFormat.uppercase().drop(6),
-                    bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else ""
-                )
-                songsList.add(song)
-
-                // Add songs to album
-                val album = Album(
-                    name = thisAlbum,
-                    artist = thisArtist,
-                    year = if (!thisYear.isNullOrBlank()) thisYear else "",
-                    coverArt = imageUri
-                )
-                if (!albumList.contains(album)){
-                    albumList.add(album)
-                }
-
-            } while (cursor.moveToNext())
-        }
-    }
-    cursor?.close()
-}
 fun formatMilliseconds(milliseconds: Float): String {
     val format = SimpleDateFormat("mm:ss", Locale.getDefault())
     return format.format(Date(milliseconds.toLong()))

@@ -20,7 +20,7 @@ import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.lyrics.songLyrics
-import com.craftworks.music.navidrome.markSongAsPlayed
+import com.craftworks.music.providers.navidrome.markSongAsPlayed
 import com.craftworks.music.ui.bitmap
 import com.craftworks.music.ui.screens.useNavidromeServer
 import kotlin.math.abs

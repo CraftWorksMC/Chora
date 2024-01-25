@@ -1,6 +1,7 @@
 package com.craftworks.music.data
 
 import android.net.Uri
+import androidx.compose.runtime.mutableStateListOf
 
 data class Radio (
     val imageUrl: Uri,
@@ -11,3 +12,5 @@ data class Radio (
     val bitrate: String? = "320",
     val navidromeID: String? = "",
 )
+
+var radioList:MutableList<Radio> = mutableStateListOf()
