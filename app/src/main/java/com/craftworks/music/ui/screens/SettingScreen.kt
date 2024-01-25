@@ -251,60 +251,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
 
                     // NAVIDROME VARS
                     if (useNavidromeServer.value){
-                        /* SERVER URL */
-                        OutlinedTextField(
-                            value = navidromeServerIP.value,
-                            onValueChange = {
-                                navidromeServerIP.value = it },
-                            label = { Text("Navidrome URL:")},
-                            singleLine = true
-                        )
-                        /* USERNAME */
-                        OutlinedTextField(
-                            value = navidromeUsername.value,
-                            onValueChange = {
-                                navidromeUsername.value = it },
-                            label = { Text("Navidrome Username:")},
-                            singleLine = true
-                        )
-                        /* PASSWORD */
-                        var passwordVisible by remember { mutableStateOf(false) }
-                        OutlinedTextField(
-                            value = navidromePassword.value,
-                            onValueChange = {
-                                navidromePassword.value = it },
-                            label = { Text("Navidrome Password:")},
-                            singleLine = true,
-                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            trailingIcon = {
-                                val image = if (passwordVisible)
-                                    R.drawable.round_visibility_24
-                                else
-                                    R.drawable.round_visibility_off_24
 
-                                // Please provide localized description for accessibility services
-                                val description = if (passwordVisible) "Hide password" else "Show password"
-
-                                IconButton(onClick = {passwordVisible = !passwordVisible}){
-                                    Icon(imageVector  = ImageVector.vectorResource(id = image), description)
-                                }
-                            }
-                        )
-
-                        Button(
-                            onClick = {
-                                try {
-                                    saveManager(context).saveSettings()
-                                    getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora"))
-                                    getNavidromePlaylists()
-                                    getNavidromeRadios()
-                                } catch (_: Exception){
-                                    // DO NOTHING
-                                }
-                            }, modifier = Modifier.width(128.dp)
-                        ) {
-                            Text("Login")
-                        }
 
 
                     }

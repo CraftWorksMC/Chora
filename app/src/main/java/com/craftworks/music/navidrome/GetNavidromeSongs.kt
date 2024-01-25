@@ -39,6 +39,8 @@ var navidromeServerIP = mutableStateOf("")
 var navidromeUsername = mutableStateOf("")
 var navidromePassword = mutableStateOf("")
 
+var navidromeStatus = mutableStateOf("")
+
 @Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromeSongs(url: URL){
     Log.d("NAVIDROME", "USERNAME: $navidromeUsername.value, PASS: ${navidromePassword.value}")
@@ -55,10 +57,17 @@ fun getNavidromeSongs(url: URL){
             radioList.clear()
             playlistList.clear()
 
+            navidromeStatus.value = "Loading"
+
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET
 
                 Log.d("GET","\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+
+                if (responseCode == 404){
+                    navidromeStatus.value = "Invalid URL"
+                    return@Thread
+                }
 
                 //Set Username To Navidrome Login Username.
                 if (responseCode == 200){
@@ -71,6 +80,8 @@ fun getNavidromeSongs(url: URL){
             }
         } catch (e: Exception) {
             Log.d("Exception", e.toString())
+            if (e == java.net.ConnectException())
+                navidromeStatus.value = "Invalid URL"
         }
     }
     thread.start()
@@ -207,6 +218,8 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
         if (!albumList.contains(album)){
             albumList.add(album)
         }
+
+        navidromeStatus.value = "Success"
     }
 }
 fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: MutableList<Playlist>){

@@ -13,4 +13,5 @@
     <string name="S_Media">Media Providers</string>
     <string name="S_A_Background">Background Style</string>
     <string name="S_A_MoreInfo">Show Bitrate</string>
+    <string name="S_M_Navidrome">Navidrome</string>
 </resources>
