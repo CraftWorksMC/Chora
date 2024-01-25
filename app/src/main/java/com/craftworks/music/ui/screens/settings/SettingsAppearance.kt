@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
@@ -23,8 +22,6 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,20 +37,17 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
+import com.craftworks.music.ui.elements.BackgroundDialog
 import com.craftworks.music.ui.screens.backgroundType
-import com.craftworks.music.ui.screens.backgroundTypes
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.username
 
@@ -207,48 +201,6 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 
         if(showBackgroundDialog)
             BackgroundDialog(setShowDialog = { showBackgroundDialog = it })
-    }
-}
-
-@Composable
-fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
-    Dialog(onDismissRequest = { setShowDialog(false) }) {
-        Surface(
-            shape = RoundedCornerShape(24.dp),
-        ) {
-            Box(
-                contentAlignment = Alignment.Center
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Text(
-                        text = stringResource(R.string.S_A_Background),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(bottom = 24.dp)
-                    )
-                    for (option in backgroundTypes){
-                        Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier
-                            .height(48.dp)){
-                            RadioButton(
-                                selected = option == backgroundType.value,
-                                onClick = {
-                                    backgroundType.value = option
-                                    setShowDialog(false)
-                                },
-                                modifier = Modifier.semantics { contentDescription = option }
-                            )
-                            Text(
-                                text = option,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                        }
-                    }
-                }
-            }
-        }
     }
 }
 
