@@ -8,7 +8,6 @@ import android.graphics.Matrix
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.provider.MediaStore
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -50,6 +49,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -117,6 +117,7 @@ import com.craftworks.music.sliderPos
 import com.craftworks.music.songState
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
+import com.craftworks.music.ui.screens.transcodingBitrate
 import com.craftworks.music.ui.screens.useNavidromeServer
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
@@ -143,7 +144,8 @@ fun NowPlayingContent(
         album = "Album Name"
     ),
     context: Context = LocalContext.current,
-    scaffoldState: BottomSheetScaffoldState? = rememberBottomSheetScaffoldState()
+    scaffoldState: BottomSheetScaffoldState? = rememberBottomSheetScaffoldState(),
+    snackbarHostState: SnackbarHostState? = SnackbarHostState()
 ){
 
     var lyricsOpen by remember { mutableStateOf(false) }
@@ -546,7 +548,14 @@ fun NowPlayingContent(
                                 .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
                             {
                                 Button(
-                                    onClick = { downloadNavidromeSong("${navidromeServerIP.value}/rest/download.view?id=${playingSong.selectedSong?.navidromeID}&submission=true&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora") },
+                                    onClick = {
+                                        downloadNavidromeSong("${navidromeServerIP.value}/rest/download.view?id=${playingSong.selectedSong?.navidromeID}&submission=true&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora",
+                                            snackbarHostState = snackbarHostState,
+                                            coroutineScope)
+                                        coroutineScope.launch {
+                                            snackbarHostState?.showSnackbar("Downloading Started")
+                                        }
+                                    },
                                     shape = CircleShape,
                                     modifier = Modifier.height(64.dp),
                                     contentPadding = PaddingValues(2.dp),
@@ -861,14 +870,15 @@ fun SliderUpdating(){
         label = "Smooth Slider Update"
     )
     Slider(
+        enabled = (transcodingBitrate.value == "No Transcoding"),
         modifier = Modifier
             .width(320.dp)
             .height(12.dp),
         value = animatedSliderValue,
         onValueChange = {
+            SongHelper.isSeeking = true
             sliderPos.intValue = it.toInt()
-            SongHelper.currentPosition = it.toLong()
-            SongHelper.isSeeking = true },
+            SongHelper.currentPosition = it.toLong() },
         onValueChangeFinished = {
             SongHelper.isSeeking = false
             SongHelper.player.seekTo(sliderPos.intValue.toLong())},

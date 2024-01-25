@@ -3,6 +3,7 @@ package com.craftworks.music.navidrome
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.mutableStateOf
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Playlist
@@ -16,6 +17,8 @@ import com.craftworks.music.ui.screens.radioList
 import com.craftworks.music.ui.screens.transcodingBitrate
 import com.craftworks.music.ui.screens.useNavidromeServer
 import com.craftworks.music.ui.screens.username
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import org.xmlpull.v1.XmlPullParserException
@@ -163,7 +166,7 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             songArtist = if (attribute.nodeName == "artist") attribute.textContent else songArtist
             songDuration = if (attribute.nodeName == "duration") attribute.textContent.toInt() else songDuration
             songMedia =
-                if (transcodingBitrate.value != "None")
+                if (transcodingBitrate.value != "No Transcoding")
                     Uri.parse("${navidromeServerIP.value}/rest/stream.view?&id=$songId&u=${navidromeUsername.value}&p=${navidromePassword.value}&format=mp3&maxBitRate=${transcodingBitrate.value}&v=1.12.0&c=Chora")
                 else
                     Uri.parse("${navidromeServerIP.value}/rest/stream.view?&id=$songId&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
@@ -316,7 +319,7 @@ fun markSongAsPlayed(song: Song){
     }
 }
 
-fun downloadNavidromeSong(url: String) {
+fun downloadNavidromeSong(url: String, snackbarHostState: SnackbarHostState? = SnackbarHostState(), coroutineScope: CoroutineScope) {
     val thread = Thread {
         try {
             if (playingSong.selectedSong?.isRadio == true || !useNavidromeServer.value) return@Thread
@@ -343,10 +346,15 @@ fun downloadNavidromeSong(url: String) {
                 outputStream.write(buffer, 0, bytesRead)
             }
 
+
+
             inputStream.close()
             outputStream.close()
             connection.disconnect()
             println("Song downloaded to: ${outputFile.absolutePath}")
+            coroutineScope.launch {
+                snackbarHostState?.showSnackbar("Song downloaded to: ${outputFile.absolutePath}")
+            }
 
         } catch (e: Exception) {
             println(e)

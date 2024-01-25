@@ -56,7 +56,6 @@ import com.craftworks.music.ui.NowPlayingContent
 import com.craftworks.music.ui.screens.albumList
 import com.craftworks.music.ui.screens.playlistList
 import com.craftworks.music.ui.screens.radioList
-import com.craftworks.music.ui.screens.saveManager
 import com.craftworks.music.ui.theme.MusicPlayerTheme
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
@@ -134,9 +133,10 @@ class MainActivity : ComponentActivity() {
             ),
             snackbarHostState = SnackbarHostState()
         )
+        val snackbarHostState = SnackbarHostState()
 
         setContent {
-            PlayPause(context = this)
+
             MusicPlayerTheme {
 
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
@@ -187,6 +187,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Scaffold(
+                        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                         bottomBar = {
                             if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
                                 NavigationBar (modifier = Modifier
@@ -263,7 +264,8 @@ class MainActivity : ComponentActivity() {
                             sheetContent = {
                                 NowPlayingContent(
                                     context = this@MainActivity,
-                                    scaffoldState = scaffoldState
+                                    scaffoldState = scaffoldState,
+                                    snackbarHostState = snackbarHostState
                                 )
                             }) {
                         }
@@ -279,14 +281,15 @@ class MainActivity : ComponentActivity() {
                         scaffoldState.bottomSheetState.partialExpand()
                     }
                     return@BackHandler
-                }
-                if (navController.currentBackStackEntry?.destination?.route == Screen.Setting.route){
+                } else if (navController.currentBackStackEntry?.destination?.route == Screen.Setting.route){
                     navController.navigate(Screen.Home.route)
                     return@BackHandler
                 }
 
                 navController.popBackStack()
             }
+
+            PlayPause(context = this)
         }
 
         val requestPermissionLauncher =
@@ -313,7 +316,6 @@ class MainActivity : ComponentActivity() {
             }
 
             override fun onActivityStarted(activity: Activity) {
-                saveManager(this@MainActivity).loadSettings()
                 SongHelper.initPlayer(this@MainActivity)
             }
 

@@ -10,8 +10,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
-import androidx.media3.common.C.WAKE_MODE_LOCAL
-import androidx.media3.common.C.WAKE_MODE_NETWORK
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -46,11 +45,6 @@ class SongHelper {
             player = ExoPlayer.Builder(context).build()
             mediaSession = MediaSession.Builder(context, player).build()
 
-            player.shuffleModeEnabled = false
-            player.repeatMode = Player.REPEAT_MODE_OFF
-
-            // FINALLY Implement the new Media Controls Notification
-
             // Create a Notification Channel
             val channel = NotificationChannel(
                     "Chora",
@@ -59,6 +53,9 @@ class SongHelper {
             )
             notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+
+            //Load Settings (Once)!
+            saveManager(context).loadSettings()
         }
         fun playStream(context: Context, url: Uri) {
             // Stop If It's Playing
@@ -87,13 +84,21 @@ class SongHelper {
             player.seekTo(currentPosition)
             player.playWhenReady = true
 
+            // Set WakeLock
+            if (useNavidromeServer.value){
+                player.setWakeMode(C.WAKE_MODE_NETWORK)
+            }
+            else {
+                player.setWakeMode(C.WAKE_MODE_LOCAL)
+            }
+
             notification = NotificationCompat.Builder(context, "Chora")
                 .setSmallIcon(R.drawable.ic_notification_icon)
                 .setContentTitle(mediaItem.mediaMetadata.title)
                 .setContentText(mediaItem.mediaMetadata.artist)
                 .setLargeIcon(bitmap.value)
                 .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionCompatToken))
-                .setOngoing(true) // Don't dismiss it
+                //.setOngoing(true) // Don't dismiss it
                 .setContentIntent(PendingIntent.getActivity( // Open app on notification click
                     context,
                     0,
@@ -110,14 +115,6 @@ class SongHelper {
                     }
                 }
             })
-
-            // Set WakeLock
-            if (useNavidromeServer.value){
-                player.setWakeMode(WAKE_MODE_NETWORK)
-            }
-            else {
-                player.setWakeMode(WAKE_MODE_LOCAL)
-            }
         }
 
         fun pauseStream(){
@@ -127,6 +124,7 @@ class SongHelper {
                 it.pause()
             }
         }
+
 
         fun stopStream(){
             player.stop()
@@ -186,7 +184,9 @@ class SongHelper {
         }
 
         fun updateCurrentPos(){
-            sliderPos.intValue = player.currentPosition.toInt()
+            if (!player.isLoading)
+                sliderPos.intValue = player.currentPosition.toInt()
+
             currentPosition = sliderPos.intValue.toLong()
         }
 
