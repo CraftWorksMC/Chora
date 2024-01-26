@@ -24,12 +24,9 @@ class saveManager(private val context: Context){
         /* NAVIDROME */
         sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()
 
-        val navidromeStrings = mutableListOf<String>()
-        navidromeServersList.forEach { navidrome ->
-            val navidromeString = "${navidrome.url},${navidrome.username},${navidrome.password}"
-            navidromeStrings.add(navidromeString)
-        }
-        sharedPreferences.edit().putStringSet("navidromeServerList", navidromeStrings.toSet()).apply()
+        val serverListString = navidromeServersList.joinToString(";") { "${it.url},${it.username},${it.password}" }
+        sharedPreferences.edit().putString("navidromeServerList", serverListString).apply()
+        println(serverListString)
 
         sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
 
@@ -47,17 +44,18 @@ class saveManager(private val context: Context){
         showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
 
         /* NAVIDROME SETTINGS */
-        useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
+        //useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
 
-        val navidromeStrings = sharedPreferences.getString("navidromeServerList", "") ?: ""
-        if (navidromeStrings.isNotEmpty()) {
-            val navidromeArray = navidromeStrings.split(";").toTypedArray()
-            for (navidromeString in navidromeArray) {
-                val parts = navidromeString.split(",")
-                if (parts.size == 3) {
-                    val navidrome = Navidrome(parts[0], parts[1], parts[2])
-                    navidromeServersList.add(navidrome)
-                }
+        val serverListString = sharedPreferences.getString("navidromeServerList", "") ?: ""
+        println(serverListString)
+        val navidromeStrings = serverListString.split(";")
+        println(navidromeStrings)
+        navidromeStrings.forEach { navidromeString ->
+            val parts = navidromeString.split(",")
+            if (parts.size == 3) {
+                val navidrome = Navidrome(parts[0], parts[1], parts[2])
+                navidromeServersList.add(navidrome)
+                println(navidrome)
             }
         }
 

@@ -181,6 +181,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable{
                         navHostController.navigate(Screen.S_Providers.route)
+                        println("Navigated To Providers Route")
                     },
                     verticalAlignment = Alignment.CenterVertically
                 ){

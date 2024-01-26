@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,9 +39,9 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.songsList
 import com.craftworks.music.playingSong
 import com.craftworks.music.songState
-import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.elements.SongsRow
 
 
@@ -176,7 +177,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val shuffledSongsList = songsList.take(10).shuffled()
+            val shuffledSongsList = remember { songsList.take(10).shuffled() }
             /* SONGS ROW */
             SongsRow(songsList = shuffledSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
