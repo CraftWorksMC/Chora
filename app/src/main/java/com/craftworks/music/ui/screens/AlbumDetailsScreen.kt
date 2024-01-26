@@ -54,6 +54,7 @@ import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Screen
+import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds

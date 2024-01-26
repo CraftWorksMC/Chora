@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource

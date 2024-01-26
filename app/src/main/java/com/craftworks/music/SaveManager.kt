@@ -2,6 +2,7 @@ package com.craftworks.music
 
 import android.content.Context
 import android.util.Log
+import com.craftworks.music.data.Navidrome
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
@@ -23,8 +24,12 @@ class saveManager(private val context: Context){
         /* NAVIDROME */
         sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()
 
-        val listString = navidromeServersList.joinToString(separator = ";")
-        sharedPreferences.edit().putString("navidromeServerList", listString).apply()
+        val navidromeStrings = mutableListOf<String>()
+        navidromeServersList.forEach { navidrome ->
+            val navidromeString = "${navidrome.url},${navidrome.username},${navidrome.password}"
+            navidromeStrings.add(navidromeString)
+        }
+        sharedPreferences.edit().putStringSet("navidromeServerList", navidromeStrings.toSet()).apply()
 
         sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
 
@@ -36,19 +41,32 @@ class saveManager(private val context: Context){
     }
 
     fun loadSettings() {
+        /* PREFERENCES */
+        username.value = sharedPreferences.getString("username", "Username") ?: "Username"
+        backgroundType.value = sharedPreferences.getString("backgroundType", "Animated Blur") ?: "Animated Blur"
+        showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
+
         /* NAVIDROME SETTINGS */
         useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
 
-        val listString = sharedPreferences.getString("navidromeServerList", null)
-        if (!listString.isNullOrEmpty()) {
-            listString.split(";")
-        } else {
-            emptyList()
+        val navidromeStrings = sharedPreferences.getString("navidromeServerList", "") ?: ""
+        if (navidromeStrings.isNotEmpty()) {
+            val navidromeArray = navidromeStrings.split(";").toTypedArray()
+            for (navidromeString in navidromeArray) {
+                val parts = navidromeString.split(",")
+                if (parts.size == 3) {
+                    val navidrome = Navidrome(parts[0], parts[1], parts[2])
+                    navidromeServersList.add(navidrome)
+                }
+            }
         }
 
         selectedNavidromeServerIndex.intValue = sharedPreferences.getInt("activeNavidromeServer", 0)
+        println(selectedNavidromeServerIndex.intValue)
 
         transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
+
+        if (navidromeServersList.isEmpty()) return
 
         if (useNavidromeServer.value && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != ""))
             try {
@@ -60,11 +78,6 @@ class saveManager(private val context: Context){
             }
         else
             getSongsOnDevice(this@saveManager.context)
-
-        /* PREFERENCES */
-        username.value = sharedPreferences.getString("username", "Username") ?: "Username"
-        backgroundType.value = sharedPreferences.getString("backgroundType", "Animated Blur") ?: "Animated Blur"
-        showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
 
         Log.d("LOAD", "Loaded Settings!")
     }
