@@ -1,8 +1,8 @@
 package com.craftworks.music.providers.navidrome
 
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import com.craftworks.music.data.Navidrome
 
-var selectedNavidromeServer = mutableStateOf<Navidrome?>(null)
+var selectedNavidromeServerIndex = mutableIntStateOf(0)
 
-var useNavidromeServer = mutableStateOf(false)
+var useNavidromeServer = mutableStateOf(true)

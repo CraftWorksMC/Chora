@@ -46,7 +46,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
-import com.craftworks.music.ui.elements.MediaProviderDialog
+import com.craftworks.music.ui.elements.BackgroundDialog
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.username
@@ -200,7 +200,6 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
         }
 
         if(showBackgroundDialog)
-            //BackgroundDialog(setShowDialog = { showBackgroundDialog = it })
-            MediaProviderDialog(setShowDialog = { showBackgroundDialog = it })
+            BackgroundDialog(setShowDialog = { showBackgroundDialog = it })
     }
 }

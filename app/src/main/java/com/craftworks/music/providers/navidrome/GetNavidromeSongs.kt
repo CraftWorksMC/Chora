@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.songsList
@@ -24,9 +25,9 @@ import javax.xml.xpath.XPathFactory
 
 @Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromeSongs(url: URL){
-    Log.d("NAVIDROME", "USERNAME: $selectedNavidromeServer.value?.username, PASS: ${selectedNavidromeServer.value?.url}")
-    if (selectedNavidromeServer.value?.username == "" ||
-        selectedNavidromeServer.value?.url == "") return
+    Log.d("NAVIDROME", "USERNAME: $navidromeServersList[selectedNavidromeServerIndex.intValue].username, PASS: ${navidromeServersList[selectedNavidromeServerIndex.intValue].password}")
+    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
 
     val thread = Thread {
         try {
@@ -52,7 +53,7 @@ fun getNavidromeSongs(url: URL){
 
                 //Set Username To Navidrome Login Username.
                 if (responseCode == 200){
-                    username.value = selectedNavidromeServer.value?.username ?: username.value
+                    username.value = navidromeServersList[selectedNavidromeServerIndex.intValue].username ?: username.value
                 }
 
                 inputStream.bufferedReader().use {
@@ -107,11 +108,11 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             songDuration = if (attribute.nodeName == "duration") attribute.textContent.toInt() else songDuration
             songMedia =
                 if (transcodingBitrate.value != "No Transcoding")
-                    Uri.parse("${selectedNavidromeServer.value?.url}/rest/stream.view?&id=$songId&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&format=mp3&maxBitRate=${transcodingBitrate.value}&v=1.12.0&c=Chora")
+                    Uri.parse("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/stream.view?&id=$songId&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&format=mp3&maxBitRate=${transcodingBitrate.value}&v=1.12.0&c=Chora")
                 else
-                    Uri.parse("${selectedNavidromeServer.value?.url}/rest/stream.view?&id=$songId&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
+                    Uri.parse("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/stream.view?&id=$songId&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
             songImageUrl =
-                Uri.parse("${selectedNavidromeServer.value?.url}/rest/getCoverArt.view?&id=$songId&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
+                Uri.parse("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getCoverArt.view?&id=$songId&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
             songYear = if (attribute.nodeName == "year") attribute.textContent else songYear
             songPlayCount = if (attribute.nodeName == "playCount") attribute.textContent.toInt() else songPlayCount
             songDateAdded = if (attribute.nodeName == "created") attribute.textContent else songDateAdded

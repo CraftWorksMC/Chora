@@ -108,7 +108,7 @@ import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.songLyrics
 import com.craftworks.music.playingSong
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
-import com.craftworks.music.providers.navidrome.selectedNavidromeServer
+import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
@@ -547,7 +547,7 @@ fun NowPlayingContent(
                             {
                                 Button(
                                     onClick = {
-                                        downloadNavidromeSong("${selectedNavidromeServer.value?.url}/rest/download.view?id=${playingSong.selectedSong?.navidromeID}&submission=true&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora",
+                                        downloadNavidromeSong("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${playingSong.selectedSong?.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",
                                             snackbarHostState = snackbarHostState,
                                             coroutineScope)
                                         coroutineScope.launch {
@@ -1258,7 +1258,7 @@ fun animateBrushRotation(
 suspend fun getNavidromeBitmap(context: Context): Bitmap {
     val loading = ImageLoader(context)
     val request = ImageRequest.Builder(context)
-        .data("${selectedNavidromeServer.value?.url}/rest/getCoverArt.view?&id=${playingSong.selectedSong?.navidromeID}&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
+        .data("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getCoverArt.view?&id=${playingSong.selectedSong?.navidromeID}&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
         .build()
     val result = (loading.execute(request) as SuccessResult).drawable
     println("GOT NAVIDROME BITMAP!!!")

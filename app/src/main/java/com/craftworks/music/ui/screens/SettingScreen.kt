@@ -180,7 +180,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable{
-
+                        navHostController.navigate(Screen.S_Providers.route)
                     },
                     verticalAlignment = Alignment.CenterVertically
                 ){
@@ -239,7 +239,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                             playlistList.clear()
                             if (it && (selectedNavidromeServer.value?.username != "" || selectedNavidromeServer.value?.url !="" || selectedNavidromeServer.value?.url != ""))
                                 try {
-                                    getNavidromeSongs(URL("${selectedNavidromeServer.value?.url}/rest/search3.view?query=''&songCount=10000&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora"))
+                                    getNavidromeSongs(URL("${selectedNavidromeServer.value?.url}/rest/search3.view?query=''&songCount=10000&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.password}&v=1.12.0&c=Chora"))
                                 } catch (_: Exception){
                                     // DO NOTHING
                                 }

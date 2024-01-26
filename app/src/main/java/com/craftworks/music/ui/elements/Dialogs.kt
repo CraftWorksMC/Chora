@@ -52,21 +52,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
+import com.craftworks.music.data.Navidrome
 import com.craftworks.music.data.Radio
+import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.radioList
 import com.craftworks.music.providers.navidrome.createNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.deleteNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.modifyNavidromeRadoStation
-import com.craftworks.music.providers.navidrome.selectedNavidromeServer.value?.url
-import com.craftworks.music.providers.navidrome.selectedNavidromeServer.value?.url
 import com.craftworks.music.providers.navidrome.navidromeStatus
-import com.craftworks.music.providers.navidrome.navidromeUsername
+import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
+import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.backgroundTypes
-import com.craftworks.music.data.radioList
-import com.craftworks.music.providers.navidrome.useNavidromeServer
 import java.net.URL
 
 /* --- PREVIEWS --- */
@@ -78,7 +78,7 @@ fun PreviewBackgroundDialog(){
 @Preview(showBackground = true)
 @Composable
 fun PreviewProviderDialog(){
-    MediaProviderDialog(setShowDialog = { })
+    CreateMediaProviderDialog(setShowDialog = { })
 }
 @Preview(showBackground = true)
 @Composable
@@ -365,7 +365,11 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
 
 //  PROVIDERS
 @Composable
-fun MediaProviderDialog(setShowDialog: (Boolean) -> Unit) {
+fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit) {
+    var url: String by remember { mutableStateOf("") }
+    var username: String by remember { mutableStateOf("") }
+    var password: String by remember { mutableStateOf("") }
+
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(24.dp),
@@ -382,51 +386,56 @@ fun MediaProviderDialog(setShowDialog: (Boolean) -> Unit) {
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
                     /* SERVER URL */
-                    OutlinedTextField(
-                        value = selectedNavidromeServer.value?.url,
-                        onValueChange = {
-                            selectedNavidromeServer.value?.url = it },
-                        label = { Text("Navidrome URL:")},
-                        singleLine = true,
-                        isError = navidromeStatus.value == "Invalid URL"
-                    )
+                        OutlinedTextField(
+                            value = url,
+                            onValueChange = { url = it },
+                            label = { Text("Navidrome URL:")},
+                            singleLine = true,
+                            isError = navidromeStatus.value == "Invalid URL"
+                        )
                     /* USERNAME */
-                    OutlinedTextField(
-                        value = selectedNavidromeServer.value?.username,
-                        onValueChange = {
-                            selectedNavidromeServer.value?.username = it },
-                        label = { Text("Navidrome Username:")},
-                        singleLine = true
-                    )
+                        OutlinedTextField(
+                            value = username,
+                            onValueChange = { username = it },
+                            label = { Text("Navidrome Username:")},
+                            singleLine = true
+                        )
                     /* PASSWORD */
                     var passwordVisible by remember { mutableStateOf(false) }
-                    OutlinedTextField(
-                        value = selectedNavidromeServer.value?.url,
-                        onValueChange = {
-                            selectedNavidromeServer.value?.url = it },
-                        label = { Text("Navidrome Password:") },
-                        singleLine = true,
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            val image = if (passwordVisible)
-                                R.drawable.round_visibility_24
-                            else
-                                R.drawable.round_visibility_off_24
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = { Text("Navidrome Password:") },
+                            singleLine = true,
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                val image = if (passwordVisible)
+                                    R.drawable.round_visibility_24
+                                else
+                                    R.drawable.round_visibility_off_24
 
-                            // Please provide localized description for accessibility services
-                            val description = if (passwordVisible) "Hide password" else "Show password"
+                                // Please provide localized description for accessibility services
+                                val description = if (passwordVisible) "Hide password" else "Show password"
 
-                            IconButton(onClick = {passwordVisible = !passwordVisible}){
-                                Icon(imageVector  = ImageVector.vectorResource(id = image), description)
+                                IconButton(onClick = {passwordVisible = !passwordVisible}){
+                                    Icon(imageVector  = ImageVector.vectorResource(id = image), description)
+                                }
                             }
-                        }
-                    )
+                        )
+
 
                     Button(
                         onClick = {
                             try {
                                 //saveManager(context).saveSettings()
-                                getNavidromeSongs(URL("${selectedNavidromeServer.value?.url}/rest/search3.view?query=''&songCount=10000&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora"))
+                                val server = Navidrome(url, username, password)
+
+                                if (!navidromeServersList.contains(server)){
+                                    navidromeServersList.add(server)
+                                }
+                                selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
+
+                                getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
                                 getNavidromePlaylists()
                                 getNavidromeRadios()
                             } catch (_: Exception){
@@ -440,12 +449,15 @@ fun MediaProviderDialog(setShowDialog: (Boolean) -> Unit) {
                             .wrapContentWidth()
                             .animateContentSize()
                             .align(Alignment.CenterHorizontally)
-                            .padding(top = 24.dp),
+                            .padding(top = 24.dp)
+                            .height(50.dp),
+
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Crossfade(targetState = navidromeStatus.value,
                             label = "Loading Button Animation") { status ->
                             when (status) {
-                                "" -> Text("Login", modifier = Modifier.height(24.dp))
+                                "" -> Text("Add", modifier = Modifier.height(24.dp))
                                 "Success" -> Text("Success!", modifier = Modifier
                                     .height(24.dp)
                                     .wrapContentHeight(Alignment.CenterVertically))

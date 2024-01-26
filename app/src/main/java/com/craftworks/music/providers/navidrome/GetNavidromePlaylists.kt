@@ -19,13 +19,13 @@ import javax.xml.xpath.XPathFactory
 
 @Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromePlaylists(){
-    if (selectedNavidromeServer.value?.username == "" ||
-        selectedNavidromeServer.value?.url == "") return
+    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
 
     val thread = Thread {
         try {
             val url =
-                URL("${selectedNavidromeServer.value?.url}/rest/getPlaylists.view?&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
+                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getPlaylists.view?&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
 
             playlistList.clear()
 
@@ -70,7 +70,7 @@ fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: Mutable
             val attribute = firstElement.attributes.item(i)
             playlistID = if (attribute.nodeName == "id") attribute.textContent else playlistID
             playlistName = if (attribute.nodeName == "name") attribute.textContent else playlistName
-            playlistCover = if (attribute.nodeName == "coverArt") Uri.parse("${selectedNavidromeServer.value?.url}/rest/getCoverArt.view?id=${attribute.textContent}&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora") else playlistCover
+            playlistCover = if (attribute.nodeName == "coverArt") Uri.parse("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getCoverArt.view?id=${attribute.textContent}&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora") else playlistCover
             if (attribute.nodeName == "title") Log.d(
                 "NAVIDROME",
                 "Added Playlist: ${attribute.textContent}"
@@ -79,7 +79,7 @@ fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: Mutable
         // GET PLAYLIST SONGS
         val playlistSongs:MutableList<Song> = mutableListOf()
         val playlistSongsURL =
-            URL("${selectedNavidromeServer.value?.url}/rest/getPlaylist.view?id=${playlistID}&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
+            URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getPlaylist.view?id=${playlistID}&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
         with(playlistSongsURL.openConnection() as HttpURLConnection) {
             requestMethod = "GET"  // optional default is GET
 

@@ -10,7 +10,7 @@ fun markSongAsPlayed(song: Song){
         val thread = Thread {
             try {
                 val url =
-                    URL("${selectedNavidromeServer.value?.url}/rest/scrobble.view?id=${song.navidromeID}&submission=true&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
+                    URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/scrobble.view?id=${song.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
                 with(url.openConnection() as HttpURLConnection) {
                     requestMethod = "GET"  // optional default is GET
                     println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")

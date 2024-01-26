@@ -6,7 +6,7 @@ var navidromeServersList:MutableList<Navidrome> = mutableStateListOf()
 
 
 data class Navidrome (
-    val url:String,
-    val username:String,
+    var url:String,
+    var username:String,
     val password:String
 )

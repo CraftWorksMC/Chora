@@ -26,6 +26,7 @@ import com.craftworks.music.ui.screens.RadioScreen
 import com.craftworks.music.ui.screens.SettingScreen
 import com.craftworks.music.ui.screens.SongsScreen
 import com.craftworks.music.ui.screens.settings.S_AppearanceScreen
+import com.craftworks.music.ui.screens.settings.S_ProviderScreen
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -85,6 +86,14 @@ fun SetupNavGraph(
                 fullWidth }}
         ) {
             S_AppearanceScreen(navController)
+        }
+        composable(route = Screen.S_Providers.route,
+            enterTransition = { slideInHorizontally(animationSpec = tween(durationMillis = 200)){ fullWidth ->
+                fullWidth }},
+            exitTransition = {slideOutHorizontally(animationSpec = tween(durationMillis = 200)){ fullWidth ->
+                fullWidth }}
+        ) {
+            S_ProviderScreen(navController)
         }
     }
 }
