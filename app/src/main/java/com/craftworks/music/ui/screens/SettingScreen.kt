@@ -60,7 +60,6 @@ import com.craftworks.music.data.Screen
 
 var username = mutableStateOf("Username")
 var showMoreInfo = mutableStateOf(true)
-var useNavidromeServer = mutableStateOf(false)
 
 // BACKGROUND TYPES
 val backgroundTypes = listOf(
@@ -238,9 +237,9 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                             albumList.clear()
                             radioList.clear()
                             playlistList.clear()
-                            if (it && (navidromeUsername.value != "" || navidromePassword.value !="" || navidromeServerIP.value != ""))
+                            if (it && (selectedNavidromeServer.value?.username != "" || selectedNavidromeServer.value?.url !="" || selectedNavidromeServer.value?.url != ""))
                                 try {
-                                    getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora"))
+                                    getNavidromeSongs(URL("${selectedNavidromeServer.value?.url}/rest/search3.view?query=''&songCount=10000&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora"))
                                 } catch (_: Exception){
                                     // DO NOTHING
                                 }

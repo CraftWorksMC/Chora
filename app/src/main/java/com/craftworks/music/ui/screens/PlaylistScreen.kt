@@ -33,6 +33,7 @@ import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
+import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.elements.PlaylistGrid
 
 var selectedPlaylist by mutableStateOf<Playlist?>(Playlist("My Very Awesome Playlist With A Long Name", Uri.EMPTY))

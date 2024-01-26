@@ -1,12 +1,6 @@
 package com.craftworks.music.providers.navidrome
 
 import androidx.compose.runtime.mutableStateOf
-
-
-var navidromeServerIP = mutableStateOf("")
-var navidromeUsername = mutableStateOf("")
-var navidromePassword = mutableStateOf("")
-
 var navidromeStatus = mutableStateOf("")
 
 fun extractNavidromeSongName(contentDisposition: String?): String? {

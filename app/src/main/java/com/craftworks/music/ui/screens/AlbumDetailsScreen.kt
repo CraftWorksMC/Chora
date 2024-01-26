@@ -54,21 +54,20 @@ import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Screen
+import com.craftworks.music.data.songsList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.lyrics.songLyrics
+import com.craftworks.music.playingSong
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.markSongAsPlayed
-import com.craftworks.music.providers.navidrome.navidromePassword
-import com.craftworks.music.providers.navidrome.navidromeServerIP
-import com.craftworks.music.providers.navidrome.navidromeUsername
-import com.craftworks.music.playingSong
+import com.craftworks.music.providers.navidrome.selectedNavidromeServer
+import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
 import com.craftworks.music.songState
-import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.SongsRow
 import java.net.URL
@@ -243,9 +242,9 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                         SyncedLyric.clear()
                         getLyrics()
                         markSongAsPlayed(song)
-                        if (useNavidromeServer.value && (navidromeUsername.value != "" || navidromePassword.value !="" || navidromeServerIP.value != "")){
+                        if (useNavidromeServer.value && (selectedNavidromeServer.value?.username != "" || selectedNavidromeServer.value?.url !="" || selectedNavidromeServer.value?.url != "")){
                             try {
-                                getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora"))
+                                getNavidromeSongs(URL("${selectedNavidromeServer.value?.url}/rest/search3.view?query=''&songCount=10000&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora"))
                             } catch (_: Exception){
                                 // DO NOTHING
                             }

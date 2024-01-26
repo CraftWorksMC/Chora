@@ -7,13 +7,11 @@ import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
-import com.craftworks.music.providers.navidrome.navidromePassword
-import com.craftworks.music.providers.navidrome.navidromeServerIP
-import com.craftworks.music.providers.navidrome.navidromeUsername
+import com.craftworks.music.providers.navidrome.selectedNavidromeServer
+import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.transcodingBitrate
-import com.craftworks.music.ui.screens.useNavidromeServer
 import com.craftworks.music.ui.screens.username
 import java.net.URL
 
@@ -48,9 +46,9 @@ class saveManager(private val context: Context){
 
         transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
 
-        if (useNavidromeServer.value && (navidromeUsername.value != "" || navidromePassword.value !="" || navidromeServerIP.value != ""))
+        if (useNavidromeServer.value && (selectedNavidromeServer.value?.username != "" || selectedNavidromeServer.value?.url !="" || selectedNavidromeServer.value?.url != ""))
             try {
-                getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora"))
+                getNavidromeSongs(URL("${selectedNavidromeServer.value?.url}/rest/search3.view?query=''&songCount=10000&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora"))
                 getNavidromePlaylists()
                 getNavidromeRadios()
             } catch (_: Exception){

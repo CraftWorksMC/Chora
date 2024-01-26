@@ -3,7 +3,6 @@ package com.craftworks.music.providers.navidrome
 import android.os.Environment
 import androidx.compose.material3.SnackbarHostState
 import com.craftworks.music.playingSong
-import com.craftworks.music.ui.screens.useNavidromeServer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.BufferedInputStream

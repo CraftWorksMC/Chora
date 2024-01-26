@@ -18,13 +18,13 @@ import javax.xml.xpath.XPathFactory
 
 @Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromeRadios(){
-    if (navidromeUsername.value == "" ||
-        navidromePassword.value == "") return
+    if (selectedNavidromeServer.value?.username == "" ||
+        selectedNavidromeServer.value?.url == "") return
 
     val thread = Thread {
         try {
             val url =
-                URL("${navidromeServerIP.value}/rest/getInternetRadioStations.view?&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+                URL("${selectedNavidromeServer.value?.url}/rest/getInternetRadioStations.view?&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
 
             radioList.clear()
 
@@ -94,13 +94,13 @@ fun parseRadioXML(input: BufferedReader, xpath: String, radiosList: MutableList<
 }
 
 fun deleteNavidromeRadioStation(id:String){
-    if (navidromeUsername.value == "" ||
-        navidromePassword.value == "") return
+    if (selectedNavidromeServer.value?.username == "" ||
+        selectedNavidromeServer.value?.url == "") return
 
     val thread = Thread {
         try {
             val navidromeUrl =
-                URL("${navidromeServerIP.value}/rest/deleteInternetRadioStation.view?id=$id&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+                URL("${selectedNavidromeServer.value?.url}/rest/deleteInternetRadioStation.view?id=$id&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
 
             with(navidromeUrl.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET
@@ -114,13 +114,13 @@ fun deleteNavidromeRadioStation(id:String){
 }
 
 fun modifyNavidromeRadoStation(id:String, name:String, url:String, homePage:String){
-    if (navidromeUsername.value == "" ||
-        navidromePassword.value == "") return
+    if (selectedNavidromeServer.value?.username == "" ||
+        selectedNavidromeServer.value?.url == "") return
 
     val thread = Thread {
         try {
             val navidromeUrl =
-                URL("${navidromeServerIP.value}/rest/updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&id=$id&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+                URL("${selectedNavidromeServer.value?.url}/rest/updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&id=$id&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
 
             with(navidromeUrl.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET
@@ -139,15 +139,15 @@ fun modifyNavidromeRadoStation(id:String, name:String, url:String, homePage:Stri
 }
 
 fun createNavidromeRadioStation(name:String, url:String, homePage:String){
-    if (navidromeUsername.value == "" ||
-        navidromePassword.value == "") return
+    if (selectedNavidromeServer.value?.username == "" ||
+        selectedNavidromeServer.value?.url == "") return
 
     val thread = Thread {
         try {
             Log.d("useNavidromeServer", "URL: $url")
 
             val navidromeUrl =
-                URL("${navidromeServerIP.value}/rest/createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+                URL("${selectedNavidromeServer.value?.url}/rest/createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
 
             with(navidromeUrl.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET

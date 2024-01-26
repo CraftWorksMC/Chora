@@ -59,14 +59,14 @@ import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.modifyNavidromeRadoStation
-import com.craftworks.music.providers.navidrome.navidromePassword
-import com.craftworks.music.providers.navidrome.navidromeServerIP
+import com.craftworks.music.providers.navidrome.selectedNavidromeServer.value?.url
+import com.craftworks.music.providers.navidrome.selectedNavidromeServer.value?.url
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.providers.navidrome.navidromeUsername
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.backgroundTypes
 import com.craftworks.music.data.radioList
-import com.craftworks.music.ui.screens.useNavidromeServer
+import com.craftworks.music.providers.navidrome.useNavidromeServer
 import java.net.URL
 
 /* --- PREVIEWS --- */
@@ -383,27 +383,27 @@ fun MediaProviderDialog(setShowDialog: (Boolean) -> Unit) {
                     )
                     /* SERVER URL */
                     OutlinedTextField(
-                        value = navidromeServerIP.value,
+                        value = selectedNavidromeServer.value?.url,
                         onValueChange = {
-                            navidromeServerIP.value = it },
+                            selectedNavidromeServer.value?.url = it },
                         label = { Text("Navidrome URL:")},
                         singleLine = true,
                         isError = navidromeStatus.value == "Invalid URL"
                     )
                     /* USERNAME */
                     OutlinedTextField(
-                        value = navidromeUsername.value,
+                        value = selectedNavidromeServer.value?.username,
                         onValueChange = {
-                            navidromeUsername.value = it },
+                            selectedNavidromeServer.value?.username = it },
                         label = { Text("Navidrome Username:")},
                         singleLine = true
                     )
                     /* PASSWORD */
                     var passwordVisible by remember { mutableStateOf(false) }
                     OutlinedTextField(
-                        value = navidromePassword.value,
+                        value = selectedNavidromeServer.value?.url,
                         onValueChange = {
-                            navidromePassword.value = it },
+                            selectedNavidromeServer.value?.url = it },
                         label = { Text("Navidrome Password:") },
                         singleLine = true,
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -426,7 +426,7 @@ fun MediaProviderDialog(setShowDialog: (Boolean) -> Unit) {
                         onClick = {
                             try {
                                 //saveManager(context).saveSettings()
-                                getNavidromeSongs(URL("${navidromeServerIP.value}/rest/search3.view?query=''&songCount=10000&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora"))
+                                getNavidromeSongs(URL("${selectedNavidromeServer.value?.url}/rest/search3.view?query=''&songCount=10000&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora"))
                                 getNavidromePlaylists()
                                 getNavidromeRadios()
                             } catch (_: Exception){

@@ -19,13 +19,13 @@ import javax.xml.xpath.XPathFactory
 
 @Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromePlaylists(){
-    if (navidromeUsername.value == "" ||
-        navidromePassword.value == "") return
+    if (selectedNavidromeServer.value?.username == "" ||
+        selectedNavidromeServer.value?.url == "") return
 
     val thread = Thread {
         try {
             val url =
-                URL("${navidromeServerIP.value}/rest/getPlaylists.view?&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+                URL("${selectedNavidromeServer.value?.url}/rest/getPlaylists.view?&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
 
             playlistList.clear()
 
@@ -70,16 +70,16 @@ fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: Mutable
             val attribute = firstElement.attributes.item(i)
             playlistID = if (attribute.nodeName == "id") attribute.textContent else playlistID
             playlistName = if (attribute.nodeName == "name") attribute.textContent else playlistName
-            playlistCover = if (attribute.nodeName == "coverArt") Uri.parse("${navidromeServerIP.value}/rest/getCoverArt.view?id=${attribute.textContent}&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora") else playlistCover
+            playlistCover = if (attribute.nodeName == "coverArt") Uri.parse("${selectedNavidromeServer.value?.url}/rest/getCoverArt.view?id=${attribute.textContent}&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora") else playlistCover
             if (attribute.nodeName == "title") Log.d(
                 "NAVIDROME",
                 "Added Playlist: ${attribute.textContent}"
             )
         }
         // GET PLAYLIST SONGS
-        var playlistSongs:MutableList<Song> = mutableListOf()
+        val playlistSongs:MutableList<Song> = mutableListOf()
         val playlistSongsURL =
-            URL("${navidromeServerIP.value}/rest/getPlaylist.view?id=${playlistID}&u=${navidromeUsername.value}&p=${navidromePassword.value}&v=1.12.0&c=Chora")
+            URL("${selectedNavidromeServer.value?.url}/rest/getPlaylist.view?id=${playlistID}&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.url}&v=1.12.0&c=Chora")
         with(playlistSongsURL.openConnection() as HttpURLConnection) {
             requestMethod = "GET"  // optional default is GET
 
