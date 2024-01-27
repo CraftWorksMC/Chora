@@ -146,7 +146,7 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             year = songYear,
             coverArt = songImageUrl
         )
-        if (!albumList.contains(album)){
+        if (album !in albumList){
             albumList.add(album)
         }
 

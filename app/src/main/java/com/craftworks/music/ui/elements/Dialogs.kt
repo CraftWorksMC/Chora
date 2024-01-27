@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.elements
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -22,6 +23,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +34,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.contentDescription
@@ -52,10 +59,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
-import com.craftworks.music.data.Navidrome
+import com.craftworks.music.data.LocalProvider
+import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Radio
+import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.radioList
+import com.craftworks.music.data.selectedLocalProvider
+import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.createNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.deleteNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
@@ -364,11 +375,14 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
 }
 
 //  PROVIDERS
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit) {
+fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context = LocalContext.current) {
     var url: String by remember { mutableStateOf("") }
     var username: String by remember { mutableStateOf("") }
     var password: String by remember { mutableStateOf("") }
+
+    var dir: String by remember { mutableStateOf("/Music/") }
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
@@ -379,13 +393,88 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit) {
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = stringResource(R.string.S_M_Navidrome),
+                        text = stringResource(R.string.S_Media),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
-                    /* SERVER URL */
+
+                    var expanded by remember { mutableStateOf(false) }
+
+                    val options = listOf("Local", "Navidrome")
+                    var selectedOptionText by remember { mutableStateOf(options[0]) }
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded },
+                    ) {
+                        TextField(
+                            modifier = Modifier.menuAnchor(),
+                            readOnly = true,
+                            value = selectedOptionText,
+                            onValueChange = {},
+                            label = { Text(stringResource(R.string.S_M_Source)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            colors = ExposedDropdownMenuDefaults.textFieldColors()
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                        ) {
+                            options.forEach { selectionOption ->
+                                DropdownMenuItem(
+                                    text = { Text(selectionOption) },
+                                    onClick = {
+                                        selectedOptionText = selectionOption
+                                        expanded = false
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                )
+                            }
+                        }
+                    }
+
+                    if (selectedOptionText == "Local")
+                        Column{
+                            /* Directory */
+                            OutlinedTextField(
+                                value = dir,
+                                onValueChange = { dir = it },
+                                label = { Text("Directory:")},
+                                singleLine = true
+                            )
+
+                            Button(
+                                onClick = {
+                                    try {
+                                        val localProvider = LocalProvider(url, true)
+                                        if (!localProviderList.contains(localProvider)){
+                                            localProviderList.add(localProvider)
+                                        }
+                                        selectedLocalProvider.intValue = localProviderList.indexOf(localProvider)
+                                        getSongsOnDevice(context)
+                                    } catch (_: Exception){
+                                        // DO NOTHING
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    contentColor = MaterialTheme.colorScheme.onBackground),
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(top = 24.dp)
+                                    .height(50.dp),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Add", modifier = Modifier.height(24.dp))
+                            }
+                        }
+                    else if (selectedOptionText == "Navidrome")
+                        Column{
+                        /* SERVER URL */
                         OutlinedTextField(
                             value = url,
                             onValueChange = { url = it },
@@ -393,15 +482,15 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit) {
                             singleLine = true,
                             isError = navidromeStatus.value == "Invalid URL"
                         )
-                    /* USERNAME */
+                        /* USERNAME */
                         OutlinedTextField(
                             value = username,
                             onValueChange = { username = it },
                             label = { Text("Navidrome Username:")},
                             singleLine = true
                         )
-                    /* PASSWORD */
-                    var passwordVisible by remember { mutableStateOf(false) }
+                        /* PASSWORD */
+                        var passwordVisible by remember { mutableStateOf(false) }
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
@@ -423,49 +512,49 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit) {
                             }
                         )
 
+                        Button(
+                            onClick = {
+                                try {
+                                    //saveManager(context).saveSettings()
+                                    val server = NavidromeProvider(url, username, password)
 
-                    Button(
-                        onClick = {
-                            try {
-                                //saveManager(context).saveSettings()
-                                val server = Navidrome(url, username, password)
+                                    if (!navidromeServersList.contains(server)){
+                                        navidromeServersList.add(server)
+                                    }
+                                    selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
 
-                                if (!navidromeServersList.contains(server)){
-                                    navidromeServersList.add(server)
+                                    getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                                    getNavidromePlaylists()
+                                    getNavidromeRadios()
+                                } catch (_: Exception){
+                                    // DO NOTHING
                                 }
-                                selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onBackground),
+                            modifier = Modifier
+                                .wrapContentWidth()
+                                .animateContentSize()
+                                .align(Alignment.CenterHorizontally)
+                                .padding(top = 24.dp)
+                                .height(50.dp),
 
-                                getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
-                                getNavidromePlaylists()
-                                getNavidromeRadios()
-                            } catch (_: Exception){
-                                // DO NOTHING
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground),
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .animateContentSize()
-                            .align(Alignment.CenterHorizontally)
-                            .padding(top = 24.dp)
-                            .height(50.dp),
-
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Crossfade(targetState = navidromeStatus.value,
-                            label = "Loading Button Animation") { status ->
-                            when (status) {
-                                "" -> Text("Add", modifier = Modifier.height(24.dp))
-                                "Success" -> Text("Success!", modifier = Modifier
-                                    .height(24.dp)
-                                    .wrapContentHeight(Alignment.CenterVertically))
-                                "Loading" -> CircularProgressIndicator(
-                                    modifier = Modifier.size(size = 32.dp),
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    strokeWidth = 4.dp,
-                                    strokeCap = StrokeCap.Round)
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Crossfade(targetState = navidromeStatus.value,
+                                label = "Loading Button Animation") { status ->
+                                when (status) {
+                                    "" -> Text("Add", modifier = Modifier.height(24.dp))
+                                    "Success" -> Text("Success!", modifier = Modifier
+                                        .height(24.dp)
+                                        .wrapContentHeight(Alignment.CenterVertically))
+                                    "Loading" -> CircularProgressIndicator(
+                                        modifier = Modifier.size(size = 32.dp),
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        strokeWidth = 4.dp,
+                                        strokeCap = StrokeCap.Round)
+                                }
                             }
                         }
                     }

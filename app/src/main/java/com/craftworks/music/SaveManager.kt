@@ -2,7 +2,7 @@ package com.craftworks.music
 
 import android.content.Context
 import android.util.Log
-import com.craftworks.music.data.Navidrome
+import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
@@ -53,9 +53,9 @@ class saveManager(private val context: Context){
         navidromeStrings.forEach { navidromeString ->
             val parts = navidromeString.split(",")
             if (parts.size == 3) {
-                val navidrome = Navidrome(parts[0], parts[1], parts[2])
-                navidromeServersList.add(navidrome)
-                println(navidrome)
+                val navidromeProvider = NavidromeProvider(parts[0], parts[1], parts[2])
+                navidromeServersList.add(navidromeProvider)
+                println(navidromeProvider)
             }
         }
 

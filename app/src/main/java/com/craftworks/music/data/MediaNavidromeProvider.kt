@@ -2,10 +2,9 @@ package com.craftworks.music.data
 
 import androidx.compose.runtime.mutableStateListOf
 
-var navidromeServersList:MutableList<Navidrome> = mutableStateListOf()
+var navidromeServersList:MutableList<NavidromeProvider> = mutableStateListOf()
 
-
-data class Navidrome (
+data class NavidromeProvider (
     var url:String,
     var username:String,
     val password:String

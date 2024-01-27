@@ -11,10 +11,11 @@ import android.provider.MediaStore
 import android.util.Log
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
+import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.songsList
-import com.craftworks.music.mediaFolder
 import com.craftworks.music.ui.screens.albumList
 import java.io.FileNotFoundException
 
@@ -22,7 +23,7 @@ fun getSongsOnDevice(context: Context){
     val contentResolver: ContentResolver = context.contentResolver
     val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
     val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DATA} LIKE ?"
-    val selectionArgs = arrayOf("%${mediaFolder.value}%")
+    val selectionArgs = arrayOf("%${localProviderList[selectedLocalProvider.intValue].directory}%")
     val cursor: Cursor? = contentResolver.query(uri, null, selection, selectionArgs, null)
 
     // Clear everything!

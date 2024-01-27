@@ -14,4 +14,6 @@
     <string name="S_A_Background">Background Style</string>
     <string name="S_A_MoreInfo">Show Bitrate</string>
     <string name="S_M_Navidrome">Navidrome</string>
+    <string name="S_M_Source">Media Source</string>
+    <string name="S_M_Local">Local Folder</string>
 </resources>
