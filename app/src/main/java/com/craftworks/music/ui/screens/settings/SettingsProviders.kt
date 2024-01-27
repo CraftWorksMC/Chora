@@ -48,11 +48,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedLocalProvider
+import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
@@ -136,8 +136,8 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                         verticalAlignment = Alignment.CenterVertically) {
                         // Provider Icon
                         Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.s_m_local),
-                            tint = MaterialTheme.colorScheme.onBackground,
+                            imageVector = ImageVector.vectorResource(R.drawable.s_m_local_filled),
+                            tint = MaterialTheme.colorScheme.primary,
                             contentDescription = "Edit Local Provider",
                             modifier = Modifier
                                 .padding(horizontal = 6.dp)
@@ -185,9 +185,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 }
 
                 // Then Navidrome Providers
-                for (server in listOf<NavidromeProvider>(NavidromeProvider("https://demo.navidrome.org","",""))
-                //navidromeServersList
-                ){
+                for (server in navidromeServersList){
                     Row(modifier = Modifier
                         .padding(bottom = 12.dp)
                         .height(48.dp)
@@ -244,6 +242,11 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
                                 getNavidromePlaylists()
                                 getNavidromeRadios()
+
+                                // Make very sure that the selectedLocalProvider actually exists
+                                if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
+                                    if (localProviderList[selectedLocalProvider.intValue].enabled)
+                                        getSongsOnDevice(context)
                             }
                         )
                     }

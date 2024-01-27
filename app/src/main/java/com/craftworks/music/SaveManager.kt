@@ -2,8 +2,11 @@ package com.craftworks.music
 
 import android.content.Context
 import android.util.Log
+import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
+import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
@@ -21,17 +24,23 @@ class saveManager(private val context: Context){
     private val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
 
     fun saveSettings(){
-        /* NAVIDROME */
         sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()
 
+        // Save Navidrome Server List
         val serverListString = navidromeServersList.joinToString(";") { "${it.url},${it.username},${it.password}" }
         sharedPreferences.edit().putString("navidromeServerList", serverListString).apply()
-        println(serverListString)
 
+        // Save Local Provider List
+        val localListString = localProviderList.joinToString(";") { "${it.directory},${it.enabled}" }
+        sharedPreferences.edit().putString("localProviderList", localListString).apply()
+
+        // Save Active Providers
         sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
+        sharedPreferences.edit().putInt("activeLocalProvider", selectedLocalProvider.intValue).apply()
 
         sharedPreferences.edit().putString("transcodingBitRate", transcodingBitrate.value).apply()
 
+        // Save Appearance Settings
         sharedPreferences.edit().putString("username", username.value).apply()
         sharedPreferences.edit().putString("backgroundType", backgroundType.value).apply()
         sharedPreferences.edit().putBoolean("showMoreInfo", showMoreInfo.value).apply()
@@ -47,9 +56,7 @@ class saveManager(private val context: Context){
         //useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
 
         val serverListString = sharedPreferences.getString("navidromeServerList", "") ?: ""
-        println(serverListString)
         val navidromeStrings = serverListString.split(";")
-        println(navidromeStrings)
         navidromeStrings.forEach { navidromeString ->
             val parts = navidromeString.split(",")
             if (parts.size == 3) {
@@ -59,8 +66,19 @@ class saveManager(private val context: Context){
             }
         }
 
+        val localListString = sharedPreferences.getString("localProviderList", "") ?: ""
+        val localListStrings = localListString.split(";")
+        localListStrings.forEach { localString ->
+            val parts = localString.split(",")
+            if (parts.size == 3) {
+                val localProvider = LocalProvider(parts[0], parts[1].toBoolean())
+                localProviderList.add(localProvider)
+            }
+        }
+
         selectedNavidromeServerIndex.intValue = sharedPreferences.getInt("activeNavidromeServer", 0)
-        println(selectedNavidromeServerIndex.intValue)
+
+        selectedLocalProvider.intValue = sharedPreferences.getInt("activeLocalProvider", 0)
 
         transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
 
@@ -71,6 +89,8 @@ class saveManager(private val context: Context){
                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
                 getNavidromePlaylists()
                 getNavidromeRadios()
+                if (localProviderList[selectedLocalProvider.intValue].enabled)
+                    getSongsOnDevice(context)
             } catch (_: Exception){
                 // DO NOTHING
             }

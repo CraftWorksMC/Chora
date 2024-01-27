@@ -137,7 +137,9 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             lastPlayed = songLastPlayed
         )
 
-        songList.add(song)
+        if (songList.isEmpty() || !songList.contains(songList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
+            songList.add(song)
+        }
 
         // Add songs to album
         val album = Album(
@@ -146,7 +148,7 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             year = songYear,
             coverArt = songImageUrl
         )
-        if (album !in albumList){
+        if (albumList.isEmpty() || !albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
             albumList.add(album)
         }
 

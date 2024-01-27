@@ -26,9 +26,10 @@ fun getSongsOnDevice(context: Context){
     val selectionArgs = arrayOf("%${localProviderList[selectedLocalProvider.intValue].directory}%")
     val cursor: Cursor? = contentResolver.query(uri, null, selection, selectionArgs, null)
 
+
     // Clear everything!
-    songsList.clear()
-    albumList.clear()
+    //songsList.clear()
+    //albumList.clear()
     radioList.clear()
     playlistList.clear()
 
@@ -87,7 +88,9 @@ fun getSongsOnDevice(context: Context){
                     format = thisFormat.uppercase().drop(6),
                     bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else ""
                 )
-                songsList.add(song)
+                if (songsList.isEmpty() || !songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist})) {
+                    songsList.add(song)
+                }
 
                 // Add songs to album
                 val album = Album(
@@ -96,7 +99,7 @@ fun getSongsOnDevice(context: Context){
                     year = if (!thisYear.isNullOrBlank()) thisYear else "",
                     coverArt = imageUri
                 )
-                if (!albumList.contains(album)){
+                if (albumList.isEmpty() || !albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
                     albumList.add(album)
                 }
 
