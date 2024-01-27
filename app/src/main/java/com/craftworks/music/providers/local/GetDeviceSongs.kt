@@ -88,8 +88,11 @@ fun getSongsOnDevice(context: Context){
                     format = thisFormat.uppercase().drop(6),
                     bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else ""
                 )
-                if (songsList.isEmpty() || !songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist})) {
-                    songsList.add(song)
+                // why
+                synchronized(songsList) {
+                    if (songsList.isEmpty() || !songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
+                        songsList.add(song);
+                    }
                 }
 
                 // Add songs to album
@@ -99,8 +102,10 @@ fun getSongsOnDevice(context: Context){
                     year = if (!thisYear.isNullOrBlank()) thisYear else "",
                     coverArt = imageUri
                 )
-                if (albumList.isEmpty() || !albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
-                    albumList.add(album)
+                synchronized(albumList){
+                    if (albumList.isEmpty() || !albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
+                        albumList.add(album)
+                    }
                 }
 
             } while (cursor.moveToNext())

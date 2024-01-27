@@ -173,12 +173,12 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                             )
                         }
                         // Enabled Checkbox
-                        val localCopy by remember { mutableStateOf(local.copy()) }
+                        var enabled by remember { mutableStateOf(true) }
                         Checkbox(
-                            checked = localCopy.enabled,
+                            checked = enabled,
                             onCheckedChange = {
-                                localCopy.enabled = it
-                                localProviderList[localProviderList.indexOf(local)] = localCopy
+                                enabled = it
+                                localProviderList[localProviderList.indexOf(local)] = localProviderList[localProviderList.indexOf(local)].copy(enabled = true)
                                 selectedLocalProvider.intValue = localProviderList.indexOf(local)
                             }
                         )

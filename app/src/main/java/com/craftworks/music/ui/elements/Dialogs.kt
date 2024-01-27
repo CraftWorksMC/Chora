@@ -191,6 +191,7 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp)
+                                .bounceClick()
                         ) {
                             Text(text = "Done")
                         }
@@ -282,6 +283,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                             modifier = Modifier
                                 .width(128.dp)
                                 .height(50.dp)
+                                .bounceClick()
                         ) {
                             Text(text = "Remove")
                         }
@@ -315,6 +317,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                             modifier = Modifier
                                 .width(128.dp)
                                 .height(50.dp)
+                                .bounceClick()
                         ) {
                             Text(text = "Done")
                         }
@@ -358,7 +361,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                                     backgroundType.value = option
                                     setShowDialog(false)
                                 },
-                                modifier = Modifier.semantics { contentDescription = option }
+                                modifier = Modifier.semantics { contentDescription = option }.bounceClick()
                             )
                             Text(
                                 text = option,
@@ -466,7 +469,8 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                                     .wrapContentWidth()
                                     .align(Alignment.CenterHorizontally)
                                     .padding(top = 24.dp)
-                                    .height(50.dp),
+                                    .height(50.dp)
+                                    .bounceClick(),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text("Add", modifier = Modifier.height(24.dp))
