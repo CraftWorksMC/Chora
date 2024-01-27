@@ -58,6 +58,7 @@ import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.ui.elements.CreateMediaProviderDialog
+import com.craftworks.music.ui.elements.bounceClick
 import java.net.URL
 
 @Composable
@@ -267,7 +268,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier
+                modifier = Modifier.bounceClick()
             ) {
                 Icon(Icons.Rounded.Add, "Add Media Provider.")
             }

@@ -46,6 +46,7 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.ui.NowPlayingContent
+import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.theme.MusicPlayerTheme
 import kotlinx.coroutines.launch
 import java.sql.Date
@@ -175,6 +176,7 @@ class MainActivity : ComponentActivity() {
                                     bottomNavigationItems.forEachIndexed { index, item ->
                                         NavigationBarItem(
                                             selected = selectedItemIndex == index,
+                                            modifier = Modifier.bounceClick(),
                                             onClick = {
                                                 if (selectedItemIndex == index) return@NavigationBarItem
                                                 selectedItemIndex = index

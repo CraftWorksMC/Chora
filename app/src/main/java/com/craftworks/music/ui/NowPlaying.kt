@@ -115,6 +115,7 @@ import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
 import com.craftworks.music.songState
+import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.transcodingBitrate
@@ -323,10 +324,11 @@ fun NowPlayingContent(
                         modifier = Modifier
                             .height(48.dp)
                             .size(48.dp)
+                            .bounceClick()
+                            .clip(RoundedCornerShape(12.dp))
                             .clickable {
                                 songState = !songState
                             }
-                            .clip(RoundedCornerShape(12.dp))
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
@@ -400,7 +402,7 @@ fun NowPlayingContent(
                                         SongHelper.previousSong(song)
                                     },
                                     shape = CircleShape,
-                                    modifier = Modifier.size(72.dp),
+                                    modifier = Modifier.size(72.dp).bounceClick(),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
@@ -424,7 +426,7 @@ fun NowPlayingContent(
                                 Button(
                                     onClick = { songState = !songState },
                                     shape = CircleShape,
-                                    modifier = Modifier.size(92.dp),
+                                    modifier = Modifier.size(92.dp).bounceClick(),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Transparent
@@ -456,7 +458,7 @@ fun NowPlayingContent(
                                         SongHelper.nextSong(song)
                                     },
                                     shape = CircleShape,
-                                    modifier = Modifier.size(72.dp),
+                                    modifier = Modifier.size(72.dp).bounceClick(),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
@@ -508,7 +510,7 @@ fun NowPlayingContent(
                                 Button(
                                     onClick = { lyricsOpen = !lyricsOpen },
                                     shape = CircleShape,
-                                    modifier = Modifier.height(64.dp),
+                                    modifier = Modifier.height(64.dp).bounceClick(),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Transparent
@@ -556,7 +558,7 @@ fun NowPlayingContent(
                                         }
                                     },
                                     shape = CircleShape,
-                                    modifier = Modifier.height(64.dp),
+                                    modifier = Modifier.height(64.dp).bounceClick(),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Transparent
@@ -689,7 +691,7 @@ fun NowPlayingContent(
                                             SongHelper.previousSong(song)
                                         },
                                         shape = CircleShape,
-                                        modifier = Modifier.size(72.dp),
+                                        modifier = Modifier.size(72.dp).bounceClick(),
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                     ) {
@@ -713,7 +715,7 @@ fun NowPlayingContent(
                                     Button(
                                         onClick = { songState = !songState },
                                         shape = CircleShape,
-                                        modifier = Modifier.size(92.dp),
+                                        modifier = Modifier.size(92.dp).bounceClick(),
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = Color.Transparent
@@ -745,7 +747,7 @@ fun NowPlayingContent(
                                             SongHelper.nextSong(song)
                                         },
                                         shape = CircleShape,
-                                        modifier = Modifier.size(72.dp),
+                                        modifier = Modifier.size(72.dp).bounceClick(),
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                     ) {
@@ -774,7 +776,7 @@ fun NowPlayingContent(
                                     Button(
                                         onClick = { lyricsOpen = !lyricsOpen },
                                         shape = CircleShape,
-                                        modifier = Modifier.height(48.dp),
+                                        modifier = Modifier.height(48.dp).bounceClick(),
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = Color.Transparent

@@ -57,6 +57,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
+import com.craftworks.music.ui.elements.bounceClick
 
 var username = mutableStateOf("Username")
 var showMoreInfo = mutableStateOf(true)
@@ -145,6 +146,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     .height(76.dp)
                     .fillMaxWidth()
                     .padding(vertical = 6.dp)
+                    .bounceClick()
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable{
@@ -177,6 +179,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     .height(76.dp)
                     .fillMaxWidth()
                     .padding(vertical = 6.dp)
+                    .bounceClick()
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable{
