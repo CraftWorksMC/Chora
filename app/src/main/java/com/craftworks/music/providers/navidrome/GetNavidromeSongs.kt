@@ -8,7 +8,7 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.songsList
-import com.craftworks.music.ui.screens.albumList
+import com.craftworks.music.data.albumList
 import com.craftworks.music.ui.screens.transcodingBitrate
 import com.craftworks.music.ui.screens.username
 import org.w3c.dom.NodeList

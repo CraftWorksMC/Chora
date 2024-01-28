@@ -16,7 +16,7 @@ import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.songsList
-import com.craftworks.music.ui.screens.albumList
+import com.craftworks.music.data.albumList
 import java.io.FileNotFoundException
 
 fun getSongsOnDevice(context: Context){

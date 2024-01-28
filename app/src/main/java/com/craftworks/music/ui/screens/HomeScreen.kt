@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -24,9 +26,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +46,7 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.playingSong
+import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.songState
 import com.craftworks.music.ui.elements.SongsRow
 
@@ -59,16 +65,27 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
         .wrapContentHeight()
         .verticalScroll(rememberScrollState())) {
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(72.dp)) {
             /* GREETING */
             Box(Modifier.weight(1f)) {
+                if (useNavidromeServer.value){
+                    Image(
+                        painter = painterResource(R.drawable.s_m_navidrome),
+                        contentDescription = "Navidrome Icon",
+                        modifier = Modifier
+                            .size(72.dp)
+                            .offset(x = (-36).dp)
+                            .rotate(-10f) // Make it look just a tad bit nicer
+                            .shadow(24.dp, CircleShape)
+                    )
+                }
                 Text(
-                    text = stringResource(R.string.welcome_text) + ",\n " + username.value,
+                    text = "${stringResource(R.string.welcome_text)},\n${username.value}",
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                    modifier = Modifier.padding(start = 12.dp),
-                    lineHeight = 28.sp
+                    modifier = Modifier.padding(start = 42.dp),
+                    lineHeight = 32.sp
                 )
             }
             Box(Modifier.padding(end = 12.dp)) {

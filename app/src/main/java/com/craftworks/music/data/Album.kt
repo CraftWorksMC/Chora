@@ -1,6 +1,7 @@
 package com.craftworks.music.data
 
 import android.net.Uri
+import androidx.compose.runtime.mutableStateListOf
 
 data class Album (
     val name: String,
@@ -10,3 +11,5 @@ data class Album (
     val songs: List<Song> = emptyList(),
     val navidromeID: String? = ""
 )
+
+var albumList:MutableList<Album> = mutableStateListOf()

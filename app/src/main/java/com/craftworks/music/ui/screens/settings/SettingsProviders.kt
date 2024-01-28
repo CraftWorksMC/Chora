@@ -63,7 +63,7 @@ import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.elements.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.bounceClick
-import com.craftworks.music.ui.screens.albumList
+import com.craftworks.music.data.albumList
 import java.net.URL
 
 @Composable
@@ -187,13 +187,34 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                             )
                         }
                         // Enabled Checkbox
-                        var enabled by remember { mutableStateOf(true) }
+                        var enabled by remember { mutableStateOf(false) }
+                        enabled = localProviderList[localProviderList.indexOf(local)].enabled
+                        println(enabled)
+
                         Checkbox(
                             checked = enabled,
-                            onCheckedChange = {
-                                enabled = it
-                                localProviderList[localProviderList.indexOf(local)] = localProviderList[localProviderList.indexOf(local)].copy(enabled = true)
-                                selectedLocalProvider.intValue = localProviderList.indexOf(local)
+                            onCheckedChange = {enabled = it
+                                localProviderList[localProviderList.indexOf(local)] = localProviderList[localProviderList.indexOf(local)].copy(enabled = it)
+                                // Clear everything!
+                                if (it){
+                                    localProviderList[localProviderList.indexOf(local)] = localProviderList[localProviderList.indexOf(local)].copy(enabled = true)
+                                    selectedLocalProvider.intValue = localProviderList.indexOf(local)
+                                }
+                                else {
+                                    songsList.clear()
+                                    albumList.clear()
+                                    radioList.clear()
+                                    playlistList.clear()
+
+                                    if (useNavidromeServer.value &&
+                                        selectedNavidromeServerIndex.intValue >= 0 &&
+                                        navidromeServersList.isNotEmpty()){
+
+                                        getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                                        getNavidromePlaylists()
+                                        getNavidromeRadios()
+                                    }
+                                }
                             }
                         )
                     }

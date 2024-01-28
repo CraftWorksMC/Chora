@@ -25,6 +25,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
+import com.craftworks.music.data.albumList
 import com.craftworks.music.ui.elements.AlbumGrid
 
 @ExperimentalFoundationApi
@@ -55,9 +56,10 @@ fun AlbumScreen(navHostController: NavHostController = rememberNavController()) 
             thickness = 2.dp,
             color = MaterialTheme.colorScheme.onBackground
         )
+        val sortedAlbumList = albumList.sortedBy { it.name }
 
         Column(modifier = Modifier.padding(12.dp,64.dp,12.dp,12.dp)) {
-            AlbumGrid(albumList , onAlbumSelected = { album ->
+            AlbumGrid(sortedAlbumList, onAlbumSelected = { album ->
                 navHostController.navigate(Screen.AlbumDetails.route)
                 selectedAlbum = album})
         }
