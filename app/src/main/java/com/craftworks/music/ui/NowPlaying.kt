@@ -11,6 +11,7 @@ import android.provider.MediaStore
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -92,6 +93,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.palette.graphics.Palette
@@ -342,12 +344,15 @@ fun NowPlayingContent(
                 .fillMaxHeight()
                 .padding(0.dp, topPaddingExpandedPlayer.dp, 0.dp, 0.dp), contentAlignment = Alignment.TopCenter) {
                 Column {
+                    /*
                     Crossfade(targetState = lyricsOpen, label = "Lyrics View", modifier = Modifier.wrapContentHeight()) { screen ->
                         when (screen) {
                             true -> LyricsView()
-                            false -> NormalSongView()
+                            false -> NormalSongView(lyricsOpen)
                         }
                     }
+                    */
+                    NormalSongView(lyricsOpen)
 
 
                     /* Progress Bar */
@@ -402,7 +407,9 @@ fun NowPlayingContent(
                                         SongHelper.previousSong(song)
                                     },
                                     shape = CircleShape,
-                                    modifier = Modifier.size(72.dp).bounceClick(),
+                                    modifier = Modifier
+                                        .size(72.dp)
+                                        .bounceClick(),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
@@ -426,7 +433,9 @@ fun NowPlayingContent(
                                 Button(
                                     onClick = { songState = !songState },
                                     shape = CircleShape,
-                                    modifier = Modifier.size(92.dp).bounceClick(),
+                                    modifier = Modifier
+                                        .size(92.dp)
+                                        .bounceClick(),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Transparent
@@ -458,7 +467,9 @@ fun NowPlayingContent(
                                         SongHelper.nextSong(song)
                                     },
                                     shape = CircleShape,
-                                    modifier = Modifier.size(72.dp).bounceClick(),
+                                    modifier = Modifier
+                                        .size(72.dp)
+                                        .bounceClick(),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
@@ -510,7 +521,9 @@ fun NowPlayingContent(
                                 Button(
                                     onClick = { lyricsOpen = !lyricsOpen },
                                     shape = CircleShape,
-                                    modifier = Modifier.height(64.dp).bounceClick(),
+                                    modifier = Modifier
+                                        .height(64.dp)
+                                        .bounceClick(),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Transparent
@@ -558,7 +571,9 @@ fun NowPlayingContent(
                                         }
                                     },
                                     shape = CircleShape,
-                                    modifier = Modifier.height(64.dp).bounceClick(),
+                                    modifier = Modifier
+                                        .height(64.dp)
+                                        .bounceClick(),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Transparent
@@ -691,7 +706,9 @@ fun NowPlayingContent(
                                             SongHelper.previousSong(song)
                                         },
                                         shape = CircleShape,
-                                        modifier = Modifier.size(72.dp).bounceClick(),
+                                        modifier = Modifier
+                                            .size(72.dp)
+                                            .bounceClick(),
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                     ) {
@@ -715,7 +732,9 @@ fun NowPlayingContent(
                                     Button(
                                         onClick = { songState = !songState },
                                         shape = CircleShape,
-                                        modifier = Modifier.size(92.dp).bounceClick(),
+                                        modifier = Modifier
+                                            .size(92.dp)
+                                            .bounceClick(),
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = Color.Transparent
@@ -747,7 +766,9 @@ fun NowPlayingContent(
                                             SongHelper.nextSong(song)
                                         },
                                         shape = CircleShape,
-                                        modifier = Modifier.size(72.dp).bounceClick(),
+                                        modifier = Modifier
+                                            .size(72.dp)
+                                            .bounceClick(),
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                     ) {
@@ -776,7 +797,9 @@ fun NowPlayingContent(
                                     Button(
                                         onClick = { lyricsOpen = !lyricsOpen },
                                         shape = CircleShape,
-                                        modifier = Modifier.height(48.dp).bounceClick(),
+                                        modifier = Modifier
+                                            .height(48.dp)
+                                            .bounceClick(),
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = Color.Transparent
@@ -989,8 +1012,23 @@ fun LandscapeSliderUpdating(){
     }
 }
 
+@Preview(showSystemUi = true, showBackground = true)
 @Composable
-fun NormalSongView() {
+fun NormalSongView(lyricsOpen:Boolean ? = false) {
+    val imageSize: Dp by animateDpAsState(if (lyricsOpen == true) 60.dp else 320.dp,
+        label = "Animated Cover Size"
+    )
+    val imageCornerRadius: Dp by animateDpAsState(if (lyricsOpen == true) 12.dp else 24.dp,
+        label = "Animated Cover Radius"
+    )
+    val imageOffsetX: Dp by animateDpAsState(if (lyricsOpen == true) (-160).dp else 0.dp,
+        label = "Animated Cover Offset X"
+    )
+    val imageOffsetY: Dp by animateDpAsState(if (lyricsOpen == true) (-138).dp else 0.dp,
+        label = "Animated Cover Offset Y"
+    )
+
+
     Column(modifier = Modifier.height(420.dp)) {
         /* Album Cover */
         Box(
@@ -1005,10 +1043,11 @@ fun NormalSongView() {
                 fallback = painterResource(R.drawable.placeholder),
                 contentScale = ContentScale.FillHeight,
                 modifier = Modifier
-                    .width(320.dp)
-                    .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
+                    .size(imageSize)
+                    .offset(x = imageOffsetX, y = imageOffsetY)
+                    .shadow(4.dp, RoundedCornerShape(imageCornerRadius), clip = true)
                     .background(MaterialTheme.colorScheme.background)
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(imageCornerRadius))
             )
         }
         /* Song Title + Artist*/
