@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -52,7 +51,10 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.playlistList
+import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
+import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
@@ -61,6 +63,7 @@ import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.elements.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.bounceClick
+import com.craftworks.music.ui.screens.albumList
 import java.net.URL
 
 @Composable
@@ -141,7 +144,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                         Icon(
                             imageVector = ImageVector.vectorResource(R.drawable.s_m_local_filled),
                             tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = "Edit Local Provider",
+                            contentDescription = "Folder Icon",
                             modifier = Modifier
                                 .padding(horizontal = 6.dp)
                                 .height(32.dp)
@@ -164,7 +167,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                             )
                         }
 
-                        // Edit Button
+                        // Delete Button
                         Button(
                             onClick = {
                                 localProviderList.remove(local) },
@@ -200,7 +203,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 for (server in navidromeServersList){
                     Row(modifier = Modifier
                         .padding(bottom = 12.dp)
-                        .height(48.dp)
+                        .height(64.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                         verticalAlignment = Alignment.CenterVertically) {
@@ -209,7 +212,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                         Image(
                             painter = painterResource(R.drawable.s_m_navidrome),
                             //tint = MaterialTheme.colorScheme.onBackground,
-                            contentDescription = "Edit Local Provider",
+                            contentDescription = "Navidrome Icon",
                             modifier = Modifier
                                 .padding(horizontal = 6.dp)
                                 .size(32.dp)
@@ -223,9 +226,9 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             modifier = Modifier.weight(1f)
                         )
-                        // Edit Button
+                        // Delete Button
                         Button(
-                            onClick = { navHostController.navigate(Screen.Setting.route) },
+                            onClick = { navidromeServersList.remove(server) },
                             shape = CircleShape,
                             modifier = Modifier
                                 .size(32.dp),
@@ -233,9 +236,9 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.Edit,
+                                imageVector = Icons.Rounded.Delete,
                                 tint = MaterialTheme.colorScheme.onBackground,
-                                contentDescription = "Edit Navidrome Server",
+                                contentDescription = "Remove Navidrome Server",
                                 modifier = Modifier
                                     .height(32.dp)
                                     .size(32.dp)
@@ -250,7 +253,13 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                         Checkbox(
                             checked = checked,
                             onCheckedChange = { checked = it
+                                songsList.clear()
+                                albumList.clear()
+                                radioList.clear()
+                                playlistList.clear()
+
                                 if (it){
+                                    useNavidromeServer.value = true
                                     selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
                                     // Reload Navidrome
                                     getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
@@ -262,8 +271,12 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                                         if (localProviderList[selectedLocalProvider.intValue].enabled)
                                             getSongsOnDevice(context)
                                 }
-                                else
+                                else{
+                                    if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
+                                        if (localProviderList[selectedLocalProvider.intValue].enabled)
+                                            getSongsOnDevice(context)
                                     useNavidromeServer.value = false
+                                }
                             }
                         )
                     }

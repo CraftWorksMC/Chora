@@ -89,10 +89,15 @@ fun getSongsOnDevice(context: Context){
                     bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else ""
                 )
                 // why
-                synchronized(songsList) {
-                    if (songsList.isEmpty() || !songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
-                        songsList.add(song);
+                try {
+                    synchronized(songsList) {
+                        if (songsList.isEmpty() || !songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
+                            songsList.add(song);
+                        }
                     }
+                }
+                catch (e: java.util.ConcurrentModificationException){
+                    println(e.message)
                 }
 
                 // Add songs to album
@@ -102,10 +107,15 @@ fun getSongsOnDevice(context: Context){
                     year = if (!thisYear.isNullOrBlank()) thisYear else "",
                     coverArt = imageUri
                 )
-                synchronized(albumList){
-                    if (albumList.isEmpty() || !albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
-                        albumList.add(album)
+                try {
+                    synchronized(albumList){
+                        if (albumList.isEmpty() || !albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
+                            albumList.add(album)
+                        }
                     }
+                }
+                catch (e: java.util.ConcurrentModificationException){
+                    println(e.message)
                 }
 
             } while (cursor.moveToNext())
