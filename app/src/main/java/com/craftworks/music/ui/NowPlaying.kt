@@ -25,14 +25,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -252,18 +255,18 @@ fun NowPlayingContent(
         val miniPlayerPadding: Float by animateFloatAsState(if (lyricsOpen && scaffoldState!!.bottomSheetState.targetValue == SheetValue.Expanded) 32f else 0f,
             label = "Animated Top Padding"
         )
-        val topPaddingExpandedPlayer: Float by animateFloatAsState(if (scaffoldState!!.bottomSheetState.targetValue == SheetValue.Expanded) 48f else 84f,
+        val topPaddingExpandedPlayer: Float by animateFloatAsState(if (scaffoldState!!.bottomSheetState.targetValue == SheetValue.Expanded) (WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp).value else 14f,
             label = "Animated Height"
         )
 
 
 
-        /* MINI-PLAYER UI */
+        /* MINI-PLAYER UI
         Box(modifier = Modifier
-            .height(72.dp + miniPlayerPadding.dp)
-            .padding(top = miniPlayerPadding.dp)
+            .height(72.dp)// + miniPlayerPadding.dp)
+            //.padding(top = miniPlayerPadding.dp)
             .fillMaxWidth()
-            .alpha(if (lyricsOpen && LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 1f else miniPlayerAlpha)
+            .alpha(miniPlayerAlpha)
             .clickable {
                 coroutineScope.launch {
                     if (scaffoldState?.bottomSheetState?.currentValue == SheetValue.PartiallyExpanded) {
@@ -316,26 +319,13 @@ fun NowPlayingContent(
                     modifier = Modifier
                         .fillMaxHeight(), verticalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        imageVector = if (songState)
-                            ImageVector.vectorResource(R.drawable.round_pause_24)
-                        else
-                            Icons.Rounded.PlayArrow,
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "Play/Pause",
-                        modifier = Modifier
-                            .height(48.dp)
-                            .size(48.dp)
-                            .bounceClick()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable {
-                                songState = !songState
-                            }
-                    )
+
                 }
                 Spacer(modifier = Modifier.width(12.dp))
             }
         }
+        */
+
         /* EXPANDED-PLAYER UI */
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
             // VERTICAL PHONES
@@ -344,16 +334,7 @@ fun NowPlayingContent(
                 .fillMaxHeight()
                 .padding(0.dp, topPaddingExpandedPlayer.dp, 0.dp, 0.dp), contentAlignment = Alignment.TopCenter) {
                 Column {
-                    /*
-                    Crossfade(targetState = lyricsOpen, label = "Lyrics View", modifier = Modifier.wrapContentHeight()) { screen ->
-                        when (screen) {
-                            true -> LyricsView()
-                            false -> NormalSongView(lyricsOpen)
-                        }
-                    }
-                    */
-                    NormalSongView(lyricsOpen)
-
+                    AnimatedSongImageView(lyricsOpen || scaffoldState!!.bottomSheetState.targetValue != SheetValue.Expanded)
 
                     /* Progress Bar */
                     Column(modifier = Modifier
@@ -896,7 +877,7 @@ fun SliderUpdating(){
     Slider(
         enabled = (transcodingBitrate.value == "No Transcoding"),
         modifier = Modifier
-            .width(320.dp)
+            .width(320.dp + 20.dp)
             .height(12.dp),
         value = animatedSliderValue,
         onValueChange = {
@@ -925,7 +906,7 @@ fun SliderUpdating(){
             )
         },
     )
-    Box (modifier = Modifier.width(300.dp)) {
+    Box (modifier = Modifier.width(320.dp)) {
         Text(
             text = formatMilliseconds(sliderPos.intValue.toFloat()),
             fontWeight = FontWeight.Thin,
@@ -1014,7 +995,8 @@ fun LandscapeSliderUpdating(){
 
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
-fun NormalSongView(lyricsOpen:Boolean ? = false) {
+fun AnimatedSongImageView(lyricsOpen:Boolean ? = false) {
+    // Image Animations
     val imageSize: Dp by animateDpAsState(if (lyricsOpen == true) 60.dp else 320.dp,
         label = "Animated Cover Size"
     )
@@ -1028,69 +1010,132 @@ fun NormalSongView(lyricsOpen:Boolean ? = false) {
         label = "Animated Cover Offset Y"
     )
 
-
-    Column(modifier = Modifier.height(420.dp)) {
-        /* Album Cover */
-        Box(
-            modifier = Modifier
-                .height(320.dp)
-                .fillMaxWidth(), contentAlignment = Alignment.Center
-        ) {
-            AsyncImage(
-                model = playingSong.selectedSong?.imageUrl,
-                contentDescription = "Album Cover",
-                placeholder = painterResource(R.drawable.placeholder),
-                fallback = painterResource(R.drawable.placeholder),
-                contentScale = ContentScale.FillHeight,
+    // Song Title Animations
+    val titleFontSize: Float by animateFloatAsState(
+        if (lyricsOpen == true)
+            MaterialTheme.typography.titleLarge.fontSize.value
+        else
+            MaterialTheme.typography.headlineLarge.fontSize.value,
+        label = "Animated Song Title Font Size"
+    )
+    val titleOffsetX: Dp by animateDpAsState(if (lyricsOpen == true) (42).dp else 0.dp,
+        label = "Animated Song Title Offset X"
+    )
+    val titleOffsetY: Dp by animateDpAsState(if (lyricsOpen == true) (-326).dp else 0.dp,
+        label = "Animated Song Title Offset Y"
+    )
+    val artistFontSize: Float by animateFloatAsState(
+        if (lyricsOpen == true)
+            MaterialTheme.typography.bodyMedium.fontSize.value
+        else
+            MaterialTheme.typography.titleLarge.fontSize.value,
+        label = "Animated Song Title Font Size"
+    )
+    val artistOffsetX: Dp by animateDpAsState(if (lyricsOpen == true) (42).dp else 0.dp,
+        label = "Animated Song Title Offset X"
+    )
+    val artistOffsetY: Dp by animateDpAsState(if (lyricsOpen == true) (-327).dp else 0.dp,
+        label = "Animated Song Title Offset Y"
+    )
+    Box(modifier = Modifier.heightIn(min = 420.dp)){
+        Column(modifier = Modifier.height(420.dp)) {
+            /* Album Cover */
+            Box(
                 modifier = Modifier
-                    .size(imageSize)
-                    .offset(x = imageOffsetX, y = imageOffsetY)
-                    .shadow(4.dp, RoundedCornerShape(imageCornerRadius), clip = true)
-                    .background(MaterialTheme.colorScheme.background)
-                    .clip(RoundedCornerShape(imageCornerRadius))
-            )
-        }
-        /* Song Title + Artist*/
-        Column(
-            modifier = Modifier
-                .padding(top = 4.dp)
-                .padding(horizontal = 8.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ) {
-            playingSong.selectedSong?.title?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center
+                    .height(320.dp)
+                    .fillMaxWidth(), contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = playingSong.selectedSong?.imageUrl,
+                    contentDescription = "Album Cover",
+                    placeholder = painterResource(R.drawable.placeholder),
+                    fallback = painterResource(R.drawable.placeholder),
+                    contentScale = ContentScale.FillHeight,
+                    modifier = Modifier
+                        .size(imageSize)
+                        .offset(x = imageOffsetX, y = imageOffsetY)
+                        .shadow(4.dp, RoundedCornerShape(imageCornerRadius), clip = true)
+                        .background(MaterialTheme.colorScheme.background)
+                        .clip(RoundedCornerShape(imageCornerRadius))
                 )
             }
-            playingSong.selectedSong?.artist?.let {
-                Text(
-                    text = it + " • " + playingSong.selectedSong?.year,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Light,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center
-                )
-            }
-            if (showMoreInfo.value) {
-                playingSong.selectedSong?.format?.let {
+            /* Song Title + Artist*/
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, start = 36.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Top
+            ) {
+                playingSong.selectedSong?.title?.let {
                     Text(
-                        text = it + " • " + playingSong.selectedSong?.bitrate,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Thin,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                        text = it,
+                        fontSize = titleFontSize.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.offset(titleOffsetX,titleOffsetY)
                     )
                 }
+                playingSong.selectedSong?.artist?.let {
+                    Text(
+                        text = it + " • " + playingSong.selectedSong?.year,
+                        fontSize = artistFontSize.sp,
+                        fontWeight = FontWeight.Light,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.offset(artistOffsetX, artistOffsetY)
+                    )
+                }
+                Crossfade(lyricsOpen == false, label = "Fade Out More Info") {
+                    if (it){
+                        if (showMoreInfo.value) {
+                            playingSong.selectedSong?.format?.let {
+                                Text(
+                                    text = it + " • " + playingSong.selectedSong?.bitrate,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Thin,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Start
+                                )
+                            }
+                        }
+                    }
+                }
+
             }
+        }
+        Crossfade(lyricsOpen == true, label = "Lyrics View Crossfade") {
+            if (it)
+                LyricsView()
+        }
+        Crossfade(lyricsOpen == true, label = "Lyrics View Crossfade") {
+            if (it)
+                Box(modifier = Modifier.height(44.dp).fillMaxWidth()){
+                    Column(
+                        modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd).padding(end = 12.dp), verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = if (songState)
+                                ImageVector.vectorResource(R.drawable.round_pause_24)
+                            else
+                                Icons.Rounded.PlayArrow,
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            contentDescription = "Play/Pause",
+                            modifier = Modifier
+                                .height(48.dp)
+                                .size(48.dp)
+                                .bounceClick()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    songState = !songState
+                                }
+                        )
+                    }
+                }
         }
     }
 
@@ -1128,7 +1173,7 @@ fun LandscapeNormalSongView() {
 @Composable
 fun LyricsView() {
     /* LYRICS BOX */
-    val topBottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.15f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
+    val topBottomFade = Brush.verticalGradient(0.05f to Color.Transparent, 0.25f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
     val state = rememberScrollState()
     var currentLyricIndex by remember { mutableIntStateOf(0) }
 
@@ -1148,12 +1193,8 @@ fun LyricsView() {
         .padding(top = 48.dp)
         .fadingEdge(topBottomFade)
         .verticalScroll(state), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally) {
-        if (SyncedLyric.size > 1) {
-            Box(
-                modifier = Modifier
-                    .height(dpToSp.dp)
-                    .fillMaxWidth()
-            )
+        if (SyncedLyric.size >= 1) {
+            Box(modifier = Modifier.height(60.dp))
             SyncedLyric.forEachIndexed { index, lyric ->
                 val lyricAlpha: Float by animateFloatAsState(
                     if (lyric.isCurrentLyric) 1f else 0.5f,
@@ -1188,6 +1229,7 @@ fun LyricsView() {
                 }
             }
         } else {
+            Box(modifier = Modifier.height(60.dp))
             Text(
                 text = songLyrics.SongLyrics,
                 style = MaterialTheme.typography.headlineSmall,
