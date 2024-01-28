@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -57,6 +58,7 @@ import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
+import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.elements.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.bounceClick
 import java.net.URL
@@ -131,7 +133,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 for (local in localProviderList){
                     Row(modifier = Modifier
                         .padding(bottom = 12.dp)
-                        .height(48.dp)
+                        .height(64.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                         verticalAlignment = Alignment.CenterVertically) {
@@ -146,27 +148,36 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                                 .size(32.dp)
                         )
                         // Provider Name
-                        Text(
-                            text = stringResource(R.string.S_M_Local),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                            modifier = Modifier.weight(1f)
-                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.S_M_Local),
+                                color = MaterialTheme.colorScheme.onBackground,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                                modifier = Modifier
+                            )
+                            Text(
+                                text = local.directory,
+                                color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
+                                fontWeight = FontWeight.Normal,
+                                fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                            )
+                        }
+
                         // Edit Button
                         Button(
-                            onClick = { navHostController.navigate(Screen.Setting.route) },
+                            onClick = {
+                                localProviderList.remove(local) },
                             shape = CircleShape,
                             modifier = Modifier
-
                                 .size(32.dp),
                             contentPadding = PaddingValues(2.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.Edit,
+                                imageVector = Icons.Rounded.Delete,
                                 tint = MaterialTheme.colorScheme.onBackground,
-                                contentDescription = "Edit Local Provider",
+                                contentDescription = "Delete Local Provider",
                                 modifier = Modifier
                                     .height(32.dp)
                                     .size(32.dp)
@@ -232,22 +243,27 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                         }
 
                         var checked by remember { mutableStateOf(false) }
-                        checked = selectedNavidromeServerIndex.intValue == navidromeServersList.indexOf(server)
+                        if (useNavidromeServer.value)
+                            checked = selectedNavidromeServerIndex.intValue == navidromeServersList.indexOf(server)
 
                         // Enabled Checkbox
                         Checkbox(
                             checked = checked,
                             onCheckedChange = { checked = it
-                                selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
-                                // Reload Navidrome
-                                getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
-                                getNavidromePlaylists()
-                                getNavidromeRadios()
+                                if (it){
+                                    selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
+                                    // Reload Navidrome
+                                    getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                                    getNavidromePlaylists()
+                                    getNavidromeRadios()
 
-                                // Make very sure that the selectedLocalProvider actually exists
-                                if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
-                                    if (localProviderList[selectedLocalProvider.intValue].enabled)
-                                        getSongsOnDevice(context)
+                                    // Make very sure that the selectedLocalProvider actually exists
+                                    if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
+                                        if (localProviderList[selectedLocalProvider.intValue].enabled)
+                                            getSongsOnDevice(context)
+                                }
+                                else
+                                    useNavidromeServer.value = false
                             }
                         )
                     }

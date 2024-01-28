@@ -4,8 +4,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 
 var localProviderList:MutableList<LocalProvider> = mutableStateListOf(
-    LocalProvider("/Music/", // Default Music Folder
-        true))
+    //LocalProvider("/Music/", true)
+)
 var selectedLocalProvider = mutableIntStateOf(0)
 
 data class LocalProvider (

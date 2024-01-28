@@ -16,4 +16,7 @@
     <string name="S_M_Navidrome">Navidrome</string>
     <string name="S_M_Source">Media Source</string>
     <string name="S_M_Local">Local Folder</string>
+    <string name="Action_Add">Add</string>
+    <string name="Action_Success">Success</string>
+    <string name="Action_Login">Login</string>
 </resources>

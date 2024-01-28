@@ -3,7 +3,6 @@ package com.craftworks.music.ui.elements
 import android.content.Context
 import android.net.Uri
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -361,7 +359,9 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                                     backgroundType.value = option
                                     setShowDialog(false)
                                 },
-                                modifier = Modifier.semantics { contentDescription = option }.bounceClick()
+                                modifier = Modifier
+                                    .semantics { contentDescription = option }
+                                    .bounceClick()
                             )
                             Text(
                                 text = option,
@@ -405,7 +405,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
 
                     var expanded by remember { mutableStateOf(false) }
 
-                    val options = listOf("Local", "Navidrome")
+                    val options = listOf(stringResource(R.string.S_M_Local), "Navidrome")
                     var selectedOptionText by remember { mutableStateOf(options[0]) }
 
                     ExposedDropdownMenuBox(
@@ -413,6 +413,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                         onExpandedChange = { expanded = !expanded },
                     ) {
                         TextField(
+                            shape = RoundedCornerShape(12.dp, 12.dp),
                             modifier = Modifier.menuAnchor(),
                             readOnly = true,
                             value = selectedOptionText,
@@ -439,7 +440,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                         }
                     }
 
-                    if (selectedOptionText == "Local")
+                    if (selectedOptionText == stringResource(R.string.S_M_Local))
                         Column{
                             /* Directory */
                             OutlinedTextField(
@@ -452,12 +453,13 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                             Button(
                                 onClick = {
                                     try {
-                                        val localProvider = LocalProvider(url, true)
+                                        val localProvider = LocalProvider(dir, true)
                                         if (!localProviderList.contains(localProvider)){
                                             localProviderList.add(localProvider)
                                         }
                                         selectedLocalProvider.intValue = localProviderList.indexOf(localProvider)
                                         getSongsOnDevice(context)
+                                        setShowDialog(false)
                                     } catch (_: Exception){
                                         // DO NOTHING
                                     }
@@ -466,14 +468,14 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                                     contentColor = MaterialTheme.colorScheme.onBackground),
                                 modifier = Modifier
-                                    .wrapContentWidth()
                                     .align(Alignment.CenterHorizontally)
-                                    .padding(top = 24.dp)
+                                    .padding(top = 24.dp, start = 40.dp, end = 40.dp)
                                     .height(50.dp)
+                                    .fillMaxWidth()
                                     .bounceClick(),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("Add", modifier = Modifier.height(24.dp))
+                                Text(stringResource(R.string.Action_Add), modifier = Modifier.height(24.dp))
                             }
                         }
                     else if (selectedOptionText == "Navidrome")
@@ -530,6 +532,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                                     getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
                                     getNavidromePlaylists()
                                     getNavidromeRadios()
+                                    setShowDialog(false)
                                 } catch (_: Exception){
                                     // DO NOTHING
                                 }
@@ -538,19 +541,19 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                                 contentColor = MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
-                                .wrapContentWidth()
-                                .animateContentSize()
                                 .align(Alignment.CenterHorizontally)
-                                .padding(top = 24.dp)
-                                .height(50.dp),
+                                .padding(top = 24.dp, start = 40.dp, end = 40.dp)
+                                .height(50.dp)
+                                .fillMaxWidth()
+                                .bounceClick(),
 
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Crossfade(targetState = navidromeStatus.value,
                                 label = "Loading Button Animation") { status ->
                                 when (status) {
-                                    "" -> Text("Add", modifier = Modifier.height(24.dp))
-                                    "Success" -> Text("Success!", modifier = Modifier
+                                    "" -> Text(stringResource(R.string.Action_Login), modifier = Modifier.height(24.dp))
+                                    "Success" -> Text(stringResource(R.string.Action_Success), modifier = Modifier
                                         .height(24.dp)
                                         .wrapContentHeight(Alignment.CenterVertically))
                                     "Loading" -> CircularProgressIndicator(

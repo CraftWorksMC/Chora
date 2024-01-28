@@ -33,6 +33,7 @@ class saveManager(private val context: Context){
         // Save Local Provider List
         val localListString = localProviderList.joinToString(";") { "${it.directory},${it.enabled}" }
         sharedPreferences.edit().putString("localProviderList", localListString).apply()
+        println(localListString)
 
         // Save Active Providers
         sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
@@ -53,7 +54,6 @@ class saveManager(private val context: Context){
         showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
 
         /* NAVIDROME SETTINGS */
-        //useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
 
         val serverListString = sharedPreferences.getString("navidromeServerList", "") ?: ""
         val navidromeStrings = serverListString.split(";")
@@ -68,11 +68,13 @@ class saveManager(private val context: Context){
 
         val localListString = sharedPreferences.getString("localProviderList", "") ?: ""
         val localListStrings = localListString.split(";")
+        println(localListStrings)
         localListStrings.forEach { localString ->
             val parts = localString.split(",")
-            if (parts.size == 3) {
+            if (parts.size == 2) {
                 val localProvider = LocalProvider(parts[0], parts[1].toBoolean())
                 localProviderList.add(localProvider)
+                println(localProvider)
             }
         }
 
