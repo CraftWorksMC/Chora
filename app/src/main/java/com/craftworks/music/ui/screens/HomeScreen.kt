@@ -65,7 +65,10 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
         .wrapContentHeight()
         .verticalScroll(rememberScrollState())) {
 
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(72.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .height(72.dp)
+        ) {
             /* GREETING */
             Box(Modifier.weight(1f)) {
                 if (useNavidromeServer.value){
@@ -84,7 +87,12 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                    modifier = Modifier.padding(start = 42.dp),
+                    modifier = Modifier
+                        .padding(start =
+                        if (useNavidromeServer.value)
+                            42.dp
+                        else
+                            12.dp),
                     lineHeight = 32.sp
                 )
             }
