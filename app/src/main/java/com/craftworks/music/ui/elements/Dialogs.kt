@@ -186,6 +186,9 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                                 )
                             },
                             shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp)
@@ -278,6 +281,9 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                                 }
                             },
                             shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
                                 .width(128.dp)
                                 .height(50.dp)
@@ -312,6 +318,9 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                                 }
                             },
                             shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
                                 .width(128.dp)
                                 .height(50.dp)
@@ -522,7 +531,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                             onClick = {
                                 try {
                                     //saveManager(context).saveSettings()
-                                    val server = NavidromeProvider(url, username, password)
+                                    val server = NavidromeProvider(url.removeSuffix("/"), username, password)
 
                                     if (!navidromeServersList.contains(server)){
                                         navidromeServersList.add(server)
