@@ -192,7 +192,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
+                        imageVector = ImageVector.vectorResource(R.drawable.s_m_media_providers),
                         contentDescription = stringResource(R.string.S_Media),
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(48.dp).padding(start = 12.dp))
