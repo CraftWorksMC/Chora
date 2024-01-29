@@ -197,11 +197,15 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                         Checkbox(
                             checked = enabled,
                             onCheckedChange = {enabled = it
+                                val index = localProviderList.indexOf(local)
+
                                 localProviderList[localProviderList.indexOf(local)] = localProviderList[localProviderList.indexOf(local)].copy(enabled = it)
-                                // Clear everything!
-                                if (it){
-                                    localProviderList[localProviderList.indexOf(local)] = localProviderList[localProviderList.indexOf(local)].copy(enabled = true)
-                                    selectedLocalProvider.intValue = localProviderList.indexOf(local)
+
+                                selectedLocalProvider.intValue = index
+
+                                if (enabled){
+                                    if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
+                                        getSongsOnDevice(context)
                                 }
                                 else {
                                     songsList.clear()

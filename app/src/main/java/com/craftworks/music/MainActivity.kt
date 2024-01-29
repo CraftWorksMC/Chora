@@ -57,7 +57,6 @@ import java.util.TimerTask
 
 
 var sliderPos = mutableIntStateOf(0)
-var mediaFolder = mutableStateOf("/Music/")
 var repeatSong = mutableStateOf(false)
 var shuffleSongs = mutableStateOf(false)
 
