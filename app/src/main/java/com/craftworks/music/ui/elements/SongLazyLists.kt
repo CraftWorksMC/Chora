@@ -57,6 +57,9 @@ fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
                 SyncedLyric.clear()
                 getLyrics()
                 markSongAsPlayed(song)
+                if (navidromeServersList.isEmpty()) return@SongsCard
+                if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@SongsCard
                 if (useNavidromeServer.value && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")){
                     try {
                         getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
@@ -91,6 +94,9 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
                 SyncedLyric.clear()
                 getLyrics()
                 markSongAsPlayed(song)
+                if (navidromeServersList.isEmpty()) return@HorizontalSongCard
+                if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@HorizontalSongCard
                 if (useNavidromeServer.value && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")){
                     try {
                         getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))

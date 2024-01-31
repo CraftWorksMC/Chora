@@ -1,6 +1,5 @@
 package com.craftworks.music.lyrics
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,7 +39,7 @@ fun getLyrics(){
 
                 inputStream.bufferedReader().use {
                     it.lines().forEach { line ->
-                        println(line)
+                        //println(line)
                         val jsonObject = JSONObject(line)
 
                         /* TRY GETTING SYNCED. IF NOT FALLBACK TO PLAIN */
@@ -50,7 +49,7 @@ fun getLyrics(){
                                 val timeStampsRaw = getTimeStamps(lyric)[0]
                                 val time = mmssToMilliseconds(timeStampsRaw)
                                 val lyricText: String = lyric.drop(11)
-                                Log.d("Lyric: ", "$time: $lyricText")
+                                //Log.d("Lyric: ", "$time: $lyricText")
                                 SyncedLyric.add(Lyric(time.toInt(),lyricText, false))
                             }
                         }else {

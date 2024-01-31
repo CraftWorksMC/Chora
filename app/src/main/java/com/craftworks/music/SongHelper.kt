@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.OptIn
+import androidx.compose.runtime.Composable
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -21,8 +22,8 @@ import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.lyrics.songLyrics
 import com.craftworks.music.providers.navidrome.markSongAsPlayed
-import com.craftworks.music.ui.bitmap
 import com.craftworks.music.providers.navidrome.useNavidromeServer
+import com.craftworks.music.ui.bitmap
 import kotlin.math.abs
 
 
@@ -37,7 +38,7 @@ class SongHelper {
 
 
         var currentPosition: Long = 0
-        fun initPlayer(context: Context){
+        fun initPlayer(context: Context) {
             // Do NOT Re-Initialize Player and MediaSession
             // Because this function gets called when re-focusing the app
             if (this::player.isInitialized || this::mediaSession.isInitialized) return
@@ -45,44 +46,55 @@ class SongHelper {
             player = ExoPlayer.Builder(context).build()
             mediaSession = MediaSession.Builder(context, player).build()
 
+            player.shuffleModeEnabled = false
+            player.repeatMode = Player.REPEAT_MODE_OFF
+
             // Create a Notification Channel
             val channel = NotificationChannel(
-                    "Chora",
-                    "Chora Notifications",
-                    NotificationManager.IMPORTANCE_LOW
+                "Chora",
+                "Chora Notifications",
+                NotificationManager.IMPORTANCE_LOW
             )
-            notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
 
             //Load Settings (Once)!
             saveManager(context).loadSettings()
         }
-        fun playStream(context: Context, url: Uri) {
+        @Composable
+        fun PlayStream(context: Context, url: Uri) {
             // Stop If It's Playing
             if (player.isPlaying){
                 player.stop()
                 player.clearMediaItems()
             }
+                for (song in playingSong.selectedList){
+                    val mediaItem = song.media?.let { MediaItem.fromUri(it) }
+                    if (mediaItem != null) {
+                        player.addMediaItem(mediaItem)
+                    }
+                }
+            val index = playingSong.selectedList.indexOfFirst { it.media == url }
+            println("${player.currentMediaItem?.localConfiguration?.uri} ; ${playingSong.selectedList.indexOfFirst { it.media == player.currentMediaItem?.localConfiguration?.uri }} ; ${playingSong.selectedList.size}")
 
             mediaSession.player = player
 
-            //val index = playingSong.selectedList.indexOfFirst { it.media == playingSong.selectedSong?.media }
-
             // Initialize Player With Media
-            val mediaItem = MediaItem.fromUri(url)
+            //val mediaItem = MediaItem.fromUri(url)
 
-            /*
-            for (song in playingSong.selectedList){
-                song.media?.let {
-                    MediaItem.fromUri(it)
-                }?.let {
-                    player.addMediaItem(it)
-                }
-            }*/
-            player.setMediaItem(mediaItem)
+            //player.setMediaItem(mediaItem)
             player.prepare()
-            player.seekTo(currentPosition)
+            player.seekTo(index, currentPosition)
+            //player.seekTo(currentPosition)
             player.playWhenReady = true
+
+            try {
+                //playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
+            }
+            catch (e: java.lang.IndexOutOfBoundsException){
+                println("$e !!!")
+            }
 
             // Set WakeLock
             if (useNavidromeServer.value){
@@ -92,26 +104,33 @@ class SongHelper {
                 player.setWakeMode(C.WAKE_MODE_LOCAL)
             }
 
-            notification = NotificationCompat.Builder(context, "Chora")
-                .setSmallIcon(R.drawable.ic_notification_icon)
-                .setContentTitle(mediaItem.mediaMetadata.title)
-                .setContentText(mediaItem.mediaMetadata.artist)
-                .setLargeIcon(bitmap.value)
-                .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionCompatToken))
-                //.setOngoing(true) // Don't dismiss it
-                .setContentIntent(PendingIntent.getActivity( // Open app on notification click
-                    context,
-                    0,
-                    Intent(context.applicationContext,MainActivity::class.java),
-                    PendingIntent.FLAG_IMMUTABLE))
-                .build()
-            notificationManager.notify(2, notification)
-
             // Add OnComplete Listener
             player.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
                     if (state == Player.STATE_ENDED) {
                         onPlayerComplete()
+                    }
+
+                    notification = NotificationCompat.Builder(context, "Chora")
+                        .setSmallIcon(R.drawable.ic_notification_icon)
+                        .setContentTitle(player.mediaMetadata.title)
+                        .setContentText(player.mediaMetadata.artist)
+                        .setLargeIcon(bitmap.value)
+                        .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionCompatToken))
+                        //.setOngoing(true) // Don't dismiss it
+                        .setContentIntent(PendingIntent.getActivity( // Open app on notification click
+                            context,
+                            0,
+                            Intent(context.applicationContext,MainActivity::class.java),
+                            PendingIntent.FLAG_IMMUTABLE))
+                        .build()
+                    notificationManager.notify(2, notification)
+
+                    try {
+                        //playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
+                    }
+                    catch (e: java.lang.IndexOutOfBoundsException){
+                        println("$e !!!")
                     }
                 }
             })

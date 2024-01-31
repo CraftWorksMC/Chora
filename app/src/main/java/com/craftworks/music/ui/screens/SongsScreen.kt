@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,6 +32,7 @@ import com.craftworks.music.playingSong
 import com.craftworks.music.songState
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SongsScreen() {
@@ -38,7 +40,11 @@ fun SongsScreen() {
     /* SONGS ICON + TEXT */
     Box(modifier = Modifier
         .fillMaxWidth()
-        .padding(start = leftPadding, top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())) {
+        .padding(start = leftPadding,
+            top = WindowInsets.statusBars
+                .asPaddingValues()
+                .calculateTopPadding()
+        )) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.round_music_note_24),

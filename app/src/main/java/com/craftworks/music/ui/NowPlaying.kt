@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.compose.animation.Crossfade
@@ -100,10 +99,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.palette.graphics.Palette
-import coil.ImageLoader
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import coil.request.SuccessResult
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Song
@@ -114,6 +110,7 @@ import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.songLyrics
 import com.craftworks.music.playingSong
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
+import com.craftworks.music.providers.navidrome.getNavidromeBitmap
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.repeatSong
@@ -128,14 +125,11 @@ import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
 
 var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
-    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
-)
-@Preview(
-    showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    device = "spec:width=640dp,height=540dp,dpi=320", showSystemUi = true
+    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL,
+    device = "id:pixel_6a"
 )
 @Composable
 fun NowPlayingContent(
@@ -185,12 +179,12 @@ fun NowPlayingContent(
                 if (playingSong.selectedSong?.imageUrl == Uri.EMPTY) return@Surface
 
                 //var bitmap by remember { mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))}
-                LaunchedEffect(playingSong.selectedSong?.imageUrl){
+                LaunchedEffect(SongHelper.player.currentMediaItem?.mediaMetadata?.artworkUri){
                     bitmap.value =
-                        if (useNavidromeServer.value)
+                        if (useNavidromeServer.value || navidromeServersList.isNotEmpty())
                             getNavidromeBitmap(context)
                         else //Don't crash if there's no album art!
-                            try{ MediaStore.Images.Media.getBitmap(context.contentResolver, playingSong.selectedSong?.imageUrl) }
+                            try{ MediaStore.Images.Media.getBitmap(context.contentResolver, SongHelper.player.currentMediaItem?.mediaMetadata?.artworkUri) }
                             catch (_:FileNotFoundException) { Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888) }
                 }
 
@@ -544,6 +538,9 @@ fun NowPlayingContent(
                             {
                                 Button(
                                     onClick = {
+                                        if (navidromeServersList.isEmpty()) return@Button
+                                        if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
+                                            navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@Button
                                         downloadNavidromeSong("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${playingSong.selectedSong?.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",
                                             snackbarHostState = snackbarHostState,
                                             coroutineScope)
@@ -1006,6 +1003,9 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false) {
     val imageOffsetX: Dp by animateDpAsState(if (lyricsOpen == true) (-160).dp else 0.dp,
         label = "Animated Cover Offset X"
     )
+    val imageOffsetXAdaptive: Dp by animateDpAsState(if (lyricsOpen == true) (6).dp else (LocalConfiguration.current.screenWidthDp/2 - 160).dp,
+        label = "Animated Cover Offset X"
+    )
     val imageOffsetY: Dp by animateDpAsState(if (lyricsOpen == true) (-138).dp else 0.dp,
         label = "Animated Cover Offset Y"
     )
@@ -1043,7 +1043,7 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false) {
             Box(
                 modifier = Modifier
                     .height(320.dp)
-                    .fillMaxWidth(), contentAlignment = Alignment.Center
+                    .fillMaxWidth(), contentAlignment = Alignment.CenterStart
             ) {
                 AsyncImage(
                     model = playingSong.selectedSong?.imageUrl,
@@ -1053,7 +1053,7 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false) {
                     contentScale = ContentScale.FillHeight,
                     modifier = Modifier
                         .size(imageSize)
-                        .offset(x = imageOffsetX, y = imageOffsetY)
+                        .offset(x = imageOffsetXAdaptive, y = imageOffsetY)
                         .shadow(4.dp, RoundedCornerShape(imageCornerRadius), clip = true)
                         .background(MaterialTheme.colorScheme.background)
                         .clip(RoundedCornerShape(imageCornerRadius))
@@ -1337,14 +1337,4 @@ fun animateBrushRotation(
             ShaderBrush(shader)
         }
     }
-}
-
-suspend fun getNavidromeBitmap(context: Context): Bitmap {
-    val loading = ImageLoader(context)
-    val request = ImageRequest.Builder(context)
-        .data("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getCoverArt.view?&id=${playingSong.selectedSong?.navidromeID}&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
-        .build()
-    val result = (loading.execute(request) as SuccessResult).drawable
-    println("GOT NAVIDROME BITMAP!!!")
-    return (result as BitmapDrawable).bitmap.copy(Bitmap.Config.RGBA_F16, true)
 }

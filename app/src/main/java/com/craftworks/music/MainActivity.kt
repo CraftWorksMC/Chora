@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import com.craftworks.music.SongHelper.Companion.initPlayer
 import com.craftworks.music.data.BottomNavigationItem
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
@@ -297,7 +298,7 @@ class MainActivity : ComponentActivity() {
             }
 
             override fun onActivityStarted(activity: Activity) {
-                SongHelper.initPlayer(this@MainActivity)
+                initPlayer(this@MainActivity)
             }
 
             override fun onActivityResumed(activity: Activity) {
@@ -327,7 +328,7 @@ class MainActivity : ComponentActivity() {
 fun PlayPause(context: Context) {
     if (songState) {
         playingSong.selectedSong?.media?.let {
-            SongHelper.playStream(
+            SongHelper.PlayStream(
                 context = context,
                 url = it
             )

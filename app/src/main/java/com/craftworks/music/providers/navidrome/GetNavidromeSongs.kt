@@ -4,11 +4,11 @@ import android.net.Uri
 import android.util.Log
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.albumList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.songsList
-import com.craftworks.music.data.albumList
 import com.craftworks.music.ui.screens.transcodingBitrate
 import com.craftworks.music.ui.screens.username
 import org.w3c.dom.NodeList
@@ -25,9 +25,10 @@ import javax.xml.xpath.XPathFactory
 
 @Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromeSongs(url: URL){
+    if (navidromeServersList.isEmpty()) return
     Log.d("NAVIDROME", "USERNAME: $navidromeServersList[selectedNavidromeServerIndex.intValue].username, PASS: ${navidromeServersList[selectedNavidromeServerIndex.intValue].password}")
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password == "") return
 
     val thread = Thread {
         try {

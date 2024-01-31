@@ -20,6 +20,7 @@ import javax.xml.xpath.XPathFactory
 
 @Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromePlaylists(){
+    if (navidromeServersList.isEmpty()) return
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
         navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
 
