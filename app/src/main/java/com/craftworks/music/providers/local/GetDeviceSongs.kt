@@ -11,12 +11,12 @@ import android.provider.MediaStore
 import android.util.Log
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.albumList
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.songsList
-import com.craftworks.music.data.albumList
 import java.io.FileNotFoundException
 
 fun getSongsOnDevice(context: Context){
@@ -88,16 +88,8 @@ fun getSongsOnDevice(context: Context){
                     format = thisFormat.uppercase().drop(6),
                     bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else ""
                 )
-                // why
-                try {
-                    synchronized(songsList) {
-                        if (songsList.isEmpty() || !songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
-                            songsList.add(song);
-                        }
-                    }
-                }
-                catch (e: java.util.ConcurrentModificationException){
-                    println(e.message)
+                if (songsList.isEmpty() || !songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
+                    songsList.add(song);
                 }
 
                 // Add songs to album
@@ -107,15 +99,8 @@ fun getSongsOnDevice(context: Context){
                     year = if (!thisYear.isNullOrBlank()) thisYear else "",
                     coverArt = imageUri
                 )
-                try {
-                    synchronized(albumList){
-                        if (albumList.isEmpty() || !albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
-                            albumList.add(album)
-                        }
-                    }
-                }
-                catch (e: java.util.ConcurrentModificationException){
-                    println(e.message)
+                if (albumList.isEmpty() || !albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
+                    albumList.add(album)
                 }
 
             } while (cursor.moveToNext())

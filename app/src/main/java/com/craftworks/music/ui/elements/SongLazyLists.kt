@@ -30,8 +30,6 @@ import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.lyrics.SyncedLyric
-import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.lyrics.songLyrics.SongLyrics
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.markSongAsPlayed
@@ -53,9 +51,9 @@ fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
                 SongHelper.stopStream()
                 sliderPos.intValue = 0
                 onSongSelected(song)
-                SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-                SyncedLyric.clear()
-                getLyrics()
+                //SongLyrics = "Getting Lyrics... \n No Lyrics Found"
+                //SyncedLyric.clear()
+                //getLyrics()
                 markSongAsPlayed(song)
                 if (navidromeServersList.isEmpty()) return@SongsCard
                 if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
@@ -90,9 +88,9 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
                 SongHelper.stopStream()
                 sliderPos.intValue = 0
                 onSongSelected(song)
-                SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-                SyncedLyric.clear()
-                getLyrics()
+                //SongLyrics = "Getting Lyrics... \n No Lyrics Found"
+                //SyncedLyric.clear()
+                //getLyrics()
                 markSongAsPlayed(song)
                 if (navidromeServersList.isEmpty()) return@HorizontalSongCard
                 if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||

@@ -30,7 +30,7 @@ fun getLyrics(){
                 playingSong.selectedSong?.title == "Song Title")
                 throw IllegalArgumentException("Song Empty!")
 
-            val url = URL("https://lrclib.net/api/get?artist_name=${playingSong.selectedSong!!.artist.replace(" ", "+")}&track_name=${playingSong.selectedSong!!.title.replace(" ", "+")}&album_name=${playingSong.selectedSong!!.album.replace(" ", "+")}&duration=${playingSong.selectedSong!!.duration / 1000}")
+            val url = URL("https://lrclib.net/api/get?artist_name=${playingSong.selectedSong?.artist?.replace(" ", "+")}&track_name=${playingSong.selectedSong?.title?.replace(" ", "+")}&album_name=${playingSong.selectedSong?.album?.replace(" ", "+")}&duration=${playingSong.selectedSong?.duration?.div(1000)}")
 
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET
@@ -50,6 +50,8 @@ fun getLyrics(){
                                 val time = mmssToMilliseconds(timeStampsRaw)
                                 val lyricText: String = lyric.drop(11)
                                 //Log.d("Lyric: ", "$time: $lyricText")
+                                if (SyncedLyric.firstOrNull { content == lyricText } != null)
+                                    return@forEach
                                 SyncedLyric.add(Lyric(time.toInt(),lyricText, false))
                             }
                         }else {

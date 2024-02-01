@@ -55,6 +55,8 @@ class saveManager(private val context: Context){
 
         /* NAVIDROME SETTINGS */
 
+        useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
+
         val serverListString = sharedPreferences.getString("navidromeServerList", "") ?: ""
         val navidromeStrings = serverListString.split(";")
         navidromeStrings.forEach { navidromeString ->
@@ -84,7 +86,7 @@ class saveManager(private val context: Context){
 
         transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
 
-        if (navidromeServersList.isNotEmpty() && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != ""))
+        if (useNavidromeServer.value && (navidromeServersList.isNotEmpty() && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")))
             try {
                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
                 getNavidromePlaylists()

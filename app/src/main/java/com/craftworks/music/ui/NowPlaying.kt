@@ -350,7 +350,7 @@ fun NowPlayingContent(
                 .fillMaxHeight()
                 .padding(0.dp, topPaddingExpandedPlayer.dp, 0.dp, 0.dp), contentAlignment = Alignment.TopCenter) {
                 Column {
-                    AnimatedSongImageView(lyricsOpen || scaffoldState!!.bottomSheetState.targetValue != SheetValue.Expanded)
+                    AnimatedSongImageView(lyricsOpen || scaffoldState!!.bottomSheetState.targetValue != SheetValue.Expanded, isPlaying)
 
                     /* Progress Bar */
                     Column(modifier = Modifier
@@ -1013,7 +1013,7 @@ fun LandscapeSliderUpdating(){
 
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
-fun AnimatedSongImageView(lyricsOpen:Boolean ? = false) {
+fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = false) {
     // Image Animations
     val imageSize: Dp by animateDpAsState(if (lyricsOpen == true) 60.dp else 320.dp,
         label = "Animated Cover Size"
@@ -1145,7 +1145,7 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false) {
                             .padding(end = 12.dp), verticalArrangement = Arrangement.Center
                     ) {
                         Icon(
-                            imageVector = if (songState)
+                            imageVector = if (isPlaying == true)
                                 ImageVector.vectorResource(R.drawable.round_pause_24)
                             else
                                 Icons.Rounded.PlayArrow,
@@ -1157,7 +1157,7 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false) {
                                 .bounceClick()
                                 .clip(RoundedCornerShape(12.dp))
                                 .clickable {
-                                    songState = !songState
+                                    SongHelper.player.playWhenReady = !SongHelper.player.playWhenReady
                                 }
                         )
                     }

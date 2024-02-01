@@ -11,6 +11,7 @@ import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -65,14 +66,23 @@ class SongHelper {
                 player.stop()
                 player.clearMediaItems()
             }
-            for (song in playingSong.selectedList){
-                val mediaItem = song.media?.let { MediaItem.fromUri(it) }
-                if (mediaItem != null) {
-                    player.addMediaItem(mediaItem)
-                }
-            }
+
             val index = playingSong.selectedList.indexOfFirst { it.media == url }
-            println("${player.currentMediaItem?.localConfiguration?.uri} ; ${playingSong.selectedList.indexOfFirst { it.media == player.currentMediaItem?.localConfiguration?.uri }} ; ${playingSong.selectedList.size}")
+
+            for (song in playingSong.selectedList){
+                val mediaMetadata = MediaMetadata.Builder()
+                    .setTitle(song.title)
+                    .setArtist(song.artist)
+                    .setAlbumTitle(song.album)
+                    .build()
+
+                val mediaItem = MediaItem.Builder()
+                    .setUri(song.media)
+                    .setMediaMetadata(mediaMetadata)
+                    .build()
+
+                player.addMediaItem(mediaItem)
+            }
 
             mediaSession.player = player
 
@@ -85,12 +95,11 @@ class SongHelper {
             //player.seekTo(currentPosition)
             player.playWhenReady = true
 
-            try {
-                //playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
-            }
-            catch (e: java.lang.IndexOutOfBoundsException){
-                println("$e !!!")
-            }
+            // Get Lyrics for first song.
+            //playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
+            //songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
+            //SyncedLyric.clear()
+            //getLyrics()
 
             // Set WakeLock
             if (useNavidromeServer.value){
@@ -100,6 +109,7 @@ class SongHelper {
                 player.setWakeMode(C.WAKE_MODE_LOCAL)
             }
 
+            var currentMediaItemId: Int = C.INDEX_UNSET
             // Add OnComplete Listener
             player.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
@@ -107,6 +117,7 @@ class SongHelper {
                         onPlayerComplete()
                     }
 
+                    // Update Notification
                     notification = NotificationCompat.Builder(context, "Chora")
                         .setSmallIcon(R.drawable.ic_notification_icon)
                         .setContentTitle(player.mediaMetadata.title)
@@ -121,11 +132,15 @@ class SongHelper {
                             PendingIntent.FLAG_IMMUTABLE))
                         .build()
                     notificationManager.notify(2, notification)
-                    try {
+
+                    //Clear Lyrics On Song Change
+                    if (state == Player.STATE_READY && player.currentMediaItemIndex != currentMediaItemId) {
                         playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
-                    }
-                    catch (e: java.lang.IndexOutOfBoundsException){
-                        println("$e !!!")
+                        songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
+                        SyncedLyric.clear()
+                        getLyrics()
+
+                        currentMediaItemId = player.currentMediaItemIndex
                     }
                 }
             })
@@ -179,9 +194,9 @@ class SongHelper {
             }
             stopStream()
             sliderPos.intValue = 0
-            songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-            SyncedLyric.clear()
-            getLyrics()
+            //songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
+            //SyncedLyric.clear()
+            //getLyrics()
             markSongAsPlayed(song)
         }
 
@@ -202,9 +217,9 @@ class SongHelper {
                 //playingSong.selectedSong = playingSong.selectedList[currentSongIndex + 1]
             //stopStream()
             sliderPos.intValue = 0
-            songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-            SyncedLyric.clear()
-            getLyrics()
+            //songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
+            //SyncedLyric.clear()
+            //getLyrics()
             markSongAsPlayed(song)
         }
 

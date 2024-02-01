@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,9 +61,6 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
-import com.craftworks.music.lyrics.SyncedLyric
-import com.craftworks.music.lyrics.getLyrics
-import com.craftworks.music.lyrics.songLyrics
 import com.craftworks.music.playingSong
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.markSongAsPlayed
@@ -88,6 +86,7 @@ var selectedAlbum by mutableStateOf<Album?>(
 fun AlbumDetails(navHostController: NavHostController = rememberNavController()) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
+    val context = LocalContext.current
 
     val albumSongs = songsList.filter { it.album == selectedAlbum?.name }
 
@@ -188,7 +187,8 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                 onClick = {
                     playingSong.selectedSong = albumSongs[0]
                     playingSong.selectedList = albumSongs
-                    songState = true
+                    //songState = true
+                    albumSongs[0].media?.let { SongHelper.PlayStream(context = context, url = it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -203,9 +203,11 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
             Button(
                 onClick = {
                     shuffleSongs.value = true
-                    playingSong.selectedSong = albumSongs[albumSongs.indices.random()]
+                    val random = albumSongs.indices.random()
+                    playingSong.selectedSong = albumSongs[random]
                     playingSong.selectedList = albumSongs
-                    songState = true
+                    //songState = true
+                    albumSongs[random].media?.let { SongHelper.PlayStream(context = context, url = it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -240,10 +242,10 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                         sliderPos.intValue = 0
                         playingSong.selectedSong = song
                         playingSong.selectedList = albumSongs
-                        songState = true
-                        songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-                        SyncedLyric.clear()
-                        getLyrics()
+                        song.media?.let { SongHelper.PlayStream(context = context, url = it)}
+                        //songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
+                        //SyncedLyric.clear()
+                        //getLyrics()
                         markSongAsPlayed(song)
                         if (useNavidromeServer.value && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")){
                             try {

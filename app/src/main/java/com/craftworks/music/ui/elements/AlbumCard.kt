@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,14 +35,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.craftworks.music.R
+import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Album
-import com.craftworks.music.playingSong
-import com.craftworks.music.songState
 import com.craftworks.music.data.songsList
+import com.craftworks.music.playingSong
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumCard(album: Album, onClick: () -> Unit){
+    val context = LocalContext.current
     Card(
         onClick = { onClick() },
         modifier = Modifier.padding(12.dp),
@@ -72,7 +74,7 @@ fun AlbumCard(album: Album, onClick: () -> Unit){
                     onClick = { // Play First Song in Album
                         playingSong.selectedSong = songsList.filter { it.album == album.name }[0]
                         playingSong.selectedList = songsList.filter { it.album == album.name }
-                        songState = true },
+                        songsList.filter { it.album == album.name }[0].media?.let { SongHelper.PlayStream(context = context, url = it)} },
                     shape = CircleShape,
                     modifier = Modifier.size(48.dp).align(Alignment.BottomStart).padding(6.dp),
                     contentPadding = PaddingValues(2.dp),

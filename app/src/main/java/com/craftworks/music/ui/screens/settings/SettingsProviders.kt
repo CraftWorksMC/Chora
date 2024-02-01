@@ -281,13 +281,14 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                         Checkbox(
                             checked = checked,
                             onCheckedChange = { checked = it
+                                useNavidromeServer.value = it
+                                
                                 songsList.clear()
                                 albumList.clear()
                                 radioList.clear()
                                 playlistList.clear()
 
                                 if (it){
-                                    useNavidromeServer.value = true
                                     selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
                                     // Reload Navidrome
                                     getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
@@ -303,7 +304,6 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                                     if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
                                         if (localProviderList[selectedLocalProvider.intValue].enabled)
                                             getSongsOnDevice(context)
-                                    useNavidromeServer.value = false
                                 }
                             }
                         )

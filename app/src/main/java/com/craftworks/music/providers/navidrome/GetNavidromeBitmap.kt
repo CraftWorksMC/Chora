@@ -20,7 +20,7 @@ suspend fun getNavidromeBitmap(context: Context): Bitmap {
 
     val loading = ImageLoader(context)
     val request = ImageRequest.Builder(context)
-        .data("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getCoverArt.view?&id=${playingSong.selectedSong?.navidromeID}&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
+        .data("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getCoverArt.view?&id=${playingSong.selectedSong?.navidromeID}&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&size=512&v=1.12.0&c=Chora")
         .build()
     val result = (loading.execute(request) as SuccessResult).drawable
     println("GOT NAVIDROME BITMAP!!!")
