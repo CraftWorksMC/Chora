@@ -138,7 +138,8 @@ class SongHelper {
                         playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
                         songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
                         SyncedLyric.clear()
-                        getLyrics()
+                        if (SyncedLyric.isEmpty())
+                            getLyrics()
 
                         currentMediaItemId = player.currentMediaItemIndex
                     }
