@@ -327,12 +327,14 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PlayPause(context: Context) {
     if (songState) {
+        /*
         playingSong.selectedSong?.media?.let {
             SongHelper.PlayStream(
                 context = context,
                 url = it
             )
-        }
+        }*/
+        SongHelper.player.playWhenReady = true
     } else {
         SongHelper.pauseStream()
     }

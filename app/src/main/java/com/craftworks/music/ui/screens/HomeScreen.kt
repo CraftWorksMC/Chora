@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -51,12 +52,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
+import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.playingSong
 import com.craftworks.music.providers.navidrome.useNavidromeServer
-import com.craftworks.music.songState
 import com.craftworks.music.ui.elements.SongsRow
 import com.craftworks.music.ui.elements.bounceClick
 
@@ -69,6 +70,7 @@ import com.craftworks.music.ui.elements.bounceClick
 fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
+    val context = LocalContext.current
     Column(modifier = Modifier
         .padding(start = leftPadding)
         .fillMaxWidth()
@@ -169,7 +171,8 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
             SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 playingSong.selectedList = recentlyPlayedSongsList
-                songState = true
+                //songState = true
+                song.media?.let { SongHelper.PlayStream(context = context, url = it) }
             })
         }
 
@@ -192,7 +195,8 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
             SongsRow(songsList = recentSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 playingSong.selectedList = recentSongsList
-                songState = true
+                //songState = true
+                song.media?.let { SongHelper.PlayStream(context = context, url = it) }
             })
         }
 
@@ -214,7 +218,8 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
             SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 playingSong.selectedList = mostPlayedList
-                songState = true
+                //songState = true
+                song.media?.let { SongHelper.PlayStream(context = context, url = it) }
             })
         }
 
@@ -236,7 +241,8 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
             SongsRow(songsList = shuffledSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 playingSong.selectedList = shuffledSongsList
-                songState = true
+                //songState = true
+                song.media?.let { SongHelper.PlayStream(context = context, url = it) }
             })
         }
 

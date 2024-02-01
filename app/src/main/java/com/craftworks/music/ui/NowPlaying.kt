@@ -58,6 +58,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -98,6 +99,7 @@ import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.Player
 import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import com.craftworks.music.R
@@ -179,12 +181,12 @@ fun NowPlayingContent(
                 if (playingSong.selectedSong?.imageUrl == Uri.EMPTY) return@Surface
 
                 //var bitmap by remember { mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))}
-                LaunchedEffect(SongHelper.player.currentMediaItem?.mediaMetadata?.artworkUri){
+                LaunchedEffect(playingSong.selectedSong?.imageUrl){
                     bitmap.value =
                         if (useNavidromeServer.value || navidromeServersList.isNotEmpty())
                             getNavidromeBitmap(context)
                         else //Don't crash if there's no album art!
-                            try{ MediaStore.Images.Media.getBitmap(context.contentResolver, SongHelper.player.currentMediaItem?.mediaMetadata?.artworkUri) }
+                            try{ MediaStore.Images.Media.getBitmap(context.contentResolver, playingSong.selectedSong?.imageUrl) }
                             catch (_:FileNotFoundException) { Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888) }
                 }
 
@@ -253,6 +255,26 @@ fun NowPlayingContent(
             label = "Animated Height"
         )
 
+        var isPlaying by remember { mutableStateOf(false) }
+
+        DisposableEffect(Unit) {
+            val player = SongHelper.player
+            val listener = object : Player.Listener {
+                override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                    isPlaying = playWhenReady
+                }
+
+                override fun onPlaybackStateChanged(state: Int) {
+                    // You can handle playback state changes here if needed
+                }
+
+                // Implement other necessary listener methods as per your requirement
+            }
+            player.addListener(listener)
+            onDispose {
+                player.removeListener(listener)
+            }
+        }
 
 
         /* MINI-PLAYER UI
@@ -406,7 +428,7 @@ fun NowPlayingContent(
                                 .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
                             {
                                 Button(
-                                    onClick = { songState = !songState },
+                                    onClick = { SongHelper.player.playWhenReady = !SongHelper.player.playWhenReady },
                                     shape = CircleShape,
                                     modifier = Modifier
                                         .size(92.dp)
@@ -416,9 +438,8 @@ fun NowPlayingContent(
                                         containerColor = Color.Transparent
                                     )
                                 ) {
-                                    // Inner content including an icon and a text label
                                     Icon(
-                                        imageVector = if (songState)
+                                        imageVector = if (isPlaying)
                                             ImageVector.vectorResource(R.drawable.round_pause_24)
                                         else
                                             Icons.Rounded.PlayArrow,
@@ -1114,9 +1135,14 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false) {
         }
         Crossfade(lyricsOpen == true, label = "Lyrics View Crossfade") {
             if (it)
-                Box(modifier = Modifier.height(44.dp).fillMaxWidth()){
+                Box(modifier = Modifier
+                    .height(44.dp)
+                    .fillMaxWidth()){
                     Column(
-                        modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd).padding(end = 12.dp), verticalArrangement = Arrangement.Center
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 12.dp), verticalArrangement = Arrangement.Center
                     ) {
                         Icon(
                             imageVector = if (songState)

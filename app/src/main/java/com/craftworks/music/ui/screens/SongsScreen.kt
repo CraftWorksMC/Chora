@@ -20,16 +20,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
+import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.playingSong
-import com.craftworks.music.songState
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,6 +38,7 @@ import com.craftworks.music.ui.elements.SongsHorizontalColumn
 @Composable
 fun SongsScreen() {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
+    val context = LocalContext.current
     /* SONGS ICON + TEXT */
     Box(modifier = Modifier
         .fillMaxWidth()
@@ -69,7 +71,8 @@ fun SongsScreen() {
             SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 playingSong.selectedList = allSongsList
-                songState = true })
+                //songState = true
+                song.media?.let { SongHelper.PlayStream(context = context, url = it) } })
         }
     }
 

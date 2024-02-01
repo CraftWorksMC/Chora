@@ -4,12 +4,10 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.OptIn
-import androidx.compose.runtime.Composable
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -24,7 +22,6 @@ import com.craftworks.music.lyrics.songLyrics
 import com.craftworks.music.providers.navidrome.markSongAsPlayed
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.bitmap
-import kotlin.math.abs
 
 
 class SongHelper {
@@ -62,19 +59,18 @@ class SongHelper {
             //Load Settings (Once)!
             saveManager(context).loadSettings()
         }
-        @Composable
         fun PlayStream(context: Context, url: Uri) {
             // Stop If It's Playing
             if (player.isPlaying){
                 player.stop()
                 player.clearMediaItems()
             }
-                for (song in playingSong.selectedList){
-                    val mediaItem = song.media?.let { MediaItem.fromUri(it) }
-                    if (mediaItem != null) {
-                        player.addMediaItem(mediaItem)
-                    }
+            for (song in playingSong.selectedList){
+                val mediaItem = song.media?.let { MediaItem.fromUri(it) }
+                if (mediaItem != null) {
+                    player.addMediaItem(mediaItem)
                 }
+            }
             val index = playingSong.selectedList.indexOfFirst { it.media == url }
             println("${player.currentMediaItem?.localConfiguration?.uri} ; ${playingSong.selectedList.indexOfFirst { it.media == player.currentMediaItem?.localConfiguration?.uri }} ; ${playingSong.selectedList.size}")
 
@@ -125,9 +121,8 @@ class SongHelper {
                             PendingIntent.FLAG_IMMUTABLE))
                         .build()
                     notificationManager.notify(2, notification)
-
                     try {
-                        //playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
+                        playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
                     }
                     catch (e: java.lang.IndexOutOfBoundsException){
                         println("$e !!!")
@@ -157,6 +152,15 @@ class SongHelper {
         }
 
         fun previousSong(song: Song){
+            player.seekToPreviousMediaItem()
+
+            try {
+                playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
+            }
+            catch (e: java.lang.IndexOutOfBoundsException){
+                println("$e !!!")
+            }
+
             val currentSongIndex = playingSong.selectedList.indexOfFirst{it.media == playingSong.selectedSong?.media}
 
             if (repeatSong.value){
@@ -165,13 +169,13 @@ class SongHelper {
             }
 
             if (shuffleSongs.value && playingSong.selectedList.isNotEmpty()){
-                playingSong.selectedSong = playingSong.selectedList[(0..playingSong.selectedList.size - 1).random()]
+                //playingSong.selectedSong = playingSong.selectedList[(0..playingSong.selectedList.size - 1).random()]
             }
             // Play Previous only if there is actually a song behind, and not shuffling or repeating.
             if ( (currentSongIndex - 1) >= 0
                 && !repeatSong.value
                 && !shuffleSongs.value){
-                playingSong.selectedSong = playingSong.selectedList[currentSongIndex - 1]
+                //playingSong.selectedSong = playingSong.selectedList[currentSongIndex - 1]
             }
             stopStream()
             sliderPos.intValue = 0
@@ -182,6 +186,8 @@ class SongHelper {
         }
 
         fun nextSong(song: Song){
+            player.seekToNextMediaItem()
+
             val currentSongIndex = playingSong.selectedList.indexOfFirst{it.media == playingSong.selectedSong?.media}
 
             if (repeatSong.value){
@@ -189,12 +195,12 @@ class SongHelper {
                 player.play()
             }
             if (shuffleSongs.value && playingSong.selectedList.isNotEmpty())
-                playingSong.selectedSong = playingSong.selectedList[(0..playingSong.selectedList.size - 1).random()]
+                //playingSong.selectedSong = playingSong.selectedList[(0..playingSong.selectedList.size - 1).random()]
             if (currentSongIndex < playingSong.selectedList.size-1
                 && !repeatSong.value
                 && !shuffleSongs.value)
-                playingSong.selectedSong = playingSong.selectedList[currentSongIndex + 1]
-            stopStream()
+                //playingSong.selectedSong = playingSong.selectedList[currentSongIndex + 1]
+            //stopStream()
             sliderPos.intValue = 0
             songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
             SyncedLyric.clear()
@@ -210,17 +216,8 @@ class SongHelper {
         }
 
         private fun onPlayerComplete(){
-            if (abs(sliderPos.intValue - playingSong.selectedSong?.duration!!) > 1000 || playingSong.selectedSong?.isRadio == true) return
-            playingSong.selectedSong?.let { nextSong(it)}
-        }
-
-
-        class NotificationActionReceiver : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                if ("ACTION_SKIP_FORWARD" == intent.action) {
-                    playingSong.selectedSong?.let { nextSong(it)}
-                }
-            }
+            //if (abs(sliderPos.intValue - playingSong.selectedSong?.duration!!) > 1000 || playingSong.selectedSong?.isRadio == true) return
+            //playingSong.selectedSong?.let { nextSong(it)}
         }
 
     }
