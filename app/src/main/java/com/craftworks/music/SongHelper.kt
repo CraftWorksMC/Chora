@@ -86,20 +86,12 @@ class SongHelper {
 
             mediaSession.player = player
 
-            // Initialize Player With Media
-            //val mediaItem = MediaItem.fromUri(url)
-
-            //player.setMediaItem(mediaItem)
             player.prepare()
             player.seekTo(index, currentPosition)
             //player.seekTo(currentPosition)
+            player.pauseAtEndOfMediaItems = true
+            player.shuffleModeEnabled = false
             player.playWhenReady = true
-
-            // Get Lyrics for first song.
-            //playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
-            //songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-            //SyncedLyric.clear()
-            //getLyrics()
 
             // Set WakeLock
             if (useNavidromeServer.value){
@@ -135,13 +127,13 @@ class SongHelper {
 
                     //Clear Lyrics On Song Change
                     if (state == Player.STATE_READY && player.currentMediaItemIndex != currentMediaItemId) {
+                        println("Player Changed Song!")
                         playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
+                        currentMediaItemId = player.currentMediaItemIndex
                         songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
                         SyncedLyric.clear()
                         if (SyncedLyric.isEmpty())
                             getLyrics()
-
-                        currentMediaItemId = player.currentMediaItemIndex
                     }
                 }
             })
@@ -170,30 +162,6 @@ class SongHelper {
         fun previousSong(song: Song){
             player.seekToPreviousMediaItem()
 
-            try {
-                playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
-            }
-            catch (e: java.lang.IndexOutOfBoundsException){
-                println("$e !!!")
-            }
-
-            val currentSongIndex = playingSong.selectedList.indexOfFirst{it.media == playingSong.selectedSong?.media}
-
-            if (repeatSong.value){
-                player.seekTo(0)
-                player.play()
-            }
-
-            if (shuffleSongs.value && playingSong.selectedList.isNotEmpty()){
-                //playingSong.selectedSong = playingSong.selectedList[(0..playingSong.selectedList.size - 1).random()]
-            }
-            // Play Previous only if there is actually a song behind, and not shuffling or repeating.
-            if ( (currentSongIndex - 1) >= 0
-                && !repeatSong.value
-                && !shuffleSongs.value){
-                //playingSong.selectedSong = playingSong.selectedList[currentSongIndex - 1]
-            }
-            stopStream()
             sliderPos.intValue = 0
             //songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
             //SyncedLyric.clear()
@@ -204,18 +172,6 @@ class SongHelper {
         fun nextSong(song: Song){
             player.seekToNextMediaItem()
 
-            val currentSongIndex = playingSong.selectedList.indexOfFirst{it.media == playingSong.selectedSong?.media}
-
-            if (repeatSong.value){
-                player.seekTo(0)
-                player.play()
-            }
-            if (shuffleSongs.value && playingSong.selectedList.isNotEmpty())
-                //playingSong.selectedSong = playingSong.selectedList[(0..playingSong.selectedList.size - 1).random()]
-            if (currentSongIndex < playingSong.selectedList.size-1
-                && !repeatSong.value
-                && !shuffleSongs.value)
-                //playingSong.selectedSong = playingSong.selectedList[currentSongIndex + 1]
             //stopStream()
             sliderPos.intValue = 0
             //songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
