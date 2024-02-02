@@ -59,7 +59,6 @@ import com.craftworks.music.data.songsList
 import com.craftworks.music.playingSong
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.elements.SongsRow
-import com.craftworks.music.ui.elements.bounceClick
 
 
 @Composable
@@ -107,7 +106,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                             .graphicsLayer(
                                 rotationZ = animatedRotation
                             )
-                            .bounceClick()
+                            //.bounceClick() doesn't look good here!
                             .clickable {
                                 rotation += 360f
                             }
