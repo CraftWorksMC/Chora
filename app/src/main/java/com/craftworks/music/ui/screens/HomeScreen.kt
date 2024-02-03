@@ -165,7 +165,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val recentlyPlayedSongsList = remember { songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10) }
+            val recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
             /* SONGS ROW */
             SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
@@ -189,7 +189,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val recentSongsList = remember { songsList.sortedByDescending { song: Song -> song.dateAdded } }
+            val recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
             /* SONGS ROW */
             SongsRow(songsList = recentSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
@@ -212,7 +212,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val mostPlayedList = remember { songsList.sortedByDescending { song: Song -> song.timesPlayed } }
+            val mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
             /* SONGS ROW */
             SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
                 playingSong.selectedSong = song
@@ -235,7 +235,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val shuffledSongsList = remember { songsList.take(10).shuffled() }
+            val shuffledSongsList = songsList.take(10).shuffled()
             /* SONGS ROW */
             SongsRow(songsList = shuffledSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
