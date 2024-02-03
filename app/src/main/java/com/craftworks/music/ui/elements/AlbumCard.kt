@@ -74,7 +74,7 @@ fun AlbumCard(album: Album, onClick: () -> Unit){
                     onClick = { // Play First Song in Album
                         playingSong.selectedSong = songsList.filter { it.album == album.name }[0]
                         playingSong.selectedList = songsList.filter { it.album == album.name }
-                        songsList.filter { it.album == album.name }[0].media?.let { SongHelper.PlayStream(context = context, url = it)} },
+                        songsList.filter { it.album == album.name }[0].media?.let { SongHelper.playStream(context = context, url = it)} },
                     shape = CircleShape,
                     modifier = Modifier.size(48.dp).align(Alignment.BottomStart).padding(6.dp),
                     contentPadding = PaddingValues(2.dp),

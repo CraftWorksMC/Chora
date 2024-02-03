@@ -30,6 +30,10 @@ fun getLyrics(){
                 playingSong.selectedSong?.title == "Song Title")
                 throw IllegalArgumentException("Song Empty!")
 
+            if (SyncedLyric.isNotEmpty() ||
+                SongLyrics.isNotBlank())
+                return@Thread
+
             val url = URL("https://lrclib.net/api/get?artist_name=${playingSong.selectedSong?.artist?.replace(" ", "+")}&track_name=${playingSong.selectedSong?.title?.replace(" ", "+")}&album_name=${playingSong.selectedSong?.album?.replace(" ", "+")}&duration=${playingSong.selectedSong?.duration?.div(1000)}")
 
             with(url.openConnection() as HttpURLConnection) {

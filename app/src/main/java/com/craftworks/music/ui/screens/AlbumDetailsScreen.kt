@@ -188,7 +188,7 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                     playingSong.selectedSong = albumSongs[0]
                     playingSong.selectedList = albumSongs
                     //songState = true
-                    albumSongs[0].media?.let { SongHelper.PlayStream(context = context, url = it)}
+                    albumSongs[0].media?.let { SongHelper.playStream(context = context, url = it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -207,7 +207,7 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                     playingSong.selectedSong = albumSongs[random]
                     playingSong.selectedList = albumSongs
                     //songState = true
-                    albumSongs[random].media?.let { SongHelper.PlayStream(context = context, url = it)}
+                    albumSongs[random].media?.let { SongHelper.playStream(context = context, url = it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -242,7 +242,7 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                         sliderPos.intValue = 0
                         playingSong.selectedSong = song
                         playingSong.selectedList = albumSongs
-                        song.media?.let { SongHelper.PlayStream(context = context, url = it)}
+                        song.media?.let { SongHelper.playStream(context = context, url = it)}
                         //songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
                         //SyncedLyric.clear()
                         //getLyrics()

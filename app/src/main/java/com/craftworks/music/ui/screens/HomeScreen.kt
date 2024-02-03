@@ -165,13 +165,13 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
+            val recentlyPlayedSongsList = remember { songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10) }
             /* SONGS ROW */
             SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 playingSong.selectedList = recentlyPlayedSongsList
                 //songState = true
-                song.media?.let { SongHelper.PlayStream(context = context, url = it) }
+                song.media?.let { SongHelper.playStream(context = context, url = it) }
             })
         }
 
@@ -189,13 +189,13 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
+            val recentSongsList = remember { songsList.sortedByDescending { song: Song -> song.dateAdded } }
             /* SONGS ROW */
             SongsRow(songsList = recentSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 playingSong.selectedList = recentSongsList
                 //songState = true
-                song.media?.let { SongHelper.PlayStream(context = context, url = it) }
+                song.media?.let { SongHelper.playStream(context = context, url = it) }
             })
         }
 
@@ -212,13 +212,13 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
+            val mostPlayedList = remember { songsList.sortedByDescending { song: Song -> song.timesPlayed } }
             /* SONGS ROW */
             SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 playingSong.selectedList = mostPlayedList
                 //songState = true
-                song.media?.let { SongHelper.PlayStream(context = context, url = it) }
+                song.media?.let { SongHelper.playStream(context = context, url = it) }
             })
         }
 
@@ -241,7 +241,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 playingSong.selectedSong = song
                 playingSong.selectedList = shuffledSongsList
                 //songState = true
-                song.media?.let { SongHelper.PlayStream(context = context, url = it) }
+                song.media?.let { SongHelper.playStream(context = context, url = it) }
             })
         }
 

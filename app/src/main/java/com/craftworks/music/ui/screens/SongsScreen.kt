@@ -72,7 +72,7 @@ fun SongsScreen() {
                 playingSong.selectedSong = song
                 playingSong.selectedList = allSongsList
                 //songState = true
-                song.media?.let { SongHelper.PlayStream(context = context, url = it) } })
+                song.media?.let { SongHelper.playStream(context = context, url = it) } })
         }
     }
 

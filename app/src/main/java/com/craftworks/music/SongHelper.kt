@@ -60,7 +60,7 @@ class SongHelper {
             //Load Settings (Once)!
             saveManager(context).loadSettings()
         }
-        fun PlayStream(context: Context, url: Uri) {
+        fun playStream(context: Context, url: Uri) {
             // Stop If It's Playing
             if (player.isPlaying){
                 player.stop()
@@ -88,7 +88,6 @@ class SongHelper {
 
             player.prepare()
             player.seekTo(index, currentPosition)
-            //player.seekTo(currentPosition)
             player.pauseAtEndOfMediaItems = true
             player.shuffleModeEnabled = false
             player.playWhenReady = true
@@ -102,12 +101,13 @@ class SongHelper {
             }
 
             var currentMediaItemId: Int = C.INDEX_UNSET
-            // Add OnComplete Listener
+
+            // On State Changed:
+            //  Update Notification
+            //  Get Lyrics If Song Changed
+            //  Next Song On End
             player.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
-                    if (state == Player.STATE_ENDED) {
-                        onPlayerComplete()
-                    }
 
                     // Update Notification
                     notification = NotificationCompat.Builder(context, "Chora")
@@ -125,10 +125,10 @@ class SongHelper {
                         .build()
                     notificationManager.notify(2, notification)
 
-                    //Clear Lyrics On Song Change
+                    //Get Lyrics On Song Change
                     if (state == Player.STATE_READY && player.currentMediaItemIndex != currentMediaItemId) {
-                        println("Player Changed Song!")
                         playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
+                        println("Player Changed Song!")
                         currentMediaItemId = player.currentMediaItemIndex
                         songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
                         SyncedLyric.clear()
