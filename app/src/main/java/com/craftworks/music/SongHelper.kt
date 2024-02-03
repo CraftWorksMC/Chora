@@ -100,7 +100,10 @@ class SongHelper {
                 player.setWakeMode(C.WAKE_MODE_LOCAL)
             }
 
-            var currentMediaItemId: Int = C.INDEX_UNSET
+            // Get First Song Lyrics
+            songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
+            SyncedLyric.clear()
+            getLyrics()
 
             // On State Changed:
             //  Update Notification
@@ -108,7 +111,6 @@ class SongHelper {
             //  Next Song On End
             player.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
-
                     // Update Notification
                     notification = NotificationCompat.Builder(context, "Chora")
                         .setSmallIcon(R.drawable.ic_notification_icon)
@@ -124,17 +126,15 @@ class SongHelper {
                             PendingIntent.FLAG_IMMUTABLE))
                         .build()
                     notificationManager.notify(2, notification)
+                }
+                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    super.onMediaItemTransition(mediaItem, reason)
 
-                    //Get Lyrics On Song Change
-                    if (state == Player.STATE_READY && player.currentMediaItemIndex != currentMediaItemId) {
-                        playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
-                        println("Player Changed Song!")
-                        currentMediaItemId = player.currentMediaItemIndex
-                        songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-                        SyncedLyric.clear()
-                        if (SyncedLyric.isEmpty())
-                            getLyrics()
-                    }
+                    playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
+                    println("Player Changed Song!")
+                    songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
+                    SyncedLyric.clear()
+                    getLyrics()
                 }
             })
         }
