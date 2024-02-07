@@ -17,6 +17,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.songsList
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.lyrics.songLyrics
@@ -74,6 +75,7 @@ class SongHelper {
                     .setTitle(song.title)
                     .setArtist(song.artist)
                     .setAlbumTitle(song.album)
+                    .setArtworkUri(song.imageUrl)
                     .build()
 
                 val mediaItem = MediaItem.Builder()
@@ -130,7 +132,8 @@ class SongHelper {
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                     super.onMediaItemTransition(mediaItem, reason)
 
-                    playingSong.selectedSong = playingSong.selectedList[playingSong.selectedList.indexOfFirst { it.title == player.mediaMetadata.title && it.artist == player.mediaMetadata.artist }]
+                    println(mediaItem?.mediaMetadata?.title.toString())
+                    playingSong.selectedSong = songsList[songsList.indexOfFirst { it.title == mediaItem?.mediaMetadata?.title.toString() && it.artist == mediaItem?.mediaMetadata?.artist.toString() }]
                     println("Player Changed Song!")
                     songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
                     SyncedLyric.clear()
@@ -181,9 +184,7 @@ class SongHelper {
         }
 
         fun updateCurrentPos(){
-            if (!player.isLoading)
-                sliderPos.intValue = player.currentPosition.toInt()
-
+            sliderPos.intValue = player.currentPosition.toInt()
             currentPosition = sliderPos.intValue.toLong()
         }
 
