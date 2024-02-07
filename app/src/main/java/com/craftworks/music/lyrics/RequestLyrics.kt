@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.craftworks.music.SongHelper
 import com.craftworks.music.lyrics.songLyrics.SongLyrics
 import com.craftworks.music.playingSong
 import org.json.JSONObject
@@ -30,7 +31,8 @@ fun getLyrics(){
                 playingSong.selectedSong?.title == "Song Title")
                 throw IllegalArgumentException("Song Empty!")
 
-            val url = URL("https://lrclib.net/api/get?artist_name=${playingSong.selectedSong?.artist?.replace(" ", "+")}&track_name=${playingSong.selectedSong?.title?.replace(" ", "+")}&album_name=${playingSong.selectedSong?.album?.replace(" ", "+")}&duration=${playingSong.selectedSong?.duration?.div(1000)}")
+            //val url = URL("https://lrclib.net/api/get?artist_name=${playingSong.selectedSong?.artist?.replace(" ", "+")}&track_name=${playingSong.selectedSong?.title?.replace(" ", "+")}&album_name=${playingSong.selectedSong?.album?.replace(" ", "+")}&duration=${playingSong.selectedSong?.duration?.div(1000)}")
+            val url = URL("https://lrclib.net/api/get?artist_name=${SongHelper.player.mediaMetadata.artist.toString().replace(" ", "+")}&track_name=${SongHelper.player.mediaMetadata.title.toString().replace(" ", "+")}&album_name=${SongHelper.player.mediaMetadata.albumTitle.toString().replace(" ", "+")}&duration=${SongHelper.player.duration.div(1000)}")
 
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET

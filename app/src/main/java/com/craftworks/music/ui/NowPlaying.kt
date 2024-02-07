@@ -100,6 +100,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import com.craftworks.music.R
@@ -276,73 +277,7 @@ fun NowPlayingContent(
             }
         }
 
-
-        /* MINI-PLAYER UI
-        Box(modifier = Modifier
-            .height(72.dp)// + miniPlayerPadding.dp)
-            //.padding(top = miniPlayerPadding.dp)
-            .fillMaxWidth()
-            .alpha(miniPlayerAlpha)
-            .clickable {
-                coroutineScope.launch {
-                    if (scaffoldState?.bottomSheetState?.currentValue == SheetValue.PartiallyExpanded) {
-                        scaffoldState.bottomSheetState.expand()
-                    }
-                }
-            }, contentAlignment = Alignment.Center) {
-            Row {
-                AsyncImage(
-                    model = playingSong.selectedSong?.imageUrl,
-                    placeholder = painterResource(R.drawable.placeholder),
-                    contentDescription = "Album Image",
-                    fallback = painterResource(R.drawable.placeholder),
-                    contentScale = ContentScale.FillHeight,
-                    modifier = Modifier
-                        .height(72.dp)
-                        .width(72.dp)
-                        .padding(6.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Column(
-                    Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    playingSong.selectedSong?.title?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                    playingSong.selectedSong?.artist?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Light,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight(), verticalArrangement = Arrangement.Center
-                ) {
-
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-            }
-        }
-        */
-
-        /* EXPANDED-PLAYER UI */
+        /* PLAYER UI */
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
             // VERTICAL PHONES
             Box(modifier = Modifier
@@ -1011,7 +946,7 @@ fun LandscapeSliderUpdating(){
     }
 }
 
-@Preview(showSystemUi = true, showBackground = true)
+@androidx.annotation.OptIn(UnstableApi::class) @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = false) {
     // Image Animations
@@ -1067,7 +1002,7 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                     .fillMaxWidth(), contentAlignment = Alignment.CenterStart
             ) {
                 AsyncImage(
-                    model = playingSong.selectedSong?.imageUrl,
+                    model = SongHelper.player.mediaMetadata.artworkUri,
                     contentDescription = "Album Cover",
                     placeholder = painterResource(R.drawable.placeholder),
                     fallback = painterResource(R.drawable.placeholder),
@@ -1088,9 +1023,9 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top
             ) {
-                playingSong.selectedSong?.title?.let {
+                SongHelper.player.mediaMetadata.title?.let {
                     Text(
-                        text = it,
+                        text = it.toString(),
                         fontSize = titleFontSize.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -1099,9 +1034,9 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                         modifier = Modifier.offset(titleOffsetX,titleOffsetY)
                     )
                 }
-                playingSong.selectedSong?.artist?.let {
+                SongHelper.player.mediaMetadata.artist?.let {
                     Text(
-                        text = it + " • " + playingSong.selectedSong?.year,
+                        text = it.toString() + " • " + playingSong.selectedSong?.year,
                         fontSize = artistFontSize.sp,
                         fontWeight = FontWeight.Light,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -1113,9 +1048,9 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                 Crossfade(lyricsOpen == false, label = "Fade Out More Info") {
                     if (it){
                         if (showMoreInfo.value) {
-                            playingSong.selectedSong?.format?.let {
+                            SongHelper.player.mediaMetadata.mediaType?.let {
                                 Text(
-                                    text = it + " • " + playingSong.selectedSong?.bitrate,
+                                    text = it.toString() + " • " + SongHelper.player.audioFormat?.bitrate,
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Thin,
                                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
