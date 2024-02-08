@@ -121,6 +121,7 @@ import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
 import com.craftworks.music.songState
 import com.craftworks.music.ui.elements.bounceClick
+import com.craftworks.music.ui.elements.moveClick
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.transcodingBitrate
@@ -156,7 +157,20 @@ fun NowPlayingContent(
     Box (modifier = Modifier
         .wrapContentHeight()
         .fillMaxWidth()) {
-
+        // UI PLAYING STATE
+        var isPlaying by remember { mutableStateOf(false) }
+        DisposableEffect(Unit) {
+            val player = SongHelper.player
+            val listener = object : Player.Listener {
+                override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                    isPlaying = playWhenReady
+                }
+            }
+            player.addListener(listener)
+            onDispose {
+                player.removeListener(listener)
+            }
+        }
 
         // BLURRED BACKGROUND
         if (backgroundType.value == "Static Blur"){
@@ -249,29 +263,11 @@ fun NowPlayingContent(
         val miniPlayerAlpha: Float by animateFloatAsState(if (scaffoldState!!.bottomSheetState.targetValue == SheetValue.Expanded) 0f else 1f,
             label = "Animated Alpha"
         )
-        val miniPlayerPadding: Float by animateFloatAsState(if (lyricsOpen && scaffoldState!!.bottomSheetState.targetValue == SheetValue.Expanded) 32f else 0f,
-            label = "Animated Top Padding"
-        )
         val topPaddingExpandedPlayer: Float by animateFloatAsState(if (scaffoldState!!.bottomSheetState.targetValue == SheetValue.Expanded) (WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp).value else 14f,
             label = "Animated Height"
         )
 
-        var isPlaying by remember { mutableStateOf(false) }
-
-        DisposableEffect(Unit) {
-            val player = SongHelper.player
-            val listener = object : Player.Listener {
-                override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                    isPlaying = playWhenReady
-                }
-            }
-            player.addListener(listener)
-            onDispose {
-                player.removeListener(listener)
-            }
-        }
-
-        /* PLAYER UI */
+        // MAIN UI
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
             // VERTICAL PHONES
             Box(modifier = Modifier
@@ -279,18 +275,19 @@ fun NowPlayingContent(
                 .fillMaxHeight()
                 .padding(0.dp, topPaddingExpandedPlayer.dp, 0.dp, 0.dp), contentAlignment = Alignment.TopCenter) {
                 Column {
+                    // Album Art + Info
                     AnimatedSongImageView(lyricsOpen || scaffoldState!!.bottomSheetState.targetValue != SheetValue.Expanded, isPlaying)
 
-                    /* Progress Bar */
+                    // Seek Bar
                     Column(modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         SliderUpdating()
                     }
 
-                    /* Buttons */
+                    // Buttons
                     Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
-                        /* MAIN ACTIONS */
+                        // First Row
                         Row(modifier = Modifier
                             .height(98.dp)
                             .fillMaxWidth()
@@ -299,7 +296,7 @@ fun NowPlayingContent(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically) {
 
-                            /* Shuffle Button */
+                            // Shuffle
                             Box(modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
                             {
@@ -323,7 +320,7 @@ fun NowPlayingContent(
                                 }
                             }
 
-                            /* Previous Song Button */
+                            // Previous Song
                             Box(modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
                             {
@@ -335,7 +332,8 @@ fun NowPlayingContent(
                                     shape = CircleShape,
                                     modifier = Modifier
                                         .size(72.dp)
-                                        .bounceClick(),
+                                        .bounceClick()
+                                        .moveClick(false),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
@@ -394,7 +392,8 @@ fun NowPlayingContent(
                                     shape = CircleShape,
                                     modifier = Modifier
                                         .size(72.dp)
-                                        .bounceClick(),
+                                        .bounceClick()
+                                        .moveClick(true),
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
@@ -556,7 +555,7 @@ fun NowPlayingContent(
                         .wrapContentHeight()
                         .width(256.dp)) { screen ->
                         when (screen) {
-                            true -> LandscapeLyricsView()
+                            true -> LyricsView(true)
                             false -> LandscapeNormalSongView()
                         }
                     }
@@ -817,7 +816,6 @@ fun NowPlayingContent(
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview(showBackground = true)
 fun SliderUpdating(isLandscape: Boolean? = false){
     val animatedSliderValue by animateFloatAsState(targetValue = sliderPos.intValue.toFloat(),
         label = "Smooth Slider Update"
@@ -888,6 +886,7 @@ fun SliderUpdating(isLandscape: Boolean? = false){
 
 @androidx.annotation.OptIn(UnstableApi::class) @Preview(showSystemUi = true, showBackground = true)
 @Composable
+@Preview
 fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = false) {
     // Image Animations
     val imageSize: Dp by animateDpAsState(if (lyricsOpen == true) 60.dp else 320.dp,
@@ -895,9 +894,6 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
     )
     val imageCornerRadius: Dp by animateDpAsState(if (lyricsOpen == true) 12.dp else 24.dp,
         label = "Animated Cover Radius"
-    )
-    val imageOffsetX: Dp by animateDpAsState(if (lyricsOpen == true) (-160).dp else 0.dp,
-        label = "Animated Cover Offset X"
     )
     val imageOffsetXAdaptive: Dp by animateDpAsState(if (lyricsOpen == true) (6).dp else (LocalConfiguration.current.screenWidthDp/2 - 160).dp,
         label = "Animated Cover Offset X"
@@ -1006,7 +1002,7 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
         }
         Crossfade(lyricsOpen == true, label = "Lyrics View Crossfade") {
             if (it)
-                LyricsView()
+                LyricsView(false)
         }
         Crossfade(lyricsOpen == true, label = "Lyrics View Crossfade") {
             if (it)
@@ -1070,9 +1066,10 @@ fun LandscapeNormalSongView() {
     }
 
 }
+
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun LyricsView() {
+fun LyricsView(isLandscape: Boolean = false) {
     /* LYRICS BOX */
     val topBottomFade = Brush.verticalGradient(0.05f to Color.Transparent, 0.25f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
     val state = rememberScrollState()
@@ -1084,56 +1081,66 @@ fun LyricsView() {
     val pxValue = with(LocalDensity.current) { dpToSp.dp.toPx() }
 
     LaunchedEffect(currentLyricIndex) {
-        state.animateScrollTo((pxValue * currentLyricIndex - 128).toInt())
+        state.animateScrollTo((pxValue * currentLyricIndex - if (isLandscape) 128 else 64).toInt())
     }
 
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .height(420.dp)
-        .padding(horizontal = 12.dp)
-        .padding(top = 48.dp)
-        .fadingEdge(topBottomFade)
-        .verticalScroll(state), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier =
+        if (isLandscape) {
+            Modifier
+                .width(256.dp)
+                .fillMaxHeight()
+                .padding(start = 24.dp)
+        } else {
+            Modifier
+                .fillMaxWidth()
+                .height(420.dp)
+                .padding(horizontal = 12.dp)
+                .padding(top = 48.dp)
+        }
+            .fadingEdge(topBottomFade)
+            .verticalScroll(state),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         if (SyncedLyric.size >= 1) {
-            Box(modifier = Modifier.height(60.dp))
+            Box(modifier = Modifier.height(if (isLandscape) dpToSp.dp else 60.dp))
             SyncedLyric.forEachIndexed { index, lyric ->
                 val lyricAlpha: Float by animateFloatAsState(
                     if (lyric.isCurrentLyric) 1f else 0.5f,
                     label = "Current Lyric Alpha"
                 )
-                val lyricScale: Float by animateFloatAsState(
-                    if (lyric.isCurrentLyric) 1f else 0.9f,
-                    label = "Current Lyric Scale"
-                )
 
                 if (lyric.isCurrentLyric) currentLyricIndex = index
 
-                Box(modifier = Modifier
-                    .height((dpToSp).dp)
-                    .clickable {
-                        SongHelper.player.seekTo(lyric.timestamp.toLong())
-                        currentLyricIndex = index
-                        lyric.isCurrentLyric = false
-                    }, contentAlignment = Alignment.Center
+                Box(
+                    modifier = Modifier
+                        .height((dpToSp).dp)
+                        .clickable {
+                            SongHelper.player.seekTo(lyric.timestamp.toLong())
+                            currentLyricIndex = index
+                            lyric.isCurrentLyric = false
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = if (lyric.content == "") "• • •" else lyric.content,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground.copy(lyricAlpha),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .scale(lyricScale),
+                            .scale(if (isLandscape) 1f else 0.9f),
                         textAlign = TextAlign.Center,
                         lineHeight = lineHeight.sp
                     )
                 }
             }
         } else {
-            Box(modifier = Modifier.height(60.dp))
+            Box(modifier = Modifier.height(if (isLandscape) dpToSp.dp else 60.dp))
             Text(
                 text = songLyrics.SongLyrics,
-                style = MaterialTheme.typography.headlineSmall,
+                style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth(),
@@ -1142,74 +1149,6 @@ fun LyricsView() {
             )
         }
     }
-}
-@SuppressLint("CoroutineCreationDuringComposition")
-@Composable
-fun LandscapeLyricsView() {
-    /* LYRICS BOX */
-    val topBottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.15f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
-    val state = rememberScrollState()
-    var currentLyricIndex by remember { mutableIntStateOf(0) }
-
-    /* SCROLL VARS */
-    val lineHeight = 30
-    val dpToSp = lineHeight * LocalContext.current.resources.displayMetrics.density
-    val pxValue = with(LocalDensity.current) { dpToSp.dp.toPx() }
-
-    LaunchedEffect(currentLyricIndex) {
-        state.animateScrollTo((pxValue * currentLyricIndex - 64).toInt())
-    }
-
-    Column(modifier = Modifier
-        .width(256.dp)
-        .fillMaxHeight()
-        .padding(start = 24.dp)
-        .fadingEdge(topBottomFade)
-        .verticalScroll(state), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally){
-        if (SyncedLyric.size > 1){
-            Box(modifier = Modifier
-                .height(dpToSp.dp)
-                .fillMaxWidth())
-            SyncedLyric.forEachIndexed { index, lyric ->
-                val lyricAlpha: Float by animateFloatAsState(if (lyric.isCurrentLyric) 1f else 0.5f,
-                    label = "Current Lyric Alpha"
-                )
-
-                if (lyric.isCurrentLyric) currentLyricIndex = index
-
-                Box(modifier = Modifier
-                    .height((dpToSp).dp)
-                    .clickable {
-                        SongHelper.player.seekTo(lyric.timestamp.toLong())
-                        currentLyricIndex = index
-                        lyric.isCurrentLyric = false
-                    }, contentAlignment = Alignment.Center){
-                    Text(
-                        text = if (lyric.content == "") "• • •" else lyric.content,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground.copy(lyricAlpha),
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        lineHeight = lineHeight.sp
-                    )
-                }
-            }
-        }
-        else{
-            Text(
-                text = songLyrics.SongLyrics,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                lineHeight = lineHeight.sp
-            )
-        }
-    }
-
 }
 
 @Composable
