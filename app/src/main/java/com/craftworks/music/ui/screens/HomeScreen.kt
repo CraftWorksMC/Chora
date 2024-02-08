@@ -70,6 +70,13 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     val context = LocalContext.current
+
+    val recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
+    val recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
+    val mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
+    val shuffledSongsList = remember { songsList.take(10).shuffled() }
+
+
     Column(modifier = Modifier
         .padding(start = leftPadding)
         .fillMaxWidth()
@@ -165,7 +172,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
+
             /* SONGS ROW */
             SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
@@ -189,7 +196,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
+
             /* SONGS ROW */
             SongsRow(songsList = recentSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
@@ -212,7 +219,6 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
             /* SONGS ROW */
             SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
                 playingSong.selectedSong = song
@@ -235,7 +241,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 modifier = Modifier.padding(start = 12.dp)
             )
-            val shuffledSongsList = songsList.take(10).shuffled()
+
             /* SONGS ROW */
             SongsRow(songsList = shuffledSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song

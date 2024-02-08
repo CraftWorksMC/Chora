@@ -420,7 +420,7 @@ fun NowPlayingContent(
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
-                                    
+
                                     Icon(
                                         imageVector = ImageVector.vectorResource(R.drawable.round_repeat_28),
                                         tint = MaterialTheme.colorScheme.onBackground.copy(if (repeatSong.value) 1f else 0.5f),
@@ -487,7 +487,7 @@ fun NowPlayingContent(
                             {
                                 Button(
                                     onClick = {
-                                        if (navidromeServersList.isEmpty()) return@Button
+                                        if (navidromeServersList.isEmpty() || useNavidromeServer.value) return@Button
                                         if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
                                             navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@Button
                                         downloadNavidromeSong("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${playingSong.selectedSong?.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",

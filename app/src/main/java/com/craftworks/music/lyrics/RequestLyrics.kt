@@ -31,7 +31,6 @@ fun getLyrics(){
                 SongHelper.currentDuration < 0)
                 return@Thread
 
-            //val url = URL("https://lrclib.net/api/get?artist_name=${playingSong.selectedSong?.artist?.replace(" ", "+")}&track_name=${playingSong.selectedSong?.title?.replace(" ", "+")}&album_name=${playingSong.selectedSong?.album?.replace(" ", "+")}&duration=${playingSong.selectedSong?.duration?.div(1000)}")
             val url = URL("https://lrclib.net/api/get?artist_name=${SongHelper.currentSong.artist.replace(" ", "+")}&track_name=${SongHelper.currentSong.title.replace(" ", "+")}&album_name=${SongHelper.currentSong.album.replace(" ", "+")}&duration=${SongHelper.currentDuration.div(1000)}")
 
             with(url.openConnection() as HttpURLConnection) {
