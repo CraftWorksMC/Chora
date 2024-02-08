@@ -8,6 +8,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.OptIn
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -17,7 +20,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import com.craftworks.music.data.Song
-import com.craftworks.music.data.songsList
 import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.lyrics.songLyrics
@@ -37,6 +39,16 @@ class SongHelper {
 
 
         var currentPosition: Long = 0
+        var currentDuration: Long = 0
+        var currentSong by mutableStateOf<Song>(
+            Song(
+                title = "",
+                artist = "",
+                duration = 0,
+                imageUrl = Uri.EMPTY,
+                dateAdded = "",
+                year = "",
+                album = ""))
         fun initPlayer(context: Context) {
             // Do NOT Re-Initialize Player and MediaSession
             // Because this function gets called when re-focusing the app
@@ -61,6 +73,7 @@ class SongHelper {
             //Load Settings (Once)!
             saveManager(context).loadSettings()
         }
+
         fun playStream(context: Context, url: Uri) {
             // Stop If It's Playing
             if (player.isPlaying){
@@ -71,16 +84,20 @@ class SongHelper {
             val index = playingSong.selectedList.indexOfFirst { it.media == url }
 
             for (song in playingSong.selectedList){
+                if (song.isRadio == true) break
+
                 val mediaMetadata = MediaMetadata.Builder()
                     .setTitle(song.title)
                     .setArtist(song.artist)
                     .setAlbumTitle(song.album)
                     .setArtworkUri(song.imageUrl)
+                    .setReleaseYear(song.year?.toIntOrNull() ?: 0)
                     .build()
 
                 val mediaItem = MediaItem.Builder()
                     .setUri(song.media)
                     .setMediaMetadata(mediaMetadata)
+                    .setMimeType(song.format)
                     .build()
 
                 player.addMediaItem(mediaItem)
@@ -112,6 +129,27 @@ class SongHelper {
             //  Get Lyrics If Song Changed
             //  Next Song On End
             player.addListener(object : Player.Listener {
+                override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+                    super.onMediaMetadataChanged(mediaMetadata)
+                    currentSong = Song(
+                        title = player.mediaMetadata.title.toString(),
+                        artist = player.mediaMetadata.artist.toString(),
+                        duration = player.duration.toInt(),
+                        imageUrl = mediaSession.player.mediaMetadata.artworkUri!!,
+                        year = player.mediaMetadata.releaseYear.toString(),
+                        album = player.mediaMetadata.albumTitle.toString()
+                    )
+                    if (player.duration > 0)
+                        currentDuration = player.duration
+
+                    // this will do until i finish it
+                    playingSong.selectedSong = currentSong
+
+                    println("Player Changed Song!")
+                    songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
+                    SyncedLyric.clear()
+                    getLyrics()
+                }
                 override fun onPlaybackStateChanged(state: Int) {
                     // Update Notification
                     notification = NotificationCompat.Builder(context, "Chora")
@@ -128,16 +166,9 @@ class SongHelper {
                             PendingIntent.FLAG_IMMUTABLE))
                         .build()
                     notificationManager.notify(2, notification)
-                }
-                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                    super.onMediaItemTransition(mediaItem, reason)
-
-                    println(mediaItem?.mediaMetadata?.title.toString())
-                    playingSong.selectedSong = songsList[songsList.indexOfFirst { it.title == mediaItem?.mediaMetadata?.title.toString() && it.artist == mediaItem?.mediaMetadata?.artist.toString() }]
-                    println("Player Changed Song!")
-                    songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-                    SyncedLyric.clear()
-                    getLyrics()
+                    if (state == Player.STATE_ENDED){
+                        nextSong(currentSong)
+                    }
                 }
             })
         }

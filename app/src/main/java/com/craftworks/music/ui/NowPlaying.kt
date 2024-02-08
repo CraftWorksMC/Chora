@@ -179,15 +179,15 @@ fun NowPlayingContent(
             ) {
                 var size by remember { mutableStateOf(Size.Zero) }
 
-                if (playingSong.selectedSong?.imageUrl == Uri.EMPTY) return@Surface
+                if (SongHelper.currentSong.imageUrl == Uri.EMPTY) return@Surface
 
                 //var bitmap by remember { mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))}
-                LaunchedEffect(playingSong.selectedSong?.imageUrl){
+                LaunchedEffect(SongHelper.currentSong.imageUrl){
                     bitmap.value =
                         if (useNavidromeServer.value || navidromeServersList.isNotEmpty())
                             getNavidromeBitmap(context)
                         else //Don't crash if there's no album art!
-                            try{ MediaStore.Images.Media.getBitmap(context.contentResolver, playingSong.selectedSong?.imageUrl) }
+                            try{ MediaStore.Images.Media.getBitmap(context.contentResolver, SongHelper.currentSong.imageUrl) }
                             catch (_:FileNotFoundException) { Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888) }
                 }
 
@@ -264,12 +264,6 @@ fun NowPlayingContent(
                 override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
                     isPlaying = playWhenReady
                 }
-
-                override fun onPlaybackStateChanged(state: Int) {
-                    // You can handle playback state changes here if needed
-                }
-
-                // Implement other necessary listener methods as per your requirement
             }
             player.addListener(listener)
             onDispose {
@@ -616,7 +610,7 @@ fun NowPlayingContent(
                         Column(modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            LandscapeSliderUpdating()
+                            SliderUpdating(true)
                         }
 
                         /* Buttons */
@@ -823,15 +817,23 @@ fun NowPlayingContent(
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SliderUpdating(){
+@Preview(showBackground = true)
+fun SliderUpdating(isLandscape: Boolean? = false){
     val animatedSliderValue by animateFloatAsState(targetValue = sliderPos.intValue.toFloat(),
         label = "Smooth Slider Update"
     )
+    val sliderWidth = if (isLandscape == true) {
+        480.dp
+    } else {
+        320.dp + 20.dp
+    }
+    val sliderHeight = if (isLandscape == true) 24.dp else 12.dp
+
     Slider(
         enabled = (transcodingBitrate.value == "No Transcoding"),
         modifier = Modifier
-            .width(320.dp + 20.dp)
-            .height(12.dp),
+            .width(sliderWidth)
+            .height(sliderHeight),
         value = animatedSliderValue,
         onValueChange = {
             SongHelper.isSeeking = true
@@ -840,7 +842,7 @@ fun SliderUpdating(){
         onValueChangeFinished = {
             SongHelper.isSeeking = false
             SongHelper.player.seekTo(sliderPos.intValue.toLong())},
-        valueRange = 0f..(playingSong.selectedSong?.duration?.toFloat() ?: 0f),
+        valueRange = 0f..(SongHelper.currentDuration.toFloat()),
         colors = SliderDefaults.colors(
             activeTrackColor = MaterialTheme.colorScheme.onBackground,
             inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
@@ -859,7 +861,7 @@ fun SliderUpdating(){
             )
         },
     )
-    Box (modifier = Modifier.width(320.dp)) {
+    Box (modifier = Modifier.width(if (isLandscape == true) 460.dp else 320.dp)) {
         Text(
             text = formatMilliseconds(sliderPos.intValue.toFloat()),
             fontWeight = FontWeight.Thin,
@@ -872,70 +874,8 @@ fun SliderUpdating(){
         )
 
         Text(
-            text = formatMilliseconds(playingSong.selectedSong?.duration?.toFloat() ?: 0f),
+            text = formatMilliseconds(SongHelper.currentDuration.toFloat()),
             fontWeight = FontWeight.Thin,
-            textAlign = TextAlign.End,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .width(64.dp),
-            maxLines = 1, overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LandscapeSliderUpdating(){
-    val animatedSliderValue by animateFloatAsState(targetValue = sliderPos.intValue.toFloat(),
-        label = "Smooth Slider Update"
-    )
-    Slider(
-        modifier = Modifier
-            .width(480.dp)
-            .height(24.dp),
-        value = animatedSliderValue,
-        onValueChange = {
-            sliderPos.intValue = it.toInt()
-            SongHelper.currentPosition = it.toLong()
-            SongHelper.isSeeking = true },
-        onValueChangeFinished = {
-            SongHelper.isSeeking = false
-            SongHelper.player.seekTo(sliderPos.intValue.toLong())},
-        valueRange = 0f..(playingSong.selectedSong?.duration?.toFloat() ?: 0f),
-        colors = SliderDefaults.colors(
-            activeTrackColor = MaterialTheme.colorScheme.onBackground,
-            inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
-        ),
-        thumb = {},
-        track = { sliderPositions ->
-            SliderDefaults.Track(
-                modifier = Modifier
-                    .scale(scaleX = 1f, scaleY = 1.25f)
-                    .clip(RoundedCornerShape(12.dp)),
-                sliderPositions = sliderPositions,
-                colors = SliderDefaults.colors(
-                    activeTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
-                    inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
-                )
-            )
-        },
-    )
-    Box (modifier = Modifier.width(460.dp)) {
-        Text(
-            text = formatMilliseconds(sliderPos.intValue.toFloat()),
-            fontWeight = FontWeight.Light,
-            textAlign = TextAlign.Start,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .width(64.dp),
-            maxLines = 1, overflow = TextOverflow.Ellipsis,
-        )
-
-        Text(
-            text = formatMilliseconds(playingSong.selectedSong?.duration?.toFloat() ?: 0f),
-            fontWeight = FontWeight.Light,
             textAlign = TextAlign.End,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
             modifier = Modifier
@@ -1002,7 +942,7 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                     .fillMaxWidth(), contentAlignment = Alignment.CenterStart
             ) {
                 AsyncImage(
-                    model = SongHelper.player.mediaMetadata.artworkUri,
+                    model = SongHelper.currentSong.imageUrl,
                     contentDescription = "Album Cover",
                     placeholder = painterResource(R.drawable.placeholder),
                     fallback = painterResource(R.drawable.placeholder),
@@ -1023,9 +963,9 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top
             ) {
-                SongHelper.player.mediaMetadata.title?.let {
+                SongHelper.currentSong.title.let {
                     Text(
-                        text = it.toString(),
+                        text = it,
                         fontSize = titleFontSize.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -1034,9 +974,9 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                         modifier = Modifier.offset(titleOffsetX,titleOffsetY)
                     )
                 }
-                SongHelper.player.mediaMetadata.artist?.let {
+                SongHelper.currentSong.artist.let {
                     Text(
-                        text = it.toString() + " • " + playingSong.selectedSong?.year,
+                        text = it + " • " + playingSong.selectedSong?.year,
                         fontSize = artistFontSize.sp,
                         fontWeight = FontWeight.Light,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -1048,9 +988,9 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                 Crossfade(lyricsOpen == false, label = "Fade Out More Info") {
                     if (it){
                         if (showMoreInfo.value) {
-                            SongHelper.player.mediaMetadata.mediaType?.let {
+                            SongHelper.currentSong.format.let {
                                 Text(
-                                    text = it.toString() + " • " + SongHelper.player.audioFormat?.bitrate,
+                                    text = it + " • " + SongHelper.player.audioFormat?.bitrate,
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Thin,
                                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),

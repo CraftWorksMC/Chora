@@ -2,8 +2,8 @@ package com.craftworks.music.providers.navidrome
 
 import android.os.Environment
 import androidx.compose.material3.SnackbarHostState
+import com.craftworks.music.SongHelper
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.playingSong
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.BufferedInputStream
@@ -19,7 +19,7 @@ fun downloadNavidromeSong(url: String, snackbarHostState: SnackbarHostState? = S
             if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
                 navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@Thread
 
-            if (playingSong.selectedSong?.isRadio == true || !useNavidromeServer.value) return@Thread
+            if (SongHelper.currentSong.isRadio == true || !useNavidromeServer.value) return@Thread
             println("\nSent 'GET' request to URL : $url")
             val destinationFolder =
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).absolutePath
