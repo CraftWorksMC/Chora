@@ -308,7 +308,7 @@ fun NowPlayingContent(
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
-                                    // Inner content including an icon and a text label
+                                    
                                     Icon(
                                         imageVector = ImageVector.vectorResource(R.drawable.round_shuffle_28),
                                         tint = MaterialTheme.colorScheme.onBackground.copy(if (shuffleSongs.value) 1f else 0.5f),
@@ -337,7 +337,7 @@ fun NowPlayingContent(
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
-                                    // Inner content including an icon and a text label
+                                    
                                     Icon(
                                         imageVector = ImageVector.vectorResource(R.drawable.round_skip_previous_24),
 
@@ -397,7 +397,7 @@ fun NowPlayingContent(
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
-                                    // Inner content including an icon and a text label
+                                    
                                     Icon(
                                         imageVector = ImageVector.vectorResource(R.drawable.round_skip_next_24),
                                         tint = MaterialTheme.colorScheme.onBackground,
@@ -420,7 +420,7 @@ fun NowPlayingContent(
                                     contentPadding = PaddingValues(2.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
-                                    // Inner content including an icon and a text label
+                                    
                                     Icon(
                                         imageVector = ImageVector.vectorResource(R.drawable.round_repeat_28),
                                         tint = MaterialTheme.colorScheme.onBackground.copy(if (repeatSong.value) 1f else 0.5f),
@@ -506,7 +506,7 @@ fun NowPlayingContent(
                                         containerColor = Color.Transparent
                                     )
                                 ) {
-                                    // Inner content including an icon and a text label
+                                    
                                     Icon(
                                         imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
                                         tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
@@ -639,7 +639,7 @@ fun NowPlayingContent(
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                     ) {
-                                        // Inner content including an icon and a text label
+                                        
                                         Icon(
                                             imageVector = ImageVector.vectorResource(R.drawable.round_skip_previous_24),
 
@@ -667,7 +667,7 @@ fun NowPlayingContent(
                                             containerColor = Color.Transparent
                                         )
                                     ) {
-                                        // Inner content including an icon and a text label
+                                        
                                         Icon(
                                             imageVector = if (songState)
                                                 ImageVector.vectorResource(R.drawable.round_pause_24)
@@ -699,7 +699,7 @@ fun NowPlayingContent(
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                     ) {
-                                        // Inner content including an icon and a text label
+                                        
                                         Icon(
                                             imageVector = ImageVector.vectorResource(R.drawable.round_skip_next_24),
                                             tint = MaterialTheme.colorScheme.onBackground,
@@ -772,7 +772,7 @@ fun NowPlayingContent(
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                     ) {
-                                        // Inner content including an icon and a text label
+                                        
                                         Icon(
                                             imageVector = ImageVector.vectorResource(R.drawable.round_shuffle_28),
                                             tint = MaterialTheme.colorScheme.onBackground.copy(if (shuffleSongs.value) 1f else 0.5f),
@@ -795,7 +795,7 @@ fun NowPlayingContent(
                                         contentPadding = PaddingValues(2.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                     ) {
-                                        // Inner content including an icon and a text label
+                                        
                                         Icon(
                                             imageVector = ImageVector.vectorResource(R.drawable.round_repeat_28),
                                             tint = MaterialTheme.colorScheme.onBackground.copy(if (repeatSong.value) 1f else 0.5f),

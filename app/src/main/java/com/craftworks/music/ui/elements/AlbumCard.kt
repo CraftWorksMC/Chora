@@ -82,7 +82,7 @@ fun AlbumCard(album: Album, onClick: () -> Unit){
                         containerColor = MaterialTheme.colorScheme.background.copy(0.5f)
                     )
                 ) {
-                    // Inner content including an icon and a text label
+                    
                     Icon(
                         imageVector = Icons.Rounded.PlayArrow,
                         tint = MaterialTheme.colorScheme.onBackground,
