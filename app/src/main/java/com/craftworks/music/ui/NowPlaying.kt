@@ -168,6 +168,17 @@ fun NowPlayingContent(
             }
         }
 
+        //var bitmap by remember { mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))}
+        LaunchedEffect(SongHelper.currentSong){
+            println("Getting Cover Art Bitmap")
+            bitmap.value =
+                if (useNavidromeServer.value || navidromeServersList.isNotEmpty())
+                    getNavidromeBitmap(context)
+                else //Don't crash if there's no album art!
+                    try{ MediaStore.Images.Media.getBitmap(context.contentResolver, SongHelper.currentSong.imageUrl) }
+                    catch (_: FileNotFoundException) { Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888) }
+        }
+
         // BLURRED BACKGROUND
         if (backgroundType.value == "Static Blur"){
             AsyncImage(
@@ -191,17 +202,9 @@ fun NowPlayingContent(
 
                 if (SongHelper.currentSong.imageUrl == Uri.EMPTY) return@Surface
 
-                //var bitmap by remember { mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))}
-                LaunchedEffect(SongHelper.currentSong.imageUrl){
-                    bitmap.value =
-                        if (useNavidromeServer.value || navidromeServersList.isNotEmpty())
-                            getNavidromeBitmap(context)
-                        else //Don't crash if there's no album art!
-                            try{ MediaStore.Images.Media.getBitmap(context.contentResolver, SongHelper.currentSong.imageUrl) }
-                            catch (_:FileNotFoundException) { Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888) }
-                }
-
+                // Why
                 val palette = Palette.from(bitmap.value).generate()
+                println(palette.dominantSwatch)
 
                 val shaderA = LinearGradientShader(
                     Offset(size.width / 2f, 0f),
@@ -974,7 +977,11 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                 }
                 SongHelper.currentSong.artist.let {
                     Text(
-                        text = it + " • " + playingSong.selectedSong?.year,
+                        text = //Limit the artist name length.
+                        if (it.length > 16)
+                            it.substring(0, 13) + "..." + " • " + playingSong.selectedSong?.year
+                        else
+                            it + " • " + playingSong.selectedSong?.year,
                         fontSize = artistFontSize.sp,
                         fontWeight = FontWeight.Light,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -986,9 +993,9 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                 Crossfade(lyricsOpen == false, label = "Fade Out More Info") {
                     if (it){
                         if (showMoreInfo.value) {
-                            SongHelper.currentSong.format.let {
+                            SongHelper.currentSong.format.let {format ->
                                 Text(
-                                    text = it + " • " + SongHelper.player.audioFormat?.bitrate,
+                                    text = format.toString(),
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Thin,
                                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
@@ -1029,7 +1036,8 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                                 .bounceClick()
                                 .clip(RoundedCornerShape(12.dp))
                                 .clickable {
-                                    SongHelper.player.playWhenReady = !SongHelper.player.playWhenReady
+                                    SongHelper.player.playWhenReady =
+                                        !SongHelper.player.playWhenReady
                                 }
                         )
                     }

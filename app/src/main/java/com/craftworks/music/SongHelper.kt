@@ -91,6 +91,7 @@ class SongHelper {
                     .setAlbumTitle(song.album)
                     .setArtworkUri(song.imageUrl)
                     .setReleaseYear(song.year?.toIntOrNull() ?: 0)
+                    .setSubtitle("${song.format} • ${song.bitrate}") // Hack for more info
                     .build()
 
                 val mediaItem = MediaItem.Builder()
@@ -134,9 +135,10 @@ class SongHelper {
                         title = player.mediaMetadata.title.toString(),
                         artist = player.mediaMetadata.artist.toString(),
                         duration = player.duration.toInt(),
-                        imageUrl = mediaSession.player.mediaMetadata.artworkUri!!,
+                        imageUrl = Uri.parse(mediaSession.player.mediaMetadata.artworkUri.toString()),
                         year = player.mediaMetadata.releaseYear.toString(),
-                        album = player.mediaMetadata.albumTitle.toString()
+                        album = player.mediaMetadata.albumTitle.toString(),
+                        format = player.mediaMetadata.subtitle.toString()
                     )
                     if (player.duration > 0)
                         currentDuration = player.duration
