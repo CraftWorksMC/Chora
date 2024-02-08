@@ -95,7 +95,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -131,10 +130,7 @@ import java.io.FileNotFoundException
 var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
-    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL,
-    device = "id:pixel_6a"
-)
+@Preview(showSystemUi = false, showBackground = true)
 @Composable
 fun NowPlayingContent(
     song: Song = Song(
@@ -888,6 +884,9 @@ fun SliderUpdating(isLandscape: Boolean? = false){
 @Composable
 @Preview
 fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = false) {
+
+    //region Animated Variables
+
     // Image Animations
     val imageSize: Dp by animateDpAsState(if (lyricsOpen == true) 60.dp else 320.dp,
         label = "Animated Cover Size"
@@ -929,6 +928,9 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
     val artistOffsetY: Dp by animateDpAsState(if (lyricsOpen == true) (-327).dp else 0.dp,
         label = "Animated Song Title Offset Y"
     )
+
+    //endregion
+
     Box(modifier = Modifier.heightIn(min = 420.dp)){
         Column(modifier = Modifier.height(420.dp)) {
             /* Album Cover */
@@ -997,14 +999,13 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                         }
                     }
                 }
-
             }
         }
         Crossfade(lyricsOpen == true, label = "Lyrics View Crossfade") {
             if (it)
                 LyricsView(false)
         }
-        Crossfade(lyricsOpen == true, label = "Lyrics View Crossfade") {
+        Crossfade(lyricsOpen == true, label = "Play Pause Icon") {
             if (it)
                 Box(modifier = Modifier
                     .height(44.dp)
@@ -1035,7 +1036,6 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                 }
         }
     }
-
 }
 @Composable
 fun LandscapeNormalSongView() {

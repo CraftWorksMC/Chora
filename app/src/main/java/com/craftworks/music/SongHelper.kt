@@ -26,7 +26,7 @@ import com.craftworks.music.lyrics.songLyrics
 import com.craftworks.music.providers.navidrome.markSongAsPlayed
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.bitmap
-
+import kotlin.math.abs
 
 class SongHelper {
     companion object{
@@ -36,7 +36,6 @@ class SongHelper {
 
         private lateinit var notification: Notification
         private lateinit var notificationManager: NotificationManager
-
 
         var currentPosition: Long = 0
         var currentDuration: Long = 0
@@ -49,6 +48,7 @@ class SongHelper {
                 dateAdded = "",
                 year = "",
                 album = ""))
+
         fun initPlayer(context: Context) {
             // Do NOT Re-Initialize Player and MediaSession
             // Because this function gets called when re-focusing the app
@@ -70,7 +70,6 @@ class SongHelper {
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
 
-            //Load Settings (Once)!
             saveManager(context).loadSettings()
         }
 
@@ -125,9 +124,9 @@ class SongHelper {
             getLyrics()
 
             // On State Changed:
-            //  Update Notification
-            //  Get Lyrics If Song Changed
-            //  Next Song On End
+            //  - Update Notification
+            //  - Get Lyrics If Song Changed
+            //  - Next Song On End
             player.addListener(object : Player.Listener {
                 override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
                     super.onMediaMetadataChanged(mediaMetadata)
@@ -166,8 +165,9 @@ class SongHelper {
                             PendingIntent.FLAG_IMMUTABLE))
                         .build()
                     notificationManager.notify(2, notification)
+
                     if (state == Player.STATE_ENDED){
-                        nextSong(currentSong)
+                        onPlayerComplete()
                     }
                 }
             })
@@ -188,29 +188,22 @@ class SongHelper {
             currentPosition = 0
         }
 
+        /*
         fun releasePlayer(){
             player.release()
             mediaSession.release()
         }
+        */
 
         fun previousSong(song: Song){
             player.seekToPreviousMediaItem()
-
             sliderPos.intValue = 0
-            //songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-            //SyncedLyric.clear()
-            //getLyrics()
             markSongAsPlayed(song)
         }
 
         fun nextSong(song: Song){
             player.seekToNextMediaItem()
-
-            //stopStream()
             sliderPos.intValue = 0
-            //songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-            //SyncedLyric.clear()
-            //getLyrics()
             markSongAsPlayed(song)
         }
 
@@ -220,9 +213,8 @@ class SongHelper {
         }
 
         private fun onPlayerComplete(){
-            //if (abs(sliderPos.intValue - playingSong.selectedSong?.duration!!) > 1000 || playingSong.selectedSong?.isRadio == true) return
-            //playingSong.selectedSong?.let { nextSong(it)}
+            if (abs(sliderPos.intValue - currentDuration) > 1000 || currentSong.isRadio == true) return
+            nextSong(currentSong)
         }
-
     }
 }
