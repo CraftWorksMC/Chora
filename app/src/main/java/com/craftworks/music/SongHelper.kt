@@ -198,15 +198,21 @@ class SongHelper {
         */
 
         fun previousSong(song: Song){
+            if (player.currentPosition > 250)
+                markSongAsPlayed(song)
+
             player.seekToPreviousMediaItem()
             sliderPos.intValue = 0
-            markSongAsPlayed(song)
+            player.playWhenReady = true
         }
 
         fun nextSong(song: Song){
+            if (player.currentPosition > 250)
+                markSongAsPlayed(song)
+
             player.seekToNextMediaItem()
             sliderPos.intValue = 0
-            markSongAsPlayed(song)
+            player.playWhenReady = true
         }
 
         fun updateCurrentPos(){

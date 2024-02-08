@@ -63,7 +63,6 @@ import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.playingSong
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
-import com.craftworks.music.providers.navidrome.markSongAsPlayed
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.shuffleSongs
@@ -243,10 +242,7 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                         playingSong.selectedSong = song
                         playingSong.selectedList = albumSongs
                         song.media?.let { SongHelper.playStream(context = context, url = it)}
-                        //songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-                        //SyncedLyric.clear()
-                        //getLyrics()
-                        markSongAsPlayed(song)
+                        //markSongAsPlayed(song)
                         if (useNavidromeServer.value && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")){
                             try {
                                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))

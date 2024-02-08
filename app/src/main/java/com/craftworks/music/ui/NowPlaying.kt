@@ -181,18 +181,21 @@ fun NowPlayingContent(
 
         // BLURRED BACKGROUND
         if (backgroundType.value == "Static Blur"){
-            AsyncImage(
-                model = playingSong.selectedSong?.imageUrl,
-                contentDescription = "Blurred Background",
-                contentScale = ContentScale.FillHeight,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(128.dp)
-                    .alpha(0.5f))
+            Crossfade(SongHelper.currentSong.imageUrl,
+                label = "Crossfade Static Background Image") { image ->
+                AsyncImage(
+                    model = image,
+                    contentDescription = "Blurred Background",
+                    contentScale = ContentScale.FillHeight,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(128.dp)
+                        .alpha(0.5f))
+            }
         }
 
-        // MOVING BLURRED BACKGROUND
-        // BASED ON: https://gist.github.com/KlassenKonstantin/d5f6ed1d74b3ddbdca699d66c6b9a3b2
+        //region MOVING BLURRED BACKGROUND
+        //       BASED ON: https://gist.github.com/KlassenKonstantin/d5f6ed1d74b3ddbdca699d66c6b9a3b2
         if (backgroundType.value == "Animated Blur"){
             Surface(
                 modifier = Modifier.fillMaxSize(),
@@ -257,6 +260,7 @@ fun NowPlayingContent(
                 }
             }
         }
+        //endregion
 
         // ANIMATED VALUES
         val miniPlayerAlpha: Float by animateFloatAsState(if (scaffoldState!!.bottomSheetState.targetValue == SheetValue.Expanded) 0f else 1f,
@@ -284,7 +288,7 @@ fun NowPlayingContent(
                         SliderUpdating()
                     }
 
-                    // Buttons
+                    //region Buttons
                     Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
                         // First Row
                         Row(modifier = Modifier
@@ -518,6 +522,7 @@ fun NowPlayingContent(
                             }
                         }
                     }
+                    //endregion
                 }
             }
         }
@@ -966,7 +971,9 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
             ) {
                 SongHelper.currentSong.title.let {
                     Text(
-                        text = it,
+                        text = //Limit the artist name length.
+                        if (it.length > 24) it.substring(0, 21) + "..."
+                        else it,
                         fontSize = titleFontSize.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -978,10 +985,10 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
                 SongHelper.currentSong.artist.let {
                     Text(
                         text = //Limit the artist name length.
-                        if (it.length > 16)
-                            it.substring(0, 13) + "..." + " • " + playingSong.selectedSong?.year
+                        if (it.length > 24)
+                            it.substring(0, 21) + "..." + " • " + SongHelper.currentSong.year
                         else
-                            it + " • " + playingSong.selectedSong?.year,
+                            it + " • " + SongHelper.currentSong.year,
                         fontSize = artistFontSize.sp,
                         fontWeight = FontWeight.Light,
                         color = MaterialTheme.colorScheme.onBackground,

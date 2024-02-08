@@ -91,15 +91,14 @@ fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: Mutable
                 parseSongXML(it, "/subsonic-response/playlist/entry", playlistSongs)
             }
         }
-
-
-        playlistList.add(
-            Playlist(
-                name = playlistName,
-                coverArt = playlistCover,
-                navidromeID = playlistID,
-                songs = playlistSongs
-            )
+        val playlist = Playlist(
+            name = playlistName,
+            coverArt = playlistCover,
+            navidromeID = playlistID,
+            songs = playlistSongs
         )
+        // Do not re-add an existing playlist!
+        if (!playlistList.contains(playlist))
+            playlistList.add(playlist)
     }
 }
