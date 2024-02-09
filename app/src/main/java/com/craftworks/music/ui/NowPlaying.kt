@@ -118,12 +118,12 @@ import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
-import com.craftworks.music.songState
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.transcodingBitrate
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
 
@@ -146,13 +146,13 @@ fun NowPlayingContent(
     scaffoldState: BottomSheetScaffoldState? = rememberBottomSheetScaffoldState(),
     snackbarHostState: SnackbarHostState? = SnackbarHostState()
 ){
-
-    var lyricsOpen by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
-
     Box (modifier = Modifier
         .wrapContentHeight()
         .fillMaxWidth()) {
+
+        var lyricsOpen by remember { mutableStateOf(false) }
+        val coroutineScope = rememberCoroutineScope()
+
         // UI PLAYING STATE
         var isPlaying by remember { mutableStateOf(false) }
         DisposableEffect(Unit) {
@@ -168,7 +168,7 @@ fun NowPlayingContent(
             }
         }
 
-        //var bitmap by remember { mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))}
+        // Update Song Bitmap
         LaunchedEffect(SongHelper.currentSong){
             println("Getting Cover Art Bitmap")
             bitmap.value =
@@ -272,7 +272,7 @@ fun NowPlayingContent(
 
         // MAIN UI
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
-            // VERTICAL PHONES
+            //region VERTICAL UI
             Box(modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
@@ -298,142 +298,11 @@ fun NowPlayingContent(
                             .weight(1f),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically) {
+                            ShuffleButton(32.dp)
 
-                            // Shuffle
-                            Box(modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
-                            {
-                                Button(
-                                    onClick = { shuffleSongs.value = !shuffleSongs.value
-                                    },
-                                    shape = CircleShape,
-                                    modifier = Modifier.size(32.dp),
-                                    contentPadding = PaddingValues(2.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                                ) {
-                                    
-                                    Icon(
-                                        imageVector = ImageVector.vectorResource(R.drawable.round_shuffle_28),
-                                        tint = MaterialTheme.colorScheme.onBackground.copy(if (shuffleSongs.value) 1f else 0.5f),
-                                        contentDescription = "Previous Song",
-                                        modifier = Modifier
-                                            .height(32.dp)
-                                            .size(32.dp)
-                                    )
-                                }
-                            }
+                            MainButtons(song, isPlaying)
 
-                            // Previous Song
-                            Box(modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
-                            {
-                                Button(
-                                    onClick = {
-                                        if (playingSong.selectedSong?.isRadio == true) return@Button
-                                        SongHelper.previousSong(song)
-                                    },
-                                    shape = CircleShape,
-                                    modifier = Modifier
-                                        .size(72.dp)
-                                        .bounceClick()
-                                        .moveClick(false),
-                                    contentPadding = PaddingValues(2.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                                ) {
-                                    
-                                    Icon(
-                                        imageVector = ImageVector.vectorResource(R.drawable.round_skip_previous_24),
-
-                                        tint = MaterialTheme.colorScheme.onBackground,
-                                        contentDescription = "Previous Song",
-                                        modifier = Modifier
-                                            .height(48.dp)
-                                            .size(48.dp)
-                                    )
-                                }
-                            }
-
-                            /* Play/Pause Button */
-                            Box(modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
-                            {
-                                Button(
-                                    onClick = { SongHelper.player.playWhenReady = !SongHelper.player.playWhenReady },
-                                    shape = CircleShape,
-                                    modifier = Modifier
-                                        .size(92.dp)
-                                        .bounceClick(),
-                                    contentPadding = PaddingValues(2.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent
-                                    )
-                                ) {
-                                    Icon(
-                                        imageVector = if (isPlaying)
-                                            ImageVector.vectorResource(R.drawable.round_pause_24)
-                                        else
-                                            Icons.Rounded.PlayArrow,
-
-                                        tint = MaterialTheme.colorScheme.onBackground,
-                                        contentDescription = "Play/Pause",
-                                        modifier = Modifier
-                                            .height(92.dp)
-                                            .size(92.dp)
-                                    )
-                                }
-                            }
-
-                            /* Next Song Button */
-                            Box(modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
-                            {
-                                Button(
-                                    onClick = {
-                                        if (playingSong.selectedSong?.isRadio == true) return@Button
-                                        SongHelper.nextSong(song)
-                                    },
-                                    shape = CircleShape,
-                                    modifier = Modifier
-                                        .size(72.dp)
-                                        .bounceClick()
-                                        .moveClick(true),
-                                    contentPadding = PaddingValues(2.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                                ) {
-                                    
-                                    Icon(
-                                        imageVector = ImageVector.vectorResource(R.drawable.round_skip_next_24),
-                                        tint = MaterialTheme.colorScheme.onBackground,
-                                        contentDescription = "Play/Pause",
-                                        modifier = Modifier
-                                            .height(48.dp)
-                                            .size(48.dp)
-                                    )
-                                }
-                            }
-
-                            /* Repeat Button */
-                            Box(modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
-                            {
-                                Button(
-                                    onClick = { repeatSong.value = !repeatSong.value },
-                                    shape = CircleShape,
-                                    modifier = Modifier.size(32.dp),
-                                    contentPadding = PaddingValues(2.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                                ) {
-
-                                    Icon(
-                                        imageVector = ImageVector.vectorResource(R.drawable.round_repeat_28),
-                                        tint = MaterialTheme.colorScheme.onBackground.copy(if (repeatSong.value) 1f else 0.5f),
-                                        contentDescription = "Previous Song",
-                                        modifier = Modifier
-                                            .height(32.dp)
-                                            .size(32.dp)
-                                    )
-                                }
-                            }
+                            RepeatButton(32.dp)
                         }
 
                         Row(modifier = Modifier
@@ -441,93 +310,18 @@ fun NowPlayingContent(
                             .width(256.dp)
                             .weight(1f)
                             .padding(bottom = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
-                            /* Show/Hide Lyrics */
-                            Box(modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
-                            {
-                                Button(
-                                    onClick = { lyricsOpen = !lyricsOpen },
-                                    shape = CircleShape,
-                                    modifier = Modifier
-                                        .height(64.dp)
-                                        .bounceClick(),
-                                    contentPadding = PaddingValues(2.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent
-                                    )
-                                ) {
-                                    Crossfade(targetState = lyricsOpen, label = "Lyrics Icon Crossfade") { open ->
-                                        when (open) {
-                                            true -> Icon(
-                                                imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
-                                                tint = MaterialTheme.colorScheme.onBackground.copy(
-                                                    alpha = 0.5f
-                                                ),
-                                                contentDescription = "Close Lyrics",
-                                                modifier = Modifier
-                                                    .height(52.dp)
-                                                    .size(52.dp)
-                                            )
+                            LyricsButton(lyricsOpen) { lyricsOpen = it }
 
-                                            false -> Icon(
-                                                imageVector = ImageVector.vectorResource(R.drawable.lyrics_inactive),
-                                                tint = MaterialTheme.colorScheme.onBackground.copy(
-                                                    alpha = 0.5f
-                                                ),
-                                                contentDescription = "View Lyrics",
-                                                modifier = Modifier
-                                                    .height(52.dp)
-                                                    .size(52.dp)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            /* Download Song */
-                            Box(modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
-                            {
-                                Button(
-                                    onClick = {
-                                        if (navidromeServersList.isEmpty() || useNavidromeServer.value) return@Button
-                                        if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-                                            navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@Button
-                                        downloadNavidromeSong("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${playingSong.selectedSong?.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",
-                                            snackbarHostState = snackbarHostState,
-                                            coroutineScope)
-                                        coroutineScope.launch {
-                                            snackbarHostState?.showSnackbar("Downloading Started")
-                                        }
-                                    },
-                                    shape = CircleShape,
-                                    modifier = Modifier
-                                        .height(64.dp)
-                                        .bounceClick(),
-                                    contentPadding = PaddingValues(2.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent
-                                    )
-                                ) {
-                                    
-                                    Icon(
-                                        imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
-                                        tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                                        contentDescription = "Download Song",
-                                        modifier = Modifier
-                                            .height(52.dp)
-                                            .size(52.dp)
-                                    )
-                                }
-                            }
+                            DownloadButton(snackbarHostState, coroutineScope)
                         }
                     }
                     //endregion
                 }
             }
+            //endregion
         }
         else {
-            // LANDSCAPE TV-TABLET
+            //region LANDSCAPE TV-TABLET UI
             Box(modifier = Modifier
                 .width(640.dp)
                 .fillMaxHeight()
@@ -616,7 +410,7 @@ fun NowPlayingContent(
                             SliderUpdating(true)
                         }
 
-                        /* Buttons */
+                        //region BUTTONS
                         Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
                             /* MAIN ACTIONS */
                             Row(modifier = Modifier
@@ -624,197 +418,29 @@ fun NowPlayingContent(
                                 .padding(horizontal = 12.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically) {
-
-
-
-                                /* Previous Song Button */
-                                Box(modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
-                                {
-                                    Button(
-                                        onClick = {
-                                            if (playingSong.selectedSong?.isRadio == true) return@Button
-                                            SongHelper.previousSong(song)
-                                        },
-                                        shape = CircleShape,
-                                        modifier = Modifier
-                                            .size(72.dp)
-                                            .bounceClick(),
-                                        contentPadding = PaddingValues(2.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                                    ) {
-                                        
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.round_skip_previous_24),
-
-                                            tint = MaterialTheme.colorScheme.onBackground,
-                                            contentDescription = "Previous Song",
-                                            modifier = Modifier
-                                                .height(48.dp)
-                                                .size(48.dp)
-                                        )
-                                    }
-                                }
-
-                                /* Play/Pause Button */
-                                Box(modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
-                                {
-                                    Button(
-                                        onClick = { songState = !songState },
-                                        shape = CircleShape,
-                                        modifier = Modifier
-                                            .size(92.dp)
-                                            .bounceClick(),
-                                        contentPadding = PaddingValues(2.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color.Transparent
-                                        )
-                                    ) {
-                                        
-                                        Icon(
-                                            imageVector = if (songState)
-                                                ImageVector.vectorResource(R.drawable.round_pause_24)
-                                            else
-                                                Icons.Rounded.PlayArrow,
-
-                                            tint = MaterialTheme.colorScheme.onBackground,
-                                            contentDescription = "Play/Pause",
-                                            modifier = Modifier
-                                                .height(92.dp)
-                                                .size(92.dp)
-                                        )
-                                    }
-                                }
-
-                                /* Next Song Button */
-                                Box(modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
-                                {
-                                    Button(
-                                        onClick = {
-                                            if (playingSong.selectedSong?.isRadio == true) return@Button
-                                            SongHelper.nextSong(song)
-                                        },
-                                        shape = CircleShape,
-                                        modifier = Modifier
-                                            .size(72.dp)
-                                            .bounceClick(),
-                                        contentPadding = PaddingValues(2.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                                    ) {
-                                        
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.round_skip_next_24),
-                                            tint = MaterialTheme.colorScheme.onBackground,
-                                            contentDescription = "Play/Pause",
-                                            modifier = Modifier
-                                                .height(48.dp)
-                                                .size(48.dp)
-                                        )
-                                    }
-                                }
+                                MainButtons(song, isPlaying)
                             }
                             // BUTTONS
-                            Box(modifier = Modifier
+                            Row(modifier = Modifier
                                 .height(64.dp)
-                                .width(256.dp)
-                                .padding(horizontal = 24.dp)) {
-                                /* Show/Hide Lyrics */
-                                Box(modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .align(Alignment.CenterStart), contentAlignment = Alignment.Center)
-                                {
-                                    Button(
-                                        onClick = { lyricsOpen = !lyricsOpen },
-                                        shape = CircleShape,
-                                        modifier = Modifier
-                                            .height(48.dp)
-                                            .bounceClick(),
-                                        contentPadding = PaddingValues(2.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color.Transparent
-                                        )
-                                    ) {
-                                        Crossfade(targetState = lyricsOpen, label = "Lyrics Icon Crossfade") { open ->
-                                            when (open) {
-                                                true -> Icon(
-                                                    imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
-                                                    tint = MaterialTheme.colorScheme.onBackground.copy(
-                                                        alpha = 0.5f
-                                                    ),
-                                                    contentDescription = "Close Lyrics",
-                                                    modifier = Modifier
-                                                        .height(52.dp)
-                                                        .size(52.dp)
-                                                )
+                                //.width(256.dp)
+                                .padding(horizontal = 24.dp),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically) {
+                                LyricsButton(lyricsOpen) { lyricsOpen = it }
 
-                                                false -> Icon(
-                                                    imageVector = ImageVector.vectorResource(R.drawable.lyrics_inactive),
-                                                    tint = MaterialTheme.colorScheme.onBackground.copy(
-                                                        alpha = 0.5f
-                                                    ),
-                                                    contentDescription = "View Lyrics",
-                                                    modifier = Modifier
-                                                        .height(52.dp)
-                                                        .size(52.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                                /* Shuffle Button */
-                                Box(modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .align(Alignment.Center), contentAlignment = Alignment.Center)
-                                {
-                                    Button(
-                                        onClick = { shuffleSongs.value = !shuffleSongs.value
-                                        },
-                                        shape = CircleShape,
-                                        modifier = Modifier.size(48.dp),
-                                        contentPadding = PaddingValues(2.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                                    ) {
-                                        
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.round_shuffle_28),
-                                            tint = MaterialTheme.colorScheme.onBackground.copy(if (shuffleSongs.value) 1f else 0.5f),
-                                            contentDescription = "Previous Song",
-                                            modifier = Modifier
-                                                .height(48.dp)
-                                                .size(48.dp)
-                                        )
-                                    }
-                                }
-                                /* Repeat Button */
-                                Box(modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .align(Alignment.CenterEnd), contentAlignment = Alignment.Center)
-                                {
-                                    Button(
-                                        onClick = { repeatSong.value = !repeatSong.value },
-                                        shape = CircleShape,
-                                        modifier = Modifier.size(48.dp),
-                                        contentPadding = PaddingValues(2.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                                    ) {
-                                        
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.round_repeat_28),
-                                            tint = MaterialTheme.colorScheme.onBackground.copy(if (repeatSong.value) 1f else 0.5f),
-                                            contentDescription = "Previous Song",
-                                            modifier = Modifier
-                                                .height(48.dp)
-                                                .size(48.dp)
-                                        )
-                                    }
-                                }
+                                ShuffleButton(64.dp)
+
+                                RepeatButton(64.dp)
+
+                                DownloadButton(snackbarHostState, coroutineScope)
                             }
                         }
+                        //endregion
                     }
                 }
             }
+            //endregion
         }
     }
 }
@@ -1019,7 +645,7 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
             if (it)
                 LyricsView(false)
         }
-        Crossfade(lyricsOpen == true, label = "Play Pause Icon") {
+        Crossfade(lyricsOpen == true, label = "Play Pause Mini-Icon") {
             if (it)
                 Box(modifier = Modifier
                     .height(44.dp)
@@ -1085,7 +711,6 @@ fun LandscapeNormalSongView() {
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun LyricsView(isLandscape: Boolean = false) {
-    /* LYRICS BOX */
     val topBottomFade = Brush.verticalGradient(0.05f to Color.Transparent, 0.25f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
     val state = rememberScrollState()
     var currentLyricIndex by remember { mutableIntStateOf(0) }
@@ -1165,6 +790,233 @@ fun LyricsView(isLandscape: Boolean = false) {
         }
     }
 }
+
+//region Reusable buttons
+
+@Composable // Previous Song, Play/Pause, Next Song
+fun MainButtons(song: Song, isPlaying: Boolean ? = false){
+    // Previous Song
+    Box(modifier = Modifier
+        .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
+    {
+        Button(
+            onClick = {
+                if (playingSong.selectedSong?.isRadio == true) return@Button
+                SongHelper.previousSong(song)
+            },
+            shape = CircleShape,
+            modifier = Modifier
+                .size(72.dp)
+                .bounceClick()
+                .moveClick(false),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+        ) {
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.round_skip_previous_24),
+
+                tint = MaterialTheme.colorScheme.onBackground,
+                contentDescription = "Previous Song",
+                modifier = Modifier
+                    .height(48.dp)
+                    .size(48.dp)
+            )
+        }
+    }
+
+    /* Play/Pause Button */
+    Box(modifier = Modifier
+        .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
+    {
+        Button(
+            onClick = { SongHelper.player.playWhenReady = !SongHelper.player.playWhenReady },
+            shape = CircleShape,
+            modifier = Modifier
+                .size(92.dp)
+                .bounceClick(),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            )
+        ) {
+            Icon(
+                imageVector = if (isPlaying == true)
+                    ImageVector.vectorResource(R.drawable.round_pause_24)
+                else
+                    Icons.Rounded.PlayArrow,
+
+                tint = MaterialTheme.colorScheme.onBackground,
+                contentDescription = "Play/Pause",
+                modifier = Modifier
+                    .height(92.dp)
+                    .size(92.dp)
+            )
+        }
+    }
+
+    /* Next Song Button */
+    Box(modifier = Modifier
+        .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
+    {
+        Button(
+            onClick = {
+                if (playingSong.selectedSong?.isRadio == true) return@Button
+                SongHelper.nextSong(song)
+            },
+            shape = CircleShape,
+            modifier = Modifier
+                .size(72.dp)
+                .bounceClick()
+                .moveClick(true),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+        ) {
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.round_skip_next_24),
+                tint = MaterialTheme.colorScheme.onBackground,
+                contentDescription = "Next Song",
+                modifier = Modifier
+                    .height(48.dp)
+                    .size(48.dp)
+            )
+        }
+    }
+}
+@Composable
+fun LyricsButton(lyricsOpen: Boolean, openCloseLyrics: (Boolean) -> Unit){
+    Box(modifier = Modifier
+        .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
+    {
+        Button(
+            onClick = { openCloseLyrics(!lyricsOpen) },
+            shape = CircleShape,
+            modifier = Modifier
+                .height(64.dp)
+                .bounceClick(),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            )
+        ) {
+            Crossfade(targetState = lyricsOpen, label = "Lyrics Icon Crossfade") { open ->
+                when (open) {
+                    true -> Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
+                        tint = MaterialTheme.colorScheme.onBackground.copy(
+                            alpha = 0.5f
+                        ),
+                        contentDescription = "Close Lyrics",
+                        modifier = Modifier
+                            .height(52.dp)
+                            .size(52.dp)
+                    )
+
+                    false -> Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.lyrics_inactive),
+                        tint = MaterialTheme.colorScheme.onBackground.copy(
+                            alpha = 0.5f
+                        ),
+                        contentDescription = "View Lyrics",
+                        modifier = Modifier
+                            .height(52.dp)
+                            .size(52.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+@Composable
+fun DownloadButton(snackbarHostState: SnackbarHostState?, coroutineScope: CoroutineScope){
+    Box(modifier = Modifier
+        .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
+    {
+        Button(
+            onClick = {
+                if (navidromeServersList.isEmpty() || useNavidromeServer.value) return@Button
+                if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@Button
+                downloadNavidromeSong("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${playingSong.selectedSong?.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",
+                    snackbarHostState = snackbarHostState,
+                    coroutineScope)
+                coroutineScope.launch {
+                    snackbarHostState?.showSnackbar("Downloading Started")
+                }
+            },
+            shape = CircleShape,
+            modifier = Modifier
+                .height(64.dp)
+                .bounceClick(),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            )
+        ) {
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
+                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                contentDescription = "Download Song",
+                modifier = Modifier
+                    .height(52.dp)
+                    .size(52.dp)
+            )
+        }
+    }
+}
+@Composable
+fun ShuffleButton(size: Dp){
+    Box(modifier = Modifier
+        .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
+    {
+        Button(
+            onClick = { shuffleSongs.value = !shuffleSongs.value
+            },
+            shape = CircleShape,
+            modifier = Modifier.size(size),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+        ) {
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.round_shuffle_28),
+                tint = MaterialTheme.colorScheme.onBackground.copy(if (shuffleSongs.value) 1f else 0.5f),
+                contentDescription = "Toggle Shuffle",
+                modifier = Modifier
+                    .height(size)
+                    .size(size)
+            )
+        }
+    }
+}
+@Composable
+fun RepeatButton(size: Dp){
+    Box(modifier = Modifier
+        .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
+    {
+        Button(
+            onClick = { repeatSong.value = !repeatSong.value },
+            shape = CircleShape,
+            modifier = Modifier.size(size),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+        ) {
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.round_repeat_28),
+                tint = MaterialTheme.colorScheme.onBackground.copy(if (repeatSong.value) 1f else 0.5f),
+                contentDescription = "Toggle Repeat",
+                modifier = Modifier
+                    .height(size)
+                    .size(size)
+            )
+        }
+    }
+}
+
+//endregion
 
 @Composable
 fun animateBrushRotation(

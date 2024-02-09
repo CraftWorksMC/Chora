@@ -80,8 +80,8 @@ class SongHelper {
                 player.clearMediaItems()
             }
 
+            // Add Media Items
             val index = playingSong.selectedList.indexOfFirst { it.media == url }
-
             for (song in playingSong.selectedList){
                 if (song.isRadio == true) break
 
