@@ -1075,7 +1075,9 @@ fun ShuffleButton(size: Dp){
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
     {
         Button(
-            onClick = { shuffleSongs.value = !shuffleSongs.value
+            onClick = {
+                shuffleSongs.value = !shuffleSongs.value
+                SongHelper.player.shuffleModeEnabled = shuffleSongs.value
             },
             shape = CircleShape,
             modifier = Modifier.size(size),

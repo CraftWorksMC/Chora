@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,6 +80,9 @@ class SongHelper {
                 player.stop()
                 player.clearMediaItems()
             }
+            // Start From 0
+            sliderPos.intValue = 0
+            currentPosition = 0
 
             // Add Media Items
             val index = playingSong.selectedList.indexOfFirst { it.media == url }
@@ -91,7 +95,10 @@ class SongHelper {
                     .setAlbumTitle(song.album)
                     .setArtworkUri(song.imageUrl)
                     .setReleaseYear(song.year?.toIntOrNull() ?: 0)
-                    .setSubtitle("${song.format} • ${song.bitrate}") // Hack for more info
+                    .setExtras(Bundle().apply {
+                        putString("MoreInfo", "${song.format} • ${song.bitrate}")
+                        putString("NavidromeID", song.navidromeID)
+                    })
                     .build()
 
                 val mediaItem = MediaItem.Builder()
@@ -107,7 +114,7 @@ class SongHelper {
 
             player.prepare()
             player.seekTo(index, currentPosition)
-            player.pauseAtEndOfMediaItems = true
+            player.pauseAtEndOfMediaItems = false
             player.shuffleModeEnabled = false
             player.playWhenReady = true
 
@@ -138,7 +145,8 @@ class SongHelper {
                         imageUrl = Uri.parse(mediaSession.player.mediaMetadata.artworkUri.toString()),
                         year = player.mediaMetadata.releaseYear.toString(),
                         album = player.mediaMetadata.albumTitle.toString(),
-                        format = player.mediaMetadata.subtitle.toString()
+                        format = player.mediaMetadata.extras?.getString("MoreInfo"),
+                        navidromeID = player.mediaMetadata.extras?.getString("NavidromeID")
                     )
                     if (player.duration > 0)
                         currentDuration = player.duration
