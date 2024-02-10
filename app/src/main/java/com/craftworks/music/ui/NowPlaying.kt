@@ -129,6 +129,8 @@ import java.io.FileNotFoundException
 
 var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
 
+var lyricsOpen by mutableStateOf(false)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showSystemUi = false, showBackground = true)
 @Composable
@@ -149,10 +151,7 @@ fun NowPlayingContent(
     Box (modifier = Modifier
         .wrapContentHeight()
         .fillMaxWidth()) {
-
-        var lyricsOpen by remember { mutableStateOf(false) }
         val coroutineScope = rememberCoroutineScope()
-
         // UI PLAYING STATE
         var isPlaying by remember { mutableStateOf(false) }
         DisposableEffect(Unit) {
@@ -172,7 +171,7 @@ fun NowPlayingContent(
         LaunchedEffect(SongHelper.currentSong){
             println("Getting Cover Art Bitmap")
             bitmap.value =
-                if (useNavidromeServer.value || navidromeServersList.isNotEmpty())
+                if (useNavidromeServer.value && navidromeServersList.isNotEmpty())
                     getNavidromeBitmap(context)
                 else //Don't crash if there's no album art!
                     try{ MediaStore.Images.Media.getBitmap(context.contentResolver, SongHelper.currentSong.imageUrl) }
@@ -205,9 +204,7 @@ fun NowPlayingContent(
 
                 if (SongHelper.currentSong.imageUrl == Uri.EMPTY) return@Surface
 
-                // Why
                 val palette = Palette.from(bitmap.value).generate()
-                println(palette.dominantSwatch)
 
                 val shaderA = LinearGradientShader(
                     Offset(size.width / 2f, 0f),
@@ -279,7 +276,7 @@ fun NowPlayingContent(
                 .padding(0.dp, topPaddingExpandedPlayer.dp, 0.dp, 0.dp), contentAlignment = Alignment.TopCenter) {
                 Column {
                     // Album Art + Info
-                    AnimatedSongImageView(lyricsOpen || scaffoldState!!.bottomSheetState.targetValue != SheetValue.Expanded, isPlaying)
+                    PortraitAnimatedView(lyricsOpen || scaffoldState!!.bottomSheetState.targetValue != SheetValue.Expanded, isPlaying)
 
                     // Seek Bar
                     Column(modifier = Modifier
@@ -310,9 +307,9 @@ fun NowPlayingContent(
                             .width(256.dp)
                             .weight(1f)
                             .padding(bottom = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
-                            LyricsButton(lyricsOpen) { lyricsOpen = it }
+                            LyricsButton(64.dp)
 
-                            DownloadButton(snackbarHostState, coroutineScope)
+                            DownloadButton(snackbarHostState, coroutineScope, 64.dp)
                         }
                     }
                     //endregion
@@ -326,6 +323,7 @@ fun NowPlayingContent(
                 .width(640.dp)
                 .fillMaxHeight()
                 .padding(0.dp, topPaddingExpandedPlayer.dp, 0.dp, 0.dp), contentAlignment = Alignment.TopCenter) {
+
                 TextButton(
                     onClick = {
                         coroutineScope.launch {
@@ -348,97 +346,13 @@ fun NowPlayingContent(
                             .size(32.dp)
                     )
                 }
-                Row {
-                    Crossfade(targetState = lyricsOpen, label = "Lyrics View", modifier = Modifier
-                        .wrapContentHeight()
-                        .width(256.dp)) { screen ->
-                        when (screen) {
-                            true -> LyricsView(true)
-                            false -> LandscapeNormalSongView()
-                        }
-                    }
 
-                    /* Song Title + Artist*/
-                    Column(
-                        modifier = Modifier
-                            .padding(top = 4.dp)
-                            .padding(horizontal = 12.dp)
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Top
-                    ) {
-                        // TITLE AND ARTIST
-                        Column (Modifier.fillMaxWidth()) {
-                            playingSong.selectedSong?.title?.let {
-                                Text(
-                                    text = it,
-                                    style = MaterialTheme.typography.displaySmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.Start
-                                )
-                            }
-                            playingSong.selectedSong?.artist?.let {
-                                Text(
-                                    text = it + " • " + playingSong.selectedSong?.year,
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Light,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.Start
-                                )
-                            }
-                            if (showMoreInfo.value) {
-                                playingSong.selectedSong?.format?.let {
-                                    Text(
-                                        text = it + " • " + playingSong.selectedSong?.bitrate,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Light,
-                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Start
-                                    )
-                                }
-                            }
-                        }
-
-                        /* Progress Bar */
-                        Column(modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            SliderUpdating(true)
-                        }
-
-                        //region BUTTONS
-                        Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
-                            /* MAIN ACTIONS */
-                            Row(modifier = Modifier
-                                .height(96.dp)
-                                .padding(horizontal = 12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically) {
-                                MainButtons(song, isPlaying)
-                            }
-                            // BUTTONS
-                            Row(modifier = Modifier
-                                .height(64.dp)
-                                //.width(256.dp)
-                                .padding(horizontal = 24.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically) {
-                                LyricsButton(lyricsOpen) { lyricsOpen = it }
-
-                                ShuffleButton(64.dp)
-
-                                RepeatButton(64.dp)
-
-                                DownloadButton(snackbarHostState, coroutineScope)
-                            }
-                        }
-                        //endregion
-                    }
-                }
+                LandscapeAnimatedView(
+                    lyricsOpen || scaffoldState!!.bottomSheetState.targetValue != SheetValue.Expanded,
+                    isPlaying,
+                    song,
+                    snackbarHostState,
+                    coroutineScope)
             }
             //endregion
         }
@@ -516,8 +430,7 @@ fun SliderUpdating(isLandscape: Boolean? = false){
 
 @androidx.annotation.OptIn(UnstableApi::class) @Preview(showSystemUi = true, showBackground = true)
 @Composable
-@Preview
-fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = false) {
+fun PortraitAnimatedView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = false) {
 
     //region Animated Variables
 
@@ -678,34 +591,222 @@ fun AnimatedSongImageView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fa
         }
     }
 }
+
 @Composable
-fun LandscapeNormalSongView() {
-    Column(modifier = Modifier
-        .fillMaxHeight()
-        .padding(start = 24.dp)
-        .width(256.dp), verticalArrangement = Arrangement.Top) {
+@Preview(device = "spec:width=640dp,height=342dp,dpi=240", showBackground = true,
+    showSystemUi = true
+)
+fun LandscapeAnimatedView(
+    collapsed: Boolean? = false,
+    isPlaying: Boolean? = false,
+    song: Song = SongHelper.currentSong,
+    snackbarHostState: SnackbarHostState? = SnackbarHostState(),
+    coroutineScope: CoroutineScope = rememberCoroutineScope(), ) {
+    //region Animated Variables
+
+    // Image Animations
+    val imageSize: Dp by animateDpAsState(if (collapsed == true) 60.dp else 256.dp,
+        label = "Animated Cover Size"
+    )
+    val imageCornerRadius: Dp by animateDpAsState(if (collapsed == true) 12.dp else 24.dp,
+        label = "Animated Cover Radius"
+    )
+    val imageOffsetX: Dp by animateDpAsState(if (collapsed == true) 0.dp else 18.dp,
+        label = "Animated Image Offset X"
+    )
+    val imageOffsetY: Dp by animateDpAsState(if (collapsed == true) (-8).dp else 6.dp,
+        label = "Animated Image Offset Y"
+    )
+
+    val titleFontSize: Float by animateFloatAsState(
+        if (collapsed == true)
+            MaterialTheme.typography.titleLarge.fontSize.value
+        else
+            MaterialTheme.typography.displaySmall.fontSize.value,
+        label = "Animated Song Title Font Size"
+    )
+    val titleOffsetX: Dp by animateDpAsState(if (collapsed == true) (-160 - 64).dp else 0.dp,
+        label = "Animated Song Title Offset X"
+    )
+    val titleOffsetY: Dp by animateDpAsState(if (collapsed == true) (-8).dp else 0.dp,
+        label = "Animated Song Title Offset Y"
+    )
+    val artistFontSize: Float by animateFloatAsState(
+        if (collapsed == true)
+            MaterialTheme.typography.bodyMedium.fontSize.value
+        else
+            MaterialTheme.typography.headlineSmall.fontSize.value,
+        label = "Animated Song Title Font Size"
+    )
+    val artistOffsetX: Dp by animateDpAsState(if (collapsed == true) (-160 - 64).dp else 0.dp,
+        label = "Animated Song Title Offset X"
+    )
+    val artistOffsetY: Dp by animateDpAsState(if (collapsed == true) (-8).dp else 0.dp,
+        label = "Animated Song Title Offset Y"
+    )
+
+    //endregion
+
+    Row(modifier = Modifier
+        .fillMaxSize()
+        .padding(start = 6.dp),
+        verticalAlignment = Alignment.Top) {
+
         /* Album Cover */
         Box(
             modifier = Modifier
-                .height(256.dp)
-                .width(256.dp), contentAlignment = Alignment.Center
+                .size(256.dp), contentAlignment = Alignment.TopStart
         ) {
             AsyncImage(
-                model = playingSong.selectedSong?.imageUrl,
+                model = SongHelper.currentSong.imageUrl,
                 contentDescription = "Album Cover",
                 placeholder = painterResource(R.drawable.placeholder),
                 fallback = painterResource(R.drawable.placeholder),
                 contentScale = ContentScale.FillHeight,
                 modifier = Modifier
-                    .width(256.dp)
-                    .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
+                    .offset(x = imageOffsetX, y = imageOffsetY)
+                    .size(imageSize)
+                    .shadow(4.dp, RoundedCornerShape(imageCornerRadius), clip = true)
                     .background(MaterialTheme.colorScheme.background)
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(imageCornerRadius))
             )
         }
 
+        /* Song Title + Artist*/
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .padding(top = 4.dp, start = 36.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Column(modifier = Modifier.height(120.dp)){
+                SongHelper.currentSong.title.let {
+                    Text(
+                        text = // Limit Song Title Length (if not collapsed).
+                        if (it.length > 24 && collapsed == false) it.substring(0, 21) + "..."
+                        else it,
+                        fontSize = titleFontSize.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.offset(titleOffsetX,titleOffsetY)
+                    )
+                }
+                SongHelper.currentSong.artist.let {
+                    Text(
+                        text = //Limit the artist name length (if not collapsed).
+                        if (it.length > 20 && collapsed == false)
+                            it.substring(0, 17) + "..." + " • " + SongHelper.currentSong.year
+                        else
+                            it + " • " + SongHelper.currentSong.year,
+                        fontSize = artistFontSize.sp,
+                        fontWeight = FontWeight.Light,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.offset(artistOffsetX, artistOffsetY)
+                    )
+                }
+                Crossfade(collapsed == false, label = "Fade Out More Info") {
+                    if (it){
+                        if (showMoreInfo.value) {
+                            SongHelper.currentSong.format.let {format ->
+                                Text(
+                                    text = format.toString(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Thin,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Start
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            /* Progress Bar */
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 12.dp)
+                .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                SliderUpdating(true)
+            }
+
+            //region BUTTONS
+            Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
+                /* MAIN ACTIONS */
+                Row(modifier = Modifier
+                    .height(96.dp)
+                    .padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    MainButtons(song, isPlaying)
+                }
+                // BUTTONS
+                Row(modifier = Modifier
+                    .height(64.dp)
+                    //.width(256.dp)
+                    .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    LyricsButton(48.dp)
+
+                    ShuffleButton(48.dp)
+
+                    RepeatButton(48.dp)
+
+                    DownloadButton(snackbarHostState, coroutineScope, 48.dp)
+                }
+            }
+            //endregion
+        }
     }
 
+    // Lyrics
+    Box(modifier = Modifier.fillMaxWidth()){
+        Crossfade(collapsed == true, label = "Lyrics View Crossfade") {
+            if (it)
+                Box(modifier = Modifier.align(Alignment.TopStart).padding(top = 48.dp)){
+                    LyricsView(true)
+                }
+        }
+    }
+
+    Crossfade(collapsed == true, label = "Play Pause Mini-Icon") {
+        if (it)
+            Box(modifier = Modifier
+                .height(44.dp)
+                .fillMaxWidth()){
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 12.dp), verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = if (isPlaying == true)
+                            ImageVector.vectorResource(R.drawable.round_pause_24)
+                        else
+                            Icons.Rounded.PlayArrow,
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        contentDescription = "Play/Pause",
+                        modifier = Modifier
+                            .height(48.dp)
+                            .size(48.dp)
+                            .bounceClick()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                SongHelper.player.playWhenReady =
+                                    !SongHelper.player.playWhenReady
+                            }
+                    )
+                }
+            }
+    }
 }
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -721,7 +822,7 @@ fun LyricsView(isLandscape: Boolean = false) {
     val pxValue = with(LocalDensity.current) { dpToSp.dp.toPx() }
 
     LaunchedEffect(currentLyricIndex) {
-        state.animateScrollTo((pxValue * currentLyricIndex - if (isLandscape) 128 else 64).toInt())
+        state.animateScrollTo((pxValue * currentLyricIndex - if (isLandscape) 96 else 64).toInt())
     }
 
     Column(
@@ -744,7 +845,7 @@ fun LyricsView(isLandscape: Boolean = false) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (SyncedLyric.size >= 1) {
-            Box(modifier = Modifier.height(if (isLandscape) dpToSp.dp else 60.dp))
+            Box(modifier = Modifier.height(if (isLandscape) 32.dp else 60.dp))
             SyncedLyric.forEachIndexed { index, lyric ->
                 val lyricAlpha: Float by animateFloatAsState(
                     if (lyric.isCurrentLyric) 1f else 0.5f,
@@ -885,15 +986,15 @@ fun MainButtons(song: Song, isPlaying: Boolean ? = false){
     }
 }
 @Composable
-fun LyricsButton(lyricsOpen: Boolean, openCloseLyrics: (Boolean) -> Unit){
+fun LyricsButton(size: Dp){
     Box(modifier = Modifier
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
     {
         Button(
-            onClick = { openCloseLyrics(!lyricsOpen) },
+            onClick = { lyricsOpen = !lyricsOpen },
             shape = CircleShape,
             modifier = Modifier
-                .height(64.dp)
+                .height(size)
                 .bounceClick(),
             contentPadding = PaddingValues(2.dp),
             colors = ButtonDefaults.buttonColors(
@@ -909,8 +1010,8 @@ fun LyricsButton(lyricsOpen: Boolean, openCloseLyrics: (Boolean) -> Unit){
                         ),
                         contentDescription = "Close Lyrics",
                         modifier = Modifier
-                            .height(52.dp)
-                            .size(52.dp)
+                            .height(size)
+                            .size(size)
                     )
 
                     false -> Icon(
@@ -920,8 +1021,8 @@ fun LyricsButton(lyricsOpen: Boolean, openCloseLyrics: (Boolean) -> Unit){
                         ),
                         contentDescription = "View Lyrics",
                         modifier = Modifier
-                            .height(52.dp)
-                            .size(52.dp)
+                            .height(size)
+                            .size(size)
                     )
                 }
             }
@@ -929,7 +1030,9 @@ fun LyricsButton(lyricsOpen: Boolean, openCloseLyrics: (Boolean) -> Unit){
     }
 }
 @Composable
-fun DownloadButton(snackbarHostState: SnackbarHostState?, coroutineScope: CoroutineScope){
+fun DownloadButton(snackbarHostState: SnackbarHostState?,
+                   coroutineScope: CoroutineScope,
+                   size: Dp){
     Box(modifier = Modifier
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
     {
@@ -947,7 +1050,7 @@ fun DownloadButton(snackbarHostState: SnackbarHostState?, coroutineScope: Corout
             },
             shape = CircleShape,
             modifier = Modifier
-                .height(64.dp)
+                .height(size)
                 .bounceClick(),
             contentPadding = PaddingValues(2.dp),
             colors = ButtonDefaults.buttonColors(
@@ -960,8 +1063,8 @@ fun DownloadButton(snackbarHostState: SnackbarHostState?, coroutineScope: Corout
                 tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                 contentDescription = "Download Song",
                 modifier = Modifier
-                    .height(52.dp)
-                    .size(52.dp)
+                    .height(size)
+                    .size(size)
             )
         }
     }
