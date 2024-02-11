@@ -8,14 +8,14 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 - Subsonic Integration.
 - Transcoding
 - Material 3 UI.
-- Streaming and Offline Mode.
+- Offline Mode.
 - Internet Radio.
 - Synced And Unsynced Lyrics [From LRCLIB.net]
 - Playlists
 ## Roadmap
 
-- Gapless Playback
 - Offline Playlists
+- Artist Page
 
 ## Screenshots
 <p align="center">
