@@ -9,7 +9,7 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 - Transcoding
 - Material 3 UI.
 - Offline Mode.
-- Internet Radio.
+- Internet Radio. (Metadata only from IceCast Servers)
 - Synced And Unsynced Lyrics [From LRCLIB.net]
 - Playlists
 ## Roadmap
