@@ -45,7 +45,7 @@ import com.craftworks.music.SongHelper.Companion.initPlayer
 import com.craftworks.music.data.BottomNavigationItem
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
-import com.craftworks.music.lyrics.SyncedLyric
+import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.ui.NowPlayingContent
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.theme.MusicPlayerTheme

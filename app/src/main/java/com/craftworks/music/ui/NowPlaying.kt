@@ -108,8 +108,8 @@ import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
-import com.craftworks.music.lyrics.SyncedLyric
-import com.craftworks.music.lyrics.songLyrics
+import com.craftworks.music.data.PlainLyrics
+import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.playingSong
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
@@ -880,7 +880,7 @@ fun LyricsView(isLandscape: Boolean = false) {
         } else {
             Box(modifier = Modifier.height(if (isLandscape) dpToSp.dp else 60.dp))
             Text(
-                text = songLyrics.SongLyrics,
+                text = PlainLyrics,
                 style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,

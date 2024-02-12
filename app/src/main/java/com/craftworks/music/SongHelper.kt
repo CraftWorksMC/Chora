@@ -21,9 +21,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import com.craftworks.music.data.Song
-import com.craftworks.music.lyrics.SyncedLyric
 import com.craftworks.music.lyrics.getLyrics
-import com.craftworks.music.lyrics.songLyrics
 import com.craftworks.music.providers.navidrome.markSongAsPlayed
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.bitmap
@@ -78,13 +76,13 @@ class SongHelper {
             // Stop If It's Playing
             if (player.isPlaying){
                 player.stop()
-                player.clearMediaItems()
             }
             // Start From 0
             sliderPos.intValue = 0
             currentPosition = 0
 
             // Add Media Items
+            player.clearMediaItems()
             val index = playingSong.selectedList.indexOfFirst { it.media == url }
             for (song in playingSong.selectedList){
                 if (song.isRadio == true) break
@@ -126,12 +124,9 @@ class SongHelper {
                 player.setWakeMode(C.WAKE_MODE_LOCAL)
             }
 
-            // Get First Song Lyrics
-            songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-            SyncedLyric.clear()
             getLyrics()
 
-            // On State Changed:
+            //region On State Changed:
             //  - Update Notification
             //  - Get Lyrics If Song Changed
             //  - Next Song On End
@@ -155,8 +150,6 @@ class SongHelper {
                     playingSong.selectedSong = currentSong
 
                     println("Player Changed Song!")
-                    songLyrics.SongLyrics = "Getting Lyrics... \n No Lyrics Found"
-                    SyncedLyric.clear()
                     getLyrics()
                 }
                 override fun onPlaybackStateChanged(state: Int) {
@@ -181,6 +174,7 @@ class SongHelper {
                     }
                 }
             })
+            //endregion
         }
 
         fun pauseStream(){

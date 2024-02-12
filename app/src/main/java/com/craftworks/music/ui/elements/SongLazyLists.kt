@@ -30,7 +30,7 @@ import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.lyrics.songLyrics.SongLyrics
+import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
@@ -153,7 +153,7 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
                 SongHelper.stopStream()
                 sliderPos.intValue = 0
                 onSongSelected(song)
-                SongLyrics = "No Lyrics For Internet Radio"
+                PlainLyrics = "No Lyrics For Internet Radio"
             })
         }
     }

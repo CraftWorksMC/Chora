@@ -1,37 +1,35 @@
 package com.craftworks.music.lyrics
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import com.craftworks.music.SongHelper
-import com.craftworks.music.lyrics.songLyrics.SongLyrics
+import com.craftworks.music.data.Lyric
+import com.craftworks.music.data.PlainLyrics
+import com.craftworks.music.data.SyncedLyric
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-
-var SyncedLyric = mutableStateListOf(Lyric(0, "Getting Lyrics... \n No Lyrics Found", false))
-object songLyrics{
-    var SongLyrics by mutableStateOf("Getting Lyrics... \n No Lyrics Found")
-}
-
-
-data class Lyric(
-    val timestamp: Int,
-    val content: String,
-    var isCurrentLyric: Boolean)
-
+private var isGetLyricsRunning = false
 
 fun getLyrics(){
+    println("is lyrics running? $isGetLyricsRunning")
+
+    if (isGetLyricsRunning)
+        return
+
+    isGetLyricsRunning = true
+
     val thread = Thread {
         try {
+            println("getLyrics() Called!")
             if (SongHelper.currentSong.title.isBlank() ||
                 SongHelper.currentSong.title == "Song Title" ||
                 SongHelper.currentDuration < 0 ||
                 SyncedLyric.isNotEmpty() ||
-                SongLyrics != "Getting Lyrics... \n No Lyrics Found")
+                PlainLyrics != "Getting Lyrics... \n No Lyrics Found")
                 return@Thread
+
+            PlainLyrics = "Getting Lyrics... \n No Lyrics Found"
+            SyncedLyric.clear()
 
             val url = URL("https://lrclib.net/api/get?artist_name=${SongHelper.currentSong.artist.replace(" ", "+")}&track_name=${SongHelper.currentSong.title.replace(" ", "+")}&album_name=${SongHelper.currentSong.album.replace(" ", "+")}&duration=${SongHelper.currentDuration.div(1000)}")
 
@@ -40,6 +38,9 @@ fun getLyrics(){
 
                 println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")
 
+                if (responseCode == 404){
+                    PlainLyrics = "No Lyrics / Instrumental"
+                }
                 inputStream.bufferedReader().use {
                     it.lines().forEach { line ->
                         //println(line)
@@ -52,21 +53,25 @@ fun getLyrics(){
                                 val timeStampsRaw = getTimeStamps(lyric)[0]
                                 val time = mmssToMilliseconds(timeStampsRaw)
                                 val lyricText: String = lyric.drop(11)
-                                //Log.d("Lyric: ", "$time: $lyricText")
-                                if (SyncedLyric.firstOrNull { content == lyricText } != null)
-                                    return@forEach
-                                SyncedLyric.add(Lyric(time.toInt(),lyricText, false))
+
+                                // Check for duplicates
+                                val syncedLyric = Lyric(time.toInt(),lyricText, false)
+                                if (!SyncedLyric.contains(syncedLyric))
+                                    SyncedLyric.add(syncedLyric)
                             }
                         }else {
                             /* FALLBACK PLAIN LYRICS */
-                            SongLyrics = jsonObject.getString("plainLyrics")
+                            PlainLyrics = jsonObject.getString("plainLyrics")
                         }
                     }
                 }
             }
         } catch (e: Exception) {
             e.printStackTrace()
+        } finally {
+            isGetLyricsRunning = false  // Reset the flag after the function completes its execution
         }
+
     }
     thread.start()
 }
