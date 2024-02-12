@@ -44,8 +44,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Song
-import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.data.radioList
+import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.ui.screens.selectedRadioIndex
 import com.craftworks.music.ui.screens.showRadioModifyDialog
 
@@ -61,7 +61,7 @@ fun SongsCard(song: Song, onClick: () -> Unit){
                                 if (song.isRadio == false) return@combinedClickable
                                 showRadioModifyDialog.value = true
                                 selectedRadioIndex.intValue =
-                                    radioList.indexOf(radioList.firstOrNull { it.name == song.title && it.media == song.media })
+                                    radioList.indexOf(radioList.firstOrNull { it.name == song.artist && it.media == song.media })
                             },
                             onLongClickLabel = "Modify Radio"
                         ),

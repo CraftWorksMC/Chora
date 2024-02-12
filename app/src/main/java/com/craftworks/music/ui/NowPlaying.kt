@@ -175,7 +175,9 @@ fun NowPlayingContent(
         LaunchedEffect(SongHelper.currentSong){
             println("Getting Cover Art Bitmap")
             bitmap.value =
-                if (useNavidromeServer.value && navidromeServersList.isNotEmpty())
+                if (useNavidromeServer.value &&
+                    navidromeServersList.isNotEmpty() &&
+                    SongHelper.currentSong.isRadio == false)
                     getNavidromeBitmap(context)
                 else //Don't crash if there's no album art!
                     try{ MediaStore.Images.Media.getBitmap(context.contentResolver, SongHelper.currentSong.imageUrl) }
@@ -515,7 +517,10 @@ fun PortraitAnimatedView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fal
                 SongHelper.currentSong.title.let {
                     Text(
                         text = //Limit the artist name length.
-                        if (it.length > 24) it.substring(0, 21) + "..."
+                        if (SongHelper.currentSong.isRadio == true)
+                            it.split(" - ").last()
+                        else
+                            if (it.length > 24) it.substring(0, 21) + "..."
                         else it,
                         fontSize = titleFontSize.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -890,7 +895,9 @@ fun LyricsView(isLandscape: Boolean = false) {
             Box(modifier = Modifier.height(if (isLandscape) 32.dp else 60.dp))
             if (PlainLyrics == "Getting Lyrics..."){
                 CircularProgressIndicator(
-                    modifier = Modifier.padding(12.dp).size(32.dp),
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .size(32.dp),
                     strokeCap = StrokeCap.Round
                 )
             }

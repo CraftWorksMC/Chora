@@ -25,6 +25,7 @@ import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.providers.navidrome.markSongAsPlayed
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.bitmap
+import java.util.Calendar
 import kotlin.math.abs
 
 class SongHelper {
@@ -72,7 +73,7 @@ class SongHelper {
             saveManager(context).loadSettings()
         }
 
-        fun playStream(context: Context, url: Uri) {
+        fun playStream(context: Context, url: Uri, isRadio: Boolean ? = false) {
             // Stop If It's Playing
             if (player.isPlaying){
                 player.stop()
@@ -81,37 +82,61 @@ class SongHelper {
             sliderPos.intValue = 0
             currentPosition = 0
 
-            // Add Media Items
-            player.clearMediaItems()
-            val index = playingSong.selectedList.indexOfFirst { it.media == url }
-            for (song in playingSong.selectedList){
-                if (song.isRadio == true) break
+            if (isRadio == false){
+                // Add Media Items
+                player.clearMediaItems()
+                val index = playingSong.selectedList.indexOfFirst { it.media == url }
+                for (song in playingSong.selectedList){
+                    if (song.isRadio == true) break
 
+                    val mediaMetadata = MediaMetadata.Builder()
+                        .setTitle(song.title)
+                        .setArtist(song.artist)
+                        .setAlbumTitle(song.album)
+                        .setArtworkUri(song.imageUrl)
+                        .setReleaseYear(song.year?.toIntOrNull() ?: 0)
+                        .setExtras(Bundle().apply {
+                            putString("MoreInfo", "${song.format} • ${song.bitrate}")
+                            putString("NavidromeID", song.navidromeID)
+                            putBoolean("isRadio", false)
+                        })
+                        .build()
+
+                    val mediaItem = MediaItem.Builder()
+                        .setUri(song.media)
+                        .setMediaMetadata(mediaMetadata)
+                        .setMimeType(song.format)
+                        .build()
+
+                    player.addMediaItem(mediaItem)
+                }
+
+                mediaSession.player = player
+
+                player.prepare()
+                player.seekTo(index, currentPosition)
+            }
+            else {
+                player.clearMediaItems()
                 val mediaMetadata = MediaMetadata.Builder()
-                    .setTitle(song.title)
-                    .setArtist(song.artist)
-                    .setAlbumTitle(song.album)
-                    .setArtworkUri(song.imageUrl)
-                    .setReleaseYear(song.year?.toIntOrNull() ?: 0)
+                    .setArtist(currentSong.artist)
+                    .setReleaseYear(Calendar.getInstance().get(Calendar.YEAR))
                     .setExtras(Bundle().apply {
-                        putString("MoreInfo", "${song.format} • ${song.bitrate}")
-                        putString("NavidromeID", song.navidromeID)
+                        putString("MoreInfo", "${currentSong.format} • ${currentSong.bitrate}")
+                        putBoolean("isRadio", true)
                     })
                     .build()
 
                 val mediaItem = MediaItem.Builder()
-                    .setUri(song.media)
+                    .setUri(url)
                     .setMediaMetadata(mediaMetadata)
-                    .setMimeType(song.format)
                     .build()
 
-                player.addMediaItem(mediaItem)
+                player.setMediaItem(mediaItem)
+                player.prepare()
+                player.seekTo(0)
             }
 
-            mediaSession.player = player
-
-            player.prepare()
-            player.seekTo(index, currentPosition)
             player.pauseAtEndOfMediaItems = false
             player.shuffleModeEnabled = false
             player.playWhenReady = true
@@ -124,7 +149,8 @@ class SongHelper {
                 player.setWakeMode(C.WAKE_MODE_LOCAL)
             }
 
-            getLyrics()
+            if (isRadio == false)
+                getLyrics()
 
             //region On State Changed:
             //  - Update Notification
@@ -141,7 +167,8 @@ class SongHelper {
                         year = player.mediaMetadata.releaseYear.toString(),
                         album = player.mediaMetadata.albumTitle.toString(),
                         format = player.mediaMetadata.extras?.getString("MoreInfo"),
-                        navidromeID = player.mediaMetadata.extras?.getString("NavidromeID")
+                        navidromeID = player.mediaMetadata.extras?.getString("NavidromeID"),
+                        isRadio = player.mediaMetadata.extras?.getBoolean("isRadio")
                     )
                     if (player.duration > 0)
                         currentDuration = player.duration
@@ -149,7 +176,8 @@ class SongHelper {
                     // this will do until i finish it
                     playingSong.selectedSong = currentSong
 
-                    getLyrics()
+                    if (isRadio == false)
+                        getLyrics()
                 }
                 override fun onPlaybackStateChanged(state: Int) {
                     // Update Notification

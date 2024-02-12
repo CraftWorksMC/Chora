@@ -22,7 +22,8 @@ fun getLyrics(){
         try {
             if (SongHelper.currentSong.title.isBlank() ||
                 SongHelper.currentSong.title == "Song Title" ||
-                SongHelper.currentDuration < 0)
+                SongHelper.currentDuration < 0 ||
+                SongHelper.currentSong.isRadio == true)
                 return@Thread
 
             PlainLyrics = "Getting Lyrics..."

@@ -26,11 +26,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Album
+import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
@@ -137,13 +137,13 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
     ) {
         items(radioList) {radio ->
             val song = Song(
+                title = "",
                 imageUrl = if (radio.imageUrl == Uri.EMPTY) radio.imageUrl else Uri.EMPTY,
-                title = radio.name,
+                artist = radio.name,
                 media = radio.media,
-                artist = "Internet Radio",
                 duration = 0,
                 album = "Internet Radio",
-                year = "2023",
+                year = "2024",
                 isRadio = true)
 
             SongsCard(

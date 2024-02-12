@@ -88,6 +88,7 @@ fun parseRadioXML(input: BufferedReader, xpath: String, radiosList: MutableList<
             Radio(
                 name = radioName,
                 imageUrl = radioImage,
+                homepageUrl = radioImage.toString().removeSuffix("/favicon.ico"),
                 media = radioUrl,
                 navidromeID = radioID
             )
