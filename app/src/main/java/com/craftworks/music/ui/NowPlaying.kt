@@ -46,6 +46,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -83,6 +84,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.LinearGradientShader
 import androidx.compose.ui.graphics.Shader
 import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -93,6 +95,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -104,12 +107,13 @@ import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
+import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
-import com.craftworks.music.data.PlainLyrics
-import com.craftworks.music.data.SyncedLyric
+import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.playingSong
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
@@ -770,7 +774,9 @@ fun LandscapeAnimatedView(
     Box(modifier = Modifier.fillMaxWidth()){
         Crossfade(collapsed == true, label = "Lyrics View Crossfade") {
             if (it)
-                Box(modifier = Modifier.align(Alignment.TopStart).padding(top = 48.dp)){
+                Box(modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 48.dp)){
                     LyricsView(true)
                 }
         }
@@ -811,6 +817,7 @@ fun LandscapeAnimatedView(
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
+@Preview(showBackground = true)
 fun LyricsView(isLandscape: Boolean = false) {
     val topBottomFade = Brush.verticalGradient(0.05f to Color.Transparent, 0.25f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
     val state = rememberScrollState()
@@ -844,6 +851,7 @@ fun LyricsView(isLandscape: Boolean = false) {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         if (SyncedLyric.size >= 1) {
             Box(modifier = Modifier.height(if (isLandscape) 32.dp else 60.dp))
             SyncedLyric.forEachIndexed { index, lyric ->
@@ -877,8 +885,15 @@ fun LyricsView(isLandscape: Boolean = false) {
                     )
                 }
             }
-        } else {
-            Box(modifier = Modifier.height(if (isLandscape) dpToSp.dp else 60.dp))
+        }
+        else {
+            Box(modifier = Modifier.height(if (isLandscape) 32.dp else 60.dp))
+            if (PlainLyrics == "Getting Lyrics..."){
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(12.dp).size(32.dp),
+                    strokeCap = StrokeCap.Round
+                )
+            }
             Text(
                 text = PlainLyrics,
                 style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
@@ -888,6 +903,27 @@ fun LyricsView(isLandscape: Boolean = false) {
                 textAlign = TextAlign.Center,
                 lineHeight = lineHeight.sp
             )
+            if (PlainLyrics == "No Lyrics / Instrumental"){
+                Box(
+                    modifier = Modifier
+                        .height((dpToSp).dp)
+                        .clickable {
+                            getLyrics()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Retry",
+                        style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        lineHeight = lineHeight.sp
+                    )
+                }
+            }
         }
     }
 }

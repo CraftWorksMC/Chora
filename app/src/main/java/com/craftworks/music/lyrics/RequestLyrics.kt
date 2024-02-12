@@ -9,26 +9,28 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 private var isGetLyricsRunning = false
+private var tries = 0
 
 fun getLyrics(){
-    println("is lyrics running? $isGetLyricsRunning")
+    println("is lyrics running? $isGetLyricsRunning, tries: $tries")
 
     if (isGetLyricsRunning)
         return
+
+    if (tries >= 2){ //Try 3 times to get lyrics
+        PlainLyrics = "No Lyrics / Instrumental"
+    }
 
     isGetLyricsRunning = true
 
     val thread = Thread {
         try {
-            println("getLyrics() Called!")
             if (SongHelper.currentSong.title.isBlank() ||
                 SongHelper.currentSong.title == "Song Title" ||
-                SongHelper.currentDuration < 0 ||
-                SyncedLyric.isNotEmpty() ||
-                PlainLyrics != "Getting Lyrics... \n No Lyrics Found")
+                SongHelper.currentDuration < 0)
                 return@Thread
 
-            PlainLyrics = "Getting Lyrics... \n No Lyrics Found"
+            PlainLyrics = "Getting Lyrics..."
             SyncedLyric.clear()
 
             val url = URL("https://lrclib.net/api/get?artist_name=${SongHelper.currentSong.artist.replace(" ", "+")}&track_name=${SongHelper.currentSong.title.replace(" ", "+")}&album_name=${SongHelper.currentSong.album.replace(" ", "+")}&duration=${SongHelper.currentDuration.div(1000)}")
@@ -39,8 +41,10 @@ fun getLyrics(){
                 println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")
 
                 if (responseCode == 404){
-                    PlainLyrics = "No Lyrics / Instrumental"
+                    getLyrics()
+                    tries++
                 }
+
                 inputStream.bufferedReader().use {
                     it.lines().forEach { line ->
                         //println(line)
@@ -69,10 +73,13 @@ fun getLyrics(){
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
-            isGetLyricsRunning = false  // Reset the flag after the function completes its execution
+            println("Reset isGetLyricsRunning and tries")
+            tries = 0
+            isGetLyricsRunning = false
         }
 
     }
+
     thread.start()
 }
 
