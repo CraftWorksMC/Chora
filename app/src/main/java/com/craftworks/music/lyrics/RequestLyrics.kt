@@ -9,17 +9,12 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 private var isGetLyricsRunning = false
-private var tries = 0
 
 fun getLyrics(){
-    println("is lyrics running? $isGetLyricsRunning, tries: $tries")
+    println("is lyrics running? $isGetLyricsRunning")
 
     if (isGetLyricsRunning)
         return
-
-    if (tries >= 2){ //Try 3 times to get lyrics
-        PlainLyrics = "No Lyrics / Instrumental"
-    }
 
     isGetLyricsRunning = true
 
@@ -41,8 +36,7 @@ fun getLyrics(){
                 println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")
 
                 if (responseCode == 404){
-                    getLyrics()
-                    tries++
+                    PlainLyrics = "No Lyrics / Instrumental"
                 }
 
                 inputStream.bufferedReader().use {
@@ -73,8 +67,7 @@ fun getLyrics(){
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
-            println("Reset isGetLyricsRunning and tries")
-            tries = 0
+            println("Reset isGetLyricsRunning")
             isGetLyricsRunning = false
         }
 

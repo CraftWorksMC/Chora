@@ -149,7 +149,6 @@ class SongHelper {
                     // this will do until i finish it
                     playingSong.selectedSong = currentSong
 
-                    println("Player Changed Song!")
                     getLyrics()
                 }
                 override fun onPlaybackStateChanged(state: Int) {
