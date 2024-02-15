@@ -77,7 +77,7 @@ fun parseRadioXML(input: BufferedReader, xpath: String, radiosList: MutableList<
             radioID = if (attribute.nodeName == "id") attribute.textContent else radioID
             radioName = if (attribute.nodeName == "name") attribute.textContent else radioName
             radioUrl = if (attribute.nodeName == "streamUrl") Uri.parse(attribute.textContent) else radioUrl
-            radioImage = if (attribute.nodeName == "homePageUrl") Uri.parse(attribute.textContent + "/favicon.ico") else radioImage
+            //radioImage = if (attribute.nodeName == "homePageUrl") Uri.parse(attribute.textContent + "/favicon.ico") else radioImage
             if (attribute.nodeName == "name") Log.d(
                 "NAVIDROME",
                 "Added Radio: ${attribute.textContent}"
@@ -87,7 +87,7 @@ fun parseRadioXML(input: BufferedReader, xpath: String, radiosList: MutableList<
         radiosList.add(
             Radio(
                 name = radioName,
-                imageUrl = radioImage,
+                imageUrl = Uri.EMPTY,
                 homepageUrl = radioImage.toString().removeSuffix("/favicon.ico"),
                 media = radioUrl,
                 navidromeID = radioID

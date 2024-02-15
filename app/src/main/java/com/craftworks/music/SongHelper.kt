@@ -152,6 +152,8 @@ class SongHelper {
             if (isRadio == false)
                 getLyrics()
 
+            updateNotification(context)
+
             //region On State Changed:
             //  - Update Notification
             //  - Get Lyrics If Song Changed
@@ -180,23 +182,9 @@ class SongHelper {
                         getLyrics()
                 }
                 override fun onPlaybackStateChanged(state: Int) {
-                    // Update Notification
-                    notification = NotificationCompat.Builder(context, "Chora")
-                        .setSmallIcon(R.drawable.ic_notification_icon)
-                        .setContentTitle(player.mediaMetadata.title)
-                        .setContentText(player.mediaMetadata.artist)
-                        .setLargeIcon(bitmap.value)
-                        .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionCompatToken))
-                        //.setOngoing(true) // Don't dismiss it
-                        .setContentIntent(PendingIntent.getActivity( // Open app on notification click
-                            context,
-                            0,
-                            Intent(context.applicationContext,MainActivity::class.java),
-                            PendingIntent.FLAG_IMMUTABLE))
-                        .build()
-                    notificationManager.notify(2, notification)
+                    updateNotification(context)
 
-                    if (state == Player.STATE_ENDED){
+                    if (state == Player.EVENT_TRACKS_CHANGED){
                         onPlayerComplete()
                     }
                 }
@@ -247,6 +235,23 @@ class SongHelper {
         fun updateCurrentPos(){
             sliderPos.intValue = player.currentPosition.toInt()
             currentPosition = sliderPos.intValue.toLong()
+        }
+        fun updateNotification(context: Context){
+            // Update Notification
+            notification = NotificationCompat.Builder(context, "Chora")
+                .setSmallIcon(R.drawable.ic_notification_icon)
+                .setContentTitle(player.mediaMetadata.title)
+                .setContentText(player.mediaMetadata.artist)
+                .setLargeIcon(bitmap.value)
+                .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionCompatToken))
+                //.setOngoing(true) // Don't dismiss it
+                .setContentIntent(PendingIntent.getActivity( // Open app on notification click
+                    context,
+                    0,
+                    Intent(context.applicationContext,MainActivity::class.java),
+                    PendingIntent.FLAG_IMMUTABLE))
+                .build()
+            notificationManager.notify(2, notification)
         }
 
         private fun onPlayerComplete(){

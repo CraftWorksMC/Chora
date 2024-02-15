@@ -102,6 +102,9 @@ fun RadioScreen() {
 
         Column(modifier = Modifier.padding(12.dp,24.dp,12.dp,12.dp)) {
             RadiosGrid(radioList, onSongSelected = { song ->
+                if (song.media.toString().endsWith("m3u8"))
+                    return@RadiosGrid
+
                 SongHelper.currentSong = song
                 song.media?.let { SongHelper.playStream(context, it, true) }
                 // Get Metadata

@@ -25,6 +25,7 @@ fun getIcecastMetadata(urlString: String): String {
         }
         reader.close()
         parseIcecastMetadata(response.toString())
+        println(response.toString())
         return response.toString()
     } else {
         throw Exception("Failed to retrieve metadata. Response code: $responseCode")
@@ -39,6 +40,7 @@ fun parseIcecastMetadata(json: String){
     for (i in 0 until sourceArray.length()) {
         val sourceObject = sourceArray.getJSONObject(i)
         title = sourceObject.optString("title").split(" - ").last()
+        println(title)
     }
     SongHelper.currentSong = SongHelper.currentSong.copy(
         title = title,

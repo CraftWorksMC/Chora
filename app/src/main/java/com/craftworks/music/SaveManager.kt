@@ -96,7 +96,7 @@ class saveManager(private val context: Context){
             } catch (_: Exception){
                 // DO NOTHING
             }
-        else
+        else if (localProviderList.isNotEmpty())
             getSongsOnDevice(this@saveManager.context)
 
         Log.d("LOAD", "Loaded Settings!")

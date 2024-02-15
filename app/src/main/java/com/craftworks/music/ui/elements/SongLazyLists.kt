@@ -138,7 +138,7 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
         items(radioList) {radio ->
             val song = Song(
                 title = "",
-                imageUrl = if (radio.imageUrl == Uri.EMPTY) radio.imageUrl else Uri.EMPTY,
+                imageUrl = Uri.parse("android.resource://com.craftworks.music/drawable/radioplaceholder.png"),
                 artist = radio.name,
                 media = radio.media,
                 duration = 0,
