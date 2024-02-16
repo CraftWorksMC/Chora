@@ -121,6 +121,7 @@ class SongHelper {
                 val mediaMetadata = MediaMetadata.Builder()
                     .setArtist(currentSong.artist)
                     .setReleaseYear(Calendar.getInstance().get(Calendar.YEAR))
+                    .setArtworkUri(currentSong.imageUrl)
                     .setExtras(Bundle().apply {
                         putString("MoreInfo", "${currentSong.format} • ${currentSong.bitrate}")
                         putBoolean("isRadio", true)
