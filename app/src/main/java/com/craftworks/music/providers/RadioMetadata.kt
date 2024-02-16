@@ -11,8 +11,6 @@ fun getIcecastMetadata(urlString: String): String {
     val url = URL(urlString)
     val connection = url.openConnection() as HttpURLConnection
     connection.requestMethod = "GET"
-    connection.connectTimeout = 5000 // Timeout in milliseconds
-    connection.readTimeout = 5000 // Timeout in milliseconds
 
     val responseCode = connection.responseCode
     if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -25,7 +23,6 @@ fun getIcecastMetadata(urlString: String): String {
         }
         reader.close()
         parseIcecastMetadata(response.toString())
-        println(response.toString())
         return response.toString()
     } else {
         throw Exception("Failed to retrieve metadata. Response code: $responseCode")

@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.PlainLyrics
@@ -100,6 +101,7 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
     }
 }
 
+
 @ExperimentalFoundationApi
 @Composable
 fun AlbumGrid(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
@@ -126,8 +128,8 @@ fun AlbumGrid(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
 fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
     LazyVerticalGrid(
-        columns = GridCells.FixedSize(152.dp),
-        modifier = Modifier.fillMaxSize(),
+        columns = GridCells.Fixed(3),
+        modifier = Modifier.wrapContentWidth().fillMaxHeight(),
         contentPadding = PaddingValues(
             bottom = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE)
                 80.dp + 72.dp + 12.dp //BottomNavBar + NowPlayingScreen + 12dp Padding
@@ -137,8 +139,8 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
     ) {
         items(radioList) {radio ->
             val song = Song(
-                title = "",
-                imageUrl = Uri.parse("android.resource://com.craftworks.music/drawable/radioplaceholder.png"),
+                title = radio.name,
+                imageUrl = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
                 artist = radio.name,
                 media = radio.media,
                 duration = 0,
@@ -146,8 +148,8 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
                 year = "2024",
                 isRadio = true)
 
-            SongsCard(
-                song = song,
+            RadioCard(
+                radio = radio,
                 onClick = {
                 isSongSelected = true
                 SongHelper.stopStream()
@@ -158,12 +160,11 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
         }
     }
 }
-
 @ExperimentalFoundationApi
 @Composable
 fun PlaylistGrid(playlists: List<Playlist>, onPlaylistSelected: (playlist: Playlist) -> Unit){
     LazyVerticalGrid(
-        columns = GridCells.FixedSize(152.dp),
+        columns = GridCells.Fixed(2),
         modifier = Modifier.wrapContentWidth().fillMaxHeight(),
         contentPadding = PaddingValues(
             bottom = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE)

@@ -11,8 +11,9 @@ import com.craftworks.music.SongHelper
 import com.craftworks.music.data.navidromeServersList
 
 suspend fun getNavidromeBitmap(context: Context): Bitmap {
-    println("Getting Navidrome Bitmap")
+
     if (navidromeServersList.isEmpty()) return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
         navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
         SongHelper.currentSong.imageUrl == Uri.EMPTY) return Bitmap.createBitmap(
@@ -20,6 +21,8 @@ suspend fun getNavidromeBitmap(context: Context): Bitmap {
         1,
         Bitmap.Config.ARGB_8888
     )
+
+    println("Getting Navidrome Bitmap")
 
     val loading = ImageLoader(context)
     val request = ImageRequest.Builder(context)

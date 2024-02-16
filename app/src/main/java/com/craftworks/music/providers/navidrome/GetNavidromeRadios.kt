@@ -2,6 +2,7 @@ package com.craftworks.music.providers.navidrome
 
 import android.net.Uri
 import android.util.Log
+import com.craftworks.music.R
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.radioList
@@ -83,16 +84,15 @@ fun parseRadioXML(input: BufferedReader, xpath: String, radiosList: MutableList<
                 "Added Radio: ${attribute.textContent}"
             )
         }
-
-        radiosList.add(
-            Radio(
-                name = radioName,
-                imageUrl = Uri.EMPTY,
-                homepageUrl = radioImage.toString().removeSuffix("/favicon.ico"),
-                media = radioUrl,
-                navidromeID = radioID
-            )
+        val radio = Radio(
+            name = radioName,
+            imageUrl = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
+            homepageUrl = radioImage.toString().removeSuffix("/favicon.ico"),
+            media = radioUrl,
+            navidromeID = radioID
         )
+        if (!radiosList.contains(radio))
+            radiosList.add(radio)
     }
 }
 

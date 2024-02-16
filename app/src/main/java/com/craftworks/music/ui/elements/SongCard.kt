@@ -55,6 +55,7 @@ fun SongsCard(song: Song, onClick: () -> Unit){
                 Card(
                     modifier = Modifier
                         .padding(12.dp, 48.dp, 0.dp, 0.dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .combinedClickable(
                             onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
                             onLongClick = {
