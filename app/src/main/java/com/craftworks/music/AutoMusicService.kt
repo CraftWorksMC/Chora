@@ -1,11 +1,13 @@
 package com.craftworks.music
 
+import android.media.MediaMetadata
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat.MediaItem
-import androidx.media.MediaBrowserServiceCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
-
-import java.util.ArrayList
+import androidx.media.MediaBrowserServiceCompat
+import com.craftworks.music.data.songsList
 
 /**
  * This class provides a MediaBrowser through a service. It exposes the media library to a browsing
@@ -63,9 +65,19 @@ class AutoMusicService : MediaBrowserServiceCompat() {
 
         override fun onSkipToQueueItem(queueId: Long) {}
 
-        override fun onSeekTo(position: Long) {}
+        override fun onSeekTo(position: Long) {
+            SongHelper.currentPosition = position
+            sliderPos.intValue = position.toInt()
+        }
 
-        override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {}
+        override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
+            super.onPlayFromMediaId(mediaId, extras)
+            println("Started Android Auto Playback.")
+            val mediaUrl = songsList.firstOrNull{it.media.toString() == mediaId}?.media?: Uri.EMPTY
+            playingSong.selectedSong = songsList[songsList.indexOfFirst { it.media.toString() == mediaId }]
+            playingSong.selectedList = songsList
+            SongHelper.playStream(baseContext, mediaUrl)
+        }
 
         override fun onPause() {}
 
@@ -83,16 +95,18 @@ class AutoMusicService : MediaBrowserServiceCompat() {
     override fun onCreate() {
         super.onCreate()
 
-        session = MediaSessionCompat(this, "AutoMusicService")
+        session = MediaSessionCompat(baseContext, "AutoMusicService")
         sessionToken = session.sessionToken
         session.setCallback(callback)
         session.setFlags(
             MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
                     MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
         )
+        SongHelper.initPlayer(baseContext)
     }
 
     override fun onDestroy() {
+        super.onDestroy()
         session.release()
     }
 
@@ -100,11 +114,29 @@ class AutoMusicService : MediaBrowserServiceCompat() {
         clientPackageName: String,
         clientUid: Int,
         rootHints: Bundle?,
-    ): MediaBrowserServiceCompat.BrowserRoot? {
-        return MediaBrowserServiceCompat.BrowserRoot("root", null)
+    ): BrowserRoot {
+        return BrowserRoot("rootId", null)
     }
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaItem>>) {
-        result.sendResult(ArrayList())
+        val mediaItems: MutableList<MediaItem> = ArrayList()
+        // Add Media Items
+        for (song in songsList){
+            if (song.isRadio == true) break
+
+            val mediaMetadata = MediaMetadataCompat.Builder()
+                .putString(MediaMetadata.METADATA_KEY_MEDIA_URI, song.media.toString())
+                .putString(MediaMetadata.METADATA_KEY_TITLE, song.title)
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, song.artist)
+                .putString(MediaMetadata.METADATA_KEY_ALBUM, song.album)
+                .putString(MediaMetadata.METADATA_KEY_ART_URI, song.imageUrl.toString())
+                .putLong(MediaMetadata.METADATA_KEY_YEAR, song.year?.toLongOrNull()?: 0)
+                .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, song.media.toString())
+                .build()
+
+            val mediaItem = MediaItem(mediaMetadata.description, MediaItem.FLAG_PLAYABLE)
+            mediaItems.add(mediaItem)
+        }
+        result.sendResult(mediaItems)
     }
 }

@@ -1081,7 +1081,7 @@ fun DownloadButton(snackbarHostState: SnackbarHostState?,
     {
         Button(
             onClick = {
-                if (navidromeServersList.isEmpty() || useNavidromeServer.value) return@Button
+                if (navidromeServersList.isEmpty() || !useNavidromeServer.value) return@Button
                 if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
                     navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@Button
                 downloadNavidromeSong("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${playingSong.selectedSong?.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",
