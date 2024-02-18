@@ -1,11 +1,14 @@
 package com.craftworks.music
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
+import com.craftworks.music.data.Radio
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
@@ -25,7 +28,6 @@ class saveManager(private val context: Context){
 
     fun saveSettings(){
         sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()
-
         // Save Navidrome Server List
         val serverListString = navidromeServersList.joinToString(";") { "${it.url},${it.username},${it.password}" }
         sharedPreferences.edit().putString("navidromeServerList", serverListString).apply()
@@ -33,30 +35,40 @@ class saveManager(private val context: Context){
         // Save Local Provider List
         val localListString = localProviderList.joinToString(";") { "${it.directory},${it.enabled}" }
         sharedPreferences.edit().putString("localProviderList", localListString).apply()
-        println(localListString)
+
+        // Save Radios List
+        val radiosListString = radioList.joinToString(";") {
+            "${it.name},${it.media},${it.homepageUrl},${it.imageUrl},${it.navidromeID}"
+        }
+        sharedPreferences.edit().putString("radioList", radiosListString).apply()
 
         // Save Active Providers
         sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
         sharedPreferences.edit().putInt("activeLocalProvider", selectedLocalProvider.intValue).apply()
 
-        sharedPreferences.edit().putString("transcodingBitRate", transcodingBitrate.value).apply()
 
-        // Save Appearance Settings
+        // Preferences
         sharedPreferences.edit().putString("username", username.value).apply()
         sharedPreferences.edit().putString("backgroundType", backgroundType.value).apply()
         sharedPreferences.edit().putBoolean("showMoreInfo", showMoreInfo.value).apply()
+        sharedPreferences.edit().putString("transcodingBitRate", transcodingBitrate.value).apply()
+
+
     }
 
     fun loadSettings() {
-        /* PREFERENCES */
+        //region Preferences
         username.value = sharedPreferences.getString("username", "Username") ?: "Username"
         backgroundType.value = sharedPreferences.getString("backgroundType", "Animated Blur") ?: "Animated Blur"
         showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
+        transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
+        //endregion
 
-        /* NAVIDROME SETTINGS */
+        //region Navidrome
 
         useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
 
+        // Get Navidrome Server List
         val serverListString = sharedPreferences.getString("navidromeServerList", "") ?: ""
         val navidromeStrings = serverListString.split(";")
         navidromeStrings.forEach { navidromeString ->
@@ -67,7 +79,12 @@ class saveManager(private val context: Context){
                 println(navidromeProvider)
             }
         }
+        selectedNavidromeServerIndex.intValue = sharedPreferences.getInt("activeNavidromeServer", 0)
 
+        //endregion
+
+        //region Local
+        // Get Local Providers List
         val localListString = sharedPreferences.getString("localProviderList", "") ?: ""
         val localListStrings = localListString.split(";")
         println(localListStrings)
@@ -79,14 +96,37 @@ class saveManager(private val context: Context){
                 println(localProvider)
             }
         }
-
-        selectedNavidromeServerIndex.intValue = sharedPreferences.getInt("activeNavidromeServer", 0)
-
         selectedLocalProvider.intValue = sharedPreferences.getInt("activeLocalProvider", 0)
+        //endregion
 
-        transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
+        //region Radios
+        // Get Radios List
+        val radioListString = sharedPreferences.getString("radioList", "") ?: ""
+        val radioListStrings = radioListString.split(";")
+        println(radioListStrings)
+        radioListStrings.forEach { localString ->
+            val parts = localString.split(",")
+            if (parts.size == 2) {
+                val radio = Radio(
+                    parts[0],
+                    Uri.parse(parts[1]),
+                    parts[2],
+                    Uri.parse(parts[3]),
+                    parts[4]
+                )
+                radioList.add(radio)
+            }
+        }
+        //endregion
 
-        if (useNavidromeServer.value && (navidromeServersList.isNotEmpty() && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")))
+        // Get Media Items
+        if (useNavidromeServer.value && (
+                    navidromeServersList.isNotEmpty() && (
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" ||
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" ||
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")
+                    )
+            )
             try {
                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
                 getNavidromePlaylists()
@@ -99,6 +139,7 @@ class saveManager(private val context: Context){
         else if (localProviderList.isNotEmpty())
             getSongsOnDevice(this@saveManager.context)
 
+        // Finished Loading Settings
         Log.d("LOAD", "Loaded Settings!")
     }
 }

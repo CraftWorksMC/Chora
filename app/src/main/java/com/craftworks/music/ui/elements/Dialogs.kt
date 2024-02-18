@@ -97,7 +97,7 @@ fun PreviewAddRadioDialog(){
 @Preview(showBackground = true)
 @Composable
 fun PreviewModifyRadioDialog(){
-    ModifyRadioDialog(setShowDialog = {}, radio = Radio(Uri.EMPTY,"Radio"))
+    ModifyRadioDialog(setShowDialog = {}, radio = Radio("",Uri.EMPTY,"", Uri.EMPTY))
 }
 
 
@@ -174,9 +174,9 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                                 radioList.add(
                                     Radio(
                                         name = radioName,
-                                        imageUrl = Uri.parse("$radioUrl/favicon.ico"),
                                         media = Uri.parse(radioUrl),
-                                        homepageUrl = radioPage
+                                        homepageUrl = radioPage,
+                                        imageUrl = Uri.EMPTY,
                                     )
                                 )
                                 if (useNavidromeServer.value) createNavidromeRadioStation(

@@ -91,7 +91,7 @@ fun parseRadioXML(input: BufferedReader, xpath: String, radiosList: MutableList<
             media = radioUrl,
             navidromeID = radioID
         )
-        if (!radiosList.contains(radio))
+        if (radiosList.firstOrNull { it.media == radio.media } == null)
             radiosList.add(radio)
     }
 }
