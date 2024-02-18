@@ -77,14 +77,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val autoMusicService = AutoMusicService()
         Timer().scheduleAtFixedRate(object : TimerTask() {
             private val handler = Handler(Looper.getMainLooper())
             override fun run() {
                 handler.post {
                     try {
-                        if (SongHelper.isSeeking || SongHelper.player.isPlaying || !SongHelper.player.isLoading)
+                        if (SongHelper.isSeeking || SongHelper.player.isPlaying || !SongHelper.player.isLoading){
                             SongHelper.updateCurrentPos()
-
+                        }
+                        autoMusicService.updateAutomotiveState()
                         /* SYNCED LYRICS */
                         for (a in 0 until SyncedLyric.size - 1) {
                             if (SyncedLyric[a].timestamp <= SongHelper.currentPosition && SyncedLyric[a + 1].timestamp >= SongHelper.currentPosition) {
@@ -102,7 +104,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-        }, 0, 100)
+        }, 0, 500)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 

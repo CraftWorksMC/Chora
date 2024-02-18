@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.media.session.MediaSessionCompat
 import androidx.annotation.OptIn
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,8 +32,7 @@ class SongHelper {
     companion object{
         var isSeeking = false
         lateinit var player: ExoPlayer
-        private lateinit var mediaSession: MediaSession
-        lateinit var mediaSessionCompat: MediaSessionCompat
+        lateinit var mediaSession: MediaSession
 
         private lateinit var notification: Notification
         private lateinit var notificationManager: NotificationManager
