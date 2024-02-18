@@ -14,6 +14,7 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 - Playlists
 ## Roadmap
 
+- Android Auto
 - Offline Playlists
 - Artist Page
 
