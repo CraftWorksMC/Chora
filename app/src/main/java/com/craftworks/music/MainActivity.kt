@@ -86,25 +86,28 @@ class MainActivity : ComponentActivity() {
                         if (SongHelper.isSeeking || SongHelper.player.isPlaying || !SongHelper.player.isLoading){
                             SongHelper.updateCurrentPos()
                         }
-                        autoMusicService.updateAutomotiveState()
+
                         /* SYNCED LYRICS */
                         for (a in 0 until SyncedLyric.size - 1) {
-                            if (SyncedLyric[a].timestamp <= SongHelper.currentPosition && SyncedLyric[a + 1].timestamp >= SongHelper.currentPosition) {
-                                SyncedLyric[a] = SyncedLyric[a].copy(isCurrentLyric = true)
-                                SyncedLyric.forEachIndexed { index, syncedLyric ->
-                                    if (index != a) {
-                                        SyncedLyric[index] = syncedLyric.copy(isCurrentLyric = false)
+                            if (SyncedLyric[a].timestamp <= SongHelper.currentPosition + 500 &&
+                                SyncedLyric[a + 1].timestamp >= SongHelper.currentPosition + 500) {
+
+                                    SyncedLyric[a] = SyncedLyric[a].copy(isCurrentLyric = true)
+                                    SyncedLyric.forEachIndexed { index, syncedLyric ->
+                                        if (index != a) {
+                                            SyncedLyric[index] = syncedLyric.copy(isCurrentLyric = false)
+                                        }
                                     }
-                                }
                             }
                         }
 
+                        //autoMusicService.updateAutomotiveState()
                     }catch (_: Exception){
 
                     }
                 }
             }
-        }, 0, 500)
+        }, 0, 1000)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 

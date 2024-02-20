@@ -12,6 +12,7 @@ import androidx.media.MediaBrowserServiceCompat
 import androidx.media3.common.util.UnstableApi
 import com.craftworks.music.data.songsList
 
+
 /**
  * This class provides a MediaBrowser through a service. It exposes the media library to a browsing
  * client, through the onGetRoot and onLoadChildren methods. It also creates a MediaSession and
@@ -64,47 +65,73 @@ class AutoMusicService : MediaBrowserServiceCompat() {
 
     private lateinit var session: MediaSessionCompat
 
-    fun updateAutomotiveState() {
+    @OptIn(UnstableApi::class) override fun onCreate() {
+        super.onCreate()
 
+        session = MediaSessionCompat(baseContext, "AutoMusicService").apply {
+            setCallback(callback)
+            setPlaybackState(
+                PlaybackStateCompat.Builder()
+                    .setActions(PlaybackStateCompat.ACTION_STOP)
+                    .setActions(PlaybackStateCompat.ACTION_PAUSE)
+                    .setActions(PlaybackStateCompat.ACTION_PLAY)
+                    .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
+                    .setActions(PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
+                    .setActions(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
+                    .setActions(PlaybackStateCompat.ACTION_SEEK_TO)
+                    .setState(
+                        PlaybackStateCompat.STATE_PAUSED,
+                        SongHelper.player.currentPosition,
+                        1f
+                    )
+                    .build()
+            )
+            setFlags(
+                MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
+                        MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
+            )
+        }
+        sessionToken = session.sessionToken
+    }
+
+    fun updateAutomotiveState() {
+        println("Called updateAutomotiveState")
         val mediaMetadata = MediaMetadataCompat.Builder()
-            .putString(MediaMetadata.METADATA_KEY_TITLE, SongHelper.currentSong.title)
-            .putString(MediaMetadata.METADATA_KEY_ARTIST, SongHelper.currentSong.artist)
+            .putString(MediaMetadata.METADATA_KEY_TITLE, SongHelper.player.mediaMetadata.title.toString())
+            .putString(MediaMetadata.METADATA_KEY_ARTIST, SongHelper.player.mediaMetadata.artist.toString())
             .putString(MediaMetadata.METADATA_KEY_ALBUM, SongHelper.currentSong.album)
             .putString(MediaMetadata.METADATA_KEY_ART_URI, SongHelper.currentSong.imageUrl.toString())
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, SongHelper.currentDuration)
             //.putLong(MediaMetadata.METADATA_KEY_YEAR, SongHelper.currentSong.year?.toLong()?:0)
             .build()
 
-        val playbackState = if (SongHelper.player.playWhenReady) {
-            PlaybackStateCompat.STATE_PLAYING
-        } else {
-            PlaybackStateCompat.STATE_PAUSED
-        }
-
         session.apply {
+            isActive = true
             setMetadata(mediaMetadata)
             setPlaybackState(
                 PlaybackStateCompat.Builder()
-                    .setState(playbackState, sliderPos.intValue.toLong(),  1f)
-                    .build()
+                    .setState(
+                        PlaybackStateCompat.STATE_PLAYING,
+                        SongHelper.player.currentPosition,
+                        1f
+                    ).build()
             )
-            isActive = true
         }
+        println("Updated MediaSessionCompat")
     }
 
     private val callback = object : MediaSessionCompat.Callback() {
+
         override fun onPlay() {
             super.onPlay()
-            session.setPlaybackState(
-                PlaybackStateCompat.Builder()
-                    .setState(PlaybackStateCompat.STATE_PLAYING, sliderPos.intValue.toLong(),  1f)
-                    .build()
-            )
+            println("AA: onPlay")
             SongHelper.player.playWhenReady = true
             updateAutomotiveState()
         }
 
         override fun onSeekTo(pos: Long) {
             super.onSeekTo(pos)
+            println("AA: Requested Seek To $pos")
             sliderPos.intValue = pos.toInt()
             SongHelper.currentPosition = pos
             SongHelper.player.seekTo(pos)
@@ -112,11 +139,7 @@ class AutoMusicService : MediaBrowserServiceCompat() {
 
         override fun onPause() {
             super.onPause()
-            session.setPlaybackState(
-                PlaybackStateCompat.Builder()
-                    .setState(PlaybackStateCompat.STATE_PAUSED, SongHelper.mediaSession.player.currentPosition,1f)
-                    .build()
-            )
+            println("AA: Requested Pause")
             SongHelper.player.playWhenReady = false
             SongHelper.pauseStream()
             updateAutomotiveState()
@@ -125,16 +148,26 @@ class AutoMusicService : MediaBrowserServiceCompat() {
         override fun onSkipToNext() {
             super.onSkipToNext()
             SongHelper.nextSong(SongHelper.currentSong)
+            updateAutomotiveState()
         }
+
+        override fun onSkipToPrevious() {
+            super.onSkipToPrevious()
+            SongHelper.previousSong(SongHelper.currentSong)
+            updateAutomotiveState()
+        }
+
         override fun onStop() {
             super.onStop()
-            SongHelper.stopStream()
+            println("AA: Requested Stop")
+            SongHelper.pauseStream()
             updateAutomotiveState()
         }
 
         override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
             super.onPlayFromMediaId(mediaId, extras)
 
+            println("AA: onPlayFromMediaId $mediaId")
             playingSong.selectedSong = songsList[songsList.indexOfFirst { it.media.toString() == mediaId }]
             playingSong.selectedList = songsList
 
@@ -143,21 +176,7 @@ class AutoMusicService : MediaBrowserServiceCompat() {
         }
     }
 
-    @OptIn(UnstableApi::class) override fun onCreate() {
-        super.onCreate()
 
-        session = MediaSessionCompat(baseContext, "AutoMusicService").apply {
-            setCallback(callback)
-            setMetadata(MediaMetadataCompat.Builder()
-                .putString(MediaMetadata.METADATA_KEY_TITLE, SongHelper.currentSong.title)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, SongHelper.currentSong.artist)
-                .putString(MediaMetadata.METADATA_KEY_ALBUM, SongHelper.currentSong.album)
-                .putString(MediaMetadata.METADATA_KEY_ART_URI, SongHelper.currentSong.imageUrl.toString())
-                //.putLong(MediaMetadata.METADATA_KEY_YEAR, SongHelper.currentSong.year?.toLong()?:0)
-                .build())
-        }
-        sessionToken = session.sessionToken
-    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -175,6 +194,9 @@ class AutoMusicService : MediaBrowserServiceCompat() {
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaItem>>) {
         val mediaItems = ArrayList<MediaItem>()
         // Add Media Items
+        if (songsList.isEmpty())
+            saveManager(applicationContext).loadSettings()
+
         for (song in songsList){
             if (song.isRadio == true) break
 

@@ -4,9 +4,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.net.Uri
-import android.provider.MediaStore
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -85,6 +85,7 @@ import androidx.compose.ui.graphics.LinearGradientShader
 import androidx.compose.ui.graphics.Shader
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -129,7 +130,6 @@ import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.transcodingBitrate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.io.FileNotFoundException
 
 var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
 
@@ -180,8 +180,12 @@ fun NowPlayingContent(
                     SongHelper.currentSong.isRadio == false)
                     getNavidromeBitmap(context)
                 else //Don't crash if there's no album art!
-                    try{ MediaStore.Images.Media.getBitmap(context.contentResolver, SongHelper.currentSong.imageUrl) }
-                    catch (_: FileNotFoundException) { Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888) }
+                    try{
+                        ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, SongHelper.currentSong.imageUrl)).copy(Bitmap.Config.RGBA_F16, true)
+                    }
+                    catch (_: Exception) {
+                        Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+                    }
         }
 
         // BLURRED BACKGROUND
@@ -829,7 +833,7 @@ fun LyricsView(isLandscape: Boolean = false) {
     var currentLyricIndex by remember { mutableIntStateOf(0) }
 
     /* SCROLL VARS */
-    val lineHeight = 30
+    val lineHeight = 32
     val dpToSp = lineHeight * LocalContext.current.resources.displayMetrics.density
     val pxValue = with(LocalDensity.current) { dpToSp.dp.toPx() }
 
@@ -864,7 +868,6 @@ fun LyricsView(isLandscape: Boolean = false) {
                     if (lyric.isCurrentLyric) 1f else 0.5f,
                     label = "Current Lyric Alpha"
                 )
-
                 if (lyric.isCurrentLyric) currentLyricIndex = index
 
                 Box(
@@ -874,17 +877,20 @@ fun LyricsView(isLandscape: Boolean = false) {
                             SongHelper.player.seekTo(lyric.timestamp.toLong())
                             currentLyricIndex = index
                             lyric.isCurrentLyric = false
-                        },
+                        }
+                        .graphicsLayer(
+                            scaleX = if (lyric.isCurrentLyric) 1f else 0.85f,
+                            scaleY = if (lyric.isCurrentLyric) 1f else 0.85f
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = if (lyric.content == "") "• • •" else lyric.content,
-                        style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
+                        style = if (lyric.isCurrentLyric) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground.copy(lyricAlpha),
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .scale(if (isLandscape) 1f else 0.9f),
+                            .fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         lineHeight = lineHeight.sp
                     )
