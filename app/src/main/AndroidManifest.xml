@@ -26,8 +26,10 @@
         android:appCategory="audio"
         tools:targetApi="31">
 
+        <!-- documentation really sucks
         <meta-data android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc"/>
+        -->
 
         <activity
             android:name=".MainActivity"
@@ -41,6 +43,7 @@
             </intent-filter>
         </activity>
 
+        <!-- why is this so hard
         <service
             android:name=".auto.AutoMusicServiceNew"
             android:foregroundServiceType="mediaPlayback"
@@ -49,5 +52,6 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+        -->
     </application>
 </manifest>
