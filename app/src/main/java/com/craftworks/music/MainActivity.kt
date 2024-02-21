@@ -77,7 +77,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val autoMusicService = AutoMusicService()
         Timer().scheduleAtFixedRate(object : TimerTask() {
             private val handler = Handler(Looper.getMainLooper())
             override fun run() {
@@ -88,9 +87,9 @@ class MainActivity : ComponentActivity() {
                         }
 
                         /* SYNCED LYRICS */
-                        for (a in 0 until SyncedLyric.size - 1) {
-                            if (SyncedLyric[a].timestamp <= SongHelper.currentPosition + 500 &&
-                                SyncedLyric[a + 1].timestamp >= SongHelper.currentPosition + 500) {
+                        for (a in 0 until SyncedLyric.size - 1) { //Added 750ms offset
+                            if (SyncedLyric[a].timestamp <= SongHelper.currentPosition + 750 &&
+                                SyncedLyric[a + 1].timestamp >= SongHelper.currentPosition + 750) {
 
                                     SyncedLyric[a] = SyncedLyric[a].copy(isCurrentLyric = true)
                                     SyncedLyric.forEachIndexed { index, syncedLyric ->
@@ -100,8 +99,6 @@ class MainActivity : ComponentActivity() {
                                     }
                             }
                         }
-
-                        //autoMusicService.updateAutomotiveState()
                     }catch (_: Exception){
 
                     }

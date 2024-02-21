@@ -5,6 +5,9 @@
       <entry key="app">
         <State />
       </entry>
+      <entry key="app_auto">
+        <State />
+      </entry>
       <entry key="app_automotive">
         <State />
       </entry>

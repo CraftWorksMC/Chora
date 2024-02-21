@@ -42,7 +42,7 @@
         </activity>
 
         <service
-            android:name="AutoMusicService"
+            android:name=".auto.AutoMusicServiceNew"
             android:foregroundServiceType="mediaPlayback"
             android:exported="true">
             <intent-filter>
