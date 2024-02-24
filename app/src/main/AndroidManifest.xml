@@ -7,7 +7,11 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Android Auto -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
 
     <uses-feature
         android:name="android.hardware.wifi"
@@ -30,6 +34,8 @@
         <meta-data android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc"/>
         -->
+        <meta-data android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc"/>
 
         <activity
             android:name=".MainActivity"
@@ -49,9 +55,18 @@
             android:foregroundServiceType="mediaPlayback"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserService" />
+            androidx.media3.session.MediaSessionService
+                <action android:name="" />
             </intent-filter>
         </service>
         -->
+        <service
+            android:name=".auto.AutoLibraryService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

@@ -63,7 +63,7 @@ class SongHelper {
             // Create a Notification Channel
             val channel = NotificationChannel(
                 "Chora",
-                "Chora Notifications",
+                "Media Controls",
                 NotificationManager.IMPORTANCE_LOW
             )
             notificationManager =
