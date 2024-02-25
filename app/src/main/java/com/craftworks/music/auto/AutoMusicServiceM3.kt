@@ -31,7 +31,6 @@ import kotlinx.coroutines.launch
 /*
     Thanks to Yurowitz on StackOverflow for this! Used it as a template.
     https://stackoverflow.com/questions/76838126/can-i-define-a-medialibraryservice-without-an-app
-
 */
 
 class AutoLibraryService : MediaLibraryService() {
