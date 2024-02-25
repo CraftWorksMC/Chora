@@ -20,6 +20,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.craftworks.music.data.songsList
+import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -85,11 +86,6 @@ class AutoLibraryService : MediaLibraryService() {
                     .setAlbumTitle(song.album)
                     .setArtworkUri(song.imageUrl)
                     .setReleaseYear(song.year?.toIntOrNull() ?: 0)
-                    .setExtras(Bundle().apply {
-                        putString("MoreInfo", "${song.format} • ${song.bitrate}")
-                        putString("NavidromeID", song.navidromeID)
-                        putBoolean("isRadio", false)
-                    })
                     .setIsBrowsable(false)
                     .setIsPlayable(true)
                     .build()
@@ -121,7 +117,12 @@ class AutoLibraryService : MediaLibraryService() {
                     DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER /* We prefer extensions, such as FFmpeg */
                 )
             )
-            .setWakeMode(C.WAKE_MODE_LOCAL) /* Prevent the service from being killed during playback */
+            .setWakeMode(
+                if (useNavidromeServer.value){
+                    C.WAKE_MODE_NETWORK }
+                else {
+                    C.WAKE_MODE_LOCAL }
+            )
             .setHandleAudioBecomingNoisy(true) /* Prevent annoying noise when changing devices */
             .setAudioAttributes(AudioAttributes.DEFAULT, true)
             .build()
@@ -141,7 +142,6 @@ class AutoLibraryService : MediaLibraryService() {
                     if (tracklist.size > 1) {
                         val index = tracklist.indexOfFirst { it.mediaId == mediaItem.mediaId }
                         player.setMediaItems(tracklist, index, 0)
-                        //setPlaybackMode(PlayBackMode.PBM_TRACKLIST)
                     }
                 }
             }
