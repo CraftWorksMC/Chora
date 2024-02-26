@@ -112,8 +112,7 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
         }
         // Enabled Checkbox
         var enabled by remember { mutableStateOf(false) }
-        enabled = //localProviderList[localProviderList.indexOf(local)].enabled
-            true
+        enabled = localProviderList[localProviderList.indexOf(local)].enabled
 
         Checkbox(
             checked = enabled,
