@@ -9,12 +9,12 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 - Transcoding
 - Material 3 UI.
 - Offline Mode.
-- Internet Radio. (Metadata only from IceCast Servers)
-- Synced And Unsynced Lyrics [From LRCLIB.net]
-- Playlists
+- Internet Radio. [Metadata IceCast only]
+- Synced And Unsynced Lyrics [From lrclib.net]
+- Playlists [Navidrome Only]
+- Android Auto
 ## Roadmap
 
-- Android Auto
 - Offline Playlists
 - Artist Page
 
@@ -30,7 +30,7 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/SettingScreen.png?raw=true" width=200>
 </p>
 
-Made with :heart: in italy :it:
+Made with :heart: in italy
 
 > Lyrics icon provided by [Remix Icon](https://remixicon.com/ "Remix Icon")
 

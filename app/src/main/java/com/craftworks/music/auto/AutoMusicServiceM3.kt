@@ -64,7 +64,7 @@ class AutoLibraryService : MediaLibraryService() {
                 .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
                 .setTitle("Chora - All Songs")
                 .setArtworkUri(
-                    Uri.parse("android.resource://mpappc/drawable/ic_tracklist")
+                    Uri.parse("android.resource://com.craftworks.music/drawable/ic_notification_icon")
                 )
                 .build()
         )
