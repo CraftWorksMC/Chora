@@ -189,7 +189,7 @@ class SongHelper {
                     super.onPlaybackStateChanged(state)
                     updateNotification(context)
 
-                    if (state == Player.EVENT_TRACKS_CHANGED){
+                    if (state == Player.EVENT_MEDIA_ITEM_TRANSITION){
                         onPlayerComplete()
                         updateNotification(context)
                     }

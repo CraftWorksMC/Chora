@@ -877,14 +877,14 @@ fun LyricsView(isLandscape: Boolean = false) {
                             lyric.isCurrentLyric = false
                         }
                         .graphicsLayer(
-                            scaleX = if (lyric.isCurrentLyric) 1f else 0.85f,
-                            scaleY = if (lyric.isCurrentLyric) 1f else 0.85f
+                            scaleX = if (lyric.isCurrentLyric) 1f else 0.9f,
+                            scaleY = if (lyric.isCurrentLyric) 1f else 0.9f
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = if (lyric.content == "") "• • •" else lyric.content,
-                        style = if (lyric.isCurrentLyric) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground.copy(lyricAlpha),
                         modifier = Modifier
