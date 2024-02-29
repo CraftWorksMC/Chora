@@ -7,7 +7,6 @@ import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
-import com.craftworks.music.data.radioList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.screens.transcodingBitrate
 import com.craftworks.music.ui.screens.username
@@ -35,9 +34,9 @@ fun getNavidromeSongs(url: URL){
             Log.d("useNavidromeServer", "URL: $url")
 
             // Clear everything!
-            songsList.clear()
-            albumList.clear()
-            radioList.clear()
+            //songsList.clear()
+            //albumList.clear()
+            //radioList.clear()
             playlistList.clear()
 
             navidromeStatus.value = "Loading"

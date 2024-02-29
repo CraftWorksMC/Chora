@@ -29,7 +29,7 @@ fun getNavidromeRadios(){
             val url =
                 URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getInternetRadioStations.view?&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
 
-            radioList.clear()
+            //radioList.clear()
 
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET

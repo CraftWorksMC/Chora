@@ -14,7 +14,6 @@ import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.playlistList
-import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.songsList
 import java.io.FileNotFoundException
@@ -30,7 +29,7 @@ fun getSongsOnDevice(context: Context){
     // Clear everything!
     //songsList.clear()
     //albumList.clear()
-    radioList.clear()
+    //radioList.clear()
     playlistList.clear()
 
     MediaScannerConnection.scanFile(
@@ -86,7 +85,8 @@ fun getSongsOnDevice(context: Context){
                     dateAdded = thisDateAdded,
                     year = thisYear,
                     format = thisFormat.uppercase().drop(6),
-                    bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else ""
+                    bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else "",
+                    navidromeID = "Local"
                 )
                 if (songsList.isEmpty() || !songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
                     songsList.add(song);

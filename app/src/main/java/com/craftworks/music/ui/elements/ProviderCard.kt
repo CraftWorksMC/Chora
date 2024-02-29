@@ -43,7 +43,6 @@ import com.craftworks.music.data.albumList
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
-import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
@@ -130,7 +129,7 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
                 else {
                     songsList.clear()
                     albumList.clear()
-                    radioList.clear()
+                    //radioList.clear()
                     playlistList.clear()
 
                     if (useNavidromeServer.value &&
@@ -212,7 +211,7 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("https:/
 
                 songsList.clear()
                 albumList.clear()
-                radioList.clear()
+                //radioList.clear()
                 playlistList.clear()
 
                 if (it){

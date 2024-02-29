@@ -176,7 +176,7 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                                         name = radioName,
                                         media = Uri.parse(radioUrl),
                                         homepageUrl = radioPage,
-                                        imageUrl = Uri.EMPTY,
+                                        imageUrl = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
                                     )
                                 )
                                 if (useNavidromeServer.value) createNavidromeRadioStation(
@@ -304,7 +304,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                                 }
                                 setShowDialog(false)
                                 if (useNavidromeServer.value) {
-                                    radioList.clear()
+                                    //radioList.clear()
                                     //getNavidromeRadios()
                                 } else {
                                     radioList.remove(radio)

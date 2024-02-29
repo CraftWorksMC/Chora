@@ -314,6 +314,7 @@ class MainActivity : ComponentActivity() {
             }
 
             override fun onActivityStopped(activity: Activity) {
+                SongHelper.releasePlayer()
             }
 
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {

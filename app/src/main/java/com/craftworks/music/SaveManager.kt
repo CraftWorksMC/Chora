@@ -106,7 +106,7 @@ class saveManager(private val context: Context){
         println(radioListStrings)
         radioListStrings.forEach { localString ->
             val parts = localString.split(",")
-            if (parts.size == 2) {
+            if (parts.size > 1) {
                 val radio = Radio(
                     parts[0],
                     Uri.parse(parts[1]),

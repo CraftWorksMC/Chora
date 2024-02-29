@@ -22,14 +22,13 @@ fun getLyrics(){
         try {
             if (SongHelper.currentSong.title.isBlank() ||
                 SongHelper.currentSong.title == "Song Title" ||
-                SongHelper.currentDuration < 0 ||
                 SongHelper.currentSong.isRadio == true)
                 return@Thread
 
             PlainLyrics = "Getting Lyrics..."
             SyncedLyric.clear()
 
-            val url = URL("https://lrclib.net/api/get?artist_name=${SongHelper.currentSong.artist.replace(" ", "+")}&track_name=${SongHelper.currentSong.title.replace(" ", "+")}&album_name=${SongHelper.currentSong.album.replace(" ", "+")}&duration=${SongHelper.currentDuration.div(1000)}")
+            val url = URL("https://lrclib.net/api/get?artist_name=${SongHelper.currentSong.artist.replace(" ", "+")}&track_name=${SongHelper.currentSong.title.replace(" ", "+")}&album_name=${SongHelper.currentSong.album.replace(" ", "+")}&duration=${SongHelper.currentSong.duration.div(1000)}")
 
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET

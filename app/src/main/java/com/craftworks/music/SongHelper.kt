@@ -38,7 +38,6 @@ class SongHelper {
         private lateinit var notificationManager: NotificationManager
 
         var currentPosition: Long = 0
-        var currentDuration: Long = 0
         var currentSong by mutableStateOf<Song>(
             Song(
                 title = "",
@@ -56,6 +55,11 @@ class SongHelper {
 
             player = ExoPlayer.Builder(context).build()
             mediaSession = MediaSession.Builder(context, player).build()
+
+            player.availableCommands.buildUpon()
+                .add(Player.COMMAND_SET_SHUFFLE_MODE)
+                .add(Player.COMMAND_SET_REPEAT_MODE)
+                .build()
 
             player.shuffleModeEnabled = false
             player.repeatMode = Player.REPEAT_MODE_OFF
@@ -96,6 +100,7 @@ class SongHelper {
                         .setArtworkUri(song.imageUrl)
                         .setReleaseYear(song.year?.toIntOrNull() ?: 0)
                         .setExtras(Bundle().apply {
+                            putInt("duration", song.duration)
                             putString("MoreInfo", "${song.format} • ${song.bitrate}")
                             putString("NavidromeID", song.navidromeID)
                             putBoolean("isRadio", false)
@@ -139,7 +144,6 @@ class SongHelper {
             }
 
             player.pauseAtEndOfMediaItems = false
-            player.shuffleModeEnabled = false
             player.playWhenReady = true
 
             // Set WakeLock
@@ -165,7 +169,7 @@ class SongHelper {
                     currentSong = Song(
                         title = player.mediaMetadata.title.toString(),
                         artist = player.mediaMetadata.artist.toString(),
-                        duration = player.duration.toInt(),
+                        duration = player.mediaMetadata.extras?.getInt("duration") ?: 0,
                         imageUrl = Uri.parse(mediaSession.player.mediaMetadata.artworkUri.toString()),
                         year = player.mediaMetadata.releaseYear.toString(),
                         album = player.mediaMetadata.albumTitle.toString(),
@@ -173,8 +177,6 @@ class SongHelper {
                         navidromeID = player.mediaMetadata.extras?.getString("NavidromeID"),
                         isRadio = player.mediaMetadata.extras?.getBoolean("isRadio")
                     )
-                    if (player.duration > 0)
-                        currentDuration = player.duration
 
                     // this will do until i finish it
                     playingSong.selectedSong = currentSong
@@ -182,11 +184,14 @@ class SongHelper {
                     if (isRadio == false)
                         getLyrics()
                 }
+
                 override fun onPlaybackStateChanged(state: Int) {
+                    super.onPlaybackStateChanged(state)
                     updateNotification(context)
 
                     if (state == Player.EVENT_TRACKS_CHANGED){
                         onPlayerComplete()
+                        updateNotification(context)
                     }
                 }
             })
@@ -208,12 +213,10 @@ class SongHelper {
             currentPosition = 0
         }
 
-        /*
         fun releasePlayer(){
             player.release()
             mediaSession.release()
         }
-        */
 
         fun previousSong(song: Song){
             if (player.currentPosition > 250)
@@ -256,7 +259,7 @@ class SongHelper {
         }
 
         private fun onPlayerComplete(){
-            if (abs(sliderPos.intValue - currentDuration) > 1000 || currentSong.isRadio == true) return
+            if (abs(sliderPos.intValue - currentSong.duration) > 1000 || currentSong.isRadio == true) return
             nextSong(currentSong)
         }
     }

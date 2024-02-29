@@ -115,7 +115,6 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.getLyrics
-import com.craftworks.music.playingSong
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
@@ -175,15 +174,14 @@ fun NowPlayingContent(
         LaunchedEffect(SongHelper.currentSong){
             println("Getting Cover Art Bitmap")
             bitmap.value =
-                if (useNavidromeServer.value &&
+                if (SongHelper.currentSong.navidromeID != "Local" &&
                     navidromeServersList.isNotEmpty() &&
                     SongHelper.currentSong.isRadio == false)
                     getNavidromeBitmap(context)
                 else //Don't crash if there's no album art!
                     try{
                         ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, SongHelper.currentSong.imageUrl)).copy(Bitmap.Config.RGBA_F16, true)
-                    }
-                    catch (_: Exception) {
+                    } catch (_: Exception) {
                         Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
                     }
         }
@@ -394,7 +392,7 @@ fun SliderUpdating(isLandscape: Boolean? = false){
         onValueChangeFinished = {
             SongHelper.isSeeking = false
             SongHelper.player.seekTo(sliderPos.intValue.toLong())},
-        valueRange = 0f..(SongHelper.currentDuration.toFloat()),
+        valueRange = 0f..(SongHelper.currentSong.duration.toFloat()),
         colors = SliderDefaults.colors(
             activeTrackColor = MaterialTheme.colorScheme.onBackground,
             inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
@@ -426,7 +424,7 @@ fun SliderUpdating(isLandscape: Boolean? = false){
         )
 
         Text(
-            text = formatMilliseconds(SongHelper.currentDuration.toFloat()),
+            text = formatMilliseconds(SongHelper.currentSong.duration.toFloat()),
             fontWeight = FontWeight.Thin,
             textAlign = TextAlign.End,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
@@ -554,7 +552,7 @@ fun PortraitAnimatedView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fal
                         if (showMoreInfo.value) {
                             SongHelper.currentSong.format.let {format ->
                                 Text(
-                                    text = format.toString(),
+                                    text = "${format.toString()} • ",
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Thin,
                                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
@@ -951,7 +949,7 @@ fun MainButtons(song: Song, isPlaying: Boolean ? = false){
     {
         Button(
             onClick = {
-                if (playingSong.selectedSong?.isRadio == true) return@Button
+                if (SongHelper.currentSong.isRadio == true) return@Button
                 SongHelper.previousSong(song)
             },
             shape = CircleShape,
@@ -1011,7 +1009,7 @@ fun MainButtons(song: Song, isPlaying: Boolean ? = false){
     {
         Button(
             onClick = {
-                if (playingSong.selectedSong?.isRadio == true) return@Button
+                if (SongHelper.currentSong.isRadio == true) return@Button
                 SongHelper.nextSong(song)
             },
             shape = CircleShape,
@@ -1087,10 +1085,10 @@ fun DownloadButton(snackbarHostState: SnackbarHostState?,
     {
         Button(
             onClick = {
-                if (navidromeServersList.isEmpty() || !useNavidromeServer.value) return@Button
+                if (navidromeServersList.isEmpty() || !useNavidromeServer.value || SongHelper.currentSong.navidromeID != "Local") return@Button
                 if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
                     navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@Button
-                downloadNavidromeSong("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${playingSong.selectedSong?.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",
+                downloadNavidromeSong("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${SongHelper.currentSong.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",
                     snackbarHostState = snackbarHostState,
                     coroutineScope)
                 coroutineScope.launch {
@@ -1151,7 +1149,14 @@ fun RepeatButton(size: Dp){
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
     {
         Button(
-            onClick = { repeatSong.value = !repeatSong.value },
+            onClick = {
+                repeatSong.value = !repeatSong.value
+                SongHelper.player.repeatMode =
+                    if (repeatSong.value)
+                        Player.REPEAT_MODE_ONE
+                    else
+                        Player.REPEAT_MODE_OFF
+                      },
             shape = CircleShape,
             modifier = Modifier.size(size),
             contentPadding = PaddingValues(2.dp),

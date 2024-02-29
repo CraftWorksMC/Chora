@@ -20,6 +20,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.craftworks.music.data.songsList
+import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
@@ -78,6 +79,9 @@ class AutoLibraryService : MediaLibraryService() {
     private fun queryMusic(initial: Boolean = false) {
         serviceIOScope.launch {
             tracklist.clear()
+            if (!useNavidromeServer.value){
+                getSongsOnDevice(baseContext)
+            }
             for (song in songsList) {
                 val mediaMetadata = MediaMetadata.Builder()
                     .setTitle(song.title)
