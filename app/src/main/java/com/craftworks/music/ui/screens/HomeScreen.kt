@@ -90,7 +90,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                         .asPaddingValues()
                         .calculateTopPadding()
                 )
-                .height(72.dp)
+                //.height(72.dp)
         ) {
             /* GREETING */
             Box(Modifier.weight(1f)) {

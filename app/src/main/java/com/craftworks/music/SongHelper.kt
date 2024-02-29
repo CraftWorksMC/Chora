@@ -72,6 +72,8 @@ class SongHelper {
             )
             notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            notificationManager.cancelAll()
             notificationManager.createNotificationChannel(channel)
 
             saveManager(context).loadSettings()
@@ -216,6 +218,7 @@ class SongHelper {
         fun releasePlayer(){
             player.release()
             mediaSession.release()
+            notificationManager.cancelAll()
         }
 
         fun previousSong(song: Song){
