@@ -219,6 +219,8 @@ class SongHelper {
             player.release()
             mediaSession.release()
             notificationManager.cancelAll()
+            notificationManager.cancel(2)
+            println("Released Player, Session and Notification! Bye")
         }
 
         fun previousSong(song: Song){
