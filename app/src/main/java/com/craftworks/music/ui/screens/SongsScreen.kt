@@ -31,7 +31,9 @@ import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.playingSong
+import com.craftworks.music.ui.elements.AddSongToPlaylist
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
+import com.craftworks.music.ui.elements.showAddSongToPlaylistDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, showSystemUi = true)
@@ -76,4 +78,6 @@ fun SongsScreen() {
         }
     }
 
+    if(showAddSongToPlaylistDialog.value)
+        AddSongToPlaylist(setShowDialog =  { showAddSongToPlaylistDialog.value = it } )
 }

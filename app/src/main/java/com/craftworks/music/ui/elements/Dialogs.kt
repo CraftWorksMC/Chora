@@ -3,6 +3,7 @@ package com.craftworks.music.ui.elements
 import android.content.Context
 import android.net.Uri
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,9 +19,11 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -40,9 +43,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.contentDescription
@@ -54,14 +60,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Radio
+import com.craftworks.music.data.Song
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.providers.local.getSongsOnDevice
@@ -100,6 +108,34 @@ fun PreviewModifyRadioDialog(){
     ModifyRadioDialog(setShowDialog = {}, radio = Radio("",Uri.EMPTY,"", Uri.EMPTY))
 }
 
+@Preview(showBackground = true)
+@Composable
+fun PreviewAddToPlaylistDialog(){
+    AddSongToPlaylist(setShowDialog = {})
+}
+
+/* --- DROPDOWN MENU --- */
+@Composable
+fun SongDropdownMenu(expanded: Boolean, selectedSong: Song){
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = {  }
+    ) {
+        DropdownMenuItem(
+            text = { Text("Add To Playlist") },
+            onClick = {
+                /* Handle edit! */
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Rounded.Add,
+                    contentDescription = "Add To Playlist"
+                )
+            }
+        )
+    }
+}
+
 
 
 /* --- RADIO DIALOGS --- */
@@ -126,7 +162,7 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                         Text(
                             text = "Add Internet Radio",
                             style = TextStyle(
-                                fontSize = 24.sp,
+                                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                 fontFamily = FontFamily.Default,
                                 fontWeight = FontWeight.Bold
                             ),
@@ -225,7 +261,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                         Text(
                             text = "Modify $radioName",
                             style = TextStyle(
-                                fontSize = 24.sp,
+                                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                 fontFamily = FontFamily.Default,
                                 fontWeight = FontWeight.Bold
                             ),
@@ -335,6 +371,106 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
     }
 }
 
+/* --- SONG DIALOGS --- */
+var showAddSongToPlaylistDialog = mutableStateOf(false)
+var songToAddToPlaylist = mutableStateOf<Song>(Song(Uri.EMPTY,"","","",0))
+
+@Composable
+fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Add ${songToAddToPlaylist.value.title} To Playlist",
+                            style = TextStyle(
+                                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                                fontFamily = FontFamily.Default,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.padding(end=30.dp).weight(1f)
+                        )
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier
+                                .width(30.dp)
+                                .height(30.dp)
+                                .clickable { setShowDialog(false) }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Column(modifier = Modifier.height(256.dp)){
+                        println("there are ${playlistList.size} playlists")
+
+                        for (playlist in playlistList){
+                            Row(modifier = Modifier
+                                .padding(bottom = 12.dp)
+                                .height(64.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                                verticalAlignment = Alignment.CenterVertically){
+                                AsyncImage(
+                                    model = playlist.coverArt,
+                                    placeholder = painterResource(R.drawable.placeholder),
+                                    fallback = painterResource(R.drawable.placeholder),
+                                    contentScale = ContentScale.FillHeight,
+                                    contentDescription = "Album Image",
+                                    modifier = Modifier
+                                        .height(64.dp)
+                                        .width(64.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                )
+                                Text(
+                                    text = playlist.name,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier.padding(horizontal = 12.dp).weight(1f)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Button(
+                            onClick = {
+                                setShowDialog(false)
+                                },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onBackground),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .bounceClick()
+                        ) {
+                            Text(text = "Done")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 
 /* --- SETTINGS --- */
@@ -353,7 +489,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                     Text(
                         text = stringResource(R.string.S_A_Background),
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )

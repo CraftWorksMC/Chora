@@ -21,7 +21,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -121,19 +120,27 @@ fun SongsCard(song: Song, onClick: () -> Unit){
                 }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
     Card(
-        onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
-        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 12.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.background,
             contentColor = MaterialTheme.colorScheme.onBackground,
             disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
             disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
-        )
+        ),
+        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 12.dp)
+            .combinedClickable(
+                onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
+                onLongClick = {
+                    println("Add Song To Playlist")
+                    showAddSongToPlaylistDialog.value = true
+                    songToAddToPlaylist.value = song
+                },
+                onLongClickLabel = "Add Song To Playlist"
+            )
     ) {
         Row(
             modifier = Modifier
