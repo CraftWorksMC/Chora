@@ -275,6 +275,20 @@ fun NowPlayingContent(
             label = "Animated Height"
         )
 
+
+        Box (modifier = Modifier
+            .height(64.dp + topPaddingExpandedPlayer.dp)
+            .fillMaxWidth()
+            .clickable {
+                coroutineScope.launch {
+                    if (scaffoldState!!.bottomSheetState.currentValue == SheetValue.PartiallyExpanded)
+                        scaffoldState.bottomSheetState.expand()
+                    else
+                        scaffoldState.bottomSheetState.partialExpand()
+                }
+            }
+        )
+
         // MAIN UI
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
             //region VERTICAL UI
