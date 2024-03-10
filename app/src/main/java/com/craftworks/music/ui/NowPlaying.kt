@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -155,6 +156,14 @@ fun NowPlayingContent(
         .wrapContentHeight()
         .fillMaxWidth()) {
         val coroutineScope = rememberCoroutineScope()
+
+        // handle back presses
+        BackHandler(scaffoldState!!.bottomSheetState.currentValue == SheetValue.Expanded) {
+            coroutineScope.launch {
+                scaffoldState.bottomSheetState.partialExpand()
+            }
+        }
+
         // UI PLAYING STATE
         var isPlaying by remember { mutableStateOf(false) }
         DisposableEffect(Unit) {
@@ -1101,7 +1110,7 @@ fun DownloadButton(snackbarHostState: SnackbarHostState?,
     {
         Button(
             onClick = {
-                if (navidromeServersList.isEmpty() || !useNavidromeServer.value || SongHelper.currentSong.navidromeID != "Local") return@Button
+                if (navidromeServersList.isEmpty() || !useNavidromeServer.value || SongHelper.currentSong.navidromeID == "Local") return@Button
                 if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
                     navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@Button
                 downloadNavidromeSong("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${SongHelper.currentSong.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",

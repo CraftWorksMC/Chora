@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,6 +96,15 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
     val context = LocalContext.current.applicationContext
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val bottomPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 80.dp + 72.dp + 12.dp else 72.dp
+
+    val coroutineScope = rememberCoroutineScope()
+    // handle back presses
+    BackHandler(true) {
+        println("Called BackHandler")
+        navHostController.navigate(Screen.Home.route)
+        return@BackHandler
+    }
+
     Column(modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState())
