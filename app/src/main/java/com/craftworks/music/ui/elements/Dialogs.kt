@@ -3,7 +3,6 @@ package com.craftworks.music.ui.elements
 import android.content.Context
 import android.net.Uri
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -73,6 +73,7 @@ import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.addSongToNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.deleteNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
@@ -116,7 +117,7 @@ fun PreviewAddToPlaylistDialog(){
 
 /* --- DROPDOWN MENU --- */
 @Composable
-fun SongDropdownMenu(expanded: Boolean, selectedSong: Song){
+fun SongDropdownMenu(expanded: Boolean){
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = {  }
@@ -137,7 +138,6 @@ fun SongDropdownMenu(expanded: Boolean, selectedSong: Song){
 }
 
 
-
 /* --- RADIO DIALOGS --- */
 @Composable
 fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
@@ -152,7 +152,8 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
             Box(
                 contentAlignment = Alignment.Center
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -166,11 +167,12 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                                 fontFamily = FontFamily.Default,
                                 fontWeight = FontWeight.Bold
                             ),
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.weight(1f)
                         )
                         Icon(
                             imageVector = Icons.Filled.Close,
-                            contentDescription = "",
+                            contentDescription = "Close",
                             tint = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier
                                 .width(30.dp)
@@ -226,6 +228,7 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                                 contentColor = MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
+                                .widthIn(max = 320.dp)
                                 .fillMaxWidth()
                                 .height(50.dp)
                                 .bounceClick()
@@ -358,7 +361,8 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                                 contentColor = MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
-                                .width(128.dp)
+                                .widthIn(max = 320.dp)
+                                .fillMaxWidth()
                                 .height(50.dp)
                                 .bounceClick()
                         ) {
@@ -373,7 +377,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
 
 /* --- SONG DIALOGS --- */
 var showAddSongToPlaylistDialog = mutableStateOf(false)
-var songToAddToPlaylist = mutableStateOf<Song>(Song(Uri.EMPTY,"","","",0))
+var songToAddToPlaylist = mutableStateOf(Song(Uri.EMPTY,"","","",0))
 
 @Composable
 fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
@@ -384,8 +388,10 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
             Box(
                 contentAlignment = Alignment.Center
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
 
+                    // Header
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -403,7 +409,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                         )
                         Icon(
                             imageVector = Icons.Filled.Close,
-                            contentDescription = "",
+                            contentDescription = "Close",
                             tint = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier
                                 .width(30.dp)
@@ -414,6 +420,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    // List
                     Column(modifier = Modifier.height(256.dp)){
                         println("there are ${playlistList.size} playlists")
 
@@ -422,8 +429,14 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 .padding(bottom = 12.dp)
                                 .height(64.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                                verticalAlignment = Alignment.CenterVertically){
+                                //.background(MaterialTheme.colorScheme.surfaceVariant)
+                                .clickable {
+                                    setShowDialog(false)
+                                    if (useNavidromeServer.value)
+                                        addSongToNavidromePlaylist(playlist.navidromeID.toString(), songToAddToPlaylist.value.navidromeID.toString())
+                                           //TODO: Local Playlists
+                                }
+                                , verticalAlignment = Alignment.CenterVertically){
                                 AsyncImage(
                                     model = playlist.coverArt,
                                     placeholder = painterResource(R.drawable.placeholder),
@@ -437,7 +450,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 )
                                 Text(
                                     text = playlist.name,
-                                    fontWeight = FontWeight.SemiBold,
+                                    fontWeight = FontWeight.Normal,
                                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     color = MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier.padding(horizontal = 12.dp).weight(1f)
@@ -458,6 +471,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                                 contentColor = MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
+                                .widthIn(max = 320.dp)
                                 .fillMaxWidth()
                                 .height(50.dp)
                                 .bounceClick()
@@ -689,6 +703,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                                 .align(Alignment.CenterHorizontally)
                                 .padding(top = 24.dp, start = 40.dp, end = 40.dp)
                                 .height(50.dp)
+                                .widthIn(max = 320.dp)
                                 .fillMaxWidth()
                                 .bounceClick(),
 

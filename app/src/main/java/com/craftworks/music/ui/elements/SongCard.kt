@@ -141,6 +141,7 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
                 },
                 onLongClickLabel = "Add Song To Playlist"
             )
+            .clip(RoundedCornerShape(12.dp))
     ) {
         Row(
             modifier = Modifier
