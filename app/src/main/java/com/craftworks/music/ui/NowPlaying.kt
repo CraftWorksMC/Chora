@@ -284,7 +284,9 @@ fun NowPlayingContent(
                 .padding(0.dp, topPaddingExpandedPlayer.dp, 0.dp, 0.dp), contentAlignment = Alignment.TopCenter) {
                 Column {
                     // Album Art + Info
-                    PortraitAnimatedView(lyricsOpen || scaffoldState!!.bottomSheetState.targetValue != SheetValue.Expanded, isPlaying)
+                    PortraitAnimatedView(lyricsOpen ||
+                            scaffoldState!!.bottomSheetState.targetValue != SheetValue.Expanded,
+                        isPlaying)
 
                     // Seek Bar
                     Column(modifier = Modifier

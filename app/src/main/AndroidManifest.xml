@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
 
+
     <uses-feature
         android:name="android.hardware.wifi"
         android:required="false" />
@@ -28,7 +29,9 @@
         android:theme="@style/Theme.MusicPlayer"
         android:usesCleartextTraffic="true"
         android:appCategory="audio"
-        tools:targetApi="31">
+        android:enableOnBackInvokedCallback="true"
+        tools:targetApi="31"
+        tools:ignore="UnusedAttribute">
 
         <!-- documentation really sucks
         <meta-data android:name="com.google.android.gms.car.application"

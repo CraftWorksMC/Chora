@@ -170,7 +170,7 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
                 Text(
                     text = song.title,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
