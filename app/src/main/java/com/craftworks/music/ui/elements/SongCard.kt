@@ -1,11 +1,11 @@
 package com.craftworks.music.ui.elements
 
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,13 +15,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
@@ -162,7 +164,7 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            Column (
+            Column(
                 Modifier
                     .padding(end = 12.dp)
                     .weight(1f)
@@ -196,45 +198,55 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.End
             )
-            var expanded by remember { mutableStateOf(false) }
 
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
+            var expanded by remember { mutableStateOf(false) }
+            Box(
+                modifier = Modifier.width(32.dp)
             ) {
-                DropdownMenuItem(
-                    text = { Text("Edit") },
-                    onClick = {
-                        /* Handle edit! */
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = "Edit"
-                        )
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Settings") },
-                    onClick = { /* Handle settings! */ },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = "Settings"
-                        )
-                    }
-                )
+                IconButton(
+                    modifier = Modifier,
+                    onClick = { expanded = true },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = MaterialTheme.colorScheme.background,
+                        disabledContentColor = MaterialTheme.colorScheme.onBackground
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.MoreVert,
+                        contentDescription = "More menu"
+                    )
+                }
+
+                DropdownMenu(
+                    modifier = Modifier,
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Add To Playlist") },
+                        onClick = {
+                            println("Add Song To Playlist")
+                            showAddSongToPlaylistDialog.value = true
+                            songToAddToPlaylist.value = song
+                            expanded = false
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Rounded.Add,
+                                contentDescription = "Add To Playlist Icon"
+                            )
+                        }
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-@Preview(
-    name = "Dark Mode",
-    showBackground = false,
-    uiMode = UI_MODE_NIGHT_YES
-)
+@Preview
 fun HorizontalSongCardPreview(){
         HorizontalSongCard(song = Song(title = "Very Long Song Title That Overflows", artist = "Song Artist", duration = 69420, imageUrl = Uri.EMPTY, year = "2023", dateAdded = "10/11/23", album = "Album")){
     }
