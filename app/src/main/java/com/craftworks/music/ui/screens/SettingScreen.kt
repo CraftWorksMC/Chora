@@ -169,11 +169,11 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                 ){
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
-                        contentDescription = stringResource(R.string.S_Appearance),
+                        contentDescription = stringResource(R.string.Settings_Header_Appearance),
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(48.dp).padding(start = 12.dp))
                     Text(
-                        text = stringResource(R.string.S_Appearance),
+                        text = stringResource(R.string.Settings_Header_Appearance),
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
@@ -182,7 +182,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     Spacer(Modifier.weight(1f).fillMaxHeight())
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
-                        contentDescription = stringResource(R.string.S_Appearance),
+                        contentDescription = stringResource(R.string.Settings_Header_Appearance),
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(48.dp).padding(end = 12.dp).rotate(-90f))
                 }
@@ -203,11 +203,11 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                 ){
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.s_m_media_providers),
-                        contentDescription = stringResource(R.string.S_Media),
+                        contentDescription = stringResource(R.string.Settings_Header_Media),
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(48.dp).padding(start = 12.dp))
                     Text(
-                        text = stringResource(R.string.S_Media),
+                        text = stringResource(R.string.Settings_Header_Media),
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
@@ -216,7 +216,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     Spacer(Modifier.weight(1f).fillMaxHeight())
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
-                        contentDescription = stringResource(R.string.S_Media),
+                        contentDescription = stringResource(R.string.Settings_Header_Media),
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(48.dp).padding(end = 12.dp).rotate(-90f))
                 }

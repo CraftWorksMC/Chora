@@ -21,6 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -122,10 +123,11 @@ fun SongsCard(song: Song, onClick: () -> Unit){
                 }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
     Card(
+        onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.background,
@@ -134,15 +136,6 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
             disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ),
         modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 12.dp)
-            .combinedClickable(
-                onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
-                onLongClick = {
-                    println("Add Song To Playlist")
-                    showAddSongToPlaylistDialog.value = true
-                    songToAddToPlaylist.value = song
-                },
-                onLongClickLabel = "Add Song To Playlist"
-            )
             .clip(RoundedCornerShape(12.dp))
     ) {
         Row(
@@ -201,7 +194,7 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
 
             var expanded by remember { mutableStateOf(false) }
             Box(
-                modifier = Modifier.width(32.dp)
+                modifier = Modifier.width(48.dp)
             ) {
                 IconButton(
                     modifier = Modifier,
@@ -215,6 +208,7 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.MoreVert,
+                        tint = MaterialTheme.colorScheme.onBackground,
                         contentDescription = "More menu"
                     )
                 }

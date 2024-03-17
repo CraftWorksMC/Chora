@@ -82,7 +82,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 modifier = Modifier.size(48.dp)
             )
             Text(
-                text = stringResource(R.string.S_Appearance),
+                text = stringResource(R.string.Settings_Header_Appearance),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = MaterialTheme.typography.headlineLarge.fontSize,
@@ -155,7 +155,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 )
                 Column {
                     Text(
-                        text = stringResource(R.string.S_A_Background),
+                        text = stringResource(R.string.Setting_Background),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -188,7 +188,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         .size(32.dp)
                 )
                 Text(
-                    text = stringResource(R.string.S_A_MoreInfo),
+                    text = stringResource(R.string.Setting_MoreInfo),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground,

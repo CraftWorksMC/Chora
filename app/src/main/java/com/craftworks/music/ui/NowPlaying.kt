@@ -94,6 +94,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -360,7 +361,7 @@ fun NowPlayingContent(
                 TextButton(
                     onClick = {
                         coroutineScope.launch {
-                        if (scaffoldState.bottomSheetState?.currentValue == SheetValue.Expanded) {
+                        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
                             scaffoldState.bottomSheetState.partialExpand()
                         }
                     }
@@ -368,7 +369,7 @@ fun NowPlayingContent(
                     modifier = Modifier
                         .offset(y = -(48).dp)
                         .alpha(1 - miniPlayerAlpha),
-                    enabled = scaffoldState.bottomSheetState?.currentValue == SheetValue.Expanded
+                    enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
                 ) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
@@ -577,7 +578,11 @@ fun PortraitAnimatedView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = fal
                         if (showMoreInfo.value) {
                             SongHelper.currentSong.format.let {format ->
                                 Text(
-                                    text = "${format.toString()} • ",
+                                    text = "${format.toString()} • ${
+                                        if (SongHelper.currentSong.navidromeID == "Local") 
+                                            stringResource(R.string.Source_Local)
+                                        else
+                                            stringResource(R.string.Source_Navidrome)} ",
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Thin,
                                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),

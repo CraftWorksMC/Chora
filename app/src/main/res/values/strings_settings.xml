@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="Settings_Header_Appearance">Appearance</string>
+    <string name="Settings_Header_Media">Media Providers</string>
+        <string name="Setting_Background">Background Style</string>
+        <string name="Setting_MoreInfo">Show Bitrate</string>
+
+    <string name="Background_Plain">Plain</string>
+    <string name="Background_Blur">Blurred</string>
+    <string name="Background_Animated">Animated</string>
+</resources>

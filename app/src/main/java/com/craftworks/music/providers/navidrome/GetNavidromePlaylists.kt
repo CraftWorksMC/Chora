@@ -62,6 +62,9 @@ fun createNavidromePlaylist(playlistName: String){
 
                 Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
             }
+
+            getNavidromePlaylists()
+
         } catch (e: Exception) {
             Log.d("Exception", e.toString())
         }
@@ -83,6 +86,9 @@ fun addSongToNavidromePlaylist(playlistID: String, songID: String){
 
                 Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
             }
+
+            getNavidromePlaylists()
+
         } catch (e: Exception) {
             Log.d("Exception", e.toString())
         }

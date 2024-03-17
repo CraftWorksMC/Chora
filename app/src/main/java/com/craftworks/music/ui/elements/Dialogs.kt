@@ -506,7 +506,6 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
 
 @Composable
 fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
-
     var name: String by remember { mutableStateOf("") }
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
@@ -540,13 +539,10 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
 
                                     if (useNavidromeServer.value)
                                         createNavidromePlaylist(name)
-                                    else
-                                        //TODO: Create Local Playlists
-
-                                    setShowDialog(false)
                                 } catch (_: Exception){
                                     // DO NOTHING
                                 }
+                                setShowDialog(false)
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -584,7 +580,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = stringResource(R.string.S_A_Background),
+                        text = stringResource(R.string.Setting_Background),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -638,7 +634,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = stringResource(R.string.S_Media),
+                        text = stringResource(R.string.Settings_Header_Media),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                         color = MaterialTheme.colorScheme.onBackground,

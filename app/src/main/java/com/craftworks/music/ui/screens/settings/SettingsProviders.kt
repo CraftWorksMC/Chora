@@ -64,7 +64,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
 
     var showNavidromeServerDialog by remember { mutableStateOf(false) }
 
-    Box(){
+    Box{
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -90,7 +90,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                     modifier = Modifier.size(48.dp)
                 )
                 Text(
-                    text = stringResource(R.string.S_Media),
+                    text = stringResource(R.string.Settings_Header_Media),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
