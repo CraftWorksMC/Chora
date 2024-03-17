@@ -53,7 +53,7 @@ fun getNavidromeSongs(url: URL){
 
                 //Set Username To Navidrome Login Username.
                 if (responseCode == 200){
-                    username.value = navidromeServersList[selectedNavidromeServerIndex.intValue].username ?: username.value
+                    username.value = navidromeServersList[selectedNavidromeServerIndex.intValue].username
                 }
 
                 inputStream.bufferedReader().use {

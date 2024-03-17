@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Provider Dialog -->
+    <string name="Dialog_Media_Source">Media Source</string>
+        <string name="Source_Navidrome">Navidrome</string>
+        <string name="Source_Local">Local Folder</string>
+        <!-- Local -->
+            <string name="Label_Local_Directory">Directory:</string>
+        <!-- Navidrome -->
+            <string name="Label_Navidrome_URL">Navidrome URL:</string>
+            <string name="Label_Navidrome_Username">Username:</string>
+            <string name="Label_Navidrome_Password">Password:</string>
+
+    <!-- Radios -->
+    <string name="Dialog_Add_Radio">Add Internet Radio</string>
+    <string name="Dialog_Modify_Radio">Modify </string>
+        <string name="Label_Radio_Name">Radio Name:</string>
+        <string name="Label_Radio_URL">Radio URL:</string>
+        <string name="Label_Radio_Homepage">Radio Homepage URL:</string>
+
+    <!-- Playlists -->
+    <string name="Dialog_New_Playlist">New Playlist</string>
+    <string name="Dialog_Add_To_Playlist">Add / To Playlist</string>
+        <string name="Label_Playlist_Name">Playlist Name:</string>
+
+</resources>

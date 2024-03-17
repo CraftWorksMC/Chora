@@ -76,7 +76,7 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
         // Provider Name
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = stringResource(R.string.S_M_Local),
+                text = stringResource(R.string.Source_Local),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Normal,
                 fontSize = MaterialTheme.typography.headlineSmall.fontSize,

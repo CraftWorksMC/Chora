@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +56,6 @@ import com.craftworks.music.ui.screens.username
 @Composable
 @Preview(showSystemUi = false, showBackground = true)
 fun S_AppearanceScreen(navHostController: NavHostController = rememberNavController()) {
-    val context = LocalContext.current.applicationContext
     val leftPadding =
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val bottomPadding =

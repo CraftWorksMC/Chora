@@ -3,7 +3,6 @@ package com.craftworks.music
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
-import android.content.Context
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
@@ -274,7 +273,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            PlayPause(context = this)
+            PlayPause()
         }
 
         val requestPermissionLauncher =
@@ -329,7 +328,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun PlayPause(context: Context) {
+fun PlayPause() {
     if (songState && !SongHelper.player.isPlaying) {
         SongHelper.player.playWhenReady = true
     } else {

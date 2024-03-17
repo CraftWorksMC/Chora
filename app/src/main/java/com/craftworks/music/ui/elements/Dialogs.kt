@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
@@ -42,6 +44,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -51,11 +55,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -70,8 +78,10 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
+import com.craftworks.music.fadingEdge
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.addSongToNavidromePlaylist
+import com.craftworks.music.providers.navidrome.createNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.deleteNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
@@ -85,7 +95,7 @@ import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.backgroundTypes
 import java.net.URL
 
-/* --- PREVIEWS --- */
+//region PREVIEWS
 @Preview(showBackground = true)
 @Composable
 fun PreviewBackgroundDialog(){
@@ -112,6 +122,12 @@ fun PreviewModifyRadioDialog(){
 fun PreviewAddToPlaylistDialog(){
     AddSongToPlaylist(setShowDialog = {})
 }
+@Preview(showBackground = true)
+@Composable
+fun PreviewNewPlaylistDialog(){
+    NewPlaylist(setShowDialog = {})
+}
+//endregion
 
 /* --- RADIO DIALOGS --- */
 @Composable
@@ -136,7 +152,7 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Add Internet Radio",
+                            text = stringResource(id = R.string.Dialog_Add_Radio),
                             style = TextStyle(
                                 fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                 fontFamily = FontFamily.Default,
@@ -161,19 +177,19 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                     OutlinedTextField(
                         value = radioName,
                         onValueChange = { radioName = it },
-                        label = { Text("Radio Name:") },
+                        label = { Text(stringResource(id = R.string.Label_Radio_Name)) },
                         singleLine = true
                     )
                     OutlinedTextField(
                         value = radioUrl,
                         onValueChange = { radioUrl = it },
-                        label = { Text("Stream URL:") },
+                        label = { Text(stringResource(id = R.string.Label_Radio_URL)) },
                         singleLine = true
                     )
                     OutlinedTextField(
                         value = radioPage,
                         onValueChange = { radioPage = it },
-                        label = { Text("Homepage URL") },
+                        label = { Text(stringResource(id = R.string.Label_Radio_Homepage)) },
                         singleLine = true
                     )
 
@@ -238,7 +254,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Modify $radioName",
+                            text = stringResource(id = R.string.Dialog_Modify_Radio) + radioName,
                             style = TextStyle(
                                 fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                 fontFamily = FontFamily.Default,
@@ -262,19 +278,19 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                     OutlinedTextField(
                         value = radioName,
                         onValueChange = { radioName = it },
-                        label = { Text("Radio Name:") },
+                        label = { Text(stringResource(id = R.string.Label_Radio_Name)) },
                         singleLine = true
                     )
                     OutlinedTextField(
                         value = radioUrl,
                         onValueChange = { radioUrl = it },
-                        label = { Text("Stream URL:") },
+                        label = { Text(stringResource(id = R.string.Label_Radio_URL)) },
                         singleLine = true
                     )
                     OutlinedTextField(
                         value = radioPage,
                         onValueChange = { radioPage = it },
-                        label = { Text("Homepage URL") },
+                        label = { Text(stringResource(id = R.string.Label_Radio_Homepage)) },
                         singleLine = true
                     )
 
@@ -282,7 +298,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Button(
@@ -300,11 +316,12 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                                 contentColor = MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
-                                .width(128.dp)
+                                .widthIn(max = 320.dp)
+                                .weight(1f)
                                 .height(50.dp)
                                 .bounceClick()
                         ) {
-                            Text(text = "Remove")
+                            Text(stringResource(R.string.Action_Remove))
                         }
                         Button(
                             onClick = {
@@ -338,11 +355,11 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                                 contentColor = MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
                                 .widthIn(max = 320.dp)
-                                .fillMaxWidth()
+                                .weight(1f)
                                 .height(50.dp)
                                 .bounceClick()
                         ) {
-                            Text(text = "Done")
+                            Text(stringResource(R.string.Action_Done))
                         }
                     }
                 }
@@ -353,6 +370,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
 
 /* --- SONG DIALOGS --- */
 var showAddSongToPlaylistDialog = mutableStateOf(false)
+var showNewPlaylistDialog = mutableStateOf(false)
 var songToAddToPlaylist = mutableStateOf(Song(Uri.EMPTY,"","","",0))
 
 @Composable
@@ -374,14 +392,22 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Add ${songToAddToPlaylist.value.title} To Playlist",
+                            text = buildAnnotatedString {
+                                append(stringResource(R.string.Dialog_Add_To_Playlist).split("/")[0])
+                                withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                                    append(songToAddToPlaylist.value.title)
+                                }
+                                append(stringResource(R.string.Dialog_Add_To_Playlist).split("/")[1])
+                            },
                             style = TextStyle(
                                 fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                 fontFamily = FontFamily.Default,
                                 fontWeight = FontWeight.Bold
                             ),
                             color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.padding(end=30.dp).weight(1f)
+                            modifier = Modifier
+                                .padding(end = 30.dp)
+                                .weight(1f)
                         )
                         Icon(
                             imageVector = Icons.Filled.Close,
@@ -397,7 +423,12 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                     Spacer(modifier = Modifier.height(20.dp))
 
                     // List
-                    Column(modifier = Modifier.height(256.dp)){
+                    val listFadingEdge = Brush.verticalGradient(0.75f to Color.Red, 1f to Color.Transparent)
+
+                    Column(modifier = Modifier
+                        .height(256.dp)
+                        .fadingEdge(listFadingEdge)
+                        .verticalScroll(rememberScrollState())){
                         println("there are ${playlistList.size} playlists")
 
                         for (playlist in playlistList){
@@ -409,8 +440,11 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 .clickable {
                                     setShowDialog(false)
                                     if (useNavidromeServer.value)
-                                        addSongToNavidromePlaylist(playlist.navidromeID.toString(), songToAddToPlaylist.value.navidromeID.toString())
-                                           //TODO: Local Playlists
+                                        addSongToNavidromePlaylist(
+                                            playlist.navidromeID.toString(),
+                                            songToAddToPlaylist.value.navidromeID.toString()
+                                        )
+                                    //TODO: Local Playlists
                                 }
                                 , verticalAlignment = Alignment.CenterVertically){
                                 AsyncImage(
@@ -429,7 +463,9 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                     fontWeight = FontWeight.Normal,
                                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     color = MaterialTheme.colorScheme.onBackground,
-                                    modifier = Modifier.padding(horizontal = 12.dp).weight(1f)
+                                    modifier = Modifier
+                                        .padding(horizontal = 12.dp)
+                                        .weight(1f)
                                 )
                             }
                         }
@@ -437,10 +473,13 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+
+
+
                     Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
                         Button(
                             onClick = {
-                                setShowDialog(false)
+                                showNewPlaylistDialog.value = true
                                 },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -452,8 +491,12 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 .height(50.dp)
                                 .bounceClick()
                         ) {
-                            Text(text = "Done")
+                            Text(text = "New Playlist")
                         }
+                    }
+
+                    if (showNewPlaylistDialog.value) {
+                        NewPlaylist { showNewPlaylistDialog.value = it }
                     }
                 }
             }
@@ -461,6 +504,70 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
     }
 }
 
+@Composable
+fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
+
+    var name: String by remember { mutableStateOf("") }
+
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.Dialog_New_Playlist),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+                    Column{
+                        /* Directory */
+                        OutlinedTextField(
+                            value = name,
+                            onValueChange = { name = it },
+                            label = { Text(stringResource(R.string.Label_Playlist_Name))},
+                            singleLine = true
+                        )
+
+                        Button(
+                            onClick = {
+                                try {
+                                    if (playlistList.firstOrNull { it.name == name } != null) return@Button
+
+                                    if (useNavidromeServer.value)
+                                        createNavidromePlaylist(name)
+                                    else
+                                        //TODO: Create Local Playlists
+
+                                    setShowDialog(false)
+                                } catch (_: Exception){
+                                    // DO NOTHING
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onBackground),
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(top = 24.dp, start = 40.dp, end = 40.dp)
+                                .height(50.dp)
+                                .fillMaxWidth()
+                                .bounceClick(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(stringResource(R.string.Action_CreatePlaylist), modifier = Modifier.height(24.dp))
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+}
 
 
 /* --- SETTINGS --- */
@@ -540,7 +647,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
 
                     var expanded by remember { mutableStateOf(false) }
 
-                    val options = listOf(stringResource(R.string.S_M_Local), "Navidrome")
+                    val options = listOf(stringResource(R.string.Source_Local), stringResource(R.string.Source_Navidrome))
                     var selectedOptionText by remember { mutableStateOf(options[0]) }
 
                     ExposedDropdownMenuBox(
@@ -553,7 +660,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                             readOnly = true,
                             value = selectedOptionText,
                             onValueChange = {},
-                            label = { Text(stringResource(R.string.S_M_Source)) },
+                            label = { Text(stringResource(R.string.Dialog_Media_Source)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                             colors = ExposedDropdownMenuDefaults.textFieldColors()
                         )
@@ -575,13 +682,13 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                         }
                     }
 
-                    if (selectedOptionText == stringResource(R.string.S_M_Local))
+                    if (selectedOptionText == stringResource(R.string.Source_Local))
                         Column{
                             /* Directory */
                             OutlinedTextField(
                                 value = dir,
                                 onValueChange = { dir = it },
-                                label = { Text("Directory:")},
+                                label = { Text(stringResource(R.string.Label_Local_Directory)) },
                                 singleLine = true
                             )
 
@@ -613,13 +720,13 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                                 Text(stringResource(R.string.Action_Add), modifier = Modifier.height(24.dp))
                             }
                         }
-                    else if (selectedOptionText == "Navidrome")
+                    else if (selectedOptionText == stringResource(R.string.Source_Local))
                         Column{
                         /* SERVER URL */
                         OutlinedTextField(
                             value = url,
                             onValueChange = { url = it },
-                            label = { Text("Navidrome URL:")},
+                            label = { Text(stringResource(R.string.Label_Navidrome_URL)) },
                             singleLine = true,
                             isError = navidromeStatus.value == "Invalid URL"
                         )
@@ -627,7 +734,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                         OutlinedTextField(
                             value = username,
                             onValueChange = { username = it },
-                            label = { Text("Navidrome Username:")},
+                            label = { Text(stringResource(R.string.Label_Navidrome_Username)) },
                             singleLine = true
                         )
                         /* PASSWORD */
@@ -635,7 +742,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
-                            label = { Text("Navidrome Password:") },
+                            label = { Text(stringResource(R.string.Label_Navidrome_Password)) },
                             singleLine = true,
                             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                             trailingIcon = {

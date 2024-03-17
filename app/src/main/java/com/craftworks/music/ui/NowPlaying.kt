@@ -277,10 +277,10 @@ fun NowPlayingContent(
         //endregion
 
         // ANIMATED VALUES
-        val miniPlayerAlpha: Float by animateFloatAsState(if (scaffoldState!!.bottomSheetState.targetValue == SheetValue.Expanded) 0f else 1f,
+        val miniPlayerAlpha: Float by animateFloatAsState(if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) 0f else 1f,
             label = "Animated Alpha"
         )
-        val topPaddingExpandedPlayer: Float by animateFloatAsState(if (scaffoldState!!.bottomSheetState.targetValue == SheetValue.Expanded) (WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp).value else 14f,
+        val topPaddingExpandedPlayer: Float by animateFloatAsState(if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) (WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp).value else 14f,
             label = "Animated Height"
         )
 
@@ -290,7 +290,7 @@ fun NowPlayingContent(
             .fillMaxWidth()
             .clickable {
                 coroutineScope.launch {
-                    if (scaffoldState!!.bottomSheetState.currentValue == SheetValue.PartiallyExpanded)
+                    if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded)
                         scaffoldState.bottomSheetState.expand()
                     else
                         scaffoldState.bottomSheetState.partialExpand()
@@ -308,7 +308,7 @@ fun NowPlayingContent(
                 Column {
                     // Album Art + Info
                     PortraitAnimatedView(lyricsOpen ||
-                            scaffoldState!!.bottomSheetState.targetValue != SheetValue.Expanded,
+                            scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
                         isPlaying)
 
                     // Seek Bar
@@ -360,7 +360,7 @@ fun NowPlayingContent(
                 TextButton(
                     onClick = {
                         coroutineScope.launch {
-                        if (scaffoldState?.bottomSheetState?.currentValue == SheetValue.Expanded) {
+                        if (scaffoldState.bottomSheetState?.currentValue == SheetValue.Expanded) {
                             scaffoldState.bottomSheetState.partialExpand()
                         }
                     }
@@ -368,7 +368,7 @@ fun NowPlayingContent(
                     modifier = Modifier
                         .offset(y = -(48).dp)
                         .alpha(1 - miniPlayerAlpha),
-                    enabled = scaffoldState?.bottomSheetState?.currentValue == SheetValue.Expanded
+                    enabled = scaffoldState.bottomSheetState?.currentValue == SheetValue.Expanded
                 ) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
@@ -381,7 +381,7 @@ fun NowPlayingContent(
                 }
 
                 LandscapeAnimatedView(
-                    lyricsOpen || scaffoldState!!.bottomSheetState.targetValue != SheetValue.Expanded,
+                    lyricsOpen || scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
                     isPlaying,
                     song,
                     snackbarHostState,
