@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Chora</string>
+    <string name="Dialog_Media_Source">Fonte Media</string>
+    <string name="Source_Navidrome">Navidrome</string>
+    <string name="Source_Local">Cartella Locale</string>
+    <string name="Label_Local_Directory">Percorso</string>
+    <string name="Label_Navidrome_URL">URL Navidrome:</string>
+    <string name="Label_Navidrome_Username">Username</string>
+    <string name="Label_Navidrome_Password">Password</string>
+    <string name="Dialog_Add_Radio">Aggiungi Radio Internet</string>
+    <string name="Dialog_Modify_Radio">Modifica</string>
+    <string name="Label_Radio_Name">Nome Radio:</string>
+    <string name="Label_Radio_URL">URL Radio:</string>
+    <string name="Label_Radio_Homepage">Sito della Radio</string>
+    <string name="Dialog_New_Playlist">Nuova Playlist</string>
+    <string name="Dialog_Add_To_Playlist">Aggiungi / Alla Playlist</string>
+    <string name="Label_Playlist_Name">Nome Playlist:</string>
+    <string name="Action_Add">Aggiungi</string>
+    <string name="Action_Success">Successo</string>
+    <string name="Action_Login">Login</string>
+    <string name="Action_CreatePlaylist">Crea Playlist</string>
+    <string name="Action_Done">Fatto</string>
+    <string name="Action_Remove">Rimuovi</string>
+    <string name="welcome_text">Benvenuto</string>
+    <string name="recently_added">Aggiunte Recentemente</string>
+    <string name="songs">Canzoni</string>
+    <string name="most_played">Più Ascoltate</string>
+    <string name="settings">Impostazioni</string>
+    <string name="recently_played">Ascoltate Recentemente</string>
+    <string name="random_songs">Esplora La Tua Libreria</string>
+    <string name="radios">Radio Internet</string>
+    <string name="playlists">Playlists</string>
+    <string name="Settings_Header_Appearance">Aspetto</string>
+    <string name="Settings_Header_Media">Fonti Media</string>
+    <string name="Setting_Background">Stile Sfondo</string>
+    <string name="Setting_MoreInfo">Mostra Altre Info</string>
+    <string name="Background_Plain">Semplice</string>
+    <string name="Background_Blur">Sfocato</string>
+    <string name="Background_Animated">Animato</string>
+</resources>
