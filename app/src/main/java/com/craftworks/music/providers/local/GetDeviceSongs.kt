@@ -13,7 +13,6 @@ import com.craftworks.music.data.Album
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.localProviderList
-import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.songsList
 import java.io.FileNotFoundException
@@ -30,7 +29,7 @@ fun getSongsOnDevice(context: Context){
     //songsList.clear()
     //albumList.clear()
     //radioList.clear()
-    playlistList.clear()
+    //playlistList.clear()
 
     MediaScannerConnection.scanFile(
         context, arrayOf(Environment.getExternalStorageDirectory().path), null
@@ -88,7 +87,7 @@ fun getSongsOnDevice(context: Context){
                     bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else "",
                     navidromeID = "Local"
                 )
-                if (songsList.isEmpty() || !songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
+                if (!songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
                     songsList.add(song);
                 }
 
@@ -99,7 +98,7 @@ fun getSongsOnDevice(context: Context){
                     year = if (!thisYear.isNullOrBlank()) thisYear else "",
                     coverArt = imageUri
                 )
-                if (albumList.isEmpty() || !albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
+                if (!albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
                     albumList.add(album)
                 }
 

@@ -24,13 +24,13 @@
     <string name="Action_Remove">Rimuovi</string>
     <string name="welcome_text">Benvenuto</string>
     <string name="recently_added">Aggiunte Recentemente</string>
-    <string name="songs">Canzoni</string>
+    <string name="songs">Brani</string>
     <string name="most_played">Più Ascoltate</string>
     <string name="settings">Impostazioni</string>
     <string name="recently_played">Ascoltate Recentemente</string>
     <string name="random_songs">Esplora La Tua Libreria</string>
-    <string name="radios">Radio Internet</string>
-    <string name="playlists">Playlists</string>
+    <string name="radios">Radio</string>
+    <string name="playlists">Playlist</string>
     <string name="Settings_Header_Appearance">Aspetto</string>
     <string name="Settings_Header_Media">Fonti Media</string>
     <string name="Setting_Background">Stile Sfondo</string>
@@ -38,4 +38,5 @@
     <string name="Background_Plain">Semplice</string>
     <string name="Background_Blur">Sfocato</string>
     <string name="Background_Animated">Animato</string>
+    <string name="Albums">Album</string>
 </resources>

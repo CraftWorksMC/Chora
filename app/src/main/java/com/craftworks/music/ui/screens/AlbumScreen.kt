@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,7 +41,11 @@ fun AlbumScreen(navHostController: NavHostController = rememberNavController()) 
     /* RADIO ICON + TEXT */
     Box(modifier = Modifier
         .fillMaxWidth()
-        .padding(start = leftPadding, top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())) {
+        .padding(start = leftPadding,
+            top = WindowInsets.statusBars
+                .asPaddingValues()
+                .calculateTopPadding()
+        )) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.placeholder),
@@ -48,7 +53,7 @@ fun AlbumScreen(navHostController: NavHostController = rememberNavController()) 
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(48.dp))
             Text(
-                text = "Albums",
+                text = stringResource(R.string.Albums),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = MaterialTheme.typography.headlineLarge.fontSize

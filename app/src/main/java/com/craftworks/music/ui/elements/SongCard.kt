@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -135,7 +136,8 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
             disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
             disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ),
-        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 12.dp)
+        modifier = Modifier
+            .padding(0.dp, 0.dp, 0.dp, 12.dp)
             .clip(RoundedCornerShape(12.dp))
     ) {
         Row(
@@ -219,7 +221,7 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
                     onDismissRequest = { expanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Add To Playlist") },
+                        text = { Text(stringResource(R.string.Dialog_Add_To_Playlist).replace("/ ","")) },
                         onClick = {
                             println("Add Song To Playlist")
                             showAddSongToPlaylistDialog.value = true

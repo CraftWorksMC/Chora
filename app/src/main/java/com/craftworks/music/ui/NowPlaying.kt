@@ -9,6 +9,7 @@ import android.graphics.Matrix
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
@@ -25,8 +26,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +34,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -69,6 +67,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,13 +93,13 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -126,11 +125,14 @@ import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
+import com.craftworks.music.ui.elements.nowplaying.PortraitAlbumCover
+import com.craftworks.music.ui.elements.nowplaying.PortraitMiniPlayer
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.transcodingBitrate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+
 
 var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
 
@@ -153,12 +155,24 @@ fun NowPlayingContent(
     scaffoldState: BottomSheetScaffoldState? = rememberBottomSheetScaffoldState(),
     snackbarHostState: SnackbarHostState? = SnackbarHostState()
 ){
+    println("Full Recompose NowPlaying.kt")
+
+
     Box (modifier = Modifier
         .wrapContentHeight()
         .fillMaxWidth()) {
-        val coroutineScope = rememberCoroutineScope()
 
+        val offsetY by animateFloatAsState(targetValue =
+        if (scaffoldState?.bottomSheetState?.targetValue == SheetValue.Expanded)
+            dpToPx(72).toFloat()
+        else
+            0f,
+            label = "Animated Top Offset")
+
+
+        //region Update Content + Backgrounds
         // handle back presses
+        val coroutineScope = rememberCoroutineScope()
         BackHandler(scaffoldState!!.bottomSheetState.currentValue == SheetValue.Expanded) {
             coroutineScope.launch {
                 scaffoldState.bottomSheetState.partialExpand()
@@ -277,119 +291,107 @@ fun NowPlayingContent(
         }
         //endregion
 
-        // ANIMATED VALUES
-        val miniPlayerAlpha: Float by animateFloatAsState(if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) 0f else 1f,
-            label = "Animated Alpha"
-        )
-        val topPaddingExpandedPlayer: Float by animateFloatAsState(if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) (WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp).value else 14f,
-            label = "Animated Height"
-        )
+        //endregion
 
+        Box(modifier = Modifier.graphicsLayer { translationY = -offsetY }){
+            // Mini-Player
+            PortraitMiniPlayer(scaffoldState, isPlaying)
 
-        Box (modifier = Modifier
-            .height(64.dp + topPaddingExpandedPlayer.dp)
-            .fillMaxWidth()
-            .clickable {
-                coroutineScope.launch {
-                    if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded)
-                        scaffoldState.bottomSheetState.expand()
-                    else
-                        scaffoldState.bottomSheetState.partialExpand()
-                }
-            }
-        )
+            // MAIN UI
+            if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
+                //region VERTICAL UI
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    //.graphicsLayer { translationY = offsetY },
+                    .padding(top = 72.dp + 48.dp),
+                    contentAlignment = Alignment.TopCenter) {
+                    Column {
+                        // Album Art + Info
+                        PortraitAnimatedView(lyricsOpen
+                            //scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded
+                            , isPlaying)
 
-        // MAIN UI
-        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
-            //region VERTICAL UI
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .padding(0.dp, topPaddingExpandedPlayer.dp, 0.dp, 0.dp), contentAlignment = Alignment.TopCenter) {
-                Column {
-                    // Album Art + Info
-                    PortraitAnimatedView(lyricsOpen ||
-                            scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
-                        isPlaying)
-
-                    // Seek Bar
-                    Column(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        SliderUpdating()
-                    }
-
-                    //region Buttons
-                    Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
-                        // First Row
-                        Row(modifier = Modifier
-                            .height(98.dp)
+                        // Seek Bar
+                        Column(modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 18.dp)
-                            .weight(1f),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically) {
-                            ShuffleButton(32.dp)
-
-                            MainButtons(song, isPlaying)
-
-                            RepeatButton(32.dp)
+                            .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            SliderUpdating()
                         }
 
-                        Row(modifier = Modifier
-                            .height(64.dp)
-                            .width(256.dp)
-                            .weight(1f)
-                            .padding(bottom = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
-                            LyricsButton(64.dp)
+                        //region Buttons
+                        Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
+                            // First Row
+                            Row(modifier = Modifier
+                                .height(98.dp)
+                                .fillMaxWidth()
+                                .padding(horizontal = 18.dp)
+                                .weight(1f),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically) {
+                                ShuffleButton(32.dp)
 
-                            DownloadButton(snackbarHostState, coroutineScope, 64.dp)
+                                MainButtons(song, isPlaying)
+
+                                RepeatButton(32.dp)
+                            }
+
+                            Row(modifier = Modifier
+                                .height(64.dp)
+                                .width(256.dp)
+                                .weight(1f)
+                                .padding(bottom = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+                                LyricsButton(64.dp)
+
+                                DownloadButton(snackbarHostState, coroutineScope, 64.dp)
+                            }
                         }
+                        //endregion
                     }
-                    //endregion
                 }
+                //endregion
             }
-            //endregion
-        }
-        else {
-            //region LANDSCAPE TV-TABLET UI
-            Box(modifier = Modifier
-                .width(640.dp)
-                .fillMaxHeight()
-                .padding(0.dp, topPaddingExpandedPlayer.dp, 0.dp, 0.dp), contentAlignment = Alignment.TopCenter) {
+            else {
+                //region LANDSCAPE TV-TABLET UI
+                Box(modifier = Modifier
+                    .width(640.dp)
+                    .fillMaxHeight()
+                    .padding(0.dp, 48.dp, 0.dp, 0.dp), contentAlignment = Alignment.TopCenter) {
 
-                TextButton(
-                    onClick = {
-                        coroutineScope.launch {
-                        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
-                            scaffoldState.bottomSheetState.partialExpand()
-                        }
-                    }
-                    },
-                    modifier = Modifier
-                        .offset(y = -(48).dp)
-                        .alpha(1 - miniPlayerAlpha),
-                    enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "Previous Song",
+                    TextButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
+                                    scaffoldState.bottomSheetState.partialExpand()
+                                }
+                            }
+                        },
                         modifier = Modifier
-                            .height(32.dp)
-                            .size(32.dp)
-                    )
-                }
+                            .offset(y = -(48).dp),
+                        //.alpha(1 - miniPlayerAlpha),
+                        enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            contentDescription = "Previous Song",
+                            modifier = Modifier
+                                .height(32.dp)
+                                .size(32.dp)
+                        )
+                    }
 
-                LandscapeAnimatedView(
-                    lyricsOpen || scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
-                    isPlaying,
-                    song,
-                    snackbarHostState,
-                    coroutineScope)
+                    LandscapeAnimatedView(
+                        lyricsOpen || scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
+                        isPlaying,
+                        song,
+                        snackbarHostState,
+                        coroutineScope)
+                }
+                //endregion
             }
-            //endregion
         }
+
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -462,173 +464,17 @@ fun SliderUpdating(isLandscape: Boolean? = false){
     }
 }
 
-@androidx.annotation.OptIn(UnstableApi::class) @Preview(showSystemUi = true, showBackground = true)
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun PortraitAnimatedView(lyricsOpen:Boolean ? = false, isPlaying:Boolean ? = false) {
-
-    //region Animated Variables
-
-    // Image Animations
-    val imageSize: Dp by animateDpAsState(if (lyricsOpen == true) 60.dp else 320.dp,
-        label = "Animated Cover Size"
-    )
-    val imageCornerRadius: Dp by animateDpAsState(if (lyricsOpen == true) 12.dp else 24.dp,
-        label = "Animated Cover Radius"
-    )
-    val imageOffsetXAdaptive: Dp by animateDpAsState(if (lyricsOpen == true) (6).dp else (LocalConfiguration.current.screenWidthDp/2 - 160).dp,
-        label = "Animated Cover Offset X"
-    )
-    val imageOffsetY: Dp by animateDpAsState(if (lyricsOpen == true) (-138).dp else 0.dp,
-        label = "Animated Cover Offset Y"
-    )
-
-    // Song Title Animations
-    val titleFontSize: Float by animateFloatAsState(
-        if (lyricsOpen == true)
-            MaterialTheme.typography.titleLarge.fontSize.value
-        else
-            MaterialTheme.typography.headlineLarge.fontSize.value,
-        label = "Animated Song Title Font Size"
-    )
-    val titleOffsetX: Dp by animateDpAsState(if (lyricsOpen == true) (42).dp else 0.dp,
-        label = "Animated Song Title Offset X"
-    )
-    val titleOffsetY: Dp by animateDpAsState(if (lyricsOpen == true) (-326).dp else 0.dp,
-        label = "Animated Song Title Offset Y"
-    )
-    val artistFontSize: Float by animateFloatAsState(
-        if (lyricsOpen == true)
-            MaterialTheme.typography.bodyMedium.fontSize.value
-        else
-            MaterialTheme.typography.titleLarge.fontSize.value,
-        label = "Animated Song Title Font Size"
-    )
-    val artistOffsetX: Dp by animateDpAsState(if (lyricsOpen == true) (42).dp else 0.dp,
-        label = "Animated Song Title Offset X"
-    )
-    val artistOffsetY: Dp by animateDpAsState(if (lyricsOpen == true) (-327).dp else 0.dp,
-        label = "Animated Song Title Offset Y"
-    )
-
-    //endregion
-
+fun PortraitAnimatedView(lyricsOpen:Boolean = false, isPlaying:Boolean ? = false) {
     Box(modifier = Modifier.heightIn(min = 420.dp)){
-        Column(modifier = Modifier.height(420.dp)) {
-            /* Album Cover */
-            Box(
-                modifier = Modifier
-                    .height(320.dp)
-                    .fillMaxWidth(), contentAlignment = Alignment.CenterStart
-            ) {
-                AsyncImage(
-                    model = SongHelper.currentSong.imageUrl,
-                    contentDescription = "Album Cover",
-                    placeholder = painterResource(R.drawable.placeholder),
-                    fallback = painterResource(R.drawable.placeholder),
-                    contentScale = ContentScale.FillHeight,
-                    modifier = Modifier
-                        .size(imageSize)
-                        .offset(x = imageOffsetXAdaptive, y = imageOffsetY)
-                        .shadow(4.dp, RoundedCornerShape(imageCornerRadius), clip = true)
-                        .background(MaterialTheme.colorScheme.background)
-                        .clip(RoundedCornerShape(imageCornerRadius))
-                )
-            }
-            /* Song Title + Artist*/
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp, start = 36.dp),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Top
-            ) {
-                SongHelper.currentSong.title.let {
-                    Text(
-                        text = //Limit the artist name length.
-                        if (SongHelper.currentSong.isRadio == true)
-                            it.split(" - ").last()
-                        else
-                            if (it.length > 24) it.substring(0, 21) + "..."
-                        else it,
-                        fontSize = titleFontSize.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier.offset(titleOffsetX,titleOffsetY)
-                    )
-                }
-                SongHelper.currentSong.artist.let {
-                    Text(
-                        text = //Limit the artist name length.
-                        if (it.length > 24)
-                            it.substring(0, 21) + "..." + " • " + SongHelper.currentSong.year
-                        else
-                            it + " • " + SongHelper.currentSong.year,
-                        fontSize = artistFontSize.sp,
-                        fontWeight = FontWeight.Light,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier.offset(artistOffsetX, artistOffsetY)
-                    )
-                }
-                Crossfade(lyricsOpen == false, label = "Fade Out More Info") {
-                    if (it){
-                        if (showMoreInfo.value) {
-                            SongHelper.currentSong.format.let {format ->
-                                Text(
-                                    text = "${format.toString()} • ${
-                                        if (SongHelper.currentSong.navidromeID == "Local") 
-                                            stringResource(R.string.Source_Local)
-                                        else
-                                            stringResource(R.string.Source_Navidrome)} ",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Thin,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.Start
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        Crossfade(lyricsOpen == true, label = "Lyrics View Crossfade") {
+        println("Recomposing Main Now-Playing UI")
+
+        Crossfade(lyricsOpen, label = "Lyrics View Crossfade") {
             if (it)
                 LyricsView(false)
-        }
-        Crossfade(lyricsOpen == true, label = "Play Pause Mini-Icon") {
-            if (it)
-                Box(modifier = Modifier
-                    .height(44.dp)
-                    .fillMaxWidth()){
-                    Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .align(Alignment.CenterEnd)
-                            .padding(end = 12.dp), verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isPlaying == true)
-                                ImageVector.vectorResource(R.drawable.round_pause_24)
-                            else
-                                Icons.Rounded.PlayArrow,
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            contentDescription = "Play/Pause",
-                            modifier = Modifier
-                                .height(48.dp)
-                                .size(48.dp)
-                                .bounceClick()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable {
-                                    SongHelper.player.playWhenReady =
-                                        !SongHelper.player.playWhenReady
-                                }
-                        )
-                    }
-                }
+            else
+                PortraitAlbumCover()
         }
     }
 }
@@ -642,7 +488,8 @@ fun LandscapeAnimatedView(
     isPlaying: Boolean? = false,
     song: Song = SongHelper.currentSong,
     snackbarHostState: SnackbarHostState? = SnackbarHostState(),
-    coroutineScope: CoroutineScope = rememberCoroutineScope(), ) {
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+) {
     //region Animated Variables
 
     // Image Animations
@@ -866,7 +713,7 @@ fun LyricsView(isLandscape: Boolean = false) {
     val pxValue = with(LocalDensity.current) { dpToSp.dp.toPx() }
 
     LaunchedEffect(currentLyricIndex) {
-        state.animateScrollTo((pxValue * currentLyricIndex - if (isLandscape) 96 else 64).toInt())
+        state.animateScrollTo((pxValue * currentLyricIndex - if (isLandscape) 96 else pxValue.toInt()).toInt())
     }
 
     Column(
@@ -881,7 +728,7 @@ fun LyricsView(isLandscape: Boolean = false) {
                 .fillMaxWidth()
                 .height(420.dp)
                 .padding(horizontal = 12.dp)
-                .padding(top = 48.dp)
+            //.padding(top = 48.dp)
         }
             .fadingEdge(topBottomFade)
             .verticalScroll(state),
@@ -909,7 +756,8 @@ fun LyricsView(isLandscape: Boolean = false) {
                         .graphicsLayer(
                             scaleX = if (lyric.isCurrentLyric) 1f else 0.9f,
                             scaleY = if (lyric.isCurrentLyric) 1f else 0.9f
-                        ),
+                        )
+                        .animateContentSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -1233,4 +1081,28 @@ fun animateBrushRotation(
             ShaderBrush(shader)
         }
     }
+}
+
+@Composable
+fun dpToPx(dp: Int): Int {
+    return with(LocalDensity.current) { dp.dp.toPx() }.toInt()
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun calculateDraggingProgress(
+    scaffoldState: BottomSheetScaffoldState,
+    constraints: () -> Constraints,
+    peekingHeightPx: Float,
+    fullDrawerHeightPx: () -> Int,
+): State<Float> {
+    val dragProgress by remember {
+        derivedStateOf {
+            val offset = runCatching { scaffoldState.bottomSheetState.requireOffset() }.getOrDefault(0f)
+            (constraints().maxHeight - offset - peekingHeightPx)
+                .div(fullDrawerHeightPx() - peekingHeightPx)
+                .coerceIn(minimumValue = 0f, maximumValue = 1f)
+        }
+    }
+    return rememberUpdatedState(newValue = dragProgress)
 }

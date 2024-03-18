@@ -491,7 +491,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 .height(50.dp)
                                 .bounceClick()
                         ) {
-                            Text(text = "New Playlist")
+                            Text(stringResource(R.string.Dialog_New_Playlist))
                         }
                     }
 

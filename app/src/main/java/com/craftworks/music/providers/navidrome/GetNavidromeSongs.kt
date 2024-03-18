@@ -6,7 +6,6 @@ import com.craftworks.music.data.Album
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.screens.transcodingBitrate
 import com.craftworks.music.ui.screens.username
@@ -32,12 +31,6 @@ fun getNavidromeSongs(url: URL){
     val thread = Thread {
         try {
             Log.d("useNavidromeServer", "URL: $url")
-
-            // Clear everything!
-            //songsList.clear()
-            //albumList.clear()
-            //radioList.clear()
-            playlistList.clear()
 
             navidromeStatus.value = "Loading"
 
@@ -137,7 +130,7 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             lastPlayed = songLastPlayed
         )
 
-        if (songList.isEmpty() || !songList.contains(songList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
+        if (!songList.contains(songList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
             songList.add(song)
         }
 
@@ -148,7 +141,7 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             year = songYear,
             coverArt = songImageUrl
         )
-        if (albumList.isEmpty() || !albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
+        if (!albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
             albumList.add(album)
         }
 
