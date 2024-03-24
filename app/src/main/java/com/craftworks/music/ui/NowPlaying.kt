@@ -69,6 +69,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -293,7 +294,9 @@ fun NowPlayingContent(
                 0f,
             label = "Animated Top Offset")
 
-        Box(modifier = Modifier.graphicsLayer { translationY = -offsetY }.zIndex(1f)) {
+        Box(modifier = Modifier
+            .graphicsLayer { translationY = -offsetY }
+            .zIndex(1f)) {
             NowPlayingMiniPlayer(scaffoldState, isPlaying)
         }
 
@@ -543,11 +546,15 @@ fun SliderUpdating(isLandscape: Boolean? = false){
     }
     val sliderHeight = if (isLandscape == true) 24.dp else 12.dp
 
+
+
     Slider(
         enabled = (transcodingBitrate.value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
         modifier = Modifier
             .width(sliderWidth)
-            .height(sliderHeight),
+            .height(sliderHeight)
+            .scale(scaleX = 1f, scaleY = 1.25f)
+            .clip(RoundedCornerShape(12.dp)),
         value = animatedSliderValue,
         onValueChange = {
             SongHelper.isSeeking = true
@@ -561,24 +568,12 @@ fun SliderUpdating(isLandscape: Boolean? = false){
             activeTrackColor = MaterialTheme.colorScheme.onBackground,
             inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
         ),
-        thumb = {},
-        /*track = { sliderPositions ->
-            SliderDefaults.Track(
-                modifier = Modifier
-                    .scale(scaleX = 1f, scaleY = 1.25f)
-                    .clip(RoundedCornerShape(12.dp)),
-                sliderPositions = sliderPositions,
-                colors = SliderDefaults.colors(
-                    activeTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
-                    inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
-                )
-            )
-        },*/
+        thumb = {}
     )
     Box (modifier = Modifier.width(if (isLandscape == true) 460.dp else 320.dp)) {
         Text(
             text = formatMilliseconds(sliderPos.intValue.toFloat()),
-            fontWeight = FontWeight.Thin,
+            fontWeight = FontWeight.Light,
             textAlign = TextAlign.Start,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
             modifier = Modifier
@@ -589,7 +584,7 @@ fun SliderUpdating(isLandscape: Boolean? = false){
 
         Text(
             text = formatMilliseconds(SongHelper.currentSong.duration.toFloat()),
-            fontWeight = FontWeight.Thin,
+            fontWeight = FontWeight.Light,
             textAlign = TextAlign.End,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
             modifier = Modifier

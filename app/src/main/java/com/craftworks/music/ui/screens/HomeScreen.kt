@@ -35,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -86,11 +87,13 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
     var recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
     var recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
     var mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
-    var shuffledSongsList = remember { songsList.take(10).shuffled() }
+    var shuffledSongsList = remember { mutableStateOf(songsList.take(10).shuffled()) }
 
     val state = rememberPullToRefreshState()
     if (state.isRefreshing) {
         LaunchedEffect(true) {
+            songsList.clear()
+
             if (useNavidromeServer.value){
                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
             }
@@ -103,7 +106,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
             recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
             recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
             mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
-            shuffledSongsList = songsList.take(10).shuffled()
+            shuffledSongsList = mutableStateOf(songsList.take(10).shuffled())
 
             state.endRefresh()
         }
@@ -277,9 +280,9 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 )
 
                 /* SONGS ROW */
-                SongsRow(songsList = shuffledSongsList, onSongSelected = { song ->
+                SongsRow(songsList = shuffledSongsList.value, onSongSelected = { song ->
                     playingSong.selectedSong = song
-                    playingSong.selectedList = shuffledSongsList
+                    playingSong.selectedList = shuffledSongsList.value
                     //songState = true
                     song.media?.let { SongHelper.playStream(context = context, url = it) }
                 })

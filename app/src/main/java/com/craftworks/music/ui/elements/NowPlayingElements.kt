@@ -126,8 +126,8 @@ fun NowPlayingPortraitCover (){
                         it.substring(0, 17) + "..." + " • " + SongHelper.currentSong.year
                     else
                         it + " • " + SongHelper.currentSong.year,
-                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                    fontWeight = FontWeight.Light,
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                    fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Start
@@ -143,7 +143,7 @@ fun NowPlayingPortraitCover (){
                                 stringResource(R.string.Source_Navidrome)
                         } ",
                         style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Thin,
+                        fontWeight = FontWeight.Light,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start
@@ -227,7 +227,7 @@ fun NowPlayingLandscape(
                         else
                             it + " • " + SongHelper.currentSong.year,
                         fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                        fontWeight = FontWeight.Light,
+                        fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start
@@ -238,7 +238,7 @@ fun NowPlayingLandscape(
                         Text(
                             text = format.toString(),
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Thin,
+                            fontWeight = FontWeight.Light,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                             maxLines = 1, overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Start

@@ -17,7 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -40,10 +41,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
+import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Screen
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.playingSong
-import com.craftworks.music.songState
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 
 @ExperimentalFoundationApi
@@ -102,18 +103,20 @@ fun PlaylistDetails(navHostController: NavHostController = rememberNavController
                 )
             }
         }
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.padding(12.dp, 0.dp, 12.dp, 0.dp),
             thickness = 2.dp,
             color = MaterialTheme.colorScheme.onBackground
         )
 
+        val context = LocalContext.current
         Column(modifier = Modifier.padding(12.dp, top = 0.dp)) {
             selectedPlaylist?.songs?.let {
                 SongsHorizontalColumn(it, onSongSelected = { song ->
                     playingSong.selectedSong = song
-                    playingSong.selectedList = it
-                    songState = true })
+                    playingSong.selectedList = selectedPlaylist!!.songs
+                    song.media?.let { songUri -> SongHelper.playStream(context = context, url = songUri) }
+                })
             }
         }
     }

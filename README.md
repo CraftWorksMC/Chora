@@ -16,10 +16,14 @@ Sorry for the recent lack of updates, school is taking a lot of my time. hopeful
 - Synced And Unsynced Lyrics [From lrclib.net]
 - Playlists [Navidrome Only]
 - Android Auto
-## Roadmap
+## W.I.P
 
 - Offline Playlists
+## Roadmap
+
 - Artist Page
+- Jellyfin (Music) Support
+
 
 ## Screenshots
 <p align="center">
