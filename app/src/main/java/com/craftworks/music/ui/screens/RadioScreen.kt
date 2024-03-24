@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,6 +49,7 @@ import com.craftworks.music.ui.elements.RadiosGrid
 var showRadioAddDialog = mutableStateOf(false)
 var showRadioModifyDialog = mutableStateOf(false)
 var selectedRadioIndex = mutableIntStateOf(0)
+@OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -100,7 +102,9 @@ fun RadioScreen() {
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        Column(modifier = Modifier.padding(12.dp,24.dp,12.dp,12.dp)) {
+        Column(modifier = Modifier
+            .padding(12.dp,24.dp,12.dp,12.dp)
+            ) {
             RadiosGrid(radioList, onSongSelected = { song ->
                 if (song.media.toString().endsWith("m3u8"))
                     return@RadiosGrid
@@ -118,6 +122,7 @@ fun RadioScreen() {
                 }.start()
             })
         }
+
     }
 
     if(showRadioAddDialog.value)

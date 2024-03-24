@@ -71,6 +71,7 @@ import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
+import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.localProviderList
@@ -83,6 +84,7 @@ import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.addSongToNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromeRadioStation
+import com.craftworks.music.providers.navidrome.deleteNavidromePlaylist
 import com.craftworks.music.providers.navidrome.deleteNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
@@ -126,6 +128,11 @@ fun PreviewAddToPlaylistDialog(){
 @Composable
 fun PreviewNewPlaylistDialog(){
     NewPlaylist(setShowDialog = {})
+}
+@Preview(showBackground = true)
+@Composable
+fun PreviewDeletePlaylistDialog(){
+    DeletePlaylist(setShowDialog = {})
 }
 //endregion
 
@@ -565,6 +572,66 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
     }
 }
 
+var showDeletePlaylistDialog = mutableStateOf(false)
+var playlistToDelete = mutableStateOf(Playlist("",Uri.EMPTY))
+@Composable
+fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.Dialog_Delete_Playlist),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+                    Column{
+
+                        Text(
+                            text = stringResource(R.string.Label_Confirm_Delete_Playlist),
+                            fontWeight = FontWeight.Normal,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.padding(bottom = 24.dp)
+                        )
+
+                        Button(
+                            onClick = {
+                                try {
+                                    if (useNavidromeServer.value)
+                                        playlistToDelete.value.navidromeID?.let {
+                                            deleteNavidromePlaylist(it) }
+                                } catch (_: Exception){
+                                    // DO NOTHING
+                                }
+                                setShowDialog(false)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onBackground),
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(top = 24.dp, start = 40.dp, end = 40.dp)
+                                .height(50.dp)
+                                .fillMaxWidth()
+                                .bounceClick(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(stringResource(R.string.Action_Remove), modifier = Modifier.height(24.dp))
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+}
 
 /* --- SETTINGS --- */
 

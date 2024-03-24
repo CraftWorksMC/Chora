@@ -71,6 +71,30 @@ fun createNavidromePlaylist(playlistName: String){
     }
     thread.start()
 }
+fun deleteNavidromePlaylist(playlistID: String){
+    if (navidromeServersList.isEmpty()) return
+    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
+
+    val thread = Thread {
+        try {
+            val url =
+                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/deletePlaylist.view?&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&id=${playlistID}&v=1.12.0&c=Chora")
+
+            with(url.openConnection() as HttpURLConnection) {
+                requestMethod = "GET"  // optional default is GET
+
+                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+            }
+
+            getNavidromePlaylists()
+
+        } catch (e: Exception) {
+            Log.d("Exception", e.toString())
+        }
+    }
+    thread.start()
+}
 fun addSongToNavidromePlaylist(playlistID: String, songID: String){
     if (navidromeServersList.isEmpty()) return
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||

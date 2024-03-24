@@ -69,7 +69,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -563,7 +562,7 @@ fun SliderUpdating(isLandscape: Boolean? = false){
             inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
         ),
         thumb = {},
-        track = { sliderPositions ->
+        /*track = { sliderPositions ->
             SliderDefaults.Track(
                 modifier = Modifier
                     .scale(scaleX = 1f, scaleY = 1.25f)
@@ -574,7 +573,7 @@ fun SliderUpdating(isLandscape: Boolean? = false){
                     inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
                 )
             )
-        },
+        },*/
     )
     Box (modifier = Modifier.width(if (isLandscape == true) 460.dp else 320.dp)) {
         Text(

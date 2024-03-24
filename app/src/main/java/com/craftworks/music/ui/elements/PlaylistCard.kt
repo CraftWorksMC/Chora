@@ -1,5 +1,7 @@
 package com.craftworks.music.ui.elements
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -8,7 +10,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,12 +26,20 @@ import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Playlist
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistCard(playlist: Playlist, onClick: () -> Unit){
     Card(
-        onClick = { onClick() },
-        modifier = Modifier.padding(12.dp),
+        //onClick = { onClick() },
+        modifier = Modifier.padding(12.dp)
+            .combinedClickable(
+                onClick = { onClick() },
+                onLongClick = {
+                    playlistToDelete.value = playlist
+                    showDeletePlaylistDialog.value = true
+                },
+                onLongClickLabel = "Delete Playlist"
+            ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.background,

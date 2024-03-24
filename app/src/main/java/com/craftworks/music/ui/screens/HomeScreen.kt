@@ -25,10 +25,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +43,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -55,12 +60,19 @@ import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.playingSong
+import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.elements.SongsRow
+import kotlinx.coroutines.delay
+import java.net.URL
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview(showBackground = true, showSystemUi = true,
     uiMode = Configuration.UI_MODE_NIGHT_YES,
@@ -71,188 +83,216 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
 
     val context = LocalContext.current
 
-    val recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
-    val recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
-    val mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
-    val shuffledSongsList = remember { songsList.take(10).shuffled() }
+    var recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
+    var recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
+    var mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
+    var shuffledSongsList = remember { songsList.take(10).shuffled() }
 
-
-    Column(modifier = Modifier
-        .padding(start = leftPadding)
-        .fillMaxWidth()
-        .wrapContentHeight()
-        .verticalScroll(rememberScrollState())) {
-
-        Row(verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(
-                    top = WindowInsets.statusBars
-                        .asPaddingValues()
-                        .calculateTopPadding()
-                )
-                //.height(72.dp)
-        ) {
-            /* GREETING */
-            Box(Modifier.weight(1f)) {
-                if (useNavidromeServer.value){
-                    var rotation by remember { mutableFloatStateOf(-10f) }
-                    val animatedRotation by animateFloatAsState(
-                        targetValue = rotation,
-                        animationSpec = tween(durationMillis = 1000),
-                        label = "Navidrome Logo Rotate"
-                    )
-
-                    Image(
-                        painter = painterResource(R.drawable.s_m_navidrome),
-                        contentDescription = "Navidrome Icon",
-                        modifier = Modifier
-                            .size(72.dp)
-                            .offset(x = (-36).dp)
-                            //.rotate(-10f) // Make it look just a tad bit nicer
-                            .shadow(24.dp, CircleShape)
-                            .graphicsLayer(
-                                rotationZ = animatedRotation
-                            )
-                            //.bounceClick() doesn't look good here!
-                            .clickable {
-                                rotation += 360f
-                            }
-                    )
-                }
-                Text(
-                    text = "${stringResource(R.string.welcome_text)},\n${username.value}",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                    modifier = Modifier
-                        .padding(start =
-                        if (useNavidromeServer.value)
-                            42.dp
-                        else
-                            12.dp),
-                    lineHeight = 32.sp
-                )
+    val state = rememberPullToRefreshState()
+    if (state.isRefreshing) {
+        LaunchedEffect(true) {
+            if (useNavidromeServer.value){
+                getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
             }
-            Box(Modifier.padding(end = 12.dp)) {
-                Button(
-                    onClick = { navHostController.navigate(Screen.Setting.route) },
-                    shape = CircleShape,
-                    modifier = Modifier.size(32.dp),
-                    contentPadding = PaddingValues(2.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.rounded_settings_24),
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "Settings",
-                        modifier = Modifier
-                            .height(32.dp)
-                            .size(32.dp)
-                    )
-                }
+            else{
+                getSongsOnDevice(context)
             }
+
+            delay(1500)
+
+            recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
+            recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
+            mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
+            shuffledSongsList = songsList.take(10).shuffled()
+
+            state.endRefresh()
         }
-
-
-        Divider(
-            modifier = Modifier.padding(12.dp, 0.dp, 12.dp, 12.dp),
-            thickness = 2.dp,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        /* RECENTLY PLAYED */
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(256.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.recently_played) + ":",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                modifier = Modifier.padding(start = 12.dp)
-            )
-
-            /* SONGS ROW */
-            SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
-                playingSong.selectedSong = song
-                playingSong.selectedList = recentlyPlayedSongsList
-                //songState = true
-                song.media?.let { SongHelper.playStream(context = context, url = it) }
-            })
-        }
-
-
-        /* RECENTLY ADDED SONGS */
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(256.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.recently_added) + ":",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                modifier = Modifier.padding(start = 12.dp)
-            )
-
-            /* SONGS ROW */
-            SongsRow(songsList = recentSongsList, onSongSelected = { song ->
-                playingSong.selectedSong = song
-                playingSong.selectedList = recentSongsList
-                //songState = true
-                song.media?.let { SongHelper.playStream(context = context, url = it) }
-            })
-        }
-
-        /* MOST PLAYED SONGS */
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(256.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.most_played) + ":",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                modifier = Modifier.padding(start = 12.dp)
-            )
-            /* SONGS ROW */
-            SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
-                playingSong.selectedSong = song
-                playingSong.selectedList = mostPlayedList
-                //songState = true
-                song.media?.let { SongHelper.playStream(context = context, url = it) }
-            })
-        }
-
-        /* EXPLORE FROM YOUR LIBRARY */
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(256.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.random_songs) + ":",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                modifier = Modifier.padding(start = 12.dp)
-            )
-
-            /* SONGS ROW */
-            SongsRow(songsList = shuffledSongsList, onSongSelected = { song ->
-                playingSong.selectedSong = song
-                playingSong.selectedList = shuffledSongsList
-                //songState = true
-                song.media?.let { SongHelper.playStream(context = context, url = it) }
-            })
-        }
-
-        Spacer(modifier = Modifier.height(72.dp + 80.dp))
     }
+
+
+    Box(Modifier.nestedScroll(state.nestedScrollConnection)) {
+        Column(modifier = Modifier
+            .padding(start = leftPadding)
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .verticalScroll(rememberScrollState())) {
+
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(
+                        top = WindowInsets.statusBars
+                            .asPaddingValues()
+                            .calculateTopPadding()
+                    )
+                //.height(72.dp)
+            ) {
+                /* GREETING */
+                Box(Modifier.weight(1f)) {
+                    if (useNavidromeServer.value){
+                        var rotation by remember { mutableFloatStateOf(-10f) }
+                        val animatedRotation by animateFloatAsState(
+                            targetValue = rotation,
+                            animationSpec = tween(durationMillis = 1000),
+                            label = "Navidrome Logo Rotate"
+                        )
+
+                        Image(
+                            painter = painterResource(R.drawable.s_m_navidrome),
+                            contentDescription = "Navidrome Icon",
+                            modifier = Modifier
+                                .size(72.dp)
+                                .offset(x = (-36).dp)
+                                //.rotate(-10f) // Make it look just a tad bit nicer
+                                .shadow(24.dp, CircleShape)
+                                .graphicsLayer(
+                                    rotationZ = animatedRotation
+                                )
+                                //.bounceClick() doesn't look good here!
+                                .clickable {
+                                    rotation += 360f
+                                }
+                        )
+                    }
+                    Text(
+                        text = "${stringResource(R.string.welcome_text)},\n${username.value}",
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                        modifier = Modifier
+                            .padding(start =
+                            if (useNavidromeServer.value)
+                                42.dp
+                            else
+                                12.dp),
+                        lineHeight = 32.sp
+                    )
+                }
+                Box(Modifier.padding(end = 12.dp)) {
+                    Button(
+                        onClick = { navHostController.navigate(Screen.Setting.route) },
+                        shape = CircleShape,
+                        modifier = Modifier.size(32.dp),
+                        contentPadding = PaddingValues(2.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.rounded_settings_24),
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            contentDescription = "Settings",
+                            modifier = Modifier
+                                .height(32.dp)
+                                .size(32.dp)
+                        )
+                    }
+                }
+            }
+
+
+            Divider(
+                modifier = Modifier.padding(12.dp, 0.dp, 12.dp, 12.dp),
+                thickness = 2.dp,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            /* RECENTLY PLAYED */
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(256.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.recently_played) + ":",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+
+                /* SONGS ROW */
+                SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
+                    playingSong.selectedSong = song
+                    playingSong.selectedList = recentlyPlayedSongsList
+                    //songState = true
+                    song.media?.let { SongHelper.playStream(context = context, url = it) }
+                })
+            }
+
+
+            /* RECENTLY ADDED SONGS */
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(256.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.recently_added) + ":",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+
+                /* SONGS ROW */
+                SongsRow(songsList = recentSongsList, onSongSelected = { song ->
+                    playingSong.selectedSong = song
+                    playingSong.selectedList = recentSongsList
+                    //songState = true
+                    song.media?.let { SongHelper.playStream(context = context, url = it) }
+                })
+            }
+
+            /* MOST PLAYED SONGS */
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(256.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.most_played) + ":",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+                /* SONGS ROW */
+                SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
+                    playingSong.selectedSong = song
+                    playingSong.selectedList = mostPlayedList
+                    //songState = true
+                    song.media?.let { SongHelper.playStream(context = context, url = it) }
+                })
+            }
+
+            /* EXPLORE FROM YOUR LIBRARY */
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(256.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.random_songs) + ":",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+
+                /* SONGS ROW */
+                SongsRow(songsList = shuffledSongsList, onSongSelected = { song ->
+                    playingSong.selectedSong = song
+                    playingSong.selectedList = shuffledSongsList
+                    //songState = true
+                    song.media?.let { SongHelper.playStream(context = context, url = it) }
+                })
+            }
+
+            Spacer(modifier = Modifier.height(72.dp + 80.dp))
+        }
+        PullToRefreshContainer(
+            modifier = Modifier.align(Alignment.TopCenter),
+            state = state,
+        )
+    }
+
 }
 
 

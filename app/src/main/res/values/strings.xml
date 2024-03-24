@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Chora</string>
+    <string name="app_name" translatable="false">Chora</string>
     <string name="welcome_text">Welcome</string>
     <string name="recently_added">Recently Added</string>
     <string name="songs">Songs</string>
