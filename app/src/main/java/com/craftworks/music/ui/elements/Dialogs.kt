@@ -716,7 +716,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                                 Text(stringResource(R.string.Action_Add), modifier = Modifier.height(24.dp))
                             }
                         }
-                    else if (selectedOptionText == stringResource(R.string.Source_Local))
+                    else if (selectedOptionText == stringResource(R.string.Source_Navidrome))
                         Column{
                         /* SERVER URL */
                         OutlinedTextField(
