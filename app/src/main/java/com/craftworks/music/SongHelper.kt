@@ -9,8 +9,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.OptIn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -27,9 +25,6 @@ import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.providers.navidrome.markSongAsPlayed
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.bitmap
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.util.Calendar
 import kotlin.math.abs
 
@@ -85,7 +80,6 @@ class SongHelper {
             saveManager(context).loadSettings()
         }
 
-        @kotlin.OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
         fun playStream(context: Context, url: Uri, isRadio: Boolean ? = false) {
             // Stop If It's Playing
             if (player.isPlaying){

@@ -419,7 +419,7 @@ fun NowPlayingContent(
 @Composable
 @Preview(showBackground = true)
 fun LyricsView(isLandscape: Boolean = false) {
-    val topBottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.25f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
+    val topBottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.15f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
     val state = rememberScrollState()
     var currentLyricIndex by remember { mutableIntStateOf(0) }
 

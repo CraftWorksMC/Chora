@@ -109,7 +109,7 @@ fun NowPlayingPortraitCover (){
                     if (SongHelper.currentSong.isRadio == true)
                         it.split(" - ").last()
                     else
-                        if (it.length > 24) it.substring(0, 21) + "..."
+                        if (it.length > 21) it.substring(0, 18) + "..."
                         else it,
                     fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                     fontWeight = FontWeight.SemiBold,
@@ -122,8 +122,8 @@ fun NowPlayingPortraitCover (){
                 Text(
                     text = //Limit the artist name length.
                     if (it.isBlank()) ""
-                    else if (it.length > 24)
-                        it.substring(0, 21) + "..." + " • " + SongHelper.currentSong.year
+                    else if (it.length > 20)
+                        it.substring(0, 17) + "..." + " • " + SongHelper.currentSong.year
                     else
                         it + " • " + SongHelper.currentSong.year,
                     fontSize = MaterialTheme.typography.bodyLarge.fontSize,

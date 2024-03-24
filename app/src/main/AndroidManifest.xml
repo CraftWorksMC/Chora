@@ -30,6 +30,9 @@
         android:usesCleartextTraffic="true"
         android:appCategory="audio"
         android:enableOnBackInvokedCallback="true"
+
+        android:configChanges="keyboardHidden|orientation|screenSize"
+
         tools:targetApi="31"
         tools:ignore="UnusedAttribute">
 
@@ -45,6 +48,9 @@
             android:exported="true"
             android:theme="@style/Theme.MusicPlayer"
             android:hardwareAccelerated="true"
+
+            android:configChanges="orientation|screenSize"
+
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

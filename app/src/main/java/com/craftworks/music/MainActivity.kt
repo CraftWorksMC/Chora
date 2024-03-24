@@ -53,7 +53,6 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -127,22 +126,23 @@ class MainActivity : ComponentActivity() {
         }, 0, 1000)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        val scaffoldState = BottomSheetScaffoldState(
+            bottomSheetState = SheetState(
+                skipPartiallyExpanded = false,
+                initialValue = SheetValue.PartiallyExpanded,
+                skipHiddenState = true
+            ),
+            snackbarHostState = SnackbarHostState()
+        )
         val snackbarHostState = SnackbarHostState()
 
         setContent {
 
             MusicPlayerTheme {
-
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
                 navController = rememberNavController()
-                val scaffoldState = BottomSheetScaffoldState(
-                    bottomSheetState = SheetState(
-                        skipPartiallyExpanded = false,
-                        density = LocalDensity.current, initialValue = SheetValue.PartiallyExpanded,
-                        skipHiddenState = true
-                    ),
-                    snackbarHostState = SnackbarHostState()
-                )
+
 
                 val bottomNavigationItems = listOf(
                     BottomNavigationItem(
@@ -203,7 +203,7 @@ class MainActivity : ComponentActivity() {
                                                 selectedItemIndex = index
                                                 navController.navigate(item.screenRoute)
                                                 coroutineScope.launch {
-                                                    //scaffoldState.bottomSheetState.partialExpand()
+                                                    scaffoldState.bottomSheetState.partialExpand()
                                                 } },
                                             label = { Text(text = item.title) },
                                             alwaysShowLabel = false,
