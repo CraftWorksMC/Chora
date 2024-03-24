@@ -16,7 +16,7 @@ Sorry for the recent lack of updates, school is taking a lot of my time. hopeful
 - Synced And Unsynced Lyrics [From lrclib.net]
 - Playlists [Navidrome Only]
 - Android Auto
-## W.I.P
+## In Progress
 
 - Offline Playlists
 ## Roadmap
