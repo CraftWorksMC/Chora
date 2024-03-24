@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -84,10 +85,13 @@ object playingSong{
     var selectedSong by mutableStateOf<Song?>(Song(title = "Song Title", artist = "Song Artist", duration = 0, imageUrl = Uri.EMPTY, dateAdded = "", year = "2023", album = "Album"))
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     lateinit var navController: NavHostController
+
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -123,15 +127,6 @@ class MainActivity : ComponentActivity() {
         }, 0, 1000)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        val scaffoldState = BottomSheetScaffoldState(
-            bottomSheetState = SheetState(
-                skipPartiallyExpanded = false,
-                initialValue = SheetValue.PartiallyExpanded,
-                skipHiddenState = true
-            ),
-            snackbarHostState = SnackbarHostState()
-        )
         val snackbarHostState = SnackbarHostState()
 
         setContent {
@@ -140,6 +135,14 @@ class MainActivity : ComponentActivity() {
 
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
                 navController = rememberNavController()
+                val scaffoldState = BottomSheetScaffoldState(
+                    bottomSheetState = SheetState(
+                        skipPartiallyExpanded = false,
+                        density = LocalDensity.current, initialValue = SheetValue.PartiallyExpanded,
+                        skipHiddenState = true
+                    ),
+                    snackbarHostState = SnackbarHostState()
+                )
 
                 val bottomNavigationItems = listOf(
                     BottomNavigationItem(
@@ -200,7 +203,7 @@ class MainActivity : ComponentActivity() {
                                                 selectedItemIndex = index
                                                 navController.navigate(item.screenRoute)
                                                 coroutineScope.launch {
-                                                    scaffoldState.bottomSheetState.partialExpand()
+                                                    //scaffoldState.bottomSheetState.partialExpand()
                                                 } },
                                             label = { Text(text = item.title) },
                                             alwaysShowLabel = false,
