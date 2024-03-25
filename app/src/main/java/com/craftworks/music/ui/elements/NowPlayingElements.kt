@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.elements
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -63,6 +64,7 @@ import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 @Preview(showBackground = true)
 fun NowPlayingPortraitCover (){
@@ -119,11 +121,12 @@ fun NowPlayingPortraitCover (){
                     if (SongHelper.currentSong.isRadio == true)
                         it.split(" - ").last()
                     else
-                        "Very long text that needs to be cut off",
+                        it,
                     fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1, overflow = TextOverflow.Clip,
+                    maxLines = 1, overflow = TextOverflow.Visible,
+                    softWrap = false,
                     textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth().fadingEdge(textFadingEdge)
                 )
@@ -136,7 +139,8 @@ fun NowPlayingPortraitCover (){
                     fontSize = MaterialTheme.typography.titleMedium.fontSize,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1, overflow = TextOverflow.Clip,
+                    maxLines = 1, overflow = TextOverflow.Visible,
+                    softWrap = false,
                     textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth().fadingEdge(textFadingEdge)
                 )
@@ -153,7 +157,7 @@ fun NowPlayingPortraitCover (){
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Light,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
                         textAlign = TextAlign.Start
                     )
                 }
