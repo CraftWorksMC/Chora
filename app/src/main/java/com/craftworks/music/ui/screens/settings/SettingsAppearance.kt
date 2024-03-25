@@ -21,7 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -62,6 +62,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 80.dp + 72.dp + 12.dp else 72.dp
 
     var showBackgroundDialog by remember { mutableStateOf(false) }
+    var showNavbarItemsDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -108,7 +110,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             }
         }
 
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.padding(horizontal = 12.dp),
             thickness = 2.dp,
             color = MaterialTheme.colorScheme.onBackground
@@ -147,7 +149,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
-                    contentDescription = "Settings Icon",
+                    contentDescription = "Background Style Icon",
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .padding(horizontal = 12.dp)
@@ -175,7 +177,43 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 }
             }
 
-            // More Song Info
+            //Navbar Items
+            Row (verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(vertical = 6.dp)
+                    .clickable {
+                        showNavbarItemsDialog = true
+                    }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
+                    contentDescription = "Navbar Menus Icon",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .size(32.dp)
+                )
+                Column {
+                    Text(
+                        text = stringResource(R.string.Setting_Navbar_Items),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.fillMaxSize(),
+                        textAlign = TextAlign.Start
+                    )
+                    Text(
+                        text = backgroundType.value,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
+                        modifier = Modifier.fillMaxSize(),
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start
+                    )
+                }
+            }
+
+            //More Song Info
             Row (verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)) {
@@ -202,5 +240,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 
         if(showBackgroundDialog)
             BackgroundDialog(setShowDialog = { showBackgroundDialog = it })
+
+        if(showNavbarItemsDialog)
+            BackgroundDialog(setShowDialog = { showNavbarItemsDialog = it })
     }
 }

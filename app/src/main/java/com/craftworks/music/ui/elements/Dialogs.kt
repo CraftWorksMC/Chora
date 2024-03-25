@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -105,6 +106,11 @@ fun PreviewBackgroundDialog(){
 }
 @Preview(showBackground = true)
 @Composable
+fun PreviewNavbarItemsDialog(){
+    NavbarItemsDialog(setShowDialog = { })
+}
+@Preview(showBackground = true)
+@Composable
 fun PreviewProviderDialog(){
     CreateMediaProviderDialog(setShowDialog = { })
 }
@@ -136,7 +142,7 @@ fun PreviewDeletePlaylistDialog(){
 }
 //endregion
 
-/* --- RADIO DIALOGS --- */
+//region RADIO DIALOGS
 @Composable
 fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
     var radioName by remember { mutableStateOf("") }
@@ -375,11 +381,12 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
     }
 }
 
-/* --- SONG DIALOGS --- */
+//endregion
+
+//region SONG DIALOGS
 var showAddSongToPlaylistDialog = mutableStateOf(false)
 var showNewPlaylistDialog = mutableStateOf(false)
 var songToAddToPlaylist = mutableStateOf(Song(Uri.EMPTY,"","","",0))
-
 @Composable
 fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
     Dialog(onDismissRequest = { setShowDialog(false) }) {
@@ -510,7 +517,6 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
         }
     }
 }
-
 @Composable
 fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
     var name: String by remember { mutableStateOf("") }
@@ -633,9 +639,11 @@ fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
     }
 }
 
+//endregion
+
 /* --- SETTINGS --- */
 
-//  APPEARANCE
+//region APPEARANCE DIALOGS
 @Composable
 fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
     Dialog(onDismissRequest = { setShowDialog(false) }) {
@@ -681,8 +689,53 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
         }
     }
 }
+@Composable
+fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+        ) {
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.Setting_Navbar_Items),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+                    for (option in backgroundTypes) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+                                .height(48.dp)
+                        ) {
+                            var checked by remember { mutableStateOf(true) }
+                            Checkbox(
+                                checked = checked,
+                                onCheckedChange = { checked = it },
+                                modifier = Modifier
+                                    .semantics { contentDescription = option }
+                                    .bounceClick()
+                            )
+                            Text(
+                                text = option,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
-//  PROVIDERS
+//endregion
+
+//region PROVIDERS
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context = LocalContext.current) {
@@ -876,3 +929,5 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
         }
     }
 }
+
+//endregion

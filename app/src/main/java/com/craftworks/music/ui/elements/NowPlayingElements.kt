@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.elements
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -64,7 +63,6 @@ import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 @Preview(showBackground = true)
 fun NowPlayingPortraitCover (){
@@ -300,7 +298,7 @@ fun NowPlayingLandscape(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview()
+@Preview
 fun NowPlayingMiniPlayer(
     scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     isPlaying: Boolean = true){
