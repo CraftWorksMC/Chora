@@ -96,27 +96,32 @@ class SongHelper {
                 for (song in playingSong.selectedList){
                     if (song.isRadio == true) break
 
-                    val mediaMetadata = MediaMetadata.Builder()
-                        .setTitle(song.title)
-                        .setArtist(song.artist)
-                        .setAlbumTitle(song.album)
-                        .setArtworkUri(song.imageUrl)
-                        .setReleaseYear(song.year?.toIntOrNull() ?: 0)
-                        .setExtras(Bundle().apply {
-                            putInt("duration", song.duration)
-                            putString("MoreInfo", "${song.format} • ${song.bitrate}")
-                            putString("NavidromeID", song.navidromeID)
-                            putBoolean("isRadio", false)
-                        })
-                        .build()
+                    // Move into a thread to avoid slow Binder.
+                    val thread = Thread {
+                        val mediaMetadata = MediaMetadata.Builder()
+                            .setTitle(song.title)
+                            .setArtist(song.artist)
+                            .setAlbumTitle(song.album)
+                            .setArtworkUri(song.imageUrl)
+                            .setReleaseYear(song.year?.toIntOrNull() ?: 0)
+                            .setExtras(Bundle().apply {
+                                putInt("duration", song.duration)
+                                putString("MoreInfo", "${song.format} • ${song.bitrate}")
+                                putString("NavidromeID", song.navidromeID)
+                                putBoolean("isRadio", false)
+                            })
+                            .build()
 
-                    val mediaItem = MediaItem.Builder()
-                        .setUri(song.media)
-                        .setMediaMetadata(mediaMetadata)
-                        .setMimeType(song.format)
-                        .build()
+                        val mediaItem = MediaItem.Builder()
+                            .setUri(song.media)
+                            .setMediaMetadata(mediaMetadata)
+                            .setMimeType(song.format)
+                            .build()
 
-                    player.addMediaItem(mediaItem)
+                        player.addMediaItem(mediaItem)
+                    }
+
+                    thread.start()
                 }
 
                 mediaSession.player = player
@@ -125,25 +130,28 @@ class SongHelper {
                 player.seekTo(index, currentPosition)
             }
             else {
-                player.clearMediaItems()
-                val mediaMetadata = MediaMetadata.Builder()
-                    .setArtist(currentSong.artist)
-                    .setReleaseYear(Calendar.getInstance().get(Calendar.YEAR))
-                    .setArtworkUri(currentSong.imageUrl)
-                    .setExtras(Bundle().apply {
-                        putString("MoreInfo", "${currentSong.format} • ${currentSong.bitrate}")
-                        putBoolean("isRadio", true)
-                    })
-                    .build()
+                val thread = Thread{
+                    player.clearMediaItems()
+                    val mediaMetadata = MediaMetadata.Builder()
+                        .setArtist(currentSong.artist)
+                        .setReleaseYear(Calendar.getInstance().get(Calendar.YEAR))
+                        .setArtworkUri(currentSong.imageUrl)
+                        .setExtras(Bundle().apply {
+                            putString("MoreInfo", "${currentSong.format} • ${currentSong.bitrate}")
+                            putBoolean("isRadio", true)
+                        })
+                        .build()
 
-                val mediaItem = MediaItem.Builder()
-                    .setUri(url)
-                    .setMediaMetadata(mediaMetadata)
-                    .build()
+                    val mediaItem = MediaItem.Builder()
+                        .setUri(url)
+                        .setMediaMetadata(mediaMetadata)
+                        .build()
 
-                player.setMediaItem(mediaItem)
-                player.prepare()
-                player.seekTo(0)
+                    player.setMediaItem(mediaItem)
+                    player.prepare()
+                    player.seekTo(0)
+                }
+                thread.start()
             }
 
             player.pauseAtEndOfMediaItems = false
@@ -266,6 +274,7 @@ class SongHelper {
 
         private fun onPlayerComplete(){
             if (abs(sliderPos.intValue - currentSong.duration) > 1000 || currentSong.isRadio == true) return
+            markSongAsPlayed(currentSong)
             nextSong(currentSong)
         }
     }
