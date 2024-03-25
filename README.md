@@ -9,20 +9,21 @@ Sorry for the recent lack of updates, school is taking a lot of my time. hopeful
 ## Features
 
 - Subsonic Integration.
-- Transcoding
+- Transcoding.
 - Material 3 UI.
 - Offline Mode.
 - Internet Radio. [Metadata IceCast only]
-- Synced And Unsynced Lyrics [From lrclib.net]
-- Playlists [Navidrome Only]
-- Android Auto
+- Synced And Unsynced Lyrics. [From lrclib.net]
+- Playlists. [Navidrome Only]
+- Android Auto.
 ## In Progress
 
-- Offline Playlists
+- Fixing Crashes.
+- Offline Playlists.
 ## Roadmap
 
-- Artist Page
-- Jellyfin (Music) Support
+- Artist Page.
+- Jellyfin (Music) Support.
 
 
 ## Screenshots
