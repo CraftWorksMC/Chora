@@ -539,19 +539,13 @@ fun SliderUpdating(isLandscape: Boolean? = false){
     val animatedSliderValue by animateFloatAsState(targetValue = sliderPos.intValue.toFloat(),
         label = "Smooth Slider Update"
     )
-    val sliderWidth = if (isLandscape == true) {
-        480.dp
-    } else {
-        320.dp + 20.dp
-    }
     val sliderHeight = if (isLandscape == true) 24.dp else 12.dp
-
-
 
     Slider(
         enabled = (transcodingBitrate.value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
         modifier = Modifier
-            .width(sliderWidth)
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
             .height(sliderHeight)
             .scale(scaleX = 1f, scaleY = 1.25f)
             .clip(RoundedCornerShape(12.dp)),
@@ -570,7 +564,7 @@ fun SliderUpdating(isLandscape: Boolean? = false){
         ),
         thumb = {}
     )
-    Box (modifier = Modifier.width(if (isLandscape == true) 460.dp else 320.dp)) {
+    Box (modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp)) {
         Text(
             text = formatMilliseconds(sliderPos.intValue.toFloat()),
             fontWeight = FontWeight.Light,

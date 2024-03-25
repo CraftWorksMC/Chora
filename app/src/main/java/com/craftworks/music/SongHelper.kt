@@ -96,32 +96,27 @@ class SongHelper {
                 for (song in playingSong.selectedList){
                     if (song.isRadio == true) break
 
-                    // Move into a thread to avoid slow Binder.
-                    val thread = Thread {
-                        val mediaMetadata = MediaMetadata.Builder()
-                            .setTitle(song.title)
-                            .setArtist(song.artist)
-                            .setAlbumTitle(song.album)
-                            .setArtworkUri(song.imageUrl)
-                            .setReleaseYear(song.year?.toIntOrNull() ?: 0)
-                            .setExtras(Bundle().apply {
-                                putInt("duration", song.duration)
-                                putString("MoreInfo", "${song.format} • ${song.bitrate}")
-                                putString("NavidromeID", song.navidromeID)
-                                putBoolean("isRadio", false)
-                            })
-                            .build()
+                    val mediaMetadata = MediaMetadata.Builder()
+                        .setTitle(song.title)
+                        .setArtist(song.artist)
+                        .setAlbumTitle(song.album)
+                        .setArtworkUri(song.imageUrl)
+                        .setReleaseYear(song.year?.toIntOrNull() ?: 0)
+                        .setExtras(Bundle().apply {
+                            putInt("duration", song.duration)
+                            putString("MoreInfo", "${song.format} • ${song.bitrate}")
+                            putString("NavidromeID", song.navidromeID)
+                            putBoolean("isRadio", false)
+                        })
+                        .build()
 
-                        val mediaItem = MediaItem.Builder()
-                            .setUri(song.media)
-                            .setMediaMetadata(mediaMetadata)
-                            .setMimeType(song.format)
-                            .build()
+                    val mediaItem = MediaItem.Builder()
+                        .setUri(song.media)
+                        .setMediaMetadata(mediaMetadata)
+                        .setMimeType(song.format)
+                        .build()
 
-                        player.addMediaItem(mediaItem)
-                    }
-
-                    thread.start()
+                    player.addMediaItem(mediaItem)
                 }
 
                 mediaSession.player = player
@@ -130,28 +125,26 @@ class SongHelper {
                 player.seekTo(index, currentPosition)
             }
             else {
-                val thread = Thread{
-                    player.clearMediaItems()
-                    val mediaMetadata = MediaMetadata.Builder()
-                        .setArtist(currentSong.artist)
-                        .setReleaseYear(Calendar.getInstance().get(Calendar.YEAR))
-                        .setArtworkUri(currentSong.imageUrl)
-                        .setExtras(Bundle().apply {
-                            putString("MoreInfo", "${currentSong.format} • ${currentSong.bitrate}")
-                            putBoolean("isRadio", true)
-                        })
-                        .build()
+                player.clearMediaItems()
 
-                    val mediaItem = MediaItem.Builder()
-                        .setUri(url)
-                        .setMediaMetadata(mediaMetadata)
-                        .build()
+                val mediaMetadata = MediaMetadata.Builder()
+                    .setArtist(currentSong.artist)
+                    .setReleaseYear(Calendar.getInstance().get(Calendar.YEAR))
+                    .setArtworkUri(currentSong.imageUrl)
+                    .setExtras(Bundle().apply {
+                        putString("MoreInfo", "${currentSong.format} • ${currentSong.bitrate}")
+                        putBoolean("isRadio", true)
+                    })
+                    .build()
 
-                    player.setMediaItem(mediaItem)
-                    player.prepare()
-                    player.seekTo(0)
-                }
-                thread.start()
+                val mediaItem = MediaItem.Builder()
+                    .setUri(url)
+                    .setMediaMetadata(mediaMetadata)
+                    .build()
+
+                player.setMediaItem(mediaItem)
+                player.prepare()
+                player.seekTo(0)
             }
 
             player.pauseAtEndOfMediaItems = false

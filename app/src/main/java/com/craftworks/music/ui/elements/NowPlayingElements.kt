@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -47,6 +50,7 @@ import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Song
+import com.craftworks.music.fadingEdge
 import com.craftworks.music.ui.DownloadButton
 import com.craftworks.music.ui.LyricsButton
 import com.craftworks.music.ui.LyricsView
@@ -62,7 +66,10 @@ import kotlinx.coroutines.launch
 @Composable
 @Preview(showBackground = true)
 fun NowPlayingPortraitCover (){
-    Column(modifier = Modifier.height(420.dp)) {
+
+    val textFadingEdge = Brush.horizontalGradient(0.85f to Color.Red, 1f to Color.Transparent)
+
+    Column(modifier = Modifier.heightIn(min=420.dp)) {
         println("Recomposing Image + Text")
         /* Album Cover */
         Box(modifier = Modifier
@@ -73,7 +80,7 @@ fun NowPlayingPortraitCover (){
                 if (it){
                     Box(modifier = Modifier
                         .fillMaxWidth()
-                        .height(512.dp),
+                        .aspectRatio(1f),
                         contentAlignment = Alignment.Center){
                         LyricsView(false)
                     }
@@ -84,10 +91,12 @@ fun NowPlayingPortraitCover (){
                         contentDescription = "Album Cover",
                         placeholder = painterResource(R.drawable.placeholder),
                         fallback = painterResource(R.drawable.placeholder),
-                        contentScale = ContentScale.FillHeight,
+                        contentScale = ContentScale.FillWidth,
                         alignment = Alignment.Center,
                         modifier = Modifier
-                            .size(320.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp)
+                            .aspectRatio(1f)
                             .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                     )
@@ -99,38 +108,37 @@ fun NowPlayingPortraitCover (){
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp, start = 36.dp),
+                .padding(top = 6.dp)
+                .padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top
         ) {
             SongHelper.currentSong.title.let {
                 Text(
-                    text = //Limit the artist name length.
+                    text =
                     if (SongHelper.currentSong.isRadio == true)
                         it.split(" - ").last()
                     else
-                        if (it.length > 21) it.substring(0, 18) + "..."
-                        else it,
+                        "Very long text that needs to be cut off",
                     fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Start
+                    maxLines = 1, overflow = TextOverflow.Clip,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth().fadingEdge(textFadingEdge)
                 )
             }
             SongHelper.currentSong.artist.let {
                 Text(
-                    text = //Limit the artist name length.
+                    text =
                     if (it.isBlank()) ""
-                    else if (it.length > 20)
-                        it.substring(0, 17) + "..." + " • " + SongHelper.currentSong.year
-                    else
-                        it + " • " + SongHelper.currentSong.year,
+                    else it + " • " + SongHelper.currentSong.year,
                     fontSize = MaterialTheme.typography.titleMedium.fontSize,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Start
+                    maxLines = 1, overflow = TextOverflow.Clip,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth().fadingEdge(textFadingEdge)
                 )
             }
             if (showMoreInfo.value) {
