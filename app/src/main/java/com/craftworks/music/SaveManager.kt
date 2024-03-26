@@ -5,9 +5,12 @@ import android.net.Uri
 import android.util.Log
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
+import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
+import com.craftworks.music.data.Song
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.providers.local.getSongsOnDevice
@@ -33,14 +36,19 @@ class saveManager(private val context: Context){
         sharedPreferences.edit().putString("navidromeServerList", serverListString).apply()
 
         // Save Local Provider List
-        val localListString = localProviderList.joinToString(";") { "${it.directory},${it.enabled}" }
+        val localListString = localProviderList.joinToString(";") {
+            "${it.directory},${it.enabled}" }
         sharedPreferences.edit().putString("localProviderList", localListString).apply()
 
         // Save Radios List
         val radiosListString = radioList.joinToString(";") {
-            "${it.name},${it.media},${it.homepageUrl},${it.imageUrl},${it.navidromeID}"
-        }
+            "${it.name},${it.media},${it.homepageUrl},${it.imageUrl},${it.navidromeID}" }
         sharedPreferences.edit().putString("radioList", radiosListString).apply()
+
+        // Save LOCAL Playlist List
+        val localPlaylistString = playlistList.joinToString(";") {
+            "${it.name}|${it.coverArt}|${it.navidromeID}|${it.songs}" } //Using a different divider due to it.songs
+        sharedPreferences.edit().putString("localPlaylistList", localPlaylistString).apply()
 
         // Save Active Providers
         sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
@@ -69,8 +77,7 @@ class saveManager(private val context: Context){
         useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
 
         // Get Navidrome Server List
-        val serverListString = sharedPreferences.getString("navidromeServerList", "") ?: ""
-        val navidromeStrings = serverListString.split(";")
+        val navidromeStrings = (sharedPreferences.getString("navidromeServerList", "") ?: "").split(";")
         navidromeStrings.forEach { navidromeString ->
             val parts = navidromeString.split(",")
             if (parts.size == 3) {
@@ -85,8 +92,7 @@ class saveManager(private val context: Context){
 
         //region Local
         // Get Local Providers List
-        val localListString = sharedPreferences.getString("localProviderList", "") ?: ""
-        val localListStrings = localListString.split(";")
+        val localListStrings = (sharedPreferences.getString("localProviderList", "") ?: "").split(";")
         println(localListStrings)
         localListStrings.forEach { localString ->
             val parts = localString.split(",")
@@ -101,8 +107,7 @@ class saveManager(private val context: Context){
 
         //region Radios
         // Get Radios List
-        val radioListString = sharedPreferences.getString("radioList", "") ?: ""
-        val radioListStrings = radioListString.split(";")
+        val radioListStrings = (sharedPreferences.getString("radioList", "") ?: "").split(";")
         println(radioListStrings)
         radioListStrings.forEach { localString ->
             val parts = localString.split(",")
@@ -115,6 +120,48 @@ class saveManager(private val context: Context){
                     parts[4]
                 )
                 radioList.add(radio)
+            }
+        }
+        //endregion
+
+        //region Local Playlists
+        // Get Radios List
+        val localPlaylistStrings = (sharedPreferences.getString("localPlaylistList", "") ?: "").split(";")
+        println(localPlaylistStrings)
+        localPlaylistStrings.forEach { localString ->
+            val parts = localString.split("|")
+            if (parts.size > 1) {
+                val songInfoRegex = Regex("Song\\(imageUrl=(.*?), title=(.*?), artist=(.*?), album=(.*?), duration=(.*?), isRadio=(.*?), media=(.*?), timesPlayed=(.*?), dateAdded=(.*?), year=(.*?), format=(.*?), bitrate=(.*?), navidromeID=(.*?), lastPlayed=(.*?)\\)")
+
+                val songMatches = songInfoRegex.findAll(parts[3])
+
+                val songs = songMatches.map { matchResult ->
+                    val groups = matchResult.groupValues
+                    Song(
+                        imageUrl = Uri.parse(groups[1]),
+                        title = groups[2],
+                        artist = groups[3],
+                        album = groups[4],
+                        duration = groups[5].toInt(),
+                        isRadio = groups[6].toBoolean(),
+                        media = Uri.parse(groups[7]),
+                        timesPlayed = groups[8].toInt(),
+                        dateAdded = groups[9],
+                        year = groups[10],
+                        format = groups[11],
+                        bitrate = groups[12],
+                        navidromeID = groups[13],
+                        lastPlayed = groups[14]
+                    )
+                }
+
+                val playlist = Playlist(
+                    name = parts[0],
+                    coverArt = Uri.parse(parts[1]),
+                    navidromeID = parts[2],
+                    songs = songs.toList()
+                )
+                playlistList.add(playlist)
             }
         }
         //endregion
