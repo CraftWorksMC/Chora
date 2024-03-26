@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,8 +42,8 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
-import com.craftworks.music.providers.navidrome.getNavidromePlaylists
-import com.craftworks.music.providers.navidrome.useNavidromeServer
+import com.craftworks.music.providers.local.localPlaylistImageGenerator
+import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.DeletePlaylist
 import com.craftworks.music.ui.elements.PlaylistGrid
 import com.craftworks.music.ui.elements.showDeletePlaylistDialog
@@ -56,23 +58,37 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     val state = rememberPullToRefreshState()
+
+    val context = LocalContext.current
+    if (playlistList.isEmpty()) saveManager(context).loadPlaylists()
+
     if (state.isRefreshing) {
         LaunchedEffect(true) {
+            saveManager(context).saveSettings()
+            delay(500)
             playlistList.clear()
-
-            if (useNavidromeServer.value){
-                getNavidromePlaylists()
+            saveManager(context).loadPlaylists()
+            delay(500)
+            for (playlist in playlistList){
+                if (playlist.navidromeID == "Local"){
+                    val playlistImage = localPlaylistImageGenerator(playlist.songs, context) ?: Uri.EMPTY
+                    playlist.coverArt = playlistImage
+                }
             }
-            delay(1500)
             state.endRefresh()
         }
     }
 
+
+
     /* RADIO ICON + TEXT */
-    Box(modifier = Modifier.nestedScroll(state.nestedScrollConnection)){
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .nestedScroll(state.nestedScrollConnection)){
         Box(modifier = Modifier
             .fillMaxWidth()
-            .padding(start = leftPadding,
+            .padding(
+                start = leftPadding,
                 top = WindowInsets.statusBars
                     .asPaddingValues()
                     .calculateTopPadding()

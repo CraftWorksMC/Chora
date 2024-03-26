@@ -41,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,6 +83,7 @@ import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.providers.navidrome.addSongToNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromeRadioStation
@@ -96,6 +98,7 @@ import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.backgroundTypes
+import kotlinx.coroutines.launch
 import java.net.URL
 
 //region PREVIEWS
@@ -459,7 +462,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                             playlist.navidromeID.toString(),
                                             songToAddToPlaylist.value.navidromeID.toString()
                                         )
-                                    else{
+                                    else {
                                         playlist.songs += songToAddToPlaylist.value
                                     }
                                     setShowDialog(false)
@@ -524,6 +527,8 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
 fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
     var name: String by remember { mutableStateOf("") }
 
+    val context = LocalContext.current
+
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -548,6 +553,7 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
                             singleLine = true
                         )
 
+                        val coroutineScope = rememberCoroutineScope()
                         Button(
                             onClick = {
                                 try {
@@ -556,14 +562,19 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
                                     if (useNavidromeServer.value)
                                         createNavidromePlaylist(name)
                                     else{
+                                        var playlistImage = Uri.EMPTY
+                                        coroutineScope.launch {
+                                            playlistImage = localPlaylistImageGenerator(listOf(songToAddToPlaylist.value), context)?: Uri.EMPTY
+                                        }
                                         playlistList.add(
                                             Playlist(
                                                 name,
-                                                Uri.EMPTY,
+                                                playlistImage,
                                                 listOf(songToAddToPlaylist.value),
                                                 navidromeID = "Local"
                                             )
                                         )
+                                        println("Added Playlist: $name")
                                         setShowDialog(false)
                                         showAddSongToPlaylistDialog.value = false
                                     }

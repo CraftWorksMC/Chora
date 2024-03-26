@@ -14,6 +14,7 @@ import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
@@ -23,11 +24,17 @@ import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.transcodingBitrate
 import com.craftworks.music.ui.screens.username
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.net.URL
 
 
 class saveManager(private val context: Context){
     private val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+
+    val scope = CoroutineScope(Job() + Dispatchers.Main)
 
     fun saveSettings(){
         sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()
@@ -65,6 +72,8 @@ class saveManager(private val context: Context){
     }
 
     fun loadSettings() {
+
+
         //region Preferences
         username.value = sharedPreferences.getString("username", "Username") ?: "Username"
         backgroundType.value = sharedPreferences.getString("backgroundType", "Animated Blur") ?: "Animated Blur"
@@ -105,7 +114,37 @@ class saveManager(private val context: Context){
         selectedLocalProvider.intValue = sharedPreferences.getInt("activeLocalProvider", 0)
         //endregion
 
-        //region Radios
+        loadRadios()
+
+        loadPlaylists()
+
+        // Get Media Items
+        if (useNavidromeServer.value && (
+                    navidromeServersList.isNotEmpty() && (
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" ||
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" ||
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")
+                    )
+            )
+            try {
+                if (localProviderList[selectedLocalProvider.intValue].enabled)
+                    getSongsOnDevice(context)
+                getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                getNavidromePlaylists()
+                getNavidromeRadios()
+            } catch (_: Exception){
+                // DO NOTHING
+            }
+        else if (localProviderList.isNotEmpty())
+            getSongsOnDevice(this@saveManager.context)
+
+        // Finished Loading Settings
+        Log.d("LOAD", "Loaded Settings!")
+    }
+
+    //region Load Single Components
+
+    fun loadRadios(){
         // Get Radios List
         val radioListStrings = (sharedPreferences.getString("radioList", "") ?: "").split(";")
         println(radioListStrings)
@@ -119,13 +158,14 @@ class saveManager(private val context: Context){
                     Uri.parse(parts[3]),
                     parts[4]
                 )
+                if (radioList.contains(radio)) return
+
                 radioList.add(radio)
             }
         }
-        //endregion
-
-        //region Local Playlists
-        // Get Radios List
+    }
+    fun loadPlaylists(){
+        // Get Local Playlists
         val localPlaylistStrings = (sharedPreferences.getString("localPlaylistList", "") ?: "").split(";")
         println(localPlaylistStrings)
         localPlaylistStrings.forEach { localString ->
@@ -155,38 +195,20 @@ class saveManager(private val context: Context){
                     )
                 }
 
-                val playlist = Playlist(
-                    name = parts[0],
-                    coverArt = Uri.parse(parts[1]),
-                    navidromeID = parts[2],
-                    songs = songs.toList()
-                )
-                playlistList.add(playlist)
+                scope.launch {
+                    val coverArt = localPlaylistImageGenerator(songs.toList(), context) ?: Uri.EMPTY
+                    val playlist = Playlist(
+                        name = parts[0],
+                        coverArt = coverArt,
+                        navidromeID = parts[2],
+                        songs = songs.toList()
+                    )
+                    if (!playlistList.contains(playlist))
+                        playlistList.add(playlist)
+                }
             }
         }
-        //endregion
-
-        // Get Media Items
-        if (useNavidromeServer.value && (
-                    navidromeServersList.isNotEmpty() && (
-                            navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" ||
-                            navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" ||
-                            navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")
-                    )
-            )
-            try {
-                if (localProviderList[selectedLocalProvider.intValue].enabled)
-                    getSongsOnDevice(context)
-                getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
-                getNavidromePlaylists()
-                getNavidromeRadios()
-            } catch (_: Exception){
-                // DO NOTHING
-            }
-        else if (localProviderList.isNotEmpty())
-            getSongsOnDevice(this@saveManager.context)
-
-        // Finished Loading Settings
-        Log.d("LOAD", "Loaded Settings!")
     }
+
+    //endregion
 }

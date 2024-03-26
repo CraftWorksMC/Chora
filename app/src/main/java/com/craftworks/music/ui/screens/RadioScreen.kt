@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -43,11 +43,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
-import com.craftworks.music.data.Radio
 import com.craftworks.music.data.radioList
 import com.craftworks.music.providers.getIcecastMetadata
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.useNavidromeServer
+import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.AddRadioDialog
 import com.craftworks.music.ui.elements.ModifyRadioDialog
 import com.craftworks.music.ui.elements.RadiosGrid
@@ -68,34 +68,16 @@ fun RadioScreen() {
     val state = rememberPullToRefreshState()
     if (state.isRefreshing) {
         LaunchedEffect(true) {
+            saveManager(context).saveSettings()
+            delay(500)
             radioList.clear()
-
-            val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
-            val radioListString = sharedPreferences.getString("radioList", "") ?: ""
-            val radioListStrings = radioListString.split(";")
-            println(radioListStrings)
-            radioListStrings.forEach { localString ->
-                val parts = localString.split(",")
-                if (parts.size > 1) {
-                    val radio = Radio(
-                        parts[0],
-                        Uri.parse(parts[1]),
-                        parts[2],
-                        Uri.parse(parts[3]),
-                        parts[4]
-                    )
-                    radioList.add(radio)
-                }
-            }
-            if (useNavidromeServer.value){
-                getNavidromeRadios()
-            }
-            delay(1500)
+            saveManager(context).loadRadios()
+            delay(500)
             state.endRefresh()
         }
     }
 
-    Box(modifier = Modifier.nestedScroll(state.nestedScrollConnection)){
+    Box(modifier = Modifier.fillMaxSize().nestedScroll(state.nestedScrollConnection)){
         /* RADIO ICON + TEXT */
         Box(modifier = Modifier
             .fillMaxWidth()

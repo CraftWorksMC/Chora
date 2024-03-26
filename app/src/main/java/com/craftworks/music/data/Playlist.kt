@@ -7,7 +7,7 @@ var playlistList:MutableList<Playlist> = mutableStateListOf()
 
 data class Playlist (
     val name: String,
-    val coverArt: Uri,
+    var coverArt: Uri,
     var songs: List<Song> = emptyList(),
     val navidromeID: String? = ""
 )

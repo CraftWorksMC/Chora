@@ -3,7 +3,9 @@ package com.craftworks.music.ui.elements
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -55,7 +57,6 @@ fun PlaylistCard(playlist: Playlist, onClick: () -> Unit){
                 //.height(172.dp)
             , horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             AsyncImage(
                 model = playlist.coverArt,
                 placeholder = painterResource(R.drawable.placeholder),
@@ -63,7 +64,8 @@ fun PlaylistCard(playlist: Playlist, onClick: () -> Unit){
                 contentScale = ContentScale.FillWidth,
                 contentDescription = "Album Image",
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
                     //.height(128.dp)
                     //.width(128.dp)
                     .clip(RoundedCornerShape(12.dp))
