@@ -73,6 +73,8 @@ fun getSongsOnDevice(context: Context){
                     println("No Album Art!")
                 }
 
+                println("$thisTitle has bitrate $thisBitrate")
+
                 // Add Song
                 val song = Song(
                     title = thisTitle,

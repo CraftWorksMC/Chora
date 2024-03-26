@@ -458,6 +458,9 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                             playlist.navidromeID.toString(),
                                             songToAddToPlaylist.value.navidromeID.toString()
                                         )
+                                    else{
+                                        playlist.songs += songToAddToPlaylist.value
+                                    }
                                     //TODO: Local Playlists
                                 }
                                 , verticalAlignment = Alignment.CenterVertically){
@@ -552,6 +555,18 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
 
                                     if (useNavidromeServer.value)
                                         createNavidromePlaylist(name)
+                                    else{
+                                        playlistList.add(
+                                            Playlist(
+                                                name,
+                                                Uri.EMPTY,
+                                                listOf(songToAddToPlaylist.value),
+                                                navidromeID = "Local"
+                                            )
+                                        )
+                                        setShowDialog(false)
+                                        showAddSongToPlaylistDialog.value = false
+                                    }
                                 } catch (_: Exception){
                                     // DO NOTHING
                                 }
