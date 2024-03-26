@@ -452,7 +452,8 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 .clip(RoundedCornerShape(12.dp))
                                 //.background(MaterialTheme.colorScheme.surfaceVariant)
                                 .clickable {
-                                    setShowDialog(false)
+                                    if (playlist.songs.contains(songToAddToPlaylist.value)) return@clickable
+
                                     if (useNavidromeServer.value)
                                         addSongToNavidromePlaylist(
                                             playlist.navidromeID.toString(),
@@ -461,9 +462,8 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                     else{
                                         playlist.songs += songToAddToPlaylist.value
                                     }
-                                    //TODO: Local Playlists
-                                }
-                                , verticalAlignment = Alignment.CenterVertically){
+                                    setShowDialog(false)
+                                }, verticalAlignment = Alignment.CenterVertically){
                                 AsyncImage(
                                     model = playlist.coverArt,
                                     placeholder = painterResource(R.drawable.placeholder),
@@ -628,6 +628,9 @@ fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
                                     if (useNavidromeServer.value)
                                         playlistToDelete.value.navidromeID?.let {
                                             deleteNavidromePlaylist(it) }
+                                    else {
+                                        playlistList.remove(playlistToDelete.value)
+                                    }
                                 } catch (_: Exception){
                                     // DO NOTHING
                                 }
