@@ -250,7 +250,10 @@ class MainActivity : ComponentActivity() {
                                 .requiredWidth(LocalConfiguration.current.screenWidthDp.dp),
                             sheetContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
                             sheetPeekHeight =
-                            if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
+                            if (SongHelper.currentSong.title == "" &&
+                                SongHelper.currentSong.duration == 0)
+                                0.dp // Hide Mini-player if empty
+                            else if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
                                 72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
                             }
                             else {
