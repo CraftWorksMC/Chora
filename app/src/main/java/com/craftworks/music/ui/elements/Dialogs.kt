@@ -3,7 +3,9 @@ package com.craftworks.music.ui.elements
 import android.content.Context
 import android.net.Uri
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +18,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -100,6 +105,8 @@ import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.backgroundTypes
 import kotlinx.coroutines.launch
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyColumnState
 import java.net.URL
 
 //region PREVIEWS
@@ -719,6 +726,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
         }
     }
 }
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
     Dialog(onDismissRequest = { setShowDialog(false) }) {
@@ -736,28 +744,60 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
-                    for (navItem in bottomNavigationItems) {
-                        val index = bottomNavigationItems.indexOf(navItem)
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier
-                                .height(48.dp)
-                        ) {
-                            var checked by remember { mutableStateOf(true) }
-                            Checkbox(
-                                checked = navItem.enabled,
-                                onCheckedChange = {
-                                    checked = it
-                                    bottomNavigationItems[index] = bottomNavigationItems[index].copy(enabled = it) },
-                                modifier = Modifier
-                                    .semantics { contentDescription = navItem.title }
-                                    .bounceClick()
-                            )
-                            Text(
-                                text = navItem.title,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
+                    val lazyListState = rememberLazyListState()
+                    val reorderableLazyColumnState = rememberReorderableLazyColumnState(lazyListState) { from, to ->
+                        bottomNavigationItems = bottomNavigationItems.apply {
+                            add(to.index, removeAt(from.index))
+                        }
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        state = lazyListState
+                    ) {
+                        items(bottomNavigationItems, key = {it.title}) { navItem ->
+                            ReorderableItem(reorderableLazyColumnState, navItem.title){
+                                val interactionSource = remember { MutableInteractionSource() }
+
+                                val index = bottomNavigationItems.indexOf(navItem)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+                                        .height(48.dp)
+                                ) {
+                                    var checked by remember { mutableStateOf(true) }
+                                    Checkbox(
+                                        enabled = navItem.title != "Home",
+                                        checked = navItem.enabled,
+                                        onCheckedChange = {
+                                            checked = it
+                                            bottomNavigationItems[index] =
+                                                bottomNavigationItems[index].copy(enabled = it)
+                                        },
+                                        modifier = Modifier
+                                            .semantics { contentDescription = navItem.title }
+                                            .bounceClick()
+                                    )
+                                    Text(
+                                        text = navItem.title,
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    IconButton(
+                                        modifier = Modifier.draggableHandle(
+                                            onDragStarted = {
+                                            },
+                                            onDragStopped = {
+                                            },
+                                            interactionSource = interactionSource,
+                                        ),
+                                        onClick = {},
+                                    ) {
+                                        Icon(ImageVector.vectorResource(R.drawable.baseline_drag_handle_24), contentDescription = "Reorder")
+                                    }
+                                }
+                            }
                         }
                     }
                 }

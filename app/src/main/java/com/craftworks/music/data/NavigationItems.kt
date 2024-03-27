@@ -10,7 +10,7 @@ data class BottomNavItem(
     val enabled: Boolean = true
 )
 
-val bottomNavigationItems = mutableStateListOf<BottomNavItem>(
+var bottomNavigationItems = mutableStateListOf<BottomNavItem>(
     BottomNavItem(
         "Home",
         R.drawable.rounded_home_24,
