@@ -14,12 +14,11 @@ Sorry for the recent lack of updates, school is taking a lot of my time. hopeful
 - Offline Mode.
 - Internet Radio. [Metadata IceCast only]
 - Synced And Unsynced Lyrics. [From lrclib.net]
-- Playlists. [Navidrome Only]
+- Navidrome and Local playlists.
 - Android Auto.
 ## In Progress
 
 - Fixing Crashes.
-- Offline Playlists.
 ## Roadmap
 
 - Artist Page.
