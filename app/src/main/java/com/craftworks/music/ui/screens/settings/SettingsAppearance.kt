@@ -48,6 +48,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
+import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.ui.elements.BackgroundDialog
 import com.craftworks.music.ui.elements.NavbarItemsDialog
 import com.craftworks.music.ui.screens.backgroundType
@@ -186,7 +187,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         showNavbarItemsDialog = true
                     }) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
+                    imageVector = ImageVector.vectorResource(R.drawable.s_a_navbar_items),
                     contentDescription = "Navbar Menus Icon",
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
@@ -202,8 +203,12 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         modifier = Modifier.fillMaxSize(),
                         textAlign = TextAlign.Start
                     )
+                    val enabledNavbarItems =
+                        bottomNavigationItems
+                            .filter { it.enabled }
+                            .joinToString(", ") { it.title }
                     Text(
-                        text = backgroundType.value,
+                        text = enabledNavbarItems,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground.copy(0.75f),

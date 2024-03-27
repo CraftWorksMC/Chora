@@ -76,6 +76,7 @@ import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
@@ -707,7 +708,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                             )
                             Text(
                                 text = option,
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.Normal,
                                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
@@ -735,22 +736,25 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
-                    for (option in backgroundTypes) {
+                    for (navItem in bottomNavigationItems) {
+                        val index = bottomNavigationItems.indexOf(navItem)
                         Row(
                             verticalAlignment = Alignment.CenterVertically, modifier = Modifier
                                 .height(48.dp)
                         ) {
                             var checked by remember { mutableStateOf(true) }
                             Checkbox(
-                                checked = checked,
-                                onCheckedChange = { checked = it },
+                                checked = navItem.enabled,
+                                onCheckedChange = {
+                                    checked = it
+                                    bottomNavigationItems[index] = bottomNavigationItems[index].copy(enabled = it) },
                                 modifier = Modifier
-                                    .semantics { contentDescription = option }
+                                    .semantics { contentDescription = navItem.title }
                                     .bounceClick()
                             )
                             Text(
-                                text = option,
-                                fontWeight = FontWeight.SemiBold,
+                                text = navItem.title,
+                                fontWeight = FontWeight.Normal,
                                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
