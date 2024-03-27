@@ -34,7 +34,7 @@ import java.net.URL
 class saveManager(private val context: Context){
     private val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
 
-    val scope = CoroutineScope(Job() + Dispatchers.Main)
+    private val scope = CoroutineScope(Job() + Dispatchers.Default)
 
     fun saveSettings(){
         sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()

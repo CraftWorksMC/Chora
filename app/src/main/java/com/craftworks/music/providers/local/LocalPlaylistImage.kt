@@ -15,26 +15,32 @@ import java.io.IOException
 
 suspend fun localPlaylistImageGenerator(songs:List<Song>, context:Context): Uri? {
     println("Creating Local Playlist Image")
-    // Convert URIs to Bitmaps
-    val bitmaps = songs.take(4).map { uri ->
-        val source = ImageDecoder.createSource(context.contentResolver, uri.imageUrl)
-        ImageDecoder.decodeBitmap(source).copy(Bitmap.Config.RGBA_F16, true)
-    }
 
-    // Determine the size of each Bitmap and the combined Bitmap
-    val bitmapSize = bitmaps.first().width // Assuming all Bitmaps are the same size
-    val combinedWidth = bitmapSize * 2 // For a 2x2 grid
-    val combinedHeight = bitmapSize * 2
+    // Determine the maximum width and height among the images
+    val maxWidth = songs.take(4).maxOfOrNull { uri ->
+        val source = ImageDecoder.createSource(context.contentResolver, uri.imageUrl)
+        val bitmap = ImageDecoder.decodeBitmap(source)
+        bitmap.width
+    } ?: 0
+
+    val maxHeight = songs.take(4).maxOfOrNull { uri ->
+        val source = ImageDecoder.createSource(context.contentResolver, uri.imageUrl)
+        val bitmap = ImageDecoder.decodeBitmap(source)
+        bitmap.height
+    } ?: 0
 
     // Create a new Bitmap to hold the combined images
-    val combinedBitmap = Bitmap.createBitmap(combinedWidth, combinedHeight, Bitmap.Config.ARGB_8888).copy(Bitmap.Config.RGBA_F16, true)
+    val combinedBitmap = Bitmap.createBitmap(maxWidth * 2, maxHeight * 2, Bitmap.Config.ARGB_8888).copy(Bitmap.Config.RGBA_F16, true)
     val canvas = Canvas(combinedBitmap)
 
-    // Draw each Bitmap onto the combined Bitmap
-    bitmaps.forEachIndexed { index, bitmap ->
-        val x = (index % 2) * bitmapSize
-        val y = (index / 2) * bitmapSize
-        canvas.drawBitmap(bitmap, x.toFloat(), y.toFloat(), null)
+    // Convert URIs to Bitmaps and draw onto the combined Bitmap
+    songs.take(4).forEachIndexed { index, uri ->
+        val source = ImageDecoder.createSource(context.contentResolver, uri.imageUrl)
+        val bitmap = ImageDecoder.decodeBitmap(source)
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, maxWidth, maxHeight, true).copy(Bitmap.Config.RGBA_F16, true)
+        val x = (index % 2) * maxWidth
+        val y = (index / 2) * maxHeight
+        canvas.drawBitmap(scaledBitmap, x.toFloat(), y.toFloat(), null)
     }
 
     // Save the combined Bitmap to a file
@@ -53,6 +59,5 @@ suspend fun localPlaylistImageGenerator(songs:List<Song>, context:Context): Uri?
     }
 
     println("Local Playlist Image Ready!")
-    // Return the URI of the saved file
     return Uri.fromFile(file)
 }

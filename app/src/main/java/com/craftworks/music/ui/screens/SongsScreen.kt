@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -62,7 +62,7 @@ fun SongsScreen() {
                 fontSize = MaterialTheme.typography.headlineLarge.fontSize
             )
         }
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.padding(12.dp,56.dp,12.dp,0.dp),
             thickness = 2.dp,
             color = MaterialTheme.colorScheme.onBackground
@@ -70,6 +70,7 @@ fun SongsScreen() {
 
         Column(modifier = Modifier.padding(12.dp,64.dp,12.dp,12.dp)) {
             val allSongsList = songsList.sortedBy { song: Song -> song.title }
+
             SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->
                 playingSong.selectedSong = song
                 playingSong.selectedList = allSongsList

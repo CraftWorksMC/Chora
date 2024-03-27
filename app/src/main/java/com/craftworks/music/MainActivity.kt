@@ -59,9 +59,9 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.SongHelper.Companion.initPlayer
-import com.craftworks.music.data.BottomNavigationItem
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.SyncedLyric
+import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.ui.NowPlayingContent
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.theme.MusicPlayerTheme
@@ -144,6 +144,8 @@ class MainActivity : ComponentActivity() {
                 navController = rememberNavController()
 
 
+
+                /*
                 val bottomNavigationItems = listOf(
                     BottomNavigationItem(
                         title = "Home",
@@ -176,6 +178,8 @@ class MainActivity : ComponentActivity() {
                         screenRoute = "playlist_screen"
                     )
                 )
+                */
+
                 var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
 
 
@@ -195,6 +199,7 @@ class MainActivity : ComponentActivity() {
                                 NavigationBar (modifier = Modifier
                                     .offset(y = -yTrans)) {
                                     bottomNavigationItems.forEachIndexed { index, item ->
+                                        if (!item.enabled) return@forEachIndexed
                                         NavigationBarItem(
                                             selected = selectedItemIndex == index,
                                             modifier = Modifier.bounceClick(),
@@ -208,12 +213,7 @@ class MainActivity : ComponentActivity() {
                                             label = { Text(text = item.title) },
                                             alwaysShowLabel = false,
                                             icon = {
-                                                Icon(
-                                                    imageVector = if (index == selectedItemIndex) {
-                                                        item.selectedIcon
-                                                    } else item.unselectedIcon,
-                                                    contentDescription = item.title
-                                                )
+                                                Icon(ImageVector.vectorResource(item.icon),contentDescription = item.title)
                                             }
                                         )
                                     }
@@ -222,6 +222,7 @@ class MainActivity : ComponentActivity() {
                             else{
                                 NavigationRail {
                                     bottomNavigationItems.forEachIndexed { index, item ->
+                                        if (!item.enabled) return@forEachIndexed
                                         NavigationRailItem(
                                             selected = selectedItemIndex == index,
                                             onClick = {
@@ -234,12 +235,7 @@ class MainActivity : ComponentActivity() {
                                             label = { Text(text = item.title) },
                                             alwaysShowLabel = false,
                                             icon = {
-                                                Icon(
-                                                    imageVector = if (index == selectedItemIndex) {
-                                                        item.selectedIcon
-                                                    } else item.unselectedIcon,
-                                                    contentDescription = item.title
-                                                )
+                                                Icon(ImageVector.vectorResource(item.icon),contentDescription = item.title)
                                             },
                                         )
                                     }
