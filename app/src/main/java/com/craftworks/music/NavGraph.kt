@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,7 +35,7 @@ fun SetupNavGraph(
 ){
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
-        modifier = Modifier.padding(bottom = (0.dp + /* Stupid PaddingValues Error. */ (paddingValues.calculateBottomPadding() * 0)) ),
+        modifier = Modifier.padding(bottom = (/* Stupid PaddingValues Error. */ paddingValues.calculateBottomPadding() * 0) ),
         enterTransition = {
             slideInVertically(animationSpec = tween(durationMillis = 200)) { fullHeight ->
                 -fullHeight / 4

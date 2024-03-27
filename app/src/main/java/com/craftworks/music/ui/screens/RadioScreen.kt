@@ -124,7 +124,7 @@ fun RadioScreen() {
             )
 
             Column(modifier = Modifier
-                .padding(12.dp,24.dp,12.dp,12.dp)
+                .padding(12.dp,64.dp,12.dp,12.dp)
             ) {
                 RadiosGrid(radioList, onSongSelected = { song ->
                     if (song.media.toString().endsWith("m3u8"))

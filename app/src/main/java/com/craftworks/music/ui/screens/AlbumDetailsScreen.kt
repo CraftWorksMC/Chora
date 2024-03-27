@@ -68,6 +68,7 @@ import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
 import com.craftworks.music.songState
+import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.SongsRow
 import java.net.URL
@@ -96,10 +97,6 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
         .fillMaxWidth()
         .padding(
             start = leftPadding,
-            bottom = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE)
-                        80.dp + 72.dp + 12.dp //BottomNavBar + NowPlayingScreen + 12dp Padding
-                    else
-                        72.dp,
             top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
         .wrapContentHeight()
         .verticalScroll(rememberScrollState())) {
@@ -279,5 +276,7 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                 })
             }
         }
+
+        BottomSpacer()
     }
 }

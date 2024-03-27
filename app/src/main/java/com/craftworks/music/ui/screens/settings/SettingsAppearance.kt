@@ -50,6 +50,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.ui.elements.BackgroundDialog
+import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.NavbarItemsDialog
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
@@ -60,8 +61,6 @@ import com.craftworks.music.ui.screens.username
 fun S_AppearanceScreen(navHostController: NavHostController = rememberNavController()) {
     val leftPadding =
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-    val bottomPadding =
-        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 80.dp + 72.dp + 12.dp else 72.dp
 
     var showBackgroundDialog by remember { mutableStateOf(false) }
     var showNavbarItemsDialog by remember { mutableStateOf(false) }
@@ -118,7 +117,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        Column(Modifier.padding(12.dp,12.dp,24.dp,bottomPadding)){
+        Column(Modifier.padding(12.dp,12.dp,24.dp,12.dp)){
 
             //Username
             Row (verticalAlignment = Alignment.CenterVertically,
@@ -242,6 +241,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 )
                 Switch(checked = showMoreInfo.value, onCheckedChange = { showMoreInfo.value = it })
             }
+
+            BottomSpacer()
         }
 
         if(showBackgroundDialog)

@@ -121,7 +121,6 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
                     selectedPlaylist = playlist})
             }
 
-
             if(showDeletePlaylistDialog.value)
                 DeletePlaylist(setShowDialog =  { showDeletePlaylistDialog.value = it } )
         }

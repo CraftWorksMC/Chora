@@ -21,8 +21,8 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,6 +48,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.LocalProviderCard
 import com.craftworks.music.ui.elements.NavidromeProviderCard
@@ -116,13 +117,13 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 }
             }
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 12.dp),
                 thickness = 2.dp,
                 color = MaterialTheme.colorScheme.onBackground
             )
 
-            Column(Modifier.padding(12.dp,12.dp,12.dp,bottomPadding),
+            Column(Modifier.padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally){
                 // Local Providers First
                 for (local in localProviderList){
@@ -139,7 +140,6 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
         }
 
         Box(modifier = Modifier
-            .padding(bottom = bottomPadding + 12.dp)
             .padding(12.dp)
             .align(Alignment.BottomEnd)
         ){
@@ -153,9 +153,9 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
             ) {
                 Icon(Icons.Rounded.Add, "Add Media Provider.")
             }
-
-
         }
+
+        BottomSpacer()
     }
     if(showNavidromeServerDialog)
         CreateMediaProviderDialog(setShowDialog = { showNavidromeServerDialog = it })

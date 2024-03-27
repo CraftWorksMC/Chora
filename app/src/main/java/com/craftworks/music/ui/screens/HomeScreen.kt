@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -68,6 +67,7 @@ import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
+import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.SongsRow
 import kotlinx.coroutines.delay
 import java.net.URL
@@ -288,7 +288,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 })
             }
 
-            Spacer(modifier = Modifier.height(72.dp + 80.dp))
+            BottomSpacer()
         }
         PullToRefreshContainer(
             modifier = Modifier.align(Alignment.TopCenter),

@@ -27,11 +27,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -60,6 +60,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
+import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.bounceClick
 
 var username = mutableStateOf("Username")
@@ -93,9 +94,6 @@ var transcodingBitrate = mutableStateOf(transcodingBitrateList[6])
 fun SettingScreen(navHostController: NavHostController = rememberNavController()) {
     //val context = LocalContext.current.applicationContext
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-    val bottomPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 80.dp + 72.dp + 12.dp else 72.dp
-
-    //val coroutineScope = rememberCoroutineScope()
 
     // handle back presses
     BackHandler(true) {
@@ -143,14 +141,14 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
             }
         }
 
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.padding(horizontal = 12.dp),
             thickness = 2.dp,
             color = MaterialTheme.colorScheme.onBackground
         )
 
         /* Settings */
-        Box(Modifier.padding(12.dp,12.dp,12.dp,bottomPadding)){
+        Box(Modifier.padding(12.dp,12.dp,12.dp,12.dp)){
             Column {
                 /* NEW SETTINGS */
 
@@ -232,61 +230,10 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     )
                     TranscodingDropdown()
                 }
-                /*
-
-                /* USE NAVIDROME SERVER */
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // TOGGLE
-                    Row (verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Use Navidrome Server",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.weight(1f),
-                            maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Start
-                        )
-                        Switch(checked = useNavidromeServer.value, onCheckedChange = {
-                            useNavidromeServer.value = it
-                            // Clear everything!
-                            songsList.clear()
-                            albumList.clear()
-                            radioList.clear()
-                            playlistList.clear()
-                            if (it && (selectedNavidromeServer.value?.username != "" || selectedNavidromeServer.value?.url !="" || selectedNavidromeServer.value?.url != ""))
-                                try {
-                                    getNavidromeSongs(URL("${selectedNavidromeServer.value?.url}/rest/search3.view?query=''&songCount=10000&u=${selectedNavidromeServer.value?.username}&p=${selectedNavidromeServer.value?.password}&v=1.12.0&c=Chora"))
-                                } catch (_: Exception){
-                                    // DO NOTHING
-                                }
-                            else
-                                getSongsOnDevice(context)
-                        })
-                    }
-
-                    // NAVIDROME VARS
-                    if (useNavidromeServer.value){
-
-
-
-                    }
-
-                    // LOCAL FOLDER
-                    else{
-                        OutlinedTextField(
-                            value = mediaFolder.value,
-                            onValueChange = {
-                                mediaFolder.value = it
-                                songsList.clear()},
-                            label = { Text("Music Folder:")}
-                        )
-                    }
-                }
-
-                */
             }
         }
+
+        BottomSpacer()
     }
 }
 

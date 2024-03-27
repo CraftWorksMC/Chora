@@ -45,6 +45,7 @@ import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Screen
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.playingSong
+import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 
 @ExperimentalFoundationApi
@@ -119,5 +120,7 @@ fun PlaylistDetails(navHostController: NavHostController = rememberNavController
                 })
             }
         }
+
+        BottomSpacer()
     }
 }
