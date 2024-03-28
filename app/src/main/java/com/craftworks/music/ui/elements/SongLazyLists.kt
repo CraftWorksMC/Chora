@@ -121,6 +121,25 @@ fun AlbumGrid(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
 }
 @ExperimentalFoundationApi
 @Composable
+fun AlbumRow(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
+    LazyRow(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 6.dp,end = 6.dp,
+            top = 32.dp
+        )
+    ) {
+        items(albums) {album ->
+            AlbumCard(album = album,
+                onClick = {
+                    onAlbumSelected(album)
+                })
+        }
+    }
+}
+
+@ExperimentalFoundationApi
+@Composable
 fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
     LazyVerticalGrid(

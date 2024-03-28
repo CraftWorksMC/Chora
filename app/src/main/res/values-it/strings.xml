@@ -44,4 +44,6 @@
     <string name="Label_Confirm_Delete_Playlist">Sei sicuro/a di voler cancellare questa playlist?</string>
     <string name="Label_MoreSongsFrom">Altre Canzoni Da</string>
     <string name="Label_NoDescription">Nessuna Descrizione Disponibile.</string>
+    <string name="Screen_Recent_Albums">Album Recenti</string>
+    <string name="Screen_Top_Songs">Canzoni Popolari</string>
 </resources>

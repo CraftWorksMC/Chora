@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home -->
+    <string name="welcome_text">Welcome</string>
+    <string name="recently_added">Recently Added</string>
+    <string name="most_played">Most Played</string>
+    <string name="recently_played">Recently Played</string>
+    <string name="random_songs">Explore From Your Library</string>
+
+    <!-- Artist Details -->
+    <string name="Screen_Recent_Albums">Recent Albums</string>
+    <string name="Screen_Top_Songs">Top Songs</string>
+</resources>

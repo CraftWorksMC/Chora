@@ -1,13 +1,9 @@
 <resources>
     <string name="app_name" translatable="false">Chora</string>
-    <string name="welcome_text">Welcome</string>
-    <string name="recently_added">Recently Added</string>
+    <!-- Navigation -->
     <string name="songs">Songs</string>
     <string name="Albums">Albums</string>
-    <string name="most_played">Most Played</string>
     <string name="settings">Settings</string>
-    <string name="recently_played">Recently Played</string>
-    <string name="random_songs">Explore From Your Library</string>
     <string name="radios">Internet Radio</string>
     <string name="playlists">Playlists</string>
 </resources>

@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -60,6 +61,9 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
+import com.craftworks.music.data.Album
+import com.craftworks.music.data.Screen
+import com.craftworks.music.data.albumList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.songsList
@@ -69,6 +73,7 @@ import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
+import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import java.net.URL
@@ -85,6 +90,16 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
     getNavidromeArtistDetails(selectedArtist.navidromeID, selectedArtist.name)
 
     val artistSongs = songsList.filter { it.artist.contains(selectedArtist.name) }
+    val artistAlbums = albumList.filter { it.artist.contains(selectedArtist.name) }
+        .sortedByDescending { album -> album.year }
+    val artistAlbumsTesting = listOf(
+        Album(
+            "Album name!",
+            "Album Artist",
+            "2024",
+            Uri.EMPTY
+        )
+    )
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -167,7 +182,7 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
                 fontWeight = FontWeight.Light,
                 fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                 textAlign = TextAlign.Start,
-                maxLines = if (expanded) 100 else 1,
+                maxLines = if (expanded) 100 else 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(6.dp)
             )
@@ -216,6 +231,29 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
             }
         }
 
+        /* RECENTLY ADDED SONGS */
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(224.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.Screen_Recent_Albums) + ":",
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                modifier = Modifier.padding(start = 12.dp)
+            )
+
+            /* SONGS ROW */
+            AlbumRow(albums = artistAlbums, onAlbumSelected = { album ->
+                navHostController.navigate(Screen.AlbumDetails.route) {
+                    launchSingleTop = true
+                }
+                selectedAlbum = album }
+            )
+        }
+
         // Songs List
         Column(modifier = Modifier
             .padding(start = 12.dp, end = 12.dp, top = 0.dp)
@@ -226,6 +264,13 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
                     .wrapContentHeight()
                     .fillMaxWidth()
             ) {
+                Text(
+                    text = stringResource(R.string.Screen_Recent_Albums) + ":",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                    modifier = Modifier.padding(start = 12.dp, bottom = 12.dp)
+                )
                 for(song in artistSongs){
                     HorizontalSongCard(song = song, onClick = {
                         SongHelper.stopStream()

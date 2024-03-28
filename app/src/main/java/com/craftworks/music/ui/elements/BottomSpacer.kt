@@ -20,7 +20,7 @@ fun BottomSpacer(){
     Spacer(modifier = Modifier.height(
         if (SongHelper.currentSong.title == "" && SongHelper.currentSong.duration == 0) {
             if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT)
-                80.dp
+                12.dp + 80.dp
             else
                 0.dp
         }
@@ -37,7 +37,7 @@ fun BottomSpacer(){
 fun bottomSpacerHeightDp(): Dp {
     return if (SongHelper.currentSong.title == "" && SongHelper.currentSong.duration == 0) {
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT)
-            80.dp
+            12.dp + 80.dp
         else
             0.dp
     }
