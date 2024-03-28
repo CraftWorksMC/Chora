@@ -10,7 +10,7 @@ sealed class Screen(val route: String) {
     object AlbumDetails : Screen("album_details")
 
     //Artists
-    //object Artists : Screen("artist_screen")
+    object Artists : Screen("artists_screen")
     object AristDetails : Screen("artist_details")
 
     //Playlists

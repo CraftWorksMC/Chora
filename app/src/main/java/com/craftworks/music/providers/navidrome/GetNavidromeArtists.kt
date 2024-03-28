@@ -72,7 +72,8 @@ fun parseArtistsXML(input: BufferedReader, xpath: String){
             artistId = if (attribute.nodeName == "id") attribute.textContent else artistId
         }
         Log.d("NAVIDROME", "Got Artist Name + ID")
-        //getNavidromeArtistDetails(artistId, artistName)
+
+        getNavidromeArtistDetails(artistId, artistName)
 
         // Add Artists
         val artist = Artist(
@@ -88,7 +89,8 @@ fun parseArtistsXML(input: BufferedReader, xpath: String){
             }
         }
         else{
-            artistList.add(artist)
+            if (!artistList.contains(artistList.firstOrNull { it.name == artistName }))
+                artistList.add(artist)
         }
     }
 }

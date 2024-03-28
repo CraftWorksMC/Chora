@@ -27,6 +27,11 @@ var bottomNavigationItems = mutableStateListOf<BottomNavItem>(
         "songs_screen"
     ),
     BottomNavItem(
+        "Artists",
+        R.drawable.rounded_artist_24,
+        "artists_screen"
+    ),
+    BottomNavItem(
         "Radios",
         R.drawable.rounded_radio,
         "radio_screen"

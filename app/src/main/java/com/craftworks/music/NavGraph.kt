@@ -19,6 +19,7 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
 import com.craftworks.music.ui.screens.ArtistDetails
+import com.craftworks.music.ui.screens.ArtistsScreen
 import com.craftworks.music.ui.screens.HomeScreen
 import com.craftworks.music.ui.screens.PlaylistDetails
 import com.craftworks.music.ui.screens.PlaylistScreen
@@ -67,6 +68,9 @@ fun SetupNavGraph(
             AlbumDetails(navController)
         }
         //Artist
+        composable(route = Screen.Artists.route) {
+            ArtistsScreen(navController)
+        }
         composable(route = Screen.AristDetails.route) {
             ArtistDetails(navController)
         }

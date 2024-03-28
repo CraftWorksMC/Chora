@@ -22,9 +22,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Album
+import com.craftworks.music.data.Artist
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
@@ -36,6 +39,7 @@ import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.sliderPos
 import java.net.URL
 
+//region Songs
 @Composable
 fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
@@ -64,7 +68,6 @@ fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
         }
     }
 }
-
 @Composable
 fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
@@ -97,8 +100,9 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
         }
     }
 }
+//endregion
 
-
+//region Albums
 @ExperimentalFoundationApi
 @Composable
 fun AlbumGrid(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
@@ -137,7 +141,33 @@ fun AlbumRow(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
         }
     }
 }
+//endregion
 
+//region Artists
+@ExperimentalFoundationApi
+@Composable
+fun ArtistsGrid(artists: List<Artist>,
+                navHostController: NavHostController = rememberNavController(),
+                onArtistSelected: (artist: Artist) -> Unit){
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = Modifier
+            .wrapContentWidth()
+            .fillMaxHeight(),
+        contentPadding = PaddingValues(
+            bottom = bottomSpacerHeightDp()
+        )
+    ) {
+        items(artists) {artist ->
+            ArtistCard(artist = artist, onClick = {
+                    onArtistSelected(artist)
+                })
+        }
+    }
+}
+//endregion
+
+//region Radios
 @ExperimentalFoundationApi
 @Composable
 fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
@@ -174,6 +204,9 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
         }
     }
 }
+//endregion
+
+//region Playlists
 @ExperimentalFoundationApi
 @Composable
 fun PlaylistGrid(playlists: List<Playlist>, onPlaylistSelected: (playlist: Playlist) -> Unit){
@@ -193,3 +226,4 @@ fun PlaylistGrid(playlists: List<Playlist>, onPlaylistSelected: (playlist: Playl
         }
     }
 }
+//endregion
