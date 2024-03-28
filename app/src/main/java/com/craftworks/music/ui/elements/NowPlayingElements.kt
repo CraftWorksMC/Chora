@@ -157,7 +157,7 @@ fun NowPlayingPortraitCover (
                         .fillMaxWidth()
                         .fadingEdge(textFadingEdge)
                         .clickable {
-                            selectedArtist = artistList.firstOrNull() { it.name == artistName }
+                            selectedArtist = artistList.firstOrNull() { it.name == artistName }!!
                             navHostController.navigate(Screen.AristDetails.route) {
                                 launchSingleTop = true
                             }

@@ -63,6 +63,7 @@ import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.getNavidromeArtists
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
@@ -95,6 +96,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
 
             if (useNavidromeServer.value){
                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                getNavidromeArtists()
             }
             else{
                 getSongsOnDevice(context)

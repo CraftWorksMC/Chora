@@ -15,6 +15,7 @@ import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
+import com.craftworks.music.providers.navidrome.getNavidromeArtists
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
@@ -132,6 +133,7 @@ class saveManager(private val context: Context){
                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
                 getNavidromePlaylists()
                 getNavidromeRadios()
+                getNavidromeArtists()
             } catch (_: Exception){
                 // DO NOTHING
             }

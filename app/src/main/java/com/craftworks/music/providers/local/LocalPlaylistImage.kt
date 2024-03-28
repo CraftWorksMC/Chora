@@ -15,6 +15,7 @@ import java.io.IOException
 
 suspend fun localPlaylistImageGenerator(songs:List<Song>, context:Context): Uri? {
     println("Creating Local Playlist Image")
+    if (songs.any { it.navidromeID != "Local" }) return Uri.EMPTY
 
     // Determine the maximum width and height among the images
     val maxWidth = songs.take(4).maxOfOrNull { uri ->

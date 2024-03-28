@@ -28,4 +28,7 @@
     <!-- Albums -->
     <string name="Label_MoreSongsFrom">More Songs From</string>
 
+    <!-- Artists -->
+    <string name="Label_NoDescription">No Description Available.</string>
+
 </resources>

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -32,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,6 +66,7 @@ import com.craftworks.music.data.Artist
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
+import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
@@ -73,7 +76,7 @@ import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import java.net.URL
 
-var selectedArtist by mutableStateOf<Artist?>(
+var selectedArtist by mutableStateOf<Artist>(
     Artist(
         name = "My Favourite Artist",
         imageUri = Uri.EMPTY,
@@ -88,7 +91,11 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
     val context = LocalContext.current
 
-    val artistSongs = songsList.filter { it.artist == selectedAlbum?.name }
+    val artistSongs = songsList.filter { it.artist.contains(selectedArtist.name) }
+
+    LaunchedEffect(selectedArtist.name) {
+        getNavidromeArtistDetails(selectedArtist.navidromeID, selectedArtist.name)
+    }
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -107,17 +114,16 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
             .fillMaxWidth()) {
             //Image and Name
             AsyncImage(
-                model = selectedArtist?.imageUri,
-                placeholder = painterResource(R.drawable.placeholder),
-                fallback = painterResource(R.drawable.placeholder),
+                model = selectedArtist.imageUri,
+                placeholder = painterResource(R.drawable.s_a_username),
+                fallback = painterResource(R.drawable.s_a_username),
                 contentScale = ContentScale.FillWidth,
-                contentDescription = "Album Image",
+                contentDescription = "Artist Image",
                 modifier = Modifier
                     .fillMaxWidth()
                     //.fadingEdge(imageFadingEdge)
                     .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
-                    .blur(8.dp)
-                    .background(Color.Red)
+                    .blur(12.dp)
             )
             Button(
                 onClick = {
@@ -144,7 +150,7 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
 
             // Album Name and Artist
             Column(modifier = Modifier.align(Alignment.BottomCenter)){
-                selectedArtist?.name?.let {
+                selectedArtist.name?.let {
                     Text(
                         text = it,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -163,16 +169,16 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
         Box(modifier = Modifier
             .padding(horizontal = 12.dp)
             .fillMaxWidth()
-            .wrapContentHeight()
+            .heightIn(min = 32.dp)
             .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .animateContentSize()
             .clickable {
                 expanded = !expanded
             }){
-            selectedArtist?.description?.let {
+            selectedArtist.description?.let {
                 Text(
-                    text = it,
+                    text = it.ifBlank { "No Description Available." },
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Light,
                     fontSize = MaterialTheme.typography.bodyLarge.fontSize,

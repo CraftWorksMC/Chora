@@ -3,8 +3,10 @@ package com.craftworks.music.providers.navidrome
 import android.net.Uri
 import android.util.Log
 import com.craftworks.music.data.Album
+import com.craftworks.music.data.Artist
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
+import com.craftworks.music.data.artistList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.screens.transcodingBitrate
@@ -24,14 +26,12 @@ import javax.xml.xpath.XPathFactory
 @Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromeSongs(url: URL){
     if (navidromeServersList.isEmpty()) return
-    Log.d("NAVIDROME", "USERNAME: $navidromeServersList[selectedNavidromeServerIndex.intValue].username, PASS: ${navidromeServersList[selectedNavidromeServerIndex.intValue].password}")
+    Log.d("NAVIDROME", "USERNAME: ${navidromeServersList[selectedNavidromeServerIndex.intValue].username}, PASS: ${navidromeServersList[selectedNavidromeServerIndex.intValue].password}")
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
         navidromeServersList[selectedNavidromeServerIndex.intValue].password == "") return
 
     val thread = Thread {
         try {
-            Log.d("useNavidromeServer", "URL: $url")
-
             navidromeStatus.value = "Loading"
 
             with(url.openConnection() as HttpURLConnection) {
@@ -143,6 +143,15 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
         )
         if (!albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
             albumList.add(album)
+        }
+
+        // Add Artists
+        val artist = Artist(
+            name = songArtist,
+            navidromeID = "Local"
+        )
+        if (!artistList.contains(artistList.firstOrNull { it.name == artist.name })){
+            artistList.add(artist)
         }
 
         navidromeStatus.value = "Success"

@@ -48,10 +48,10 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.LocalProviderCard
 import com.craftworks.music.ui.elements.NavidromeProviderCard
+import com.craftworks.music.ui.elements.bottomSpacerHeightDp
 import com.craftworks.music.ui.elements.bounceClick
 
 @Composable
@@ -141,6 +141,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
 
         Box(modifier = Modifier
             .padding(12.dp)
+            .padding(bottom = bottomSpacerHeightDp())
             .align(Alignment.BottomEnd)
         ){
             FloatingActionButton(
@@ -154,8 +155,6 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 Icon(Icons.Rounded.Add, "Add Media Provider.")
             }
         }
-
-        BottomSpacer()
     }
     if(showNavidromeServerDialog)
         CreateMediaProviderDialog(setShowDialog = { showNavidromeServerDialog = it })
