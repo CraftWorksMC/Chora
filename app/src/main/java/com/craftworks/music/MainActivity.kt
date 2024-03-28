@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -59,7 +58,6 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.SongHelper.Companion.initPlayer
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.ui.NowPlayingContent
@@ -79,14 +77,7 @@ var shuffleSongs = mutableStateOf(false)
 
 var songState by mutableStateOf(false)
 
-object playingSong{
-    var selectedList:List<Song> = emptyList()
-    var selectedSong by mutableStateOf<Song?>(Song(title = "Song Title", artist = "Song Artist", duration = 0, imageUrl = Uri.EMPTY, dateAdded = "", year = "2023", album = "Album"))
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
-
-
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     lateinit var navController: NavHostController

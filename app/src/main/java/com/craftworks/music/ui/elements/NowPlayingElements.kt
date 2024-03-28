@@ -46,10 +46,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
+import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.artistList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.ui.DownloadButton
 import com.craftworks.music.ui.LyricsButton
@@ -59,13 +63,14 @@ import com.craftworks.music.ui.RepeatButton
 import com.craftworks.music.ui.ShuffleButton
 import com.craftworks.music.ui.SliderUpdating
 import com.craftworks.music.ui.lyricsOpen
+import com.craftworks.music.ui.screens.selectedArtist
 import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
 @Preview(showBackground = true)
-fun NowPlayingPortraitCover (){
+fun NowPlayingPortraitCover (navHostController: NavHostController = rememberNavController()){
 
     val textFadingEdge = Brush.horizontalGradient(0.85f to Color.Red, 1f to Color.Transparent)
 
@@ -129,18 +134,24 @@ fun NowPlayingPortraitCover (){
                     modifier = Modifier.fillMaxWidth().fadingEdge(textFadingEdge)
                 )
             }
-            SongHelper.currentSong.artist.let {
+            SongHelper.currentSong.artist.let { artistName ->
                 Text(
                     text =
-                    if (it.isBlank()) ""
-                    else it + " • " + SongHelper.currentSong.year,
+                    if (artistName.isBlank()) ""
+                    else artistName + " • " + SongHelper.currentSong.year,
                     fontSize = MaterialTheme.typography.titleMedium.fontSize,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1, overflow = TextOverflow.Visible,
                     softWrap = false,
                     textAlign = TextAlign.Start,
-                    modifier = Modifier.fillMaxWidth().fadingEdge(textFadingEdge)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fadingEdge(textFadingEdge)
+                        .clickable {
+                            selectedArtist = artistList.first { it.name == artistName }
+                            navHostController.navigate(Screen.AristDetails.route)
+                        }
                 )
             }
             if (showMoreInfo.value) {

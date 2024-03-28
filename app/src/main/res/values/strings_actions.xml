@@ -4,6 +4,9 @@
     <string name="Action_Done">Done</string>
     <string name="Action_Remove">Remove</string>
 
+    <string name="Action_Play">Remove</string>
+    <string name="Action_Shuffle">Shuffle</string>
+
     <!-- Navidrome Provider -->
     <string name="Action_Add">Add</string>
     <string name="Action_Success">Success</string>

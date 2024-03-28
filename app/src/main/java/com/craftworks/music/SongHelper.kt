@@ -49,6 +49,8 @@ class SongHelper {
                 year = "",
                 album = ""))
 
+        var currentList:List<Song> = emptyList()
+
         fun initPlayer(context: Context) {
             // Do NOT Re-Initialize Player and MediaSession
             // Because this function gets called when re-focusing the app
@@ -92,8 +94,8 @@ class SongHelper {
             if (isRadio == false){
                 // Add Media Items
                 player.clearMediaItems()
-                val index = playingSong.selectedList.indexOfFirst { it.media == url }
-                for (song in playingSong.selectedList){
+                val index = currentList.indexOfFirst { it.media == url }
+                for (song in currentList){
                     if (song.isRadio == true) break
 
                     val mediaMetadata = MediaMetadata.Builder()
@@ -183,7 +185,7 @@ class SongHelper {
                     )
 
                     // this will do until i finish it
-                    playingSong.selectedSong = currentSong
+                    //playingSong.selectedSong = currentSong
 
                     if (isRadio == false)
                         getLyrics()

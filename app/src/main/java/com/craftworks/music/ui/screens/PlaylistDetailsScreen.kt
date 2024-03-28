@@ -44,7 +44,6 @@ import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Screen
 import com.craftworks.music.fadingEdge
-import com.craftworks.music.playingSong
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 
@@ -114,8 +113,8 @@ fun PlaylistDetails(navHostController: NavHostController = rememberNavController
         Column(modifier = Modifier.padding(12.dp, top = 0.dp)) {
             selectedPlaylist?.songs?.let {
                 SongsHorizontalColumn(it, onSongSelected = { song ->
-                    playingSong.selectedSong = song
-                    playingSong.selectedList = selectedPlaylist!!.songs
+                    SongHelper.currentSong = song
+                    SongHelper.currentList = selectedPlaylist!!.songs
                     song.media?.let { songUri -> SongHelper.playStream(context = context, url = songUri) }
                 })
             }

@@ -25,4 +25,7 @@
     <string name="Dialog_Add_To_Playlist">Add / To Playlist</string>
         <string name="Label_Playlist_Name">Playlist Name:</string>
 
+    <!-- Albums -->
+    <string name="Label_MoreSongsFrom">More Songs From</string>
+
 </resources>

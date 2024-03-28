@@ -1,7 +1,6 @@
 package com.craftworks.music.auto
 
 import android.net.Uri
-import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
@@ -17,8 +16,6 @@ import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import androidx.media3.session.SessionCommand
-import androidx.media3.session.SessionResult
 import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.useNavidromeServer
@@ -56,7 +53,7 @@ class AutoLibraryService : MediaLibraryService() {
         )
         .build()
 
-    val subroot_TracklistItem = MediaItem.Builder()
+    private val subrootTracklistItem = MediaItem.Builder()
         .setMediaId("nodeTRACKLIST")
         .setMediaMetadata(
             MediaMetadata.Builder()
@@ -71,7 +68,7 @@ class AutoLibraryService : MediaLibraryService() {
         )
         .build()
 
-    val rootHierarchy = listOf(subroot_TracklistItem)
+    val rootHierarchy = listOf(subrootTracklistItem)
 
     var tracklist = mutableListOf<MediaItem>()
 
@@ -158,13 +155,6 @@ class AutoLibraryService : MediaLibraryService() {
         /** Creating our MediaLibrarySession which is an advanced extension of a MediaSession */
         session = MediaLibrarySession
             .Builder(this, player, object : MediaLibrarySession.Callback {
-                override fun onGetItem(
-                    session: MediaLibrarySession,
-                    browser: MediaSession.ControllerInfo,
-                    mediaId: String
-                ): ListenableFuture<LibraryResult<MediaItem>> {
-                    return super.onGetItem(session, browser, mediaId)
-                }
 
                 override fun onSetMediaItems(
                     mediaSession: MediaSession,
@@ -230,11 +220,6 @@ class AutoLibraryService : MediaLibraryService() {
                     return Futures.immediateFuture(LibraryResult.ofVoid()) //super.onSubscribe(session, browser, parentId, params)
                 }
 
-                /** In order to end the service from our media browser side (UI side), we receive
-                 * our own custom command (which is [CUSTOM_COM_END_SERVICE]). However, the session
-                 * is not designed to accept foreign weird commands. So we edit the onConnect callback method
-                 * to make sure it accepts it.
-                 */
                 override fun onConnect(
                     session: MediaSession,
                     controller: MediaSession.ControllerInfo
@@ -250,52 +235,6 @@ class AutoLibraryService : MediaLibraryService() {
                     val playerComs = super.onConnect(session, controller).availablePlayerCommands
 
                     return MediaSession.ConnectionResult.accept(sessionComs, playerComs)
-                }
-
-                /** Receiving some custom commands such as the command that ends the service.
-                 * In order to make the player accept newly customized foreign weird commands, we have
-                 * to edit the onConnect callback method like we did above */
-                override fun onCustomCommand(
-                    session: MediaSession,
-                    controller: MediaSession.ControllerInfo,
-                    customCommand: SessionCommand,
-                    args: Bundle
-                ): ListenableFuture<SessionResult> {
-                    /*
-
-                    /** When the controller tries to add an item to the playlist */
-                    if (customCommand == CUSTOM_COM_PLAY_ITEM) {
-                        args.getString("id")?.let { mediaid ->
-
-                            val i = tracklist.indexOfFirst { it.mediaId == mediaid }
-                            //setPlaybackMode(PlayBackMode.PBM_TRACKLIST)
-                            player.setMediaItems(tracklist, i, 0)
-
-                            player.prepare()
-                            player.play()
-                            return Futures.immediateFuture(SessionResult(RESULT_SUCCESS))
-
-                        }
-                    }
-
-                    /** When the controller (like the app) closes fully, we need to disconnect */
-                    if (customCommand == CUSTOM_COM_END_SERVICE) {
-                        session.release()
-                        player.release()
-                        this@AutoLibraryService.stopSelf()
-
-                        return Futures.immediateFuture(SessionResult(RESULT_SUCCESS))
-                    }
-
-                    /** When the user changes the source folder */
-                    if (customCommand == CUSTOM_COM_SCAN_MUSIC) {
-                        queryMusic()
-                        return Futures.immediateFuture(SessionResult(RESULT_SUCCESS))
-                    }
-
-                    */
-
-                    return super.onCustomCommand(session, controller, customCommand, args)
                 }
             }).setId("AutoSession").build()
     }

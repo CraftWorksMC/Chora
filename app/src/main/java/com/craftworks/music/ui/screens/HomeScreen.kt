@@ -62,7 +62,6 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
-import com.craftworks.music.playingSong
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
@@ -212,8 +211,8 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
 
                 /* SONGS ROW */
                 SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
-                    playingSong.selectedSong = song
-                    playingSong.selectedList = recentlyPlayedSongsList
+                    SongHelper.currentSong = song
+                    SongHelper.currentList = recentlyPlayedSongsList
                     //songState = true
                     song.media?.let { SongHelper.playStream(context = context, url = it) }
                 })
@@ -236,8 +235,8 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
 
                 /* SONGS ROW */
                 SongsRow(songsList = recentSongsList, onSongSelected = { song ->
-                    playingSong.selectedSong = song
-                    playingSong.selectedList = recentSongsList
+                    SongHelper.currentSong = song
+                    SongHelper.currentList = recentSongsList
                     //songState = true
                     song.media?.let { SongHelper.playStream(context = context, url = it) }
                 })
@@ -258,8 +257,8 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 )
                 /* SONGS ROW */
                 SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
-                    playingSong.selectedSong = song
-                    playingSong.selectedList = mostPlayedList
+                    SongHelper.currentSong = song
+                    SongHelper.currentList = mostPlayedList
                     //songState = true
                     song.media?.let { SongHelper.playStream(context = context, url = it) }
                 })
@@ -281,8 +280,8 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
 
                 /* SONGS ROW */
                 SongsRow(songsList = shuffledSongsList.value, onSongSelected = { song ->
-                    playingSong.selectedSong = song
-                    playingSong.selectedList = shuffledSongsList.value
+                    SongHelper.currentSong = song
+                    SongHelper.currentList = shuffledSongsList.value
                     //songState = true
                     song.media?.let { SongHelper.playStream(context = context, url = it) }
                 })

@@ -30,12 +30,10 @@ import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
-import com.craftworks.music.playingSong
 import com.craftworks.music.ui.elements.AddSongToPlaylist
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.showAddSongToPlaylistDialog
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SongsScreen() {
@@ -72,8 +70,8 @@ fun SongsScreen() {
             val allSongsList = songsList.sortedBy { song: Song -> song.title }
 
             SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->
-                playingSong.selectedSong = song
-                playingSong.selectedList = allSongsList
+                SongHelper.currentSong = song
+                SongHelper.currentList = allSongsList
                 //songState = true
                 song.media?.let { SongHelper.playStream(context = context, url = it) } })
         }

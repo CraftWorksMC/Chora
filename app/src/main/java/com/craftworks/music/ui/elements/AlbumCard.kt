@@ -38,7 +38,6 @@ import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.songsList
-import com.craftworks.music.playingSong
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,8 +71,8 @@ fun AlbumCard(album: Album, onClick: () -> Unit){
                 )
                 Button(
                     onClick = { // Play First Song in Album
-                        playingSong.selectedSong = songsList.filter { it.album == album.name }[0]
-                        playingSong.selectedList = songsList.filter { it.album == album.name }
+                        SongHelper.currentSong = songsList.filter { it.album == album.name }[0]
+                        SongHelper.currentList = songsList.filter { it.album == album.name }
                         songsList.filter { it.album == album.name }[0].media?.let { SongHelper.playStream(context = context, url = it)} },
                     shape = CircleShape,
                     modifier = Modifier.size(48.dp).align(Alignment.BottomStart).padding(6.dp),

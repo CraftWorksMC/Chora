@@ -9,6 +9,10 @@ sealed class Screen(val route: String) {
     object Albums : Screen("album_screen")
     object AlbumDetails : Screen("album_details")
 
+    //Artists
+    //object Artists : Screen("artist_screen")
+    object AristDetails : Screen("artist_details")
+
     //Playlists
     object Playlists : Screen("playlist_screen")
     object PlaylistDetails : Screen("playlist_details")

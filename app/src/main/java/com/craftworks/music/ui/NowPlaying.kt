@@ -97,6 +97,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.media3.common.Player
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import com.craftworks.music.R
@@ -145,7 +147,8 @@ fun NowPlayingContent(
     ),
     context: Context = LocalContext.current,
     scaffoldState: BottomSheetScaffoldState? = rememberBottomSheetScaffoldState(),
-    snackbarHostState: SnackbarHostState? = SnackbarHostState()
+    snackbarHostState: SnackbarHostState? = SnackbarHostState(),
+    navHostController: NavHostController = rememberNavController()
 ) {
     println("Full Recompose NowPlaying.kt")
 

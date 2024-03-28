@@ -15,6 +15,8 @@
     <string name="Dialog_Delete_Playlist">Cancella Playlist</string>
     <string name="Dialog_Add_To_Playlist">Aggiungi / Alla Playlist</string>
     <string name="Label_Playlist_Name">Nome Playlist:</string>
+    <string name="Action_Play">Riproduci</string>
+    <string name="Action_Shuffle">Shuffle</string>
     <string name="Action_Add">Aggiungi</string>
     <string name="Action_Success">Successo</string>
     <string name="Action_Login">Accedi</string>
@@ -40,4 +42,5 @@
     <string name="Background_Animated">Animato</string>
     <string name="Albums">Album</string>
     <string name="Label_Confirm_Delete_Playlist">Sei sicuro/a di voler cancellare questa playlist?</string>
+    <string name="Label_MoreSongsFrom">Altre Canzoni Da</string>
 </resources>

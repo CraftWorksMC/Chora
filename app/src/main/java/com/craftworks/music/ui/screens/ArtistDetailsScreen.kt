@@ -2,7 +2,10 @@ package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
 import android.net.Uri
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,11 +34,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -56,42 +61,36 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
-import com.craftworks.music.data.Album
+import com.craftworks.music.data.Artist
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.fadingEdge
-import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
-import com.craftworks.music.songState
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalSongCard
-import com.craftworks.music.ui.elements.SongsRow
 import java.net.URL
 
-var selectedAlbum by mutableStateOf<Album?>(
-    Album(
-        name = "My Album",
-        artist = "My Favourite Artist",
-        year = "2023",
-        Uri.EMPTY)
+var selectedArtist by mutableStateOf<Artist?>(
+    Artist(
+        name = "My Favourite Artist",
+        imageUri = Uri.EMPTY,
+        description = "A very short description of my favourite artist, they make good music"
+    )
 )
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun AlbumDetails(navHostController: NavHostController = rememberNavController()) {
+fun ArtistDetails(navHostController: NavHostController = rememberNavController()) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
     val context = LocalContext.current
 
-    val albumSongs = songsList.filter { it.album == selectedAlbum?.name }
-
-    val otherSongsFromSameArtist = songsList.filter { it.artist == selectedAlbum?.artist }.toMutableList()
-    otherSongsFromSameArtist.removeAll(albumSongs)
+    val artistSongs = songsList.filter { it.artist == selectedAlbum?.name }
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -102,13 +101,15 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                 .calculateTopPadding()
         )
         .wrapContentHeight()
-        .verticalScroll(rememberScrollState())) {
+        .verticalScroll(rememberScrollState())
+    ) {
         Box (modifier = Modifier
             .padding(horizontal = 12.dp)
             .height(192.dp)
             .fillMaxWidth()) {
+            //Image and Name
             AsyncImage(
-                model = selectedAlbum?.coverArt,
+                model = selectedArtist?.imageUri,
                 placeholder = painterResource(R.drawable.placeholder),
                 fallback = painterResource(R.drawable.placeholder),
                 contentScale = ContentScale.FillWidth,
@@ -118,6 +119,7 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                     .fadingEdge(imageFadingEdge)
                     .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
                     .blur(8.dp)
+                    .background(Color.Red)
             )
             Button(
                 onClick = { navHostController.navigate(Screen.Albums.route) },
@@ -129,7 +131,7 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     tint = MaterialTheme.colorScheme.onBackground,
                     contentDescription = "Settings",
                     modifier = Modifier
@@ -137,9 +139,11 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                         .size(32.dp)
                 )
             }
+
+
             // Album Name and Artist
             Column(modifier = Modifier.align(Alignment.BottomCenter)){
-                selectedAlbum?.name?.let {
+                selectedArtist?.name?.let {
                     Text(
                         text = it,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -150,31 +154,34 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                         lineHeight = 32.sp
                     )
                 }
-                Row (modifier = Modifier.fillMaxWidth() ,horizontalArrangement = Arrangement.Center) {
-                    selectedAlbum?.artist?.let {
-                        Text(
-                            text = "$it • ",
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                    var albumDuration = 0
-                    for (song in albumSongs){
-                        albumDuration += song.duration
-                    }
-                    Text(
-                        text = formatMilliseconds(albumDuration.toFloat()),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                        textAlign = TextAlign.Center
-                    )
-                }
             }
         }
 
+        // Description
+        var expanded by remember { mutableStateOf(false) }
+        Box(modifier = Modifier
+            .padding(12.dp)
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .shadow(4.dp, RoundedCornerShape(12.dp), true)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .animateContentSize()
+            .clickable {
+                expanded = !expanded
+            }){
+            selectedArtist?.description?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Light,
+                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                    textAlign = TextAlign.Start,
+                    maxLines = if (expanded) 10 else 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(6.dp)
+                )
+            }
+        }
 
         // Play and shuffle buttons
         Row (modifier = Modifier
@@ -184,10 +191,10 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
             verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = {
-                    SongHelper.currentSong = albumSongs[0]
-                    SongHelper.currentList = albumSongs
+                    //playingSong.selectedSong = albumSongs[0]
+                    //SongHelper.currentList = albumSongs
                     //songState = true
-                    albumSongs[0].media?.let { SongHelper.playStream(context = context, url = it)}
+                    //albumSongs[0].media?.let { SongHelper.playStream(context = context, url = it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -202,11 +209,10 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
             Button(
                 onClick = {
                     shuffleSongs.value = true
-                    val random = albumSongs.indices.random()
-                    SongHelper.currentSong = albumSongs[random]
-                    SongHelper.currentList = albumSongs
-                    //songState = true
-                    albumSongs[random].media?.let { SongHelper.playStream(context = context, url = it)}
+                    //val random = albumSongs.indices.random()
+                    //playingSong.selectedSong = albumSongs[random]
+                    //SongHelper.currentList = albumSongs
+                    //albumSongs[random].media?.let { SongHelper.playStream(context = context, url = it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -225,22 +231,17 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
             .padding(start = 12.dp, end = 12.dp, top = 0.dp)
             .wrapContentHeight()
         ) {
-            /*
-            SongsHorizontalColumn(albumSongs, onSongSelected = { song ->
-                playingSong.selectedSong = song
-                SongHelper.currentList = albumSongs
-                songState = true })*/
             Column(
                 modifier = Modifier
                     .wrapContentHeight()
                     .fillMaxWidth()
             ) {
-                for(song in albumSongs){
+                for(song in artistSongs){
                     HorizontalSongCard(song = song, onClick = {
                         SongHelper.stopStream()
                         sliderPos.intValue = 0
                         SongHelper.currentSong = song
-                        SongHelper.currentList = albumSongs
+                        SongHelper.currentList = artistSongs
                         song.media?.let { SongHelper.playStream(context = context, url = it)}
                         //markSongAsPlayed(song)
                         if (useNavidromeServer.value && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")){
@@ -252,31 +253,6 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                         }
                     })
                 }
-            }
-        }
-
-        // More songs from Artist
-        if (otherSongsFromSameArtist.isNotEmpty()){
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(256.dp)
-                    .padding(top = 12.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.Label_MoreSongsFrom) + " " + selectedAlbum?.artist,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
-                SongsRow(songsList = otherSongsFromSameArtist, onSongSelected = { song ->
-                    SongHelper.currentSong = song
-                    SongHelper.currentList = otherSongsFromSameArtist
-                    songState = true
-                })
             }
         }
 
