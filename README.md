@@ -19,9 +19,9 @@ Sorry for the recent lack of updates, school is taking a lot of my time. hopeful
 ## In Progress
 
 - Fixing Crashes.
+- Artist Page.
 ## Roadmap
 
-- Artist Page.
 - Jellyfin (Music) Support.
 
 
