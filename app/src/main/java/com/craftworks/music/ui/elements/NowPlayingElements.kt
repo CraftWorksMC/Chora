@@ -68,9 +68,13 @@ import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview(showBackground = true)
-fun NowPlayingPortraitCover (navHostController: NavHostController = rememberNavController()){
+fun NowPlayingPortraitCover (
+    navHostController: NavHostController = rememberNavController(),
+    scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState()
+){
 
     val textFadingEdge = Brush.horizontalGradient(0.85f to Color.Red, 1f to Color.Transparent)
 
@@ -131,9 +135,13 @@ fun NowPlayingPortraitCover (navHostController: NavHostController = rememberNavC
                     maxLines = 1, overflow = TextOverflow.Visible,
                     softWrap = false,
                     textAlign = TextAlign.Start,
-                    modifier = Modifier.fillMaxWidth().fadingEdge(textFadingEdge)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fadingEdge(textFadingEdge)
                 )
             }
+
+            val coroutine = rememberCoroutineScope()
             SongHelper.currentSong.artist.let { artistName ->
                 Text(
                     text =
@@ -149,8 +157,13 @@ fun NowPlayingPortraitCover (navHostController: NavHostController = rememberNavC
                         .fillMaxWidth()
                         .fadingEdge(textFadingEdge)
                         .clickable {
-                            selectedArtist = artistList.first { it.name == artistName }
-                            navHostController.navigate(Screen.AristDetails.route)
+                            selectedArtist = artistList.firstOrNull() { it.name == artistName }
+                            navHostController.navigate(Screen.AristDetails.route) {
+                                launchSingleTop = true
+                            }
+                            coroutine.launch {
+                                scaffoldState.bottomSheetState.partialExpand()
+                            }
                         }
                 )
             }

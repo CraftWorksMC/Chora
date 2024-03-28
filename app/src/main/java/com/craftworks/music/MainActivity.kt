@@ -56,6 +56,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.SongHelper.Companion.initPlayer
 import com.craftworks.music.data.SyncedLyric
@@ -186,18 +187,20 @@ class MainActivity : ComponentActivity() {
                     Scaffold(
                         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                         bottomBar = {
+                            val backStackEntry = navController.currentBackStackEntryAsState()
                             if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
                                 NavigationBar (modifier = Modifier
                                     .offset(y = -yTrans)) {
                                     bottomNavigationItems.forEachIndexed { index, item ->
                                         if (!item.enabled) return@forEachIndexed
                                         NavigationBarItem(
-                                            selected = selectedItemIndex == index,
+                                            selected = item.screenRoute == backStackEntry.value?.destination?.route,
                                             modifier = Modifier.bounceClick(),
                                             onClick = {
-                                                if (selectedItemIndex == index) return@NavigationBarItem
                                                 selectedItemIndex = index
-                                                navController.navigate(item.screenRoute)
+                                                navController.navigate(item.screenRoute) {
+                                                    launchSingleTop = true
+                                                }
                                                 coroutineScope.launch {
                                                     scaffoldState.bottomSheetState.partialExpand()
                                                 } },
@@ -215,11 +218,12 @@ class MainActivity : ComponentActivity() {
                                     bottomNavigationItems.forEachIndexed { index, item ->
                                         if (!item.enabled) return@forEachIndexed
                                         NavigationRailItem(
-                                            selected = selectedItemIndex == index,
+                                            selected = item.screenRoute == backStackEntry.value?.destination?.route,
                                             onClick = {
-                                                if (selectedItemIndex == index) return@NavigationRailItem
                                                 selectedItemIndex = index
-                                                navController.navigate(item.screenRoute)
+                                                navController.navigate(item.screenRoute) {
+                                                    launchSingleTop = true
+                                                }
                                                 coroutineScope.launch {
                                                     scaffoldState.bottomSheetState.partialExpand()
                                                 } },
@@ -258,7 +262,8 @@ class MainActivity : ComponentActivity() {
                                 NowPlayingContent(
                                     context = this@MainActivity,
                                     scaffoldState = scaffoldState,
-                                    snackbarHostState = snackbarHostState
+                                    snackbarHostState = snackbarHostState,
+                                    navHostController = navController
                                 )
                             }) {
                         }

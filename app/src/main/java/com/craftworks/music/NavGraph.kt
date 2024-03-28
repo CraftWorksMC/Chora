@@ -18,6 +18,7 @@ import androidx.navigation.compose.composable
 import com.craftworks.music.data.Screen
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
+import com.craftworks.music.ui.screens.ArtistDetails
 import com.craftworks.music.ui.screens.HomeScreen
 import com.craftworks.music.ui.screens.PlaylistDetails
 import com.craftworks.music.ui.screens.PlaylistScreen
@@ -64,6 +65,10 @@ fun SetupNavGraph(
         }
         composable(route = Screen.AlbumDetails.route) {
             AlbumDetails(navController)
+        }
+        //Artist
+        composable(route = Screen.AristDetails.route) {
+            ArtistDetails(navController)
         }
 
         //Playlists

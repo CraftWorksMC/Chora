@@ -320,7 +320,7 @@ fun NowPlayingContent(
                 ) {
                     Column {
                         // Album Art + Info
-                        NowPlayingPortraitCover()
+                        NowPlayingPortraitCover(navHostController)
 
                         // Seek Bar
                         Column(

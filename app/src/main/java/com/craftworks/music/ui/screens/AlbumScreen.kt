@@ -101,7 +101,9 @@ fun AlbumScreen(navHostController: NavHostController = rememberNavController()) 
 
             Column(modifier = Modifier.padding(12.dp,64.dp,12.dp,12.dp)) {
                 AlbumGrid(sortedAlbumList, onAlbumSelected = { album ->
-                    navHostController.navigate(Screen.AlbumDetails.route)
+                    navHostController.navigate(Screen.AlbumDetails.route) {
+                        launchSingleTop = true
+                    }
                     selectedAlbum = album})
             }
         }

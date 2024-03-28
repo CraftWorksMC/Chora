@@ -117,7 +117,9 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
                 .padding(12.dp,64.dp,12.dp,12.dp)
             ) {
                 PlaylistGrid(playlistList , onPlaylistSelected = { playlist ->
-                    navHostController.navigate(Screen.PlaylistDetails.route)
+                    navHostController.navigate(Screen.PlaylistDetails.route) {
+                        launchSingleTop = true
+                    }
                     selectedPlaylist = playlist})
             }
 

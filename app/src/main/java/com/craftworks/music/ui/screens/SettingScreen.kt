@@ -98,7 +98,9 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
     // handle back presses
     BackHandler(true) {
         println("Called BackHandler")
-        navHostController.navigate(Screen.Home.route)
+        navHostController.navigate(Screen.Home.route) {
+            launchSingleTop = true
+        }
         return@BackHandler
     }
 
@@ -123,7 +125,9 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
             )
             Box {
                 Button(
-                    onClick = { navHostController.navigate(Screen.Home.route) },
+                    onClick = { navHostController.navigate(Screen.Home.route) {
+                        launchSingleTop = true
+                    } },
                     shape = CircleShape,
                     modifier = Modifier.size(32.dp),
                     contentPadding = PaddingValues(2.dp),
@@ -161,7 +165,9 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable{
-                        navHostController.navigate(Screen.S_Appearance.route)
+                        navHostController.navigate(Screen.S_Appearance.route) {
+                            launchSingleTop = true
+                        }
                     },
                     verticalAlignment = Alignment.CenterVertically
                 ){
@@ -194,7 +200,9 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable{
-                        navHostController.navigate(Screen.S_Providers.route)
+                        navHostController.navigate(Screen.S_Providers.route) {
+                            launchSingleTop = true
+                        }
                         println("Navigated To Providers Route")
                     },
                     verticalAlignment = Alignment.CenterVertically

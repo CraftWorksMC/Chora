@@ -40,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -65,7 +64,6 @@ import com.craftworks.music.data.Artist
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
-import com.craftworks.music.fadingEdge
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
@@ -116,13 +114,16 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
                 contentDescription = "Album Image",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fadingEdge(imageFadingEdge)
+                    //.fadingEdge(imageFadingEdge)
                     .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
                     .blur(8.dp)
                     .background(Color.Red)
             )
             Button(
-                onClick = { navHostController.navigate(Screen.Albums.route) },
+                onClick = {
+                    navHostController.navigate(Screen.Home.route) {
+                        launchSingleTop = true
+                    } },
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .padding(top = 12.dp, start = 12.dp)
@@ -133,7 +134,7 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     tint = MaterialTheme.colorScheme.onBackground,
-                    contentDescription = "Settings",
+                    contentDescription = "Go Back",
                     modifier = Modifier
                         .height(32.dp)
                         .size(32.dp)
@@ -160,10 +161,10 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
         // Description
         var expanded by remember { mutableStateOf(false) }
         Box(modifier = Modifier
-            .padding(12.dp)
+            .padding(horizontal = 12.dp)
             .fillMaxWidth()
             .wrapContentHeight()
-            .shadow(4.dp, RoundedCornerShape(12.dp), true)
+            .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .animateContentSize()
             .clickable {

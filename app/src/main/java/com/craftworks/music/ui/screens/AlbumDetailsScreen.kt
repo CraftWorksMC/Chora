@@ -120,7 +120,9 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                     .blur(8.dp)
             )
             Button(
-                onClick = { navHostController.navigate(Screen.Albums.route) },
+                onClick = { navHostController.navigate(Screen.Albums.route) {
+                    launchSingleTop = true
+                } },
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .padding(top = 12.dp, start = 12.dp)

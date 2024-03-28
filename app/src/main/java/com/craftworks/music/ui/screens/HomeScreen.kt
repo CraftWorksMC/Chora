@@ -171,7 +171,9 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 }
                 Box(Modifier.padding(end = 12.dp)) {
                     Button(
-                        onClick = { navHostController.navigate(Screen.Setting.route) },
+                        onClick = { navHostController.navigate(Screen.Setting.route) {
+                            launchSingleTop = true
+                        } },
                         shape = CircleShape,
                         modifier = Modifier.size(32.dp),
                         contentPadding = PaddingValues(2.dp),

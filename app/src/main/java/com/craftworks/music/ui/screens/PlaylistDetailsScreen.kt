@@ -85,7 +85,9 @@ fun PlaylistDetails(navHostController: NavHostController = rememberNavController
                 )
             }
             Button(
-                onClick = { navHostController.navigate(Screen.Playlists.route) },
+                onClick = { navHostController.navigate(Screen.Playlists.route) {
+                    launchSingleTop = true
+                } },
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .padding(top = 12.dp, start = 12.dp)
