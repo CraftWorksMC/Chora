@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -33,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,9 +60,8 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
-import com.craftworks.music.data.Artist
-import com.craftworks.music.data.Screen
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
@@ -76,26 +73,18 @@ import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import java.net.URL
 
-var selectedArtist by mutableStateOf<Artist>(
-    Artist(
-        name = "My Favourite Artist",
-        imageUri = Uri.EMPTY,
-        description = "A very short description of my favourite artist, they make good music"
-    )
-)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ArtistDetails(navHostController: NavHostController = rememberNavController()) {
+
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
     val context = LocalContext.current
 
-    val artistSongs = songsList.filter { it.artist.contains(selectedArtist.name) }
+    getNavidromeArtistDetails(selectedArtist.navidromeID, selectedArtist.name)
 
-    LaunchedEffect(selectedArtist.name) {
-        getNavidromeArtistDetails(selectedArtist.navidromeID, selectedArtist.name)
-    }
+    val artistSongs = songsList.filter { it.artist.contains(selectedArtist.name) }
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -127,9 +116,7 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
             )
             Button(
                 onClick = {
-                    navHostController.navigate(Screen.Home.route) {
-                        launchSingleTop = true
-                    } },
+                    navHostController.popBackStack() },
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .padding(top = 12.dp, start = 12.dp)
@@ -150,17 +137,15 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
 
             // Album Name and Artist
             Column(modifier = Modifier.align(Alignment.BottomCenter)){
-                selectedArtist.name?.let {
-                    Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                        lineHeight = 32.sp
-                    )
-                }
+                Text(
+                    text = selectedArtist.name,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    lineHeight = 32.sp
+                )
             }
         }
 
@@ -176,18 +161,16 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
             .clickable {
                 expanded = !expanded
             }){
-            selectedArtist.description?.let {
-                Text(
-                    text = it.ifBlank { "No Description Available." },
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Light,
-                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                    textAlign = TextAlign.Start,
-                    maxLines = if (expanded) 10 else 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(6.dp)
-                )
-            }
+            Text(
+                text = selectedArtist.description.ifBlank { "No Description Available." },
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Light,
+                fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                textAlign = TextAlign.Start,
+                maxLines = if (expanded) 100 else 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(6.dp)
+            )
         }
 
         // Play and shuffle buttons

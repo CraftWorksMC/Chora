@@ -5,6 +5,7 @@ import android.util.Log
 import com.craftworks.music.data.Artist
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedArtist
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import java.io.BufferedReader
@@ -81,7 +82,12 @@ fun parseArtistsXML(input: BufferedReader, xpath: String){
             description = ""
         )
         Log.d("NAVIDROME", "Added Artist $artistName")
-        if (!artistList.contains(artistList.firstOrNull { it.name == artist.name })){
+        if (artistList.contains(artistList.firstOrNull { it.name == artist.name && it.navidromeID == "Local"})){
+            artistList[artistList.indexOfFirst { it.name == artist.name && it.navidromeID == "Local" }].apply {
+                navidromeID = artistId
+            }
+        }
+        else{
             artistList.add(artist)
         }
     }
@@ -134,32 +140,17 @@ fun parseArtistDetailsXML(input: BufferedReader, xpath: String, artistId: String
 
     for (a in 0 until elementNodeList.length) {
 
-        val userNode = elementNodeList.item(a)
-        println(userNode)
-
-        val nodeList = userNode.attributes.item(0).childNodes
-        //val node = nodeList.item(0)
-        println(nodeList)
+        val nodeList = elementNodeList.item(a).childNodes
+        //println("${nodeList.length} ; ${nodeList.item(0).nodeName} ; ${nodeList.item(0).firstChild.textContent}")
 
 
-        val artistDescription: String = elementNodeList.item(0).textContent
-        val artistImage: Uri = Uri.parse(elementNodeList.item(4).textContent)
-
-
-
-        /*
-        @Suppress("ReplaceRangeToWithUntil")
-        for (i in 0..firstElement.attributes.length - 1) {
-            val attribute = firstElement.attributes.item(i)
-            println(attribute)
-            artistDescription = if (attribute.nodeName == "biography") attribute.textContent else artistDescription
-            artistImage = if (attribute.nodeName == "largeImageUrl") Uri.parse(attribute.textContent) else artistImage
-        }
-        */
+        val artistDescription: String = nodeList.item(0).firstChild.textContent.toString().replace(Regex("<a[^>]*>.*?</a>"), "")
+        val artistImage: Uri = Uri.parse(nodeList.item(4).firstChild.textContent.toString())
 
         Log.d("NAVIDROME", "Gotten details for $artistName")
         val index = artistList.indexOfFirst { it.navidromeID == artistId }
         artistList[index] = artistList[index].copy(imageUri = artistImage, description = artistDescription)
+        selectedArtist = artistList[index]
     }
 }
 //endregion

@@ -54,6 +54,7 @@ import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.artistList
+import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.ui.DownloadButton
 import com.craftworks.music.ui.LyricsButton
@@ -63,7 +64,6 @@ import com.craftworks.music.ui.RepeatButton
 import com.craftworks.music.ui.ShuffleButton
 import com.craftworks.music.ui.SliderUpdating
 import com.craftworks.music.ui.lyricsOpen
-import com.craftworks.music.ui.screens.selectedArtist
 import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -158,11 +158,11 @@ fun NowPlayingPortraitCover (
                         .fadingEdge(textFadingEdge)
                         .clickable {
                             selectedArtist = artistList.firstOrNull() { it.name == artistName }!!
-                            navHostController.navigate(Screen.AristDetails.route) {
-                                launchSingleTop = true
-                            }
                             coroutine.launch {
                                 scaffoldState.bottomSheetState.partialExpand()
+                            }
+                            navHostController.navigate(Screen.AristDetails.route) {
+                                launchSingleTop = true
                             }
                         }
                 )

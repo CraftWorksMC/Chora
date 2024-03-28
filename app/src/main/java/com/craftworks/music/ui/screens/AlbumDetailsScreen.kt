@@ -3,6 +3,7 @@ package com.craftworks.music.ui.screens
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,7 +59,9 @@ import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Screen
+import com.craftworks.music.data.artistList
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.songsList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
@@ -153,13 +156,19 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                     )
                 }
                 Row (modifier = Modifier.fillMaxWidth() ,horizontalArrangement = Arrangement.Center) {
-                    selectedAlbum?.artist?.let {
+                    selectedAlbum?.artist?.let {artistName ->
                         Text(
-                            text = "$it • ",
+                            text = "$artistName • ",
                             color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Normal,
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.clickable {
+                                selectedArtist = artistList.firstOrNull() { it.name == artistName }!!
+                                navHostController.navigate(Screen.AristDetails.route) {
+                                    launchSingleTop = true
+                                }
+                            }
                         )
                     }
                     var albumDuration = 0
