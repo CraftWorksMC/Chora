@@ -73,7 +73,7 @@ fun parseArtistsXML(input: BufferedReader, xpath: String){
         }
         Log.d("NAVIDROME", "Got Artist Name + ID")
 
-        getNavidromeArtistDetails(artistId, artistName)
+        //getNavidromeArtistDetails(artistId, artistName)
 
         // Add Artists
         val artist = Artist(
@@ -99,6 +99,8 @@ fun parseArtistsXML(input: BufferedReader, xpath: String){
 
 
 //region Get Artist Details + Add to list
+private var isGetArtistDetails = false
+
 fun getNavidromeArtistDetails(id: String, name:String){
     if (navidromeServersList.isEmpty()) return
 

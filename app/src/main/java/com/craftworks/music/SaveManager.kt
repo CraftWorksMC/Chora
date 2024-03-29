@@ -3,11 +3,13 @@ package com.craftworks.music
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import com.craftworks.music.data.Artist
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.artistList
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
@@ -47,6 +49,11 @@ class saveManager(private val context: Context){
         val localListString = localProviderList.joinToString(";") {
             "${it.directory},${it.enabled}" }
         sharedPreferences.edit().putString("localProviderList", localListString).apply()
+
+        // Save Artists List
+        val artistsListString = artistList.joinToString(";") {
+            "${it.name}|${it.imageUri}|${it.description}|${it.navidromeID}" }
+        sharedPreferences.edit().putString("artistsList", artistsListString).apply()
 
         // Save Radios List
         val radiosListString = radioList.joinToString(";") {
@@ -115,6 +122,8 @@ class saveManager(private val context: Context){
         selectedLocalProvider.intValue = sharedPreferences.getInt("activeLocalProvider", 0)
         //endregion
 
+        loadArtists()
+
         loadRadios()
 
         loadPlaylists()
@@ -133,7 +142,10 @@ class saveManager(private val context: Context){
                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
                 getNavidromePlaylists()
                 getNavidromeRadios()
-                getNavidromeArtists()
+
+                if (artistList.isEmpty())
+                    getNavidromeArtists()
+
             } catch (_: Exception){
                 // DO NOTHING
             }
@@ -145,6 +157,39 @@ class saveManager(private val context: Context){
     }
 
     //region Load Single Components
+
+    fun loadArtists(){
+        // Get Artists List
+        val artistListStrings = (sharedPreferences.getString("artistsList", "") ?: "").split(";")
+        println(artistListStrings)
+        artistListStrings.forEach { localString ->
+            val parts = localString.split("|")
+            if (parts.size > 1) {
+                try {
+                    val artist = Artist(
+                        parts[0],
+                        Uri.parse(parts[1]),
+                        parts[2],
+                        parts[3]
+                    )
+                    Log.d("NAVIDROME", "Added Artist ${artist.name}")
+                    if (artistList.contains(artistList.firstOrNull { it.name == artist.name && it.navidromeID == "Local"})){
+                        artistList[artistList.indexOfFirst { it.name == artist.name && it.navidromeID == "Local" }].apply {
+                            navidromeID = artist.navidromeID
+                        }
+                    }
+                    else{
+                        if (!artistList.contains(artistList.firstOrNull { it.name == artist.name }))
+                            artistList.add(artist)
+                    }
+                }
+                catch (e:Exception){
+                    println("Failed to add all artists, motive: $e")
+                }
+
+            }
+        }
+    }
 
     fun loadRadios(){
         // Get Radios List

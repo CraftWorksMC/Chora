@@ -38,6 +38,7 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromeArtists
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.elements.ArtistsGrid
@@ -61,7 +62,12 @@ fun ArtistsScreen(navHostController: NavHostController = rememberNavController()
             else{
                 getSongsOnDevice(context)
             }
-            delay(1500)
+            delay(500)
+            for (artist in artistList){
+                if (useNavidromeServer.value)
+                    getNavidromeArtistDetails(artist.navidromeID, artist.name)
+            }
+            delay(500)
             state.endRefresh()
         }
     }

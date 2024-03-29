@@ -96,7 +96,6 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
 
             if (useNavidromeServer.value){
                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
-                getNavidromeArtists()
             }
             else{
                 getSongsOnDevice(context)
@@ -145,13 +144,11 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                             contentDescription = "Navidrome Icon",
                             modifier = Modifier
                                 .size(72.dp)
-                                .offset(x = (-36).dp)
-                                //.rotate(-10f) // Make it look just a tad bit nicer
+                                .offset(x = (-36).dp, y = 0.dp)
                                 .shadow(24.dp, CircleShape)
                                 .graphicsLayer(
                                     rotationZ = animatedRotation
                                 )
-                                //.bounceClick() doesn't look good here!
                                 .clickable {
                                     rotation += 360f
                                 }

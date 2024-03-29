@@ -539,6 +539,9 @@ fun LyricsView(isLandscape: Boolean = false) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SliderUpdating(isLandscape: Boolean? = false){
+
+    println("Recomposing Slider")
+
     val animatedSliderValue by animateFloatAsState(targetValue = sliderPos.intValue.toFloat(),
         label = "Smooth Slider Update"
     )

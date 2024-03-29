@@ -265,11 +265,11 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = stringResource(R.string.Screen_Recent_Albums) + ":",
+                    text = stringResource(R.string.Screen_Top_Songs) + ":",
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                    modifier = Modifier.padding(start = 12.dp, bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
                 for(song in artistSongs){
                     HorizontalSongCard(song = song, onClick = {
