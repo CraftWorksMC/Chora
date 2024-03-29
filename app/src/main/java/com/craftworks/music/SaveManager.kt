@@ -52,7 +52,7 @@ class saveManager(private val context: Context){
 
         // Save Artists List
         val artistsListString = artistList.joinToString(";") {
-            "${it.name}|${it.imageUri}|${it.description}|${it.navidromeID}" }
+            "${it.name}|${it.imageUri}|${it.navidromeID}|${it.description}" }
         sharedPreferences.edit().putString("artistsList", artistsListString).apply()
 
         // Save Radios List
@@ -158,7 +158,7 @@ class saveManager(private val context: Context){
 
     //region Load Single Components
 
-    fun loadArtists(){
+    private fun loadArtists(){
         // Get Artists List
         val artistListStrings = (sharedPreferences.getString("artistsList", "") ?: "").split(";")
         println(artistListStrings)
@@ -190,7 +190,6 @@ class saveManager(private val context: Context){
             }
         }
     }
-
     fun loadRadios(){
         // Get Radios List
         val radioListStrings = (sharedPreferences.getString("radioList", "") ?: "").split(";")

@@ -196,10 +196,9 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
             verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = {
-                    //playingSong.selectedSong = albumSongs[0]
-                    //SongHelper.currentList = albumSongs
-                    //songState = true
-                    //albumSongs[0].media?.let { SongHelper.playStream(context = context, url = it)}
+                    SongHelper.currentSong = artistSongs[0]
+                    SongHelper.currentList = artistSongs
+                    artistSongs[0].media?.let { SongHelper.playStream(context = context, url = it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -214,10 +213,10 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
             Button(
                 onClick = {
                     shuffleSongs.value = true
-                    //val random = albumSongs.indices.random()
-                    //playingSong.selectedSong = albumSongs[random]
-                    //SongHelper.currentList = albumSongs
-                    //albumSongs[random].media?.let { SongHelper.playStream(context = context, url = it)}
+                    val random = artistSongs.indices.random()
+                    SongHelper.currentSong = artistSongs[random]
+                    SongHelper.currentList = artistSongs
+                    artistSongs[random].media?.let { SongHelper.playStream(context = context, url = it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
