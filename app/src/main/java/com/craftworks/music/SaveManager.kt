@@ -4,12 +4,14 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.craftworks.music.data.Artist
+import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.artistList
+import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
@@ -41,6 +43,8 @@ class saveManager(private val context: Context){
 
     fun saveSettings(){
         sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()
+
+        //region Save Lists
         // Save Navidrome Server List
         val serverListString = navidromeServersList.joinToString(";") { "${it.url},${it.username},${it.password}" }
         sharedPreferences.edit().putString("navidromeServerList", serverListString).apply()
@@ -69,15 +73,26 @@ class saveManager(private val context: Context){
         sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
         sharedPreferences.edit().putInt("activeLocalProvider", selectedLocalProvider.intValue).apply()
 
+        saveBottomNavItems()
+
+        //endregion
 
         // Preferences
         sharedPreferences.edit().putString("username", username.value).apply()
         sharedPreferences.edit().putString("backgroundType", backgroundType.value).apply()
         sharedPreferences.edit().putBoolean("showMoreInfo", showMoreInfo.value).apply()
         sharedPreferences.edit().putString("transcodingBitRate", transcodingBitrate.value).apply()
-
-
     }
+
+    //region Save Single Components
+
+    fun saveBottomNavItems(){
+        val navItems = bottomNavigationItems.joinToString(";") {
+            "${it.title}|${it.icon}|${it.screenRoute}|${it.enabled}" }
+        sharedPreferences.edit().putString("bottomNavItems", navItems).apply()
+    }
+
+    //endregion
 
     fun loadSettings() {
 
@@ -88,6 +103,8 @@ class saveManager(private val context: Context){
         showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
         transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
         //endregion
+
+        loadBottomNavItems()
 
         //region Navidrome
 
@@ -157,6 +174,30 @@ class saveManager(private val context: Context){
     }
 
     //region Load Single Components
+
+    private fun loadBottomNavItems(){
+        // Get Artists List
+        val bottomNavItemsString = (sharedPreferences.getString("bottomNavItems", "") ?: "").split(";")
+        println(bottomNavItemsString)
+        bottomNavItemsString.forEach { bottomNavItem ->
+            val parts = bottomNavItem.split("|")
+            if (parts.size > 1) {
+                try {
+                    val navItem = BottomNavItem(
+                        parts[0],
+                        parts[1].toInt(),
+                        parts[2],
+                        parts[3].toBoolean()
+                    )
+                    val index = bottomNavItemsString.indexOf(bottomNavItem)
+                    bottomNavigationItems[index] = navItem
+                }
+                catch (e:Exception){
+                    println("Failed to add all artists, motive: $e")
+                }
+            }
+        }
+    }
 
     private fun loadArtists(){
         // Get Artists List

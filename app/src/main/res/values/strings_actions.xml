@@ -3,6 +3,7 @@
     <!-- Common -->
     <string name="Action_Done">Done</string>
     <string name="Action_Remove">Remove</string>
+    <string name="Action_Reset">Reset</string>
 
     <string name="Action_Play">Play</string>
     <string name="Action_Shuffle">Shuffle</string>

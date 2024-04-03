@@ -44,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -76,6 +77,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.craftworks.music.R
+import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Playlist
@@ -102,6 +104,7 @@ import com.craftworks.music.providers.navidrome.modifyNavidromeRadoStation
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
+import com.craftworks.music.saveManager
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.backgroundTypes
 import kotlinx.coroutines.launch
@@ -729,7 +732,8 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
-    Dialog(onDismissRequest = { setShowDialog(false) }) {
+    val context = LocalContext.current
+    Dialog(onDismissRequest = { saveManager(context).saveBottomNavItems() ; setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(24.dp),
         ) {
@@ -798,6 +802,84 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Button(
+                            onClick = {
+                                bottomNavigationItems.clear()
+                                bottomNavigationItems = //region Default Values
+                                    mutableStateListOf(
+                                        BottomNavItem(
+                                            "Home",
+                                            R.drawable.rounded_home_24,
+                                            "home_screen"
+                                        ),
+                                        BottomNavItem(
+                                            "Albums",
+                                            R.drawable.rounded_library_music_24,
+                                            "album_screen"
+                                        ),
+                                        BottomNavItem(
+                                            "Songs",
+                                            R.drawable.round_music_note_24,
+                                            "songs_screen"
+                                        ),
+                                        BottomNavItem(
+                                            "Artists",
+                                            R.drawable.rounded_artist_24,
+                                            "artists_screen"
+                                        ),
+                                        BottomNavItem(
+                                            "Radios",
+                                            R.drawable.rounded_radio,
+                                            "radio_screen"
+                                        ),
+                                        BottomNavItem(
+                                            "Playlists",
+                                            R.drawable.placeholder,
+                                            "playlist_screen"
+                                        )
+                                    )
+                                //endregion
+                                saveManager(context).saveBottomNavItems()
+                                setShowDialog(false)
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onBackground),
+                            modifier = Modifier
+                                .widthIn(max = 320.dp)
+                                .weight(1f)
+                                .height(50.dp)
+                                .bounceClick()
+                        ) {
+                            Text(stringResource(R.string.Action_Reset))
+                        }
+                        Button(
+                            onClick = {
+                                saveManager(context).saveBottomNavItems()
+                                setShowDialog(false)
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onBackground),
+                            modifier = Modifier
+                                .widthIn(max = 320.dp)
+                                .weight(1f)
+                                .height(50.dp)
+                                .bounceClick()
+                        ) {
+                            Text(stringResource(R.string.Action_Done))
                         }
                     }
                 }

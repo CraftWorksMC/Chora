@@ -53,7 +53,7 @@ fun ArtistCard(artist: Artist, onClick: () -> Unit){
             Box (modifier = Modifier.aspectRatio(1f).weight(1f)){
                 AsyncImage(
                     model = if (artist.imageUri != Uri.EMPTY) artist.imageUri else null,
-                    placeholder = painterResource(R.drawable.placeholder),
+                    placeholder = painterResource(R.drawable.rounded_artist_24),
                     fallback = painterResource(R.drawable.rounded_artist_24),
                     contentScale = ContentScale.FillWidth,
                     contentDescription = "Album Image",
