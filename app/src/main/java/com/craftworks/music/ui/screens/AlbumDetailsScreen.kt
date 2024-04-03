@@ -213,10 +213,11 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
             Button(
                 onClick = {
                     shuffleSongs.value = true
+                    SongHelper.player.shuffleModeEnabled = true
+
                     val random = albumSongs.indices.random()
                     SongHelper.currentSong = albumSongs[random]
                     SongHelper.currentList = albumSongs
-                    //songState = true
                     albumSongs[random].media?.let { SongHelper.playStream(context = context, url = it)}
                 },
                 colors = ButtonDefaults.buttonColors(

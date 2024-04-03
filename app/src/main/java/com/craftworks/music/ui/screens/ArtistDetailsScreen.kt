@@ -213,6 +213,8 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
             Button(
                 onClick = {
                     shuffleSongs.value = true
+                    SongHelper.player.shuffleModeEnabled = true
+
                     val random = artistSongs.indices.random()
                     SongHelper.currentSong = artistSongs[random]
                     SongHelper.currentList = artistSongs
