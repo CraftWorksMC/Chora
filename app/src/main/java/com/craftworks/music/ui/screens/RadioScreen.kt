@@ -18,8 +18,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -117,7 +117,7 @@ fun RadioScreen() {
                     )
                 }
             }
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.padding(12.dp,56.dp,12.dp,0.dp),
                 thickness = 2.dp,
                 color = MaterialTheme.colorScheme.onBackground

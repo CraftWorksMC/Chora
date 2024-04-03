@@ -40,7 +40,7 @@ import com.craftworks.music.ui.screens.showRadioModifyDialog
 fun RadioCard(radio: Radio, onClick: () -> Unit){
     Card(
         modifier = Modifier
-            .padding(12.dp, 48.dp, 0.dp, 0.dp)
+            .padding(12.dp)
             .clip(RoundedCornerShape(12.dp))
             .combinedClickable(
                 onClick = { onClick(); Log.d("Play", "Clicked Radio: " + radio.name) },
