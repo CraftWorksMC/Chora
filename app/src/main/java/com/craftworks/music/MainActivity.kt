@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -246,7 +247,8 @@ class MainActivity : ComponentActivity() {
                             sheetContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
                             sheetPeekHeight =
                             if (SongHelper.currentSong.title == "" &&
-                                SongHelper.currentSong.duration == 0)
+                                SongHelper.currentSong.duration == 0 &&
+                                SongHelper.currentSong.imageUrl == Uri.EMPTY)
                                 0.dp // Hide Mini-player if empty
                             else if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
                                 72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
