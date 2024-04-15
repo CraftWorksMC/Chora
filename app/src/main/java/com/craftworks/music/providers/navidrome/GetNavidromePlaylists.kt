@@ -20,7 +20,7 @@ import javax.xml.xpath.XPathFactory
 
 @Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromePlaylists(){
-    if (navidromeServersList.isEmpty()) return
+    //if (navidromeServersList.isEmpty()) return
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
         navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
 
@@ -28,8 +28,6 @@ fun getNavidromePlaylists(){
         try {
             val url =
                 URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getPlaylists.view?&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
-
-            //playlistList.clear()
 
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET
@@ -171,7 +169,7 @@ fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: Mutable
             songs = playlistSongs
         )
         // Do not re-add an existing playlist!
-        if (!playlistList.contains(playlist))
+        if (playlistList.firstOrNull { it.navidromeID == playlistID } == null)
             playlistList.add(playlist)
     }
 }

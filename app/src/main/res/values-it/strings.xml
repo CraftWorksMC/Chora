@@ -50,4 +50,6 @@
     <string name="Screen_Recent_Albums">Album Recenti</string>
     <string name="Screen_Top_Songs">Canzoni Popolari</string>
     <string name="Setting_Transcoding">Bitrate Massimo</string>
+    <string name="Setting_Scrobble_Percent">Min. Percentuale Scrobble</string>
+    <string name="Setting_Scrobble_Description">Solo Navidrome.</string>
 </resources>

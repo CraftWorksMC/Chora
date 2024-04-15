@@ -122,8 +122,8 @@ import com.craftworks.music.ui.elements.NowPlayingMiniPlayer
 import com.craftworks.music.ui.elements.NowPlayingPortraitCover
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
+import com.craftworks.music.ui.elements.transcodingBitrate
 import com.craftworks.music.ui.screens.backgroundType
-import com.craftworks.music.ui.screens.transcodingBitrate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

@@ -122,6 +122,11 @@ fun PreviewBackgroundDialog(){
 }
 @Preview(showBackground = true)
 @Composable
+fun PreviewTranscodingDialog(){
+    TranscodingDialog(setShowDialog = { })
+}
+@Preview(showBackground = true)
+@Composable
 fun PreviewNavbarItemsDialog(){
     NavbarItemsDialog(setShowDialog = { })
 }
@@ -1085,6 +1090,66 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                                         strokeCap = StrokeCap.Round)
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+//endregion
+
+//region PLAYBACK
+
+val transcodingBitrateList = listOf(
+    "1",
+    "96",
+    "128",
+    "192",
+    "256",
+    "320",
+    "No Transcoding"
+)
+var transcodingBitrate = mutableStateOf(transcodingBitrateList[6])
+@Composable
+fun TranscodingDialog(setShowDialog: (Boolean) -> Unit) {
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+        ) {
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.Setting_Transcoding),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+                    for (bitrate in transcodingBitrateList) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+                                .height(48.dp)
+                        ) {
+                            RadioButton(
+                                selected = bitrate == transcodingBitrate.value,
+                                onClick = {
+                                    transcodingBitrate.value = bitrate
+                                    setShowDialog(false)
+                                },
+                                modifier = Modifier
+                                    .semantics { contentDescription = bitrate }
+                                    .bounceClick()
+                            )
+                            Text(
+                                text = if (bitrate != "No Transcoding") "$bitrate Kbps" else bitrate,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
                         }
                     }
                 }

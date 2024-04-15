@@ -9,13 +9,11 @@ import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
-import com.craftworks.music.ui.screens.transcodingBitrate
+import com.craftworks.music.ui.elements.transcodingBitrate
 import com.craftworks.music.ui.screens.username
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
-import org.xmlpull.v1.XmlPullParserException
 import java.io.BufferedReader
-import java.io.IOException
 import java.io.StringReader
 import java.net.HttpURLConnection
 import java.net.URL
@@ -23,8 +21,8 @@ import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
 
-@Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromeSongs(url: URL){
+    println("getting navidrome songs!")
     if (navidromeServersList.isEmpty()) return
     Log.d("NAVIDROME", "USERNAME: ${navidromeServersList[selectedNavidromeServerIndex.intValue].username}, PASS: ${navidromeServersList[selectedNavidromeServerIndex.intValue].password}")
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||

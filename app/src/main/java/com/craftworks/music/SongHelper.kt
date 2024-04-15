@@ -26,7 +26,6 @@ import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.bitmap
 import java.util.Calendar
-import kotlin.math.abs
 
 class SongHelper {
     companion object{
@@ -50,6 +49,8 @@ class SongHelper {
                 album = ""))
 
         var currentList:List<Song> = emptyList()
+
+        var minPercentageScrobble = 75
 
         fun initPlayer(context: Context) {
             // Do NOT Re-Initialize Player and MediaSession
@@ -195,7 +196,7 @@ class SongHelper {
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                     super.onMediaItemTransition(mediaItem, reason)
                     println("Media Item Transition, marking song as played.")
-                    onPlayerComplete()
+                    markNavidromeSongAsPlayed(currentSong)
                     updateNotification(context)
                 }
             })
@@ -257,16 +258,6 @@ class SongHelper {
                     PendingIntent.FLAG_IMMUTABLE))
                 .build()
             notificationManager.notify(2, notification)
-        }
-
-        private fun onPlayerComplete(){
-            if (currentSong.isRadio == true) return
-
-            // Scrobble Percentage
-            if (abs(sliderPos.intValue - currentSong.duration) > 1000) return
-
-            markNavidromeSongAsPlayed(currentSong)
-            nextSong(currentSong)
         }
     }
 }

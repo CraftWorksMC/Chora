@@ -267,10 +267,12 @@ class MainActivity : ComponentActivity() {
             }
 
             override fun onActivityStarted(activity: Activity) {
+                println("onActivityStarted!")
                 initPlayer(this@MainActivity)
             }
 
             override fun onActivityResumed(activity: Activity) {
+                println("onActivityResumed!")
             }
 
             override fun onActivityPaused(activity: Activity) {

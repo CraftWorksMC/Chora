@@ -25,16 +25,15 @@ import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
 import com.craftworks.music.providers.navidrome.useNavidromeServer
+import com.craftworks.music.ui.elements.transcodingBitrate
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
-import com.craftworks.music.ui.screens.transcodingBitrate
 import com.craftworks.music.ui.screens.username
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.net.URL
-
 
 class saveManager(private val context: Context){
     private val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
@@ -95,49 +94,15 @@ class saveManager(private val context: Context){
     //endregion
 
     fun loadSettings() {
+        println("LOADING SETTINGS!")
 
-
-        //region Preferences
-        username.value = sharedPreferences.getString("username", "Username") ?: "Username"
-        backgroundType.value = sharedPreferences.getString("backgroundType", "Animated Blur") ?: "Animated Blur"
-        showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
-        transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
-        //endregion
+        loadPreferences()
 
         loadBottomNavItems()
 
-        //region Navidrome
+        loadNavidromeProviders()
 
-        useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
-
-        // Get Navidrome Server List
-        val navidromeStrings = (sharedPreferences.getString("navidromeServerList", "") ?: "").split(";")
-        navidromeStrings.forEach { navidromeString ->
-            val parts = navidromeString.split(",")
-            if (parts.size == 3) {
-                val navidromeProvider = NavidromeProvider(parts[0], parts[1], parts[2])
-                navidromeServersList.add(navidromeProvider)
-                println(navidromeProvider)
-            }
-        }
-        selectedNavidromeServerIndex.intValue = sharedPreferences.getInt("activeNavidromeServer", 0)
-
-        //endregion
-
-        //region Local
-        // Get Local Providers List
-        val localListStrings = (sharedPreferences.getString("localProviderList", "") ?: "").split(";")
-        println(localListStrings)
-        localListStrings.forEach { localString ->
-            val parts = localString.split(",")
-            if (parts.size == 2) {
-                val localProvider = LocalProvider(parts[0], parts[1].toBoolean())
-                localProviderList.add(localProvider)
-                println(localProvider)
-            }
-        }
-        selectedLocalProvider.intValue = sharedPreferences.getInt("activeLocalProvider", 0)
-        //endregion
+        loadLocalProviders()
 
         loadArtists()
 
@@ -146,13 +111,7 @@ class saveManager(private val context: Context){
         loadPlaylists()
 
         // Get Media Items
-        if (useNavidromeServer.value && (
-                    navidromeServersList.isNotEmpty() && (
-                            navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" ||
-                            navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" ||
-                            navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")
-                    )
-            )
+        if (useNavidromeServer.value)
             try {
                 if (localProviderList[selectedLocalProvider.intValue].enabled)
                     getSongsOnDevice(context)
@@ -162,7 +121,6 @@ class saveManager(private val context: Context){
 
                 if (artistList.isEmpty())
                     getNavidromeArtists()
-
             } catch (_: Exception){
                 // DO NOTHING
             }
@@ -175,10 +133,15 @@ class saveManager(private val context: Context){
 
     //region Load Single Components
 
+    private fun loadPreferences(){
+        username.value = sharedPreferences.getString("username", "Username") ?: "Username"
+        backgroundType.value = sharedPreferences.getString("backgroundType", "Animated Blur") ?: "Animated Blur"
+        showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
+        transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
+    }
     private fun loadBottomNavItems(){
         // Get Artists List
         val bottomNavItemsString = (sharedPreferences.getString("bottomNavItems", "") ?: "").split(";")
-        println(bottomNavItemsString)
         bottomNavItemsString.forEach { bottomNavItem ->
             val parts = bottomNavItem.split("|")
             if (parts.size > 1) {
@@ -198,11 +161,41 @@ class saveManager(private val context: Context){
             }
         }
     }
+    private fun loadNavidromeProviders(){
+        println("Loading Navidrome Providers From Local Storage")
 
+        useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
+
+        val navidromeStrings = (sharedPreferences.getString("navidromeServerList", "") ?: "").split(";")
+        navidromeStrings.forEach { navidromeString ->
+            val parts = navidromeString.split(",")
+            if (parts.size == 3) {
+                val navidromeProvider = NavidromeProvider(parts[0], parts[1], parts[2])
+                navidromeServersList.add(navidromeProvider)
+                println(navidromeProvider)
+            }
+        }
+        selectedNavidromeServerIndex.intValue = sharedPreferences.getInt("activeNavidromeServer", 0)
+    }
+    private fun loadLocalProviders(){
+        println("Loading Local Providers From Local Storage")
+        // Get Local Providers List
+        val localListStrings = (sharedPreferences.getString("localProviderList", "") ?: "").split(";")
+        localListStrings.forEach { localString ->
+            val parts = localString.split(",")
+            if (parts.size == 2) {
+                val localProvider = LocalProvider(parts[0], parts[1].toBoolean())
+                localProviderList.add(localProvider)
+                println(localProvider)
+            }
+        }
+        selectedLocalProvider.intValue = sharedPreferences.getInt("activeLocalProvider", 0)
+    }
     private fun loadArtists(){
+        println("Loading Artists From Local Storage")
+
         // Get Artists List
         val artistListStrings = (sharedPreferences.getString("artistsList", "") ?: "").split(";")
-        println(artistListStrings)
         artistListStrings.forEach { localString ->
             val parts = localString.split("|")
             if (parts.size > 1) {
@@ -213,7 +206,6 @@ class saveManager(private val context: Context){
                         parts[2],
                         parts[3]
                     )
-                    Log.d("NAVIDROME", "Added Artist ${artist.name}")
                     if (artistList.contains(artistList.firstOrNull { it.name == artist.name && it.navidromeID == "Local"})){
                         artistList[artistList.indexOfFirst { it.name == artist.name && it.navidromeID == "Local" }].apply {
                             navidromeID = artist.navidromeID
@@ -232,9 +224,10 @@ class saveManager(private val context: Context){
         }
     }
     fun loadRadios(){
+        println("Loading Radios From Local Storage")
+
         // Get Radios List
         val radioListStrings = (sharedPreferences.getString("radioList", "") ?: "").split(";")
-        println(radioListStrings)
         radioListStrings.forEach { localString ->
             val parts = localString.split(",")
             if (parts.size > 1) {
@@ -246,15 +239,14 @@ class saveManager(private val context: Context){
                     parts[4]
                 )
                 if (radioList.contains(radio)) return
-
                 radioList.add(radio)
             }
         }
     }
     fun loadPlaylists(){
+        println("Loading Playlists")
         // Get Local Playlists
         val localPlaylistStrings = (sharedPreferences.getString("localPlaylistList", "") ?: "").split(";")
-        println(localPlaylistStrings)
         localPlaylistStrings.forEach { localString ->
             val parts = localString.split("|")
             if (parts.size > 1) {
@@ -290,10 +282,14 @@ class saveManager(private val context: Context){
                         navidromeID = parts[2],
                         songs = songs.toList()
                     )
-                    if (!playlistList.contains(playlist))
+                    if (playlistList.firstOrNull { it.name == parts[0] && it.songs == songs.toList() } == null)
                         playlistList.add(playlist)
                 }
             }
+        }
+
+        if (useNavidromeServer.value){
+            getNavidromePlaylists()
         }
     }
 

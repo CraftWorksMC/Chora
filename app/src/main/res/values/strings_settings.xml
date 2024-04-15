@@ -7,6 +7,8 @@
         <string name="Setting_MoreInfo">Show More Info</string>
     <string name="Settings_Header_Playback">Playback</string>
         <string name="Setting_Transcoding">Max Bitrate</string>
+        <string name="Setting_Scrobble_Percent">Min. Scrobble Percentage</string>
+        <string name="Setting_Scrobble_Description">Navidrome Only.</string>
 
     <string name="Background_Plain">Plain</string>
     <string name="Background_Blur">Blurred</string>

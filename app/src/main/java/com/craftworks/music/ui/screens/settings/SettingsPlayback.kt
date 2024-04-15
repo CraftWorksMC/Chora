@@ -18,15 +18,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,6 +39,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -46,10 +50,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
-import com.craftworks.music.ui.elements.BackgroundDialog
 import com.craftworks.music.ui.elements.BottomSpacer
-import com.craftworks.music.ui.screens.backgroundType
-import com.craftworks.music.ui.screens.transcodingBitrate
+import com.craftworks.music.ui.elements.TranscodingDialog
+import com.craftworks.music.ui.elements.transcodingBitrate
 
 @Composable
 @Preview(showSystemUi = false, showBackground = true)
@@ -58,13 +61,16 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     var showTranscodingDialog by remember { mutableStateOf(false) }
-    //var showPercentea by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = leftPadding, top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
+            .padding(start = leftPadding,
+                top = WindowInsets.statusBars
+                    .asPaddingValues()
+                    .calculateTopPadding()
+            )
             .background(MaterialTheme.colorScheme.background)
     ) {
 
@@ -74,13 +80,13 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
             modifier = Modifier.padding(horizontal = 12.dp)
         ) {
             Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
+                imageVector = ImageVector.vectorResource(R.drawable.s_m_playback),
                 contentDescription = "Settings Icon",
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(48.dp)
             )
             Text(
-                text = stringResource(R.string.Settings_Header_Appearance),
+                text = stringResource(R.string.Settings_Header_Playback),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = MaterialTheme.typography.headlineLarge.fontSize,
@@ -95,7 +101,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                         tint = MaterialTheme.colorScheme.onBackground,
                         contentDescription = "Return To Settings",
                         modifier = Modifier
@@ -119,10 +125,10 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                 modifier = Modifier
                     .padding(vertical = 6.dp)
                     .clickable {
-                        //showBackgroundDialog = true
+                        showTranscodingDialog = true
                     }) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.s_a_transcoding),
+                    imageVector = ImageVector.vectorResource(R.drawable.s_p_transcoding),
                     contentDescription = "Background Style Icon",
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
@@ -140,7 +146,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         textAlign = TextAlign.Start
                     )
                     Text(
-                        text = transcodingBitrate.value,
+                        text = if (transcodingBitrate.value != "No Transcoding") "${transcodingBitrate.value} Kbps" else transcodingBitrate.value,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
@@ -151,7 +157,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                 }
             }
 
-            //
+            // Scrobble Percent
             Row (verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
@@ -159,7 +165,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         //showBackgroundDialog = true
                     }) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
+                    imageVector = ImageVector.vectorResource(R.drawable.s_p_scrobble),
                     contentDescription = "Background Style Icon",
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
@@ -168,7 +174,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                 )
                 Column {
                     Text(
-                        text = stringResource(R.string.Setting_Background),
+                        text = stringResource(R.string.Setting_Scrobble_Percent),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -176,14 +182,11 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start
                     )
-                    Text(
-                        text = backgroundType.value,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
-                        modifier = Modifier.fillMaxSize(),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start
+                    var sliderPosition by remember { mutableFloatStateOf(0f) }
+                    Slider(
+                        modifier = Modifier.semantics { contentDescription = "Minimum Scrobble Percentage" },
+                        value = sliderPosition,
+                        onValueChange = { sliderPosition = it }
                     )
                 }
             }
@@ -192,6 +195,6 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
         }
 
         if(showTranscodingDialog)
-            BackgroundDialog(setShowDialog = { showTranscodingDialog = it })
+            TranscodingDialog(setShowDialog = { showTranscodingDialog = it })
     }
 }

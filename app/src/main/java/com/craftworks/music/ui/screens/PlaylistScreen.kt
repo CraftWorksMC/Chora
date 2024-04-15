@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -82,8 +84,9 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
 
     /* RADIO ICON + TEXT */
     Box(modifier = Modifier
-        .fillMaxSize()
-        .nestedScroll(state.nestedScrollConnection)){
+        .nestedScroll(state.nestedScrollConnection)
+        .fillMaxWidth()
+        .fillMaxHeight()) {
         Box(modifier = Modifier
             .fillMaxSize()
             .padding(
@@ -113,6 +116,7 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
             )
 
             Column(modifier = Modifier
+                .fillMaxSize()
                 .padding(12.dp,64.dp,12.dp,12.dp)
             ) {
                 PlaylistGrid(playlistList , onPlaylistSelected = { playlist ->
