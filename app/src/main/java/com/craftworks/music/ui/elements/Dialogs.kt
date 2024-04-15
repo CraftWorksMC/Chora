@@ -83,6 +83,7 @@ import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.artistList
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
@@ -97,6 +98,7 @@ import com.craftworks.music.providers.navidrome.createNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.deleteNavidromePlaylist
 import com.craftworks.music.providers.navidrome.deleteNavidromeRadioStation
+import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
@@ -1045,6 +1047,12 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                                     getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
                                     getNavidromePlaylists()
                                     getNavidromeRadios()
+
+                                    for (artist in artistList){
+                                        if (useNavidromeServer.value)
+                                            getNavidromeArtistDetails(artist.navidromeID, artist.name)
+                                    }
+
                                     setShowDialog(false)
                                 } catch (_: Exception){
                                     // DO NOTHING

@@ -13,7 +13,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
@@ -63,6 +64,7 @@ import com.craftworks.music.SongHelper.Companion.initPlayer
 import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.ui.NowPlayingContent
+import com.craftworks.music.ui.dpToPx
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.theme.MusicPlayerTheme
 import kotlinx.coroutines.launch
@@ -135,51 +137,16 @@ class MainActivity : ComponentActivity() {
             MusicPlayerTheme {
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
                 navController = rememberNavController()
-
-
-
-                /*
-                val bottomNavigationItems = listOf(
-                    BottomNavigationItem(
-                        title = "Home",
-                        selectedIcon = ImageVector.vectorResource(R.drawable.rounded_home_24),
-                        unselectedIcon = ImageVector.vectorResource(R.drawable.rounded_home_24),
-                        screenRoute = "home_screen"
-                    ),
-                    BottomNavigationItem(
-                        title = "Albums",
-                        selectedIcon = ImageVector.vectorResource(R.drawable.rounded_library_music_24),
-                        unselectedIcon = ImageVector.vectorResource(R.drawable.rounded_library_music_24),
-                        screenRoute = "album_screen"
-                    ),
-                    BottomNavigationItem(
-                        title = "Songs",
-                        selectedIcon = ImageVector.vectorResource(R.drawable.round_music_note_24),
-                        unselectedIcon = ImageVector.vectorResource(R.drawable.round_music_note_24),
-                        screenRoute = "songs_screen"
-                    ),
-                    BottomNavigationItem(
-                        title = "Radio",
-                        selectedIcon = ImageVector.vectorResource(R.drawable.rounded_radio),
-                        unselectedIcon = ImageVector.vectorResource(R.drawable.rounded_radio),
-                        screenRoute = "radio_screen"
-                    ),
-                    BottomNavigationItem(
-                        title = "Playlists",
-                        selectedIcon = ImageVector.vectorResource(R.drawable.placeholder),
-                        unselectedIcon = ImageVector.vectorResource(R.drawable.placeholder),
-                        screenRoute = "playlist_screen"
-                    )
-                )
-                */
-
                 var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
 
 
                 val coroutineScope = rememberCoroutineScope()
-
-                val yTrans by animateDpAsState(
-                    targetValue = if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) ((-80).dp - WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()) else 0.dp , label = "Fullscreen Translation")
+                val yTrans by animateIntAsState(
+                    targetValue =
+                    if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded)
+                        dpToPx(-80 - WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding().value.toInt())
+                    else 0,
+                    label = "Fullscreen Translation")
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -191,7 +158,7 @@ class MainActivity : ComponentActivity() {
                             val backStackEntry = navController.currentBackStackEntryAsState()
                             if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
                                 NavigationBar (modifier = Modifier
-                                    .offset(y = -yTrans)) {
+                                    .offset{ IntOffset(x=0, y= -yTrans) }) {
                                     bottomNavigationItems.forEachIndexed { index, item ->
                                         if (!item.enabled) return@forEachIndexed
                                         NavigationBarItem(

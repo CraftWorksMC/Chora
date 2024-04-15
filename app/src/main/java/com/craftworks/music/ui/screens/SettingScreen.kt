@@ -51,8 +51,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
@@ -154,9 +152,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
         /* Settings */
         Box(Modifier.padding(12.dp,12.dp,12.dp,12.dp)){
             Column {
-                /* NEW SETTINGS */
-
-                //Appearance
+                //region Appearance
                 Row (modifier = Modifier
                     .height(76.dp)
                     .fillMaxWidth()
@@ -190,8 +186,9 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(48.dp).padding(end = 12.dp).rotate(-90f))
                 }
+                //endregion
 
-                //Media Providers
+                //region Media Providers
                 Row (modifier = Modifier
                     .height(76.dp)
                     .fillMaxWidth()
@@ -226,6 +223,46 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(48.dp).padding(end = 12.dp).rotate(-90f))
                 }
+                //endregion
+
+                //region Playback
+                Row (modifier = Modifier
+                    .height(76.dp)
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
+                    .bounceClick()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable{
+                        navHostController.navigate(Screen.S_Providers.route) {
+                            launchSingleTop = true
+                        }
+                        println("Navigated To Providers Route")
+                    },
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.s_m_playback),
+                        contentDescription = stringResource(R.string.Settings_Header_Playback),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(48.dp).padding(start = 12.dp))
+                    Text(
+                        text = stringResource(R.string.Settings_Header_Playback),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                    Spacer(Modifier.weight(1f).fillMaxHeight())
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
+                        contentDescription = stringResource(R.string.Settings_Header_Playback),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(48.dp).padding(end = 12.dp).rotate(-90f))
+                }
+                //endregion
+
+                /*
                 Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 12.dp)) {
                     Text(
                         text = "Transcoding",
@@ -238,6 +275,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     )
                     TranscodingDropdown()
                 }
+                */
             }
         }
 

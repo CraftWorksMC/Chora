@@ -22,7 +22,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.getLyrics
-import com.craftworks.music.providers.navidrome.markSongAsPlayed
+import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
 import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.ui.bitmap
 import java.util.Calendar
@@ -183,10 +183,6 @@ class SongHelper {
                         navidromeID = player.mediaMetadata.extras?.getString("NavidromeID"),
                         isRadio = player.mediaMetadata.extras?.getBoolean("isRadio")
                     )
-
-                    // this will do until i finish it
-                    //playingSong.selectedSong = currentSong
-
                     if (isRadio == false)
                         getLyrics()
                 }
@@ -194,11 +190,13 @@ class SongHelper {
                 override fun onPlaybackStateChanged(state: Int) {
                     super.onPlaybackStateChanged(state)
                     updateNotification(context)
+                }
 
-                    if (state == Player.EVENT_MEDIA_ITEM_TRANSITION){
-                        onPlayerComplete()
-                        updateNotification(context)
-                    }
+                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    super.onMediaItemTransition(mediaItem, reason)
+                    println("Media Item Transition, marking song as played.")
+                    onPlayerComplete()
+                    updateNotification(context)
                 }
             })
             //endregion
@@ -228,18 +226,12 @@ class SongHelper {
         }
 
         fun previousSong(song: Song){
-            if (player.currentPosition > 250)
-                markSongAsPlayed(song)
-
             player.seekToPreviousMediaItem()
             sliderPos.intValue = 0
             player.playWhenReady = true
         }
 
         fun nextSong(song: Song){
-            if (player.currentPosition > 250)
-                markSongAsPlayed(song)
-
             player.seekToNextMediaItem()
             sliderPos.intValue = 0
             player.playWhenReady = true
@@ -268,8 +260,12 @@ class SongHelper {
         }
 
         private fun onPlayerComplete(){
-            if (abs(sliderPos.intValue - currentSong.duration) > 1000 || currentSong.isRadio == true) return
-            markSongAsPlayed(currentSong)
+            if (currentSong.isRadio == true) return
+
+            // Scrobble Percentage
+            if (abs(sliderPos.intValue - currentSong.duration) > 1000) return
+
+            markNavidromeSongAsPlayed(currentSong)
             nextSong(currentSong)
         }
     }

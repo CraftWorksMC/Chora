@@ -39,6 +39,7 @@
     <string name="Setting_Background">Stile Sfondo</string>
     <string name="Setting_Navbar_Items">Schede Della Barra Di Navigazione</string>
     <string name="Setting_MoreInfo">Mostra Altre Info</string>
+    <string name="Settings_Header_Playback">Riproduzione</string>
     <string name="Background_Plain">Semplice</string>
     <string name="Background_Blur">Sfocato</string>
     <string name="Background_Animated">Animato</string>
@@ -48,4 +49,5 @@
     <string name="Label_NoDescription">Nessuna Descrizione Disponibile.</string>
     <string name="Screen_Recent_Albums">Album Recenti</string>
     <string name="Screen_Top_Songs">Canzoni Popolari</string>
+    <string name="Setting_Transcoding">Bitrate Massimo</string>
 </resources>

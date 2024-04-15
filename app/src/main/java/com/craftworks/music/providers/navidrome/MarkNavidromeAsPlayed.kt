@@ -6,7 +6,7 @@ import com.craftworks.music.data.navidromeServersList
 import java.net.HttpURLConnection
 import java.net.URL
 
-fun markSongAsPlayed(song: Song){
+fun markNavidromeSongAsPlayed(song: Song){
     if (useNavidromeServer.value) {
         val thread = Thread {
             try {

@@ -5,6 +5,8 @@
         <string name="Setting_Background">Background Style</string>
         <string name="Setting_Navbar_Items">Navigation Bar Items</string>
         <string name="Setting_MoreInfo">Show More Info</string>
+    <string name="Settings_Header_Playback">Playback</string>
+        <string name="Setting_Transcoding">Max Bitrate</string>
 
     <string name="Background_Plain">Plain</string>
     <string name="Background_Blur">Blurred</string>
