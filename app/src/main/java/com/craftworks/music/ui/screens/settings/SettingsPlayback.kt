@@ -28,7 +28,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
+import com.craftworks.music.SongHelper.Companion.minPercentageScrobble
 import com.craftworks.music.data.Screen
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.TranscodingDialog
@@ -182,11 +182,12 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start
                     )
-                    var sliderPosition by remember { mutableFloatStateOf(0f) }
                     Slider(
                         modifier = Modifier.semantics { contentDescription = "Minimum Scrobble Percentage" },
-                        value = sliderPosition,
-                        onValueChange = { sliderPosition = it }
+                        value = (minPercentageScrobble.intValue / 10).toFloat(),
+                        onValueChange = { minPercentageScrobble.intValue = it.toInt() * 10
+                                        println("Change percentage to ${it.toInt()}")},
+                        valueRange = 0f..10f
                     )
                 }
             }

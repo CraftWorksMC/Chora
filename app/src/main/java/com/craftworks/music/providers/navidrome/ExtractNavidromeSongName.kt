@@ -1,8 +1,5 @@
 package com.craftworks.music.providers.navidrome
 
-import androidx.compose.runtime.mutableStateOf
-var navidromeStatus = mutableStateOf("")
-
 fun extractNavidromeSongName(contentDisposition: String?): String? {
     if (contentDisposition == null) return null
 

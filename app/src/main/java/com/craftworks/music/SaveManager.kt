@@ -113,6 +113,7 @@ class saveManager(private val context: Context){
         // Get Media Items
         if (useNavidromeServer.value)
             try {
+
                 if (localProviderList[selectedLocalProvider.intValue].enabled)
                     getSongsOnDevice(context)
                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))

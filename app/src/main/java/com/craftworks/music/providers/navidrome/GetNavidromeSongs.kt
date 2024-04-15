@@ -10,7 +10,6 @@ import com.craftworks.music.data.artistList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.elements.transcodingBitrate
-import com.craftworks.music.ui.screens.username
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import java.io.BufferedReader
@@ -24,28 +23,16 @@ import javax.xml.xpath.XPathFactory
 fun getNavidromeSongs(url: URL){
     println("getting navidrome songs!")
     if (navidromeServersList.isEmpty()) return
-    Log.d("NAVIDROME", "USERNAME: ${navidromeServersList[selectedNavidromeServerIndex.intValue].username}, PASS: ${navidromeServersList[selectedNavidromeServerIndex.intValue].password}")
+
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
         navidromeServersList[selectedNavidromeServerIndex.intValue].password == "") return
 
     val thread = Thread {
         try {
-            navidromeStatus.value = "Loading"
-
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET
 
                 Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-
-                if (responseCode == 404){
-                    navidromeStatus.value = "Invalid URL"
-                    return@Thread
-                }
-
-                //Set Username To Navidrome Login Username.
-                if (responseCode == 200){
-                    username.value = navidromeServersList[selectedNavidromeServerIndex.intValue].username
-                }
 
                 inputStream.bufferedReader().use {
                     parseSongXML(it, "/subsonic-response/searchResult3/song", songsList)
@@ -53,8 +40,6 @@ fun getNavidromeSongs(url: URL){
             }
         } catch (e: Exception) {
             Log.d("Exception", e.toString())
-            if (e == java.net.ConnectException())
-                navidromeStatus.value = "Invalid URL"
         }
     }
     thread.start()
@@ -151,7 +136,5 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
         if (!artistList.contains(artistList.firstOrNull { it.name == artist.name })){
             artistList.add(artist)
         }
-
-        navidromeStatus.value = "Success"
     }
 }

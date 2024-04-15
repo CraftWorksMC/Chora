@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationCompat
@@ -50,7 +51,7 @@ class SongHelper {
 
         var currentList:List<Song> = emptyList()
 
-        var minPercentageScrobble = 75
+        var minPercentageScrobble = mutableIntStateOf(75)
 
         fun initPlayer(context: Context) {
             // Do NOT Re-Initialize Player and MediaSession

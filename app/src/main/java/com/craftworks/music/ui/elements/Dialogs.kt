@@ -94,6 +94,7 @@ import com.craftworks.music.fadingEdge
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.providers.navidrome.addSongToNavidromePlaylist
+import com.craftworks.music.providers.navidrome.checkNavidromeURL
 import com.craftworks.music.providers.navidrome.createNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.deleteNavidromePlaylist
@@ -1042,23 +1043,25 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                             onClick = {
                                 try {
                                     //saveManager(context).saveSettings()
-                                    val server = NavidromeProvider(url.removeSuffix("/"), username, password)
+                                    if (checkNavidromeURL(url, username, password)){
+                                        val server = NavidromeProvider(url.removeSuffix("/"), username, password)
 
-                                    if (!navidromeServersList.contains(server)){
-                                        navidromeServersList.add(server)
+                                        if (!navidromeServersList.contains(server)){
+                                            navidromeServersList.add(server)
+                                        }
+                                        selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
+
+                                        getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                                        getNavidromePlaylists()
+                                        getNavidromeRadios()
+
+                                        for (artist in artistList){
+                                            if (useNavidromeServer.value)
+                                                getNavidromeArtistDetails(artist.navidromeID, artist.name)
+                                        }
+
+                                        setShowDialog(false)
                                     }
-                                    selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
-
-                                    getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
-                                    getNavidromePlaylists()
-                                    getNavidromeRadios()
-
-                                    for (artist in artistList){
-                                        if (useNavidromeServer.value)
-                                            getNavidromeArtistDetails(artist.navidromeID, artist.name)
-                                    }
-
-                                    setShowDialog(false)
                                 } catch (_: Exception){
                                     // DO NOTHING
                                 }
