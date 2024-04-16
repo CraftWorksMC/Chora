@@ -6,6 +6,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.radioList
+import com.craftworks.music.data.selectedNavidromeServerIndex
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import org.xmlpull.v1.XmlPullParserException
@@ -52,47 +53,30 @@ fun getNavidromeRadios(){
 }
 
 fun parseRadioXML(input: BufferedReader, xpath: String, radiosList: MutableList<Radio>){
-    val dbFactory = DocumentBuilderFactory.newInstance()
-    val dBuilder = dbFactory.newDocumentBuilder()
-    val xmlInput = InputSource(StringReader(input.readText()))
-    val doc = dBuilder.parse(xmlInput)
-
-    val xpFactory = XPathFactory.newInstance()
-    val xPath = xpFactory.newXPath()
-
-    val elementNodeList = xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
+    val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(InputSource(StringReader(input.readText())))
+    val elementNodeList = XPathFactory.newInstance().newXPath().evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
 
     for (a in 0 until elementNodeList.length) {
+        val attributes = elementNodeList.item(a).attributes
+        val radioID = attributes.getNamedItem("id")?.textContent ?: ""
+        val radioName = attributes.getNamedItem("name")?.textContent ?: ""
+        val radioUrl = attributes.getNamedItem("streamUrl")?.textContent?.let { Uri.parse(it) } ?: Uri.EMPTY
 
-        val firstElement = elementNodeList.item(a)
-
-        var radioID = ""
-        var radioName = ""
-        var radioUrl = Uri.EMPTY
-        var radioImage = Uri.EMPTY
-
-
-        @Suppress("ReplaceRangeToWithUntil")
-        for (i in 0..firstElement.attributes.length - 1) {
-            val attribute = firstElement.attributes.item(i)
-            radioID = if (attribute.nodeName == "id") attribute.textContent else radioID
-            radioName = if (attribute.nodeName == "name") attribute.textContent else radioName
-            radioUrl = if (attribute.nodeName == "streamUrl") Uri.parse(attribute.textContent) else radioUrl
-            //radioImage = if (attribute.nodeName == "homePageUrl") Uri.parse(attribute.textContent + "/favicon.ico") else radioImage
-            if (attribute.nodeName == "name") Log.d(
-                "NAVIDROME",
-                "Added Radio: ${attribute.textContent}"
-            )
+        if (radioName.isNotEmpty()) {
+            Log.d("NAVIDROME", "Added Radio: $radioName")
         }
+
         val radio = Radio(
             name = radioName,
             imageUrl = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
-            homepageUrl = radioImage.toString().removeSuffix("/favicon.ico"),
+            homepageUrl = "",
             media = radioUrl,
             navidromeID = radioID
         )
-        if (radiosList.firstOrNull { it.media == radio.media } == null)
+
+        if (radiosList.none { it.media == radio.media }) {
             radiosList.add(radio)
+        }
     }
 }
 

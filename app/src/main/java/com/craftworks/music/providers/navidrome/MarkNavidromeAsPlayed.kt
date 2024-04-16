@@ -3,6 +3,8 @@ package com.craftworks.music.providers.navidrome
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.sliderPos
 import java.net.HttpURLConnection
 import java.net.URL

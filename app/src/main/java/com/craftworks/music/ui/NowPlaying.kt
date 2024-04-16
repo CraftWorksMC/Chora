@@ -112,8 +112,8 @@ import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
-import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
-import com.craftworks.music.providers.navidrome.useNavidromeServer
+import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos

@@ -64,8 +64,8 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
-import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
-import com.craftworks.music.providers.navidrome.useNavidromeServer
+import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.SongsRow
 import kotlinx.coroutines.delay

@@ -46,7 +46,7 @@ import com.craftworks.music.SongHelper
 import com.craftworks.music.data.radioList
 import com.craftworks.music.providers.getIcecastMetadata
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
-import com.craftworks.music.providers.navidrome.useNavidromeServer
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.AddRadioDialog
 import com.craftworks.music.ui.elements.ModifyRadioDialog

@@ -6,6 +6,7 @@ import com.craftworks.music.data.Artist
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedArtist
+import com.craftworks.music.data.selectedNavidromeServerIndex
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import java.io.BufferedReader

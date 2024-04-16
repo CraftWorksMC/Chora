@@ -9,6 +9,7 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedNavidromeServerIndex
 
 suspend fun getNavidromeBitmap(context: Context): Bitmap {
 

@@ -41,11 +41,7 @@ fun checkNavidromeURL(navidromeUrl: String, username: String, password: String):
                 }
 
                 inputStream.bufferedReader().use {
-                    parseNavidromeStatusXML(it, "/subsonic-response")
-
-                    if (navidromeStatus.value != "Ok" &&
-                        navidromeStatus.value != "")
-                        parseNavidromeStatusXML(it, "/subsonic-response/error")
+                    parseNavidromeStatusXML(it, "/subsonic-response", "/subsonic-response/error")
                 }
             }
 
@@ -57,45 +53,33 @@ fun checkNavidromeURL(navidromeUrl: String, username: String, password: String):
     }
     thread.start()
 
-    if (navidromeStatus.value == "Success"){
+    if (navidromeStatus.value == "ok"){
         Log.d("NAVIDROME", "Successfully logged in!")
         com.craftworks.music.ui.screens.username.value = username
     }
-    return navidromeStatus.value == "Success"
+    return navidromeStatus.value == "ok"
 }
 
-fun parseNavidromeStatusXML(input: BufferedReader, xpath: String){
-    val dbFactory = DocumentBuilderFactory.newInstance()
-    val dBuilder = dbFactory.newDocumentBuilder()
-    val xmlInput = InputSource(StringReader(input.readText()))
-    val doc = dBuilder.parse(xmlInput)
-
-    val xpFactory = XPathFactory.newInstance()
-    val xPath = xpFactory.newXPath()
-
-    val elementNodeList = xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
+fun parseNavidromeStatusXML(input: BufferedReader, xpath: String, xpathFailed: String){
+    val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(InputSource(StringReader(input.readText())))
+    val elementNodeList = XPathFactory.newInstance().newXPath().evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
+    val elementNodeListFailed = XPathFactory.newInstance().newXPath().evaluate(xpathFailed, doc, XPathConstants.NODESET) as NodeList
 
     for (a in 0 until elementNodeList.length) {
+        val attributes = elementNodeList.item(a).attributes
+        val status = attributes.getNamedItem("status")?.textContent ?: ""
 
-        val firstElement = elementNodeList.item(a)
-
-        var status = ""
-
-        var errorCode = ""
-        var errorMessage = ""
-
-        @Suppress("ReplaceRangeToWithUntil")
-        for (i in 0..firstElement.attributes.length - 1) {
-            val attribute = firstElement.attributes.item(i)
-            status = if (attribute.nodeName == "status") attribute.textContent else status
-            errorCode = if (attribute.nodeName == "code") attribute.textContent else errorCode
-            errorMessage = if (attribute.nodeName == "message") attribute.textContent else errorMessage
-        }
         navidromeStatus.value = status
         Log.d("NAVIDROME", "Navidrome Status: ${navidromeStatus.value}")
+    }
 
-        if (status == "failed"){
-            Log.d("NAVIDROME", "Navidrome Error Message: $errorMessage")
+    if (navidromeStatus.value == "failed"){
+        for (a in 0 until elementNodeListFailed.length) {
+            val attributes = elementNodeListFailed.item(a).attributes
+            val errorCode = attributes.getNamedItem("code")?.textContent ?: ""
+            val errorMessage = attributes.getNamedItem("message")?.textContent ?: ""
+            navidromeStatus.value = errorMessage
+            Log.d("NAVIDROME", "Navidrome Error Code: $errorCode, Message: $errorMessage")
         }
     }
 }

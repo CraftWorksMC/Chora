@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -29,7 +28,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -54,7 +52,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -90,6 +87,8 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
+import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
@@ -105,8 +104,6 @@ import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.modifyNavidromeRadoStation
 import com.craftworks.music.providers.navidrome.navidromeStatus
-import com.craftworks.music.providers.navidrome.selectedNavidromeServerIndex
-import com.craftworks.music.providers.navidrome.useNavidromeServer
 import com.craftworks.music.saveManager
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.backgroundTypes
@@ -927,7 +924,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                     var expanded by remember { mutableStateOf(false) }
 
                     val options = listOf(stringResource(R.string.Source_Local), stringResource(R.string.Source_Navidrome))
-                    var selectedOptionText by remember { mutableStateOf(options[0]) }
+                    var selectedOptionText by remember { mutableStateOf(options[1]) }
 
                     ExposedDropdownMenuBox(
                         expanded = expanded,
@@ -961,6 +958,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                         }
                     }
 
+                    //region Local Folder
                     if (selectedOptionText == stringResource(R.string.Source_Local))
                         Column{
                             /* Directory */
@@ -999,102 +997,116 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                                 Text(stringResource(R.string.Action_Add), modifier = Modifier.height(24.dp))
                             }
                         }
+                    //endregion
+
+                    //region Navidrome
                     else if (selectedOptionText == stringResource(R.string.Source_Navidrome))
                         Column{
-                        /* SERVER URL */
-                        OutlinedTextField(
-                            value = url,
-                            onValueChange = { url = it },
-                            label = { Text(stringResource(R.string.Label_Navidrome_URL)) },
-                            singleLine = true,
-                            isError = navidromeStatus.value == "Invalid URL"
-                        )
-                        /* USERNAME */
-                        OutlinedTextField(
-                            value = username,
-                            onValueChange = { username = it },
-                            label = { Text(stringResource(R.string.Label_Navidrome_Username)) },
-                            singleLine = true
-                        )
-                        /* PASSWORD */
-                        var passwordVisible by remember { mutableStateOf(false) }
-                        OutlinedTextField(
-                            value = password,
-                            onValueChange = { password = it },
-                            label = { Text(stringResource(R.string.Label_Navidrome_Password)) },
-                            singleLine = true,
-                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            trailingIcon = {
-                                val image = if (passwordVisible)
-                                    R.drawable.round_visibility_24
-                                else
-                                    R.drawable.round_visibility_off_24
+                            /* SERVER URL */
+                            OutlinedTextField(
+                                value = url,
+                                onValueChange = { url = it },
+                                label = { Text(stringResource(R.string.Label_Navidrome_URL)) },
+                                singleLine = true,
+                                isError = navidromeStatus.value == "Invalid URL"
+                            )
+                            /* USERNAME */
+                            OutlinedTextField(
+                                value = username,
+                                onValueChange = { username = it },
+                                label = { Text(stringResource(R.string.Label_Navidrome_Username)) },
+                                singleLine = true,
+                                isError = navidromeStatus.value == "Wrong username or password"
+                            )
+                            /* PASSWORD */
+                            var passwordVisible by remember { mutableStateOf(false) }
+                            OutlinedTextField(
+                                value = password,
+                                onValueChange = { password = it },
+                                label = { Text(stringResource(R.string.Label_Navidrome_Password)) },
+                                singleLine = true,
+                                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                trailingIcon = {
+                                    val image = if (passwordVisible)
+                                        R.drawable.round_visibility_24
+                                    else
+                                        R.drawable.round_visibility_off_24
 
-                                // Please provide localized description for accessibility services
-                                val description = if (passwordVisible) "Hide password" else "Show password"
+                                    // Please provide localized description for accessibility services
+                                    val description = if (passwordVisible) "Hide password" else "Show password"
 
-                                IconButton(onClick = {passwordVisible = !passwordVisible}){
-                                    Icon(imageVector  = ImageVector.vectorResource(id = image), description)
-                                }
-                            }
-                        )
-
-                        Button(
-                            onClick = {
-                                try {
-                                    //saveManager(context).saveSettings()
-                                    if (checkNavidromeURL(url, username, password)){
-                                        val server = NavidromeProvider(url.removeSuffix("/"), username, password)
-
-                                        if (!navidromeServersList.contains(server)){
-                                            navidromeServersList.add(server)
-                                        }
-                                        selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
-
-                                        getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
-                                        getNavidromePlaylists()
-                                        getNavidromeRadios()
-
-                                        for (artist in artistList){
-                                            if (useNavidromeServer.value)
-                                                getNavidromeArtistDetails(artist.navidromeID, artist.name)
-                                        }
-
-                                        setShowDialog(false)
+                                    IconButton(onClick = {passwordVisible = !passwordVisible}){
+                                        Icon(imageVector  = ImageVector.vectorResource(id = image), description)
                                     }
-                                } catch (_: Exception){
-                                    // DO NOTHING
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onBackground),
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(top = 24.dp, start = 40.dp, end = 40.dp)
-                                .height(50.dp)
-                                .widthIn(max = 320.dp)
-                                .fillMaxWidth()
-                                .bounceClick(),
+                                },
+                                isError = navidromeStatus.value == "Wrong username or password"
+                            )
 
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Crossfade(targetState = navidromeStatus.value,
-                                label = "Loading Button Animation") { status ->
-                                when (status) {
-                                    "" -> Text(stringResource(R.string.Action_Login), modifier = Modifier.height(24.dp))
-                                    "Success" -> Text(stringResource(R.string.Action_Success), modifier = Modifier
-                                        .height(24.dp)
-                                        .wrapContentHeight(Alignment.CenterVertically))
-                                    "Loading" -> CircularProgressIndicator(
-                                        modifier = Modifier.size(size = 32.dp),
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        strokeWidth = 4.dp,
-                                        strokeCap = StrokeCap.Round)
+                            if (navidromeStatus.value != "")
+                            Column(modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally){
+                                Text(
+                                    text = navidromeStatus.value,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier.padding(vertical = 6.dp)
+                                )
+                            }
+
+                            Button(
+                                onClick = {
+                                    try {
+                                        username = username.trim()
+                                        password = password.trim()
+                                        //saveManager(context).saveSettings()
+                                        if (checkNavidromeURL(url, username, password)){
+                                            val server = NavidromeProvider(url.removeSuffix("/"), username, password)
+
+                                            if (!navidromeServersList.contains(server)){
+                                                navidromeServersList.add(server)
+                                            }
+                                            selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
+
+                                            getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                                            getNavidromePlaylists()
+                                            getNavidromeRadios()
+
+                                            for (artist in artistList){
+                                                if (useNavidromeServer.value)
+                                                    getNavidromeArtistDetails(artist.navidromeID, artist.name)
+                                            }
+                                            navidromeStatus.value = ""
+                                            setShowDialog(false)
+                                        }
+                                    } catch (_: Exception){
+                                        // DO NOTHING
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    contentColor = MaterialTheme.colorScheme.onBackground),
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(top = 24.dp, start = 40.dp, end = 40.dp)
+                                    .height(50.dp)
+                                    .widthIn(max = 320.dp)
+                                    .fillMaxWidth()
+                                    .bounceClick(),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Crossfade(targetState = navidromeStatus.value,
+                                    label = "Loading Button Animation") { status ->
+                                    when (status) {
+                                        "" -> Text(stringResource(R.string.Action_Login), modifier = Modifier.height(24.dp))
+                                        "ok" -> Text(stringResource(R.string.Action_Success), modifier = Modifier
+                                            .height(24.dp)
+                                            .wrapContentHeight(Alignment.CenterVertically))
+                                    }
                                 }
                             }
-                        }
                     }
+                    //endregion
                 }
             }
         }

@@ -24,7 +24,7 @@ import androidx.media3.session.MediaSession
 import com.craftworks.music.data.Song
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
-import com.craftworks.music.providers.navidrome.useNavidromeServer
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.ui.bitmap
 import java.util.Calendar
 

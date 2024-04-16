@@ -40,7 +40,7 @@ import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromeArtists
-import com.craftworks.music.providers.navidrome.useNavidromeServer
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.ui.elements.ArtistsGrid
 import kotlinx.coroutines.delay
 
