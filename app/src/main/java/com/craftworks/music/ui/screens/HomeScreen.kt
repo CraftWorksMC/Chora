@@ -61,11 +61,11 @@ import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
-import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.SongsRow
 import kotlinx.coroutines.delay
@@ -93,12 +93,12 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
         LaunchedEffect(true) {
             songsList.clear()
 
-            if (useNavidromeServer.value){
+            getSongsOnDevice(context)
+
+            delay(100) //Avoids Crashes
+
+            if (useNavidromeServer.value)
                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
-            }
-            else{
-                getSongsOnDevice(context)
-            }
 
             delay(1500)
 

@@ -17,14 +17,14 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
+import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.providers.navidrome.getNavidromeArtists
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
-import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.ui.elements.transcodingBitrate
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
@@ -41,7 +41,15 @@ class saveManager(private val context: Context){
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
 
     fun saveSettings(){
-        sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()
+        // Old junk that i'm keeping in case the new stuff doesn't work:
+        // sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()
+
+        // Check if there are any enabled navidrome servers and save if there are any.
+        var useNavidrome = false
+        for (server in navidromeServersList){
+            useNavidrome = server.enabled == true
+        }
+        sharedPreferences.edit().putBoolean("useNavidrome", useNavidrome).apply()
 
         //region Save Lists
         // Save Navidrome Server List

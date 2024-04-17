@@ -29,8 +29,6 @@
         android:appCategory="audio"
         android:enableOnBackInvokedCallback="true"
 
-        android:configChanges="keyboardHidden|orientation|screenSize"
-
         tools:targetApi="31"
         tools:ignore="UnusedAttribute">
 
@@ -58,7 +56,8 @@
         <service
             android:name=".auto.AutoLibraryService"
             android:foregroundServiceType="mediaPlayback"
-            android:exported="true">
+            android:exported="true"
+            android:permission="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>

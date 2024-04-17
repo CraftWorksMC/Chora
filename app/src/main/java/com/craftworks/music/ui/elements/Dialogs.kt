@@ -3,6 +3,7 @@ package com.craftworks.music.ui.elements
 import android.content.Context
 import android.net.Uri
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -1042,16 +1043,17 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context:Context 
                                 isError = navidromeStatus.value == "Wrong username or password"
                             )
 
-                            if (navidromeStatus.value != "")
-                            Column(modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally){
-                                Text(
-                                    text = navidromeStatus.value,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    modifier = Modifier.padding(vertical = 6.dp)
-                                )
+                            if (navidromeStatus.value != ""){
+                                Column(modifier = Modifier.fillMaxWidth().animateContentSize(),
+                                    horizontalAlignment = Alignment.CenterHorizontally){
+                                    Text(
+                                        text = navidromeStatus.value,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        modifier = Modifier.padding(vertical = 6.dp)
+                                    )
+                                }
                             }
 
                             Button(
