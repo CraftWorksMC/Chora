@@ -139,7 +139,6 @@ class MainActivity : ComponentActivity() {
                 navController = rememberNavController()
                 var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
 
-
                 val coroutineScope = rememberCoroutineScope()
                 val yTrans by animateIntAsState(
                     targetValue =

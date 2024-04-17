@@ -56,8 +56,8 @@
         <service
             android:name=".auto.AutoLibraryService"
             android:foregroundServiceType="mediaPlayback"
-            android:exported="true"
-            android:permission="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK">
+            android:permission="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>

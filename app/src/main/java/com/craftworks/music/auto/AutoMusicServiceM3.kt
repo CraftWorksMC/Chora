@@ -17,8 +17,8 @@ import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import com.craftworks.music.data.songsList
-import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.data.useNavidromeServer
+import com.craftworks.music.providers.local.getSongsOnDevice
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -102,6 +102,7 @@ class AutoLibraryService : MediaLibraryService() {
                 }
             }
 
+            Log.d("AA", "Added Songs To Android Auto!")
             session?.notifyChildrenChanged("nodeTRACKLIST", tracklist.size, null)
         }
     }
@@ -109,6 +110,7 @@ class AutoLibraryService : MediaLibraryService() {
     @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
+        Log.d("AA", "onCreate: Android Auto")
         /** Building ExoPlayer to use FFmpeg Audio Renderer and also enable fast-seeking */
         player = ExoPlayer.Builder(applicationContext)
             .setSeekParameters(SeekParameters.CLOSEST_SYNC) /* Enabling fast seeking */
