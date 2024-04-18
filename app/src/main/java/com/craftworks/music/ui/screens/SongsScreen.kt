@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,9 +29,9 @@ import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
-import com.craftworks.music.ui.elements.AddSongToPlaylist
+import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
-import com.craftworks.music.ui.elements.showAddSongToPlaylistDialog
+import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

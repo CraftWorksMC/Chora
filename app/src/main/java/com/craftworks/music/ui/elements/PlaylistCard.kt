@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Playlist
+import com.craftworks.music.ui.elements.dialogs.playlistToDelete
+import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

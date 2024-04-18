@@ -60,7 +60,10 @@ fun ArtistCard(artist: Artist, onClick: () -> Unit){
                     modifier = Modifier
                         .fillMaxHeight()
                         .aspectRatio(1f)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(12.dp)),
+//                    colorFilter = if (!useNavidromeServer.value && artist.navidromeID != "Local")
+//                        ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+//                    else null
                 )
             }
 

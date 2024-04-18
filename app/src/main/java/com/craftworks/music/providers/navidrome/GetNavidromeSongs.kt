@@ -10,7 +10,7 @@ import com.craftworks.music.data.artistList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
-import com.craftworks.music.ui.elements.transcodingBitrate
+import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import java.io.BufferedReader

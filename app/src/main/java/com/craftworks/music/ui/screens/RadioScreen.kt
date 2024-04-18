@@ -48,8 +48,8 @@ import com.craftworks.music.providers.getIcecastMetadata
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.saveManager
-import com.craftworks.music.ui.elements.AddRadioDialog
-import com.craftworks.music.ui.elements.ModifyRadioDialog
+import com.craftworks.music.ui.elements.dialogs.AddRadioDialog
+import com.craftworks.music.ui.elements.dialogs.ModifyRadioDialog
 import com.craftworks.music.ui.elements.RadiosGrid
 import kotlinx.coroutines.delay
 

@@ -51,8 +51,8 @@ import com.craftworks.music.R
 import com.craftworks.music.SongHelper.Companion.minPercentageScrobble
 import com.craftworks.music.data.Screen
 import com.craftworks.music.ui.elements.BottomSpacer
-import com.craftworks.music.ui.elements.TranscodingDialog
-import com.craftworks.music.ui.elements.transcodingBitrate
+import com.craftworks.music.ui.elements.dialogs.TranscodingDialog
+import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 
 @Composable
 @Preview(showSystemUi = false, showBackground = true)

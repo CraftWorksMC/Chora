@@ -31,4 +31,7 @@
     <!-- Artists -->
     <string name="Label_NoDescription">No Description Available.</string>
 
+    <!-- Sorting -->
+    <string name="Label_Sorting">Sort By</string>
+
 </resources>

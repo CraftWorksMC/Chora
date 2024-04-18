@@ -141,32 +141,48 @@ fun NowPlayingPortraitCover (
                 )
             }
 
-            val coroutine = rememberCoroutineScope()
-            SongHelper.currentSong.artist.let { artistName ->
-                Text(
-                    text =
-                    if (artistName.isBlank()) ""
-                    else artistName + " • " + SongHelper.currentSong.year,
-                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1, overflow = TextOverflow.Visible,
-                    softWrap = false,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fadingEdge(textFadingEdge)
-                        .clickable {
-                            selectedArtist = artistList.firstOrNull() { it.name == artistName }!!
-                            coroutine.launch {
-                                scaffoldState.bottomSheetState.partialExpand()
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .fadingEdge(textFadingEdge)) {
+                val coroutine = rememberCoroutineScope()
+                SongHelper.currentSong.artist.let { artistName ->
+                    Text(
+                        text = artistName,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1, overflow = TextOverflow.Visible,
+                        softWrap = false,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier
+                            .padding(horizontal = 6.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                selectedArtist = artistList.first() { it.name == artistName }
+                                coroutine.launch {
+                                    scaffoldState.bottomSheetState.partialExpand()
+                                }
+                                navHostController.navigate(Screen.AristDetails.route) {
+                                    launchSingleTop = true
+                                }
                             }
-                            navHostController.navigate(Screen.AristDetails.route) {
-                                launchSingleTop = true
-                            }
-                        }
-                )
+                    )
+                }
+                SongHelper.currentSong.year?.let { year ->
+                    Text(
+                        text = " • $year",
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1, overflow = TextOverflow.Visible,
+                        softWrap = false,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier
+
+                    )
+                }
             }
+
             if (showMoreInfo.value) {
                 SongHelper.currentSong.format.let {format ->
                     Text(

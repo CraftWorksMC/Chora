@@ -25,7 +25,7 @@ import com.craftworks.music.providers.navidrome.getNavidromeArtists
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
-import com.craftworks.music.ui.elements.transcodingBitrate
+import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.username
@@ -73,7 +73,10 @@ class saveManager(private val context: Context){
 
         // Save LOCAL Playlist List
         val localPlaylistString = playlistList.joinToString(";") {
-            "${it.name}|${it.coverArt}|${it.navidromeID}|${it.songs}" } //Using a different divider due to it.songs
+            if (it.navidromeID == "Local")
+                "${it.name}|${it.coverArt}|${it.navidromeID}|${it.songs}"
+            else
+                "" }
         sharedPreferences.edit().putString("localPlaylistList", localPlaylistString).apply()
 
         // Save Active Providers

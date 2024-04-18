@@ -44,10 +44,11 @@ import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
+import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.saveManager
-import com.craftworks.music.ui.elements.DeletePlaylist
+import com.craftworks.music.ui.elements.dialogs.DeletePlaylist
 import com.craftworks.music.ui.elements.PlaylistGrid
-import com.craftworks.music.ui.elements.showDeletePlaylistDialog
+import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
 import kotlinx.coroutines.delay
 
 var selectedPlaylist by mutableStateOf<Playlist?>(Playlist("My Very Awesome Playlist With A Long Name", Uri.EMPTY))
@@ -68,6 +69,8 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
             //saveManager(context).saveSettings()
             //delay(500)
             playlistList.clear()
+            getNavidromePlaylists()
+
             saveManager(context).loadPlaylists()
             delay(500)
             for (playlist in playlistList){

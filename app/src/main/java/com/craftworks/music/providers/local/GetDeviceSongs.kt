@@ -10,8 +10,10 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import com.craftworks.music.data.Album
+import com.craftworks.music.data.Artist
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
+import com.craftworks.music.data.artistList
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.songsList
@@ -23,13 +25,6 @@ fun getSongsOnDevice(context: Context){
     val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DATA} LIKE ?"
     val selectionArgs = arrayOf("%${localProviderList[selectedLocalProvider.intValue].directory}%")
     val cursor: Cursor? = contentResolver.query(uri, null, selection, selectionArgs, null)
-
-
-    // Clear everything!
-    //songsList.clear()
-    //albumList.clear()
-    //radioList.clear()
-    //playlistList.clear()
 
     MediaScannerConnection.scanFile(
         context, arrayOf(Environment.getExternalStorageDirectory().path), null
@@ -73,12 +68,10 @@ fun getSongsOnDevice(context: Context){
                     println("No Album Art!")
                 }
 
-                println("$thisTitle has bitrate $thisBitrate")
-
                 // Add Song
                 val song = Song(
                     title = thisTitle,
-                    artist = thisArtist,
+                    artist = thisArtist.split("~")[0],
                     album = thisAlbum,
                     imageUrl = imageUri,
                     media = contentUri,
@@ -102,6 +95,18 @@ fun getSongsOnDevice(context: Context){
                 )
                 if (!albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
                     albumList.add(album)
+                }
+
+                // Add artists to ArtistList
+                val artist = Artist(
+                    name = thisAlbum,
+                    imageUri = Uri.EMPTY,
+                    navidromeID = "Local",
+                    description = "",
+                    similarArtistsID = ""
+                )
+                if (!artistList.contains(artistList.firstOrNull { it.name == album.name })){
+                    artistList.add(artist)
                 }
 
             } while (cursor.moveToNext())
