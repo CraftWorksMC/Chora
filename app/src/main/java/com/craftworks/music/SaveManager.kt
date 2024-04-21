@@ -66,10 +66,7 @@ class saveManager(private val context: Context){
             "${it.name}|${it.imageUri}|${it.navidromeID}|${it.description}" }
         sharedPreferences.edit().putString("artistsList", artistsListString).apply()
 
-        // Save Radios List
-        val radiosListString = radioList.joinToString(";") {
-            "${it.name},${it.media},${it.homepageUrl},${it.imageUrl},${it.navidromeID}" }
-        sharedPreferences.edit().putString("radioList", radiosListString).apply()
+        saveLocalRadios()
 
         saveLocalPlaylists()
 
@@ -94,6 +91,14 @@ class saveManager(private val context: Context){
         val navItems = bottomNavigationItems.joinToString(";") {
             "${it.title}|${it.icon}|${it.screenRoute}|${it.enabled}" }
         sharedPreferences.edit().putString("bottomNavItems", navItems).apply()
+    }
+    fun saveLocalRadios(){
+        val radiosListString = radioList.joinToString(";") {
+            if (it.navidromeID == "Local")
+                "${it.name},${it.media},${it.homepageUrl},${it.imageUrl},${it.navidromeID}"
+            else
+                ""}
+        sharedPreferences.edit().putString("radioList", radiosListString).apply()
     }
     fun saveLocalPlaylists(){
         val localPlaylistString = playlistList.joinToString(";") {

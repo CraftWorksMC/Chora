@@ -130,7 +130,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
             ) {
                 /* GREETING */
                 Box(Modifier.weight(1f)) {
-                    if (useNavidromeServer.value){
+                    if (useNavidromeServer.value && showNavidromeLogo.value){
                         var rotation by remember { mutableFloatStateOf(-10f) }
                         val animatedRotation by animateFloatAsState(
                             targetValue = rotation,
@@ -160,7 +160,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                         fontSize = MaterialTheme.typography.headlineLarge.fontSize,
                         modifier = Modifier
                             .padding(start =
-                            if (useNavidromeServer.value)
+                            if (useNavidromeServer.value && showNavidromeLogo.value)
                                 42.dp
                             else
                                 12.dp),

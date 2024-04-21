@@ -54,6 +54,7 @@ import com.craftworks.music.ui.elements.bounceClick
 
 var username = mutableStateOf("Username")
 var showMoreInfo = mutableStateOf(true)
+var showNavidromeLogo = mutableStateOf(true)
 
 // BACKGROUND TYPES
 val backgroundTypes = listOf(

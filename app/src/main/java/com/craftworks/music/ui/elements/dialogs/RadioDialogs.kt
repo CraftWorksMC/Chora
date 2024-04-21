@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -42,7 +43,9 @@ import com.craftworks.music.data.radioList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.navidrome.createNavidromeRadioStation
 import com.craftworks.music.providers.navidrome.deleteNavidromeRadioStation
+import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.modifyNavidromeRadoStation
+import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
 
 //region PREVIEWS
@@ -61,6 +64,8 @@ fun PreviewModifyRadioDialog(){
 
 @Composable
 fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
+    val context = LocalContext.current
+
     var radioName by remember { mutableStateOf("") }
     var radioUrl by remember { mutableStateOf("") }
     var radioPage by remember { mutableStateOf("") }
@@ -130,21 +135,27 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                         Button(
                             onClick = {
                                 if (radioName.isBlank() && radioUrl.isBlank()) return@Button
-                                setShowDialog(false)
-                                radioList.add(
-                                    Radio(
-                                        name = radioName,
-                                        media = Uri.parse(radioUrl),
-                                        homepageUrl = radioPage,
-                                        imageUrl = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
-                                        navidromeID = "Local"
+
+                                if (useNavidromeServer.value){
+                                    createNavidromeRadioStation(
+                                        radioName,
+                                        radioUrl,
+                                        radioPage)
+                                    getNavidromeRadios()
+                                } else {
+                                    radioList.add(
+                                        Radio(
+                                            name = radioName,
+                                            media = Uri.parse(radioUrl),
+                                            homepageUrl = radioPage,
+                                            imageUrl = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
+                                            navidromeID = "Local"
+                                        )
                                     )
-                                )
-                                if (useNavidromeServer.value) createNavidromeRadioStation(
-                                    radioName,
-                                    radioUrl,
-                                    radioPage
-                                )
+                                    saveManager(context).saveLocalRadios()
+                                }
+
+                                setShowDialog(false)
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -168,6 +179,8 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
 
 @Composable
 fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
+    val context = LocalContext.current
+
     var radioName by remember { mutableStateOf(radio.name) }
     var radioUrl by remember { mutableStateOf(radio.media.toString()) }
     var radioPage by remember { mutableStateOf(radio.homepageUrl) }
@@ -243,6 +256,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                                         it
                                     )
                                 }
+                                saveManager(context).saveLocalRadios()
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -282,6 +296,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                                         )
                                     )
                                 }
+                                saveManager(context).saveLocalRadios()
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(

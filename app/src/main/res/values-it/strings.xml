@@ -54,4 +54,5 @@
     <string name="Setting_Scrobble_Description">Solo Navidrome.</string>
     <string name="Label_Sorting">Ordina Per</string>
     <string name="Navidrome_Error">Nessuna connessione al server Navidrome.</string>
+    <string name="Setting_NavidromeLogo">Mostra Logo Navidrome</string>
 </resources>

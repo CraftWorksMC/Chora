@@ -54,6 +54,7 @@ import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.NavbarItemsDialog
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
+import com.craftworks.music.ui.screens.showNavidromeLogo
 import com.craftworks.music.ui.screens.username
 
 @Composable
@@ -240,6 +241,29 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     textAlign = TextAlign.Start
                 )
                 Switch(checked = showMoreInfo.value, onCheckedChange = { showMoreInfo.value = it })
+            }
+            //Show Navidrome Logo
+            Row (verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(vertical = 6.dp)) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
+                    contentDescription = "Settings Icon",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .size(32.dp)
+                )
+                Text(
+                    text = stringResource(R.string.Setting_NavidromeLogo),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Start
+                )
+                Switch(checked = showNavidromeLogo.value, onCheckedChange = { showNavidromeLogo.value = it })
             }
 
             BottomSpacer()
