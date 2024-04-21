@@ -155,10 +155,10 @@ fun NowPlayingPortraitCover (
                         softWrap = false,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
-                            .padding(horizontal = 6.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
-                                selectedArtist = artistList.first() { it.name == artistName }
+                                selectedArtist =
+                                    artistList.firstOrNull() { it.name.equals(artistName, ignoreCase = true) }!!
                                 coroutine.launch {
                                     scaffoldState.bottomSheetState.partialExpand()
                                 }

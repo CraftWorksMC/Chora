@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,13 +43,14 @@ import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.radioList
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.getIcecastMetadata
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.saveManager
+import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
+import com.craftworks.music.ui.elements.RadiosGrid
 import com.craftworks.music.ui.elements.dialogs.AddRadioDialog
 import com.craftworks.music.ui.elements.dialogs.ModifyRadioDialog
-import com.craftworks.music.ui.elements.RadiosGrid
 import kotlinx.coroutines.delay
 
 var showRadioAddDialog = mutableStateOf(false)
@@ -79,7 +79,7 @@ fun RadioScreen() {
 
     Box(modifier = Modifier.fillMaxSize().nestedScroll(state.nestedScrollConnection)){
         /* RADIO ICON + TEXT */
-        Box(modifier = Modifier
+        Column(modifier = Modifier
             .fillMaxWidth()
             .padding(
                 start = leftPadding,
@@ -117,32 +117,25 @@ fun RadioScreen() {
                     )
                 }
             }
-            HorizontalDivider(
-                modifier = Modifier.padding(12.dp,56.dp,12.dp,0.dp),
-                thickness = 2.dp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
 
-            Column(modifier = Modifier
-                .padding(12.dp,64.dp,12.dp,12.dp)
-            ) {
-                RadiosGrid(radioList, onSongSelected = { song ->
-                    if (song.media.toString().endsWith("m3u8"))
-                        return@RadiosGrid
+            HorizontalLineWithNavidromeCheck()
 
-                    SongHelper.currentSong = song
-                    song.media?.let { SongHelper.playStream(context, it, true) }
-                    // Get Metadata
-                    val icecastUrl = "${song.media}/status-json.xsl"
-                    Thread{
-                        try {
-                            val metadata = getIcecastMetadata(icecastUrl)
-                            println(metadata)
-                        }catch (_: Exception){
-                        }
-                    }.start()
-                })
-            }
+            RadiosGrid(radioList, onSongSelected = { song ->
+                if (song.media.toString().endsWith("m3u8"))
+                    return@RadiosGrid
+
+                SongHelper.currentSong = song
+                song.media?.let { SongHelper.playStream(context, it, true) }
+                // Get Metadata
+                val icecastUrl = "${song.media}/status-json.xsl"
+                Thread{
+                    try {
+                        val metadata = getIcecastMetadata(icecastUrl)
+                        println(metadata)
+                    }catch (_: Exception){
+                    }
+                }.start()
+            })
         }
 
         PullToRefreshContainer(

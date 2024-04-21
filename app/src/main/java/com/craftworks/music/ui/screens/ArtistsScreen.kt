@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,11 +36,12 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromeArtists
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.ui.elements.ArtistsGrid
+import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,7 +74,7 @@ fun ArtistsScreen(navHostController: NavHostController = rememberNavController()
 
     Box(modifier = Modifier.nestedScroll(state.nestedScrollConnection)){
 
-        Box(modifier = Modifier
+        Column(modifier = Modifier
             .fillMaxWidth()
             .padding(
                 start = leftPadding,
@@ -95,22 +95,16 @@ fun ArtistsScreen(navHostController: NavHostController = rememberNavController()
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize
                 )
             }
-            HorizontalDivider(
-                modifier = Modifier.padding(12.dp,56.dp,12.dp,0.dp),
-                thickness = 2.dp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            HorizontalLineWithNavidromeCheck()
 
             val sortedArtistList = artistList.sortedBy { it.name }
 
-            Column(modifier = Modifier.padding(12.dp,64.dp,12.dp,12.dp)) {
-                ArtistsGrid(sortedArtistList, onArtistSelected = { artist ->
-                    selectedArtist = artist
-                    navHostController.navigate(Screen.AristDetails.route) {
-                        launchSingleTop = true
-                    }
-                })
-            }
+            ArtistsGrid(sortedArtistList, onArtistSelected = { artist ->
+                selectedArtist = artist
+                navHostController.navigate(Screen.AristDetails.route) {
+                    launchSingleTop = true
+                }
+            })
         }
 
         PullToRefreshContainer(

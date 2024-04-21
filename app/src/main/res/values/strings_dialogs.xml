@@ -34,4 +34,7 @@
     <!-- Sorting -->
     <string name="Label_Sorting">Sort By</string>
 
+    <!-- Connection Errors -->
+    <string name="Navidrome_Error">Navidrome server unreachable.</string>
+
 </resources>

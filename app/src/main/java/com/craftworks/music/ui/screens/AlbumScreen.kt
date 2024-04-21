@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,11 +36,12 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.useNavidromeServer
+import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.ui.elements.AlbumGrid
+import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import kotlinx.coroutines.delay
 import java.net.URL
 
@@ -70,14 +70,13 @@ fun AlbumScreen(navHostController: NavHostController = rememberNavController()) 
 
     Box(modifier = Modifier.nestedScroll(state.nestedScrollConnection)){
 
-        Box(modifier = Modifier
+        Column(modifier = Modifier
             .fillMaxWidth()
             .padding(
                 start = leftPadding,
                 top = WindowInsets.statusBars
                     .asPaddingValues()
-                    .calculateTopPadding()
-            )) {
+                    .calculateTopPadding())) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.placeholder),
@@ -91,21 +90,16 @@ fun AlbumScreen(navHostController: NavHostController = rememberNavController()) 
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize
                 )
             }
-            HorizontalDivider(
-                modifier = Modifier.padding(12.dp,56.dp,12.dp,0.dp),
-                thickness = 2.dp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+
+            HorizontalLineWithNavidromeCheck()
 
             val sortedAlbumList = albumList.sortedBy { it.name }
 
-            Column(modifier = Modifier.padding(12.dp,64.dp,12.dp,12.dp)) {
-                AlbumGrid(sortedAlbumList, onAlbumSelected = { album ->
-                    navHostController.navigate(Screen.AlbumDetails.route) {
-                        launchSingleTop = true
-                    }
-                    selectedAlbum = album})
-            }
+            AlbumGrid(sortedAlbumList, onAlbumSelected = { album ->
+                navHostController.navigate(Screen.AlbumDetails.route) {
+                    launchSingleTop = true
+                }
+                selectedAlbum = album})
         }
 
         PullToRefreshContainer(

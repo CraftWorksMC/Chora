@@ -49,7 +49,8 @@ fun getNavidromePlaylists(){
 fun createNavidromePlaylist(playlistName: String){
     if (navidromeServersList.isEmpty()) return
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
+        navidromeStatus.value != "ok") return
 
     val thread = Thread {
         try {
@@ -73,7 +74,8 @@ fun createNavidromePlaylist(playlistName: String){
 fun deleteNavidromePlaylist(playlistID: String){
     if (navidromeServersList.isEmpty()) return
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
+        navidromeStatus.value != "ok") return
 
     val thread = Thread {
         try {
@@ -97,7 +99,8 @@ fun deleteNavidromePlaylist(playlistID: String){
 fun addSongToNavidromePlaylist(playlistID: String, songID: String){
     if (navidromeServersList.isEmpty()) return
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
+        navidromeStatus.value != "ok") return
 
     val thread = Thread {
         try {

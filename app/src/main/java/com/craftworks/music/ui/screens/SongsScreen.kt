@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,8 +27,9 @@ import com.craftworks.music.R
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
-import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
+import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
+import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -39,7 +38,7 @@ fun SongsScreen() {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val context = LocalContext.current
     /* SONGS ICON + TEXT */
-    Box(modifier = Modifier
+    Column(modifier = Modifier
         .fillMaxWidth()
         .padding(start = leftPadding,
             top = WindowInsets.statusBars
@@ -59,13 +58,9 @@ fun SongsScreen() {
                 fontSize = MaterialTheme.typography.headlineLarge.fontSize
             )
         }
-        HorizontalDivider(
-            modifier = Modifier.padding(12.dp,56.dp,12.dp,0.dp),
-            thickness = 2.dp,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        HorizontalLineWithNavidromeCheck()
 
-        Column(modifier = Modifier.padding(12.dp,64.dp,12.dp,12.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp)) {
             val allSongsList = songsList.sortedBy { song: Song -> song.title }
 
             SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->

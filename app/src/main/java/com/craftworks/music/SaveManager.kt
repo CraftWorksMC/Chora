@@ -71,13 +71,7 @@ class saveManager(private val context: Context){
             "${it.name},${it.media},${it.homepageUrl},${it.imageUrl},${it.navidromeID}" }
         sharedPreferences.edit().putString("radioList", radiosListString).apply()
 
-        // Save LOCAL Playlist List
-        val localPlaylistString = playlistList.joinToString(";") {
-            if (it.navidromeID == "Local")
-                "${it.name}|${it.coverArt}|${it.navidromeID}|${it.songs}"
-            else
-                "" }
-        sharedPreferences.edit().putString("localPlaylistList", localPlaylistString).apply()
+        saveLocalPlaylists()
 
         // Save Active Providers
         sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
@@ -100,6 +94,14 @@ class saveManager(private val context: Context){
         val navItems = bottomNavigationItems.joinToString(";") {
             "${it.title}|${it.icon}|${it.screenRoute}|${it.enabled}" }
         sharedPreferences.edit().putString("bottomNavItems", navItems).apply()
+    }
+    fun saveLocalPlaylists(){
+        val localPlaylistString = playlistList.joinToString(";") {
+            if (it.navidromeID == "Local")
+                "${it.name}|${it.coverArt}|${it.navidromeID}|${it.songs}"
+            else
+                "" }
+        sharedPreferences.edit().putString("localPlaylistList", localPlaylistString).apply()
     }
 
     //endregion

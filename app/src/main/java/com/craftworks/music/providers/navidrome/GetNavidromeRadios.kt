@@ -82,7 +82,8 @@ fun parseRadioXML(input: BufferedReader, xpath: String, radiosList: MutableList<
 
 fun deleteNavidromeRadioStation(id:String){
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
+        navidromeStatus.value != "ok") return
 
     val thread = Thread {
         try {
@@ -102,7 +103,8 @@ fun deleteNavidromeRadioStation(id:String){
 
 fun modifyNavidromeRadoStation(id:String, name:String, url:String, homePage:String){
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
+        navidromeStatus.value != "ok") return
 
     val thread = Thread {
         try {
@@ -127,7 +129,8 @@ fun modifyNavidromeRadoStation(id:String, name:String, url:String, homePage:Stri
 
 fun createNavidromeRadioStation(name:String, url:String, homePage:String){
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
+        navidromeStatus.value != "ok") return
 
     val thread = Thread {
         try {

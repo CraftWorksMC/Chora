@@ -24,7 +24,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -67,6 +66,7 @@ import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.ui.elements.BottomSpacer
+import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.SongsRow
 import kotlinx.coroutines.delay
 import java.net.URL
@@ -189,12 +189,8 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 }
             }
 
+            HorizontalLineWithNavidromeCheck()
 
-            HorizontalDivider(
-                modifier = Modifier.padding(12.dp, 0.dp, 12.dp, 12.dp),
-                thickness = 2.dp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
             /* RECENTLY PLAYED */
             Box(
                 modifier = Modifier

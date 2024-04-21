@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,10 +43,10 @@ import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
-import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.saveManager
-import com.craftworks.music.ui.elements.dialogs.DeletePlaylist
+import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.PlaylistGrid
+import com.craftworks.music.ui.elements.dialogs.DeletePlaylist
 import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
 import kotlinx.coroutines.delay
 
@@ -62,16 +61,15 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
     val state = rememberPullToRefreshState()
 
     val context = LocalContext.current
-    if (playlistList.isEmpty()) saveManager(context).loadPlaylists()
 
     if (state.isRefreshing) {
         LaunchedEffect(true) {
             //saveManager(context).saveSettings()
             //delay(500)
             playlistList.clear()
-            getNavidromePlaylists()
 
             saveManager(context).loadPlaylists()
+
             delay(500)
             for (playlist in playlistList){
                 if (playlist.navidromeID == "Local"){
@@ -90,7 +88,7 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
         .nestedScroll(state.nestedScrollConnection)
         .fillMaxWidth()
         .fillMaxHeight()) {
-        Box(modifier = Modifier
+        Column(modifier = Modifier
             .fillMaxSize()
             .padding(
                 start = leftPadding,
@@ -112,22 +110,14 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize
                 )
             }
-            HorizontalDivider(
-                modifier = Modifier.padding(12.dp,56.dp,12.dp,0.dp),
-                thickness = 2.dp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
 
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp,64.dp,12.dp,12.dp)
-            ) {
-                PlaylistGrid(playlistList , onPlaylistSelected = { playlist ->
-                    navHostController.navigate(Screen.PlaylistDetails.route) {
-                        launchSingleTop = true
-                    }
-                    selectedPlaylist = playlist})
-            }
+            HorizontalLineWithNavidromeCheck()
+
+            PlaylistGrid(playlistList , onPlaylistSelected = { playlist ->
+                navHostController.navigate(Screen.PlaylistDetails.route) {
+                    launchSingleTop = true
+                }
+                selectedPlaylist = playlist})
 
             if(showDeletePlaylistDialog.value)
                 DeletePlaylist(setShowDialog =  { showDeletePlaylistDialog.value = it } )

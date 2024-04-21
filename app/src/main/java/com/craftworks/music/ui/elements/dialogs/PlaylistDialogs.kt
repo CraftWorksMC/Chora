@@ -60,6 +60,7 @@ import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.providers.navidrome.addSongToNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromePlaylist
 import com.craftworks.music.providers.navidrome.deleteNavidromePlaylist
+import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
 import kotlinx.coroutines.launch
 
@@ -91,6 +92,8 @@ var playlistToDelete = mutableStateOf(Playlist("", Uri.EMPTY))
 
 @Composable
 fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
+    val context = LocalContext.current
+
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -168,6 +171,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                         )
                                     else {
                                         playlist.songs += songToAddToPlaylist.value
+                                        saveManager(context).saveLocalPlaylists()
                                     }
                                     setShowDialog(false)
                                 }, verticalAlignment = Alignment.CenterVertically
@@ -285,6 +289,7 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
                                             )
                                         )
                                         println("Added Playlist: $name")
+                                        saveManager(context).saveLocalPlaylists()
                                         setShowDialog(false)
                                         showAddSongToPlaylistDialog.value = false
                                     }
@@ -320,6 +325,8 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
 
 @Composable
 fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
+    val context = LocalContext.current
+
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -354,6 +361,7 @@ fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
                                         }
                                     else {
                                         playlistList.remove(playlistToDelete.value)
+                                        saveManager(context).saveLocalPlaylists()
                                     }
                                 } catch (_: Exception) {
                                     // DO NOTHING

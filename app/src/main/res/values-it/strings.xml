@@ -7,7 +7,7 @@
     <string name="Label_Navidrome_Username">Username</string>
     <string name="Label_Navidrome_Password">Password</string>
     <string name="Dialog_Add_Radio">Aggiungi Radio Internet</string>
-    <string name="Dialog_Modify_Radio">Modifica</string>
+    <string name="Dialog_Modify_Radio">"Modifica "</string>
     <string name="Label_Radio_Name">Nome Radio:</string>
     <string name="Label_Radio_URL">URL Radio:</string>
     <string name="Label_Radio_Homepage">Sito della Radio</string>
@@ -53,4 +53,5 @@
     <string name="Setting_Scrobble_Percent">Min. Percentuale Scrobble</string>
     <string name="Setting_Scrobble_Description">Solo Navidrome.</string>
     <string name="Label_Sorting">Ordina Per</string>
+    <string name="Navidrome_Error">Nessuna connessione al server Navidrome.</string>
 </resources>
