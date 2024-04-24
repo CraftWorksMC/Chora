@@ -61,6 +61,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.SongHelper.Companion.initPlayer
+import com.craftworks.music.auto.AutoMediaLibraryService
 import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.ui.NowPlayingContent
@@ -286,7 +287,8 @@ class MainActivity : ComponentActivity() {
             }
 
             override fun onActivityDestroyed(activity: Activity) {
-                SongHelper.releasePlayer()
+                AutoMediaLibraryService().onDestroy()
+                println("Destroyed, Goodbye :(")
             }
         })
 

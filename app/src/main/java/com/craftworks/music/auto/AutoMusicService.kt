@@ -1,23 +1,18 @@
 package com.craftworks.music.auto
 
 import android.net.Uri
+import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.DefaultRenderersFactory
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import com.craftworks.music.SongHelper
 import com.craftworks.music.data.songsList
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.saveManager
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
@@ -67,46 +62,34 @@ class AutoMediaLibraryService : MediaLibraryService() {
     @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
-        Log.d("AA2", "onCreate: Android Auto")
+        Log.d("AA", "onCreate: Android Auto")
 
-        player = ExoPlayer.Builder(applicationContext)
-            .setSeekParameters(SeekParameters.CLOSEST_SYNC) /* Enabling fast seeking */
-            .setRenderersFactory(
-                DefaultRenderersFactory(this).setExtensionRendererMode(
-                    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER /* We prefer extensions, such as FFmpeg */
-                )
-            )
-            .setWakeMode(
-                if (useNavidromeServer.value){
-                    C.WAKE_MODE_NETWORK }
-                else {
-                    C.WAKE_MODE_LOCAL }
-            )
-            .setHandleAudioBecomingNoisy(true) /* Prevent annoying noise when changing devices */
-            .setAudioAttributes(AudioAttributes.DEFAULT, true)
-            .build()
+        SongHelper.initPlayer(this)
+        player = SongHelper.player
 
-        player.addListener(object : Player.Listener {
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                super.onMediaItemTransition(mediaItem, reason)
+//        player.addListener(object : Player.Listener {
+//            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+//                super.onMediaItemTransition(mediaItem, reason)
+//
+//                //Controlling Android Auto queue here intelligently
+//                if (mediaItem != null && player.mediaItemCount == 1) {
+//                    if (tracklist.size > 1) {
+//                        val index = tracklist.indexOfFirst { it.mediaId == mediaItem.mediaId }
+//                        player.setMediaItems(tracklist, index, 0)
+//                    }
+//                }
+//            }
+//
+//            override fun onPlayerError(error: PlaybackException) {
+//                error.printStackTrace()
+//                Log.e("PLAYER", error.stackTraceToString())
+//            }
+//        })
 
-                //Controlling Android Auto queue here intelligently
-                if (mediaItem != null && player.mediaItemCount == 1) {
-                    if (tracklist.size > 1) {
-                        val index = tracklist.indexOfFirst { it.mediaId == mediaItem.mediaId }
-                        player.setMediaItems(tracklist, index, 0)
-                    }
-                }
-            }
-
-            override fun onPlayerError(error: PlaybackException) {
-                error.printStackTrace()
-                Log.e("PLAYER", error.stackTraceToString())
-            }
-        })
         player.repeatMode = Player.REPEAT_MODE_ALL
 
         session = MediaLibrarySession.Builder(this, player, LibrarySessionCallback()).setId("AutoSession").build()
+
 
         if (tracklist.isNotEmpty()) return
 
@@ -122,6 +105,12 @@ class AutoMediaLibraryService : MediaLibraryService() {
                     .setAlbumTitle(song.album)
                     .setArtworkUri(song.imageUrl)
                     .setReleaseYear(song.year?.toIntOrNull() ?: 0)
+                    .setExtras(Bundle().apply {
+                        putInt("duration", song.duration)
+                        putString("MoreInfo", "${song.format} • ${song.bitrate}")
+                        putString("NavidromeID", song.navidromeID)
+                        putBoolean("isRadio", false)
+                    })
                     .setIsBrowsable(false)
                     .setIsPlayable(true)
                     .build()
@@ -130,10 +119,6 @@ class AutoMediaLibraryService : MediaLibraryService() {
                     .setMediaId(song.media.toString())
                     .setMediaMetadata(mediaMetadata).build()
                 )
-            }
-
-            serviceMainScope.launch {
-                player.setMediaItems(tracklist)
             }
 
             Log.d("AA", "Added Songs To Android Auto!")
@@ -147,7 +132,7 @@ class AutoMediaLibraryService : MediaLibraryService() {
 
     override fun onDestroy() {
         session?.run {
-            player.release()
+            SongHelper.releasePlayer()
             release()
             session = null
         }

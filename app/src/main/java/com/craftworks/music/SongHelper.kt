@@ -14,13 +14,16 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationCompat
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.MediaSession
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.useNavidromeServer
@@ -59,7 +62,15 @@ class SongHelper {
             // Because this function gets called when re-focusing the app
             if (this::player.isInitialized || this::mediaSession.isInitialized) return
 
-            player = ExoPlayer.Builder(context).build()
+            player = ExoPlayer.Builder(context)
+                .setSeekParameters(SeekParameters.CLOSEST_SYNC)
+                .setRenderersFactory(DefaultRenderersFactory(context).setExtensionRendererMode(
+                    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER /* We prefer extensions, such as FFmpeg */
+                ))
+                .setHandleAudioBecomingNoisy(true)
+                .setAudioAttributes(AudioAttributes.DEFAULT, true)
+                .build()
+
             mediaSession = MediaSession.Builder(context, player).build()
 
             player.availableCommands.buildUpon()
