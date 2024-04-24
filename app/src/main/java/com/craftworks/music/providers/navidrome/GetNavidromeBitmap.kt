@@ -31,6 +31,9 @@ suspend fun getNavidromeBitmap(context: Context): Bitmap {
             .data("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getCoverArt.view?&id=${SongHelper.currentSong.navidromeID}&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&size=512&v=1.12.0&c=Chora")
             .build()
         val result = (loading.execute(request) as SuccessResult).drawable
+
+        SongHelper.updateNotification(context)
+
         return (result as BitmapDrawable).bitmap.copy(Bitmap.Config.RGBA_F16, true)
     }
     catch (_: Exception){

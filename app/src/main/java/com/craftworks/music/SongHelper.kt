@@ -22,9 +22,9 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.ui.bitmap
 import java.util.Calendar
 
@@ -68,6 +68,42 @@ class SongHelper {
 
             player.shuffleModeEnabled = false
             player.repeatMode = Player.REPEAT_MODE_OFF
+
+            //region On State Changed:
+            //  - Update Notification
+            //  - Get Lyrics If Song Changed
+            //  - Next Song On End
+            player.addListener(object : Player.Listener {
+                override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+                    super.onMediaMetadataChanged(mediaMetadata)
+                    currentSong = Song(
+                        title = player.mediaMetadata.title.toString(),
+                        artist = player.mediaMetadata.artist.toString(),
+                        duration = player.mediaMetadata.extras?.getInt("duration") ?: 0,
+                        imageUrl = Uri.parse(mediaSession.player.mediaMetadata.artworkUri.toString()),
+                        year = player.mediaMetadata.releaseYear.toString(),
+                        album = player.mediaMetadata.albumTitle.toString(),
+                        format = player.mediaMetadata.extras?.getString("MoreInfo"),
+                        navidromeID = player.mediaMetadata.extras?.getString("NavidromeID"),
+                        isRadio = player.mediaMetadata.extras?.getBoolean("isRadio")
+                    )
+                    if (currentSong.isRadio == false)
+                        getLyrics()
+                }
+
+                override fun onPlaybackStateChanged(state: Int) {
+                    super.onPlaybackStateChanged(state)
+                    updateNotification(context)
+                }
+
+                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    super.onMediaItemTransition(mediaItem, reason)
+                    println("Media Item Transition, marking song as played.")
+                    markNavidromeSongAsPlayed(currentSong)
+                    updateNotification(context)
+                }
+            })
+            //endregion
 
             // Create a Notification Channel
             val channel = NotificationChannel(
@@ -166,42 +202,6 @@ class SongHelper {
                 getLyrics()
 
             updateNotification(context)
-
-            //region On State Changed:
-            //  - Update Notification
-            //  - Get Lyrics If Song Changed
-            //  - Next Song On End
-            player.addListener(object : Player.Listener {
-                override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-                    super.onMediaMetadataChanged(mediaMetadata)
-                    currentSong = Song(
-                        title = player.mediaMetadata.title.toString(),
-                        artist = player.mediaMetadata.artist.toString(),
-                        duration = player.mediaMetadata.extras?.getInt("duration") ?: 0,
-                        imageUrl = Uri.parse(mediaSession.player.mediaMetadata.artworkUri.toString()),
-                        year = player.mediaMetadata.releaseYear.toString(),
-                        album = player.mediaMetadata.albumTitle.toString(),
-                        format = player.mediaMetadata.extras?.getString("MoreInfo"),
-                        navidromeID = player.mediaMetadata.extras?.getString("NavidromeID"),
-                        isRadio = player.mediaMetadata.extras?.getBoolean("isRadio")
-                    )
-                    if (isRadio == false)
-                        getLyrics()
-                }
-
-                override fun onPlaybackStateChanged(state: Int) {
-                    super.onPlaybackStateChanged(state)
-                    updateNotification(context)
-                }
-
-                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                    super.onMediaItemTransition(mediaItem, reason)
-                    println("Media Item Transition, marking song as played.")
-                    markNavidromeSongAsPlayed(currentSong)
-                    updateNotification(context)
-                }
-            })
-            //endregion
         }
 
         fun pauseStream(){
@@ -244,6 +244,7 @@ class SongHelper {
             currentPosition = sliderPos.intValue.toLong()
         }
         fun updateNotification(context: Context){
+            println("Updated Media Notification")
             // Update Notification
             notification = NotificationCompat.Builder(context, "Chora")
                 .setSmallIcon(R.drawable.ic_notification_icon)

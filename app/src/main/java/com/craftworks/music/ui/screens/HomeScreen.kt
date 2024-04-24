@@ -83,10 +83,10 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
 
     val context = LocalContext.current
 
-    var recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
-    var recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
-    var mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
-    var shuffledSongsList = remember { mutableStateOf(songsList.take(10).shuffled()) }
+    var recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(20)
+    var recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }.take(20)
+    var mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }.take(20)
+    var shuffledSongsList = remember { mutableStateOf(songsList.take(20).shuffled()) }
 
     val state = rememberPullToRefreshState()
     if (state.isRefreshing) {
