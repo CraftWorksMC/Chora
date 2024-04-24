@@ -18,6 +18,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
@@ -39,7 +40,7 @@ class SongHelper {
 
 
         var currentPosition: Long = 0
-        var currentSong by mutableStateOf<Song>(
+        var currentSong by mutableStateOf(
             Song(
                 title = "",
                 artist = "",
@@ -91,10 +92,10 @@ class SongHelper {
                         getLyrics()
                 }
 
-                override fun onPlaybackStateChanged(state: Int) {
-                    super.onPlaybackStateChanged(state)
-                    updateNotification(context)
-                }
+//                override fun onPlaybackStateChanged(state: Int) {
+//                    super.onPlaybackStateChanged(state)
+//                    updateNotification(context)
+//                }
 
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                     super.onMediaItemTransition(mediaItem, reason)
@@ -116,6 +117,8 @@ class SongHelper {
 
             notificationManager.cancelAll()
             notificationManager.createNotificationChannel(channel)
+
+            Log.setLogLevel(Log.LOG_LEVEL_ERROR)
 
             saveManager(context).loadSettings()
         }

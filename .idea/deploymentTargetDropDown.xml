@@ -2,9 +2,6 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="ArtistDetails">
-        <State />
-      </entry>
       <entry key="app">
         <State>
           <runningDeviceTargetSelectedWithDropDown>
@@ -20,9 +17,6 @@
           </runningDeviceTargetSelectedWithDropDown>
           <timeTargetWasSelectedWithDropDown value="2024-04-18T16:23:30.334303469Z" />
         </State>
-      </entry>
-      <entry key="app_auto">
-        <State />
       </entry>
     </value>
   </component>

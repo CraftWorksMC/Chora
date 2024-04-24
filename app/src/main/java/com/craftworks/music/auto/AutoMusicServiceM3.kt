@@ -3,19 +3,15 @@ package com.craftworks.music.auto
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.DefaultRenderersFactory
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import com.craftworks.music.SongHelper
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
@@ -112,24 +108,25 @@ class AutoLibraryService : MediaLibraryService() {
         super.onCreate()
         Log.d("AA", "onCreate: Android Auto")
         /** Building ExoPlayer to use FFmpeg Audio Renderer and also enable fast-seeking */
-        player = ExoPlayer.Builder(applicationContext)
-            .setSeekParameters(SeekParameters.CLOSEST_SYNC) /* Enabling fast seeking */
-            .setRenderersFactory(
-                DefaultRenderersFactory(this).setExtensionRendererMode(
-                    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER /* We prefer extensions, such as FFmpeg */
-                )
-            )
-            .setWakeMode(
-                if (useNavidromeServer.value){
-                    C.WAKE_MODE_NETWORK }
-                else {
-                    C.WAKE_MODE_LOCAL }
-            )
-            .setHandleAudioBecomingNoisy(true) /* Prevent annoying noise when changing devices */
-            .setAudioAttributes(AudioAttributes.DEFAULT, true)
-            .build()
-
-        player.repeatMode = Player.REPEAT_MODE_ALL
+//        player = ExoPlayer.Builder(applicationContext)
+//            .setSeekParameters(SeekParameters.CLOSEST_SYNC) /* Enabling fast seeking */
+//            .setRenderersFactory(
+//                DefaultRenderersFactory(this).setExtensionRendererMode(
+//                    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER /* We prefer extensions, such as FFmpeg */
+//                )
+//            )
+//            .setWakeMode(
+//                if (useNavidromeServer.value){
+//                    C.WAKE_MODE_NETWORK }
+//                else {
+//                    C.WAKE_MODE_LOCAL }
+//            )
+//            .setHandleAudioBecomingNoisy(true) /* Prevent annoying noise when changing devices */
+//            .setAudioAttributes(AudioAttributes.DEFAULT, true)
+//            .build()
+//
+//        player.repeatMode = Player.REPEAT_MODE_ALL
+        player = SongHelper.player
 
         //Fetching music when the service starts
         queryMusic(true)
@@ -220,23 +217,6 @@ class AutoLibraryService : MediaLibraryService() {
                         params
                     )
                     return Futures.immediateFuture(LibraryResult.ofVoid()) //super.onSubscribe(session, browser, parentId, params)
-                }
-
-                override fun onConnect(
-                    session: MediaSession,
-                    controller: MediaSession.ControllerInfo
-                ): MediaSession.ConnectionResult {
-                    val sessionComs = super.onConnect(session, controller).availableSessionCommands
-                        .buildUpon()
-                        //.add(CUSTOM_COM_PLAY_ITEM) //Command executed when an item is requested to play
-                        //.add(CUSTOM_COM_END_SERVICE) //This one is called to end the service manually from the UI
-                        //.add(CUSTOM_COM_SCAN_MUSIC) //Command use to execute a music scan
-                        //.add(CUSTOM_COM_TRACKLIST_FORGET) //Used when an item is to be forgotten (swipe left)
-                        .build()
-
-                    val playerComs = super.onConnect(session, controller).availablePlayerCommands
-
-                    return MediaSession.ConnectionResult.accept(sessionComs, playerComs)
                 }
             }).setId("AutoSession").build()
     }
