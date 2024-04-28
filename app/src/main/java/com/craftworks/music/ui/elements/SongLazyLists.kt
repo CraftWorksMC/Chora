@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Artist
 import com.craftworks.music.data.PlainLyrics
@@ -45,7 +44,6 @@ fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
         items(songsList) {song ->
             SongsCard(song = song, onClick = {
                 isSongSelected = true
-                SongHelper.stopStream()
                 sliderPos.intValue = 0
                 onSongSelected(song)
                 //markSongAsPlayed(song)
@@ -77,7 +75,6 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
         items(songsList) {song ->
             HorizontalSongCard(song = song, onClick = {
                 isSongSelected = true
-                SongHelper.stopStream()
                 sliderPos.intValue = 0
                 onSongSelected(song)
                 //markSongAsPlayed(song)
@@ -191,7 +188,6 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
                 radio = radio,
                 onClick = {
                 isSongSelected = true
-                SongHelper.stopStream()
                 sliderPos.intValue = 0
                 onSongSelected(song)
                 PlainLyrics = "No Lyrics For Internet Radio"

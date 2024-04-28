@@ -435,7 +435,7 @@ fun NowPlayingMiniPlayer(
             ) {
                 Icon(
                     imageVector = if (isPlaying)
-                        ImageVector.vectorResource(R.drawable.round_pause_24)
+                        ImageVector.vectorResource(R.drawable.media3_notification_pause)
                     else
                         Icons.Rounded.PlayArrow,
                     tint = MaterialTheme.colorScheme.onBackground,

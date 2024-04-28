@@ -66,11 +66,11 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedArtist
+import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
-import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.elements.AlbumRow
@@ -274,7 +274,6 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
                 )
                 for(song in artistSongs){
                     HorizontalSongCard(song = song, onClick = {
-                        SongHelper.stopStream()
                         sliderPos.intValue = 0
                         SongHelper.currentSong = song
                         SongHelper.currentList = artistSongs

@@ -54,7 +54,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -103,17 +102,18 @@ import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
+import com.craftworks.music.auto.rememberManagedMediaController
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
-import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
@@ -121,8 +121,8 @@ import com.craftworks.music.ui.elements.NowPlayingLandscape
 import com.craftworks.music.ui.elements.NowPlayingMiniPlayer
 import com.craftworks.music.ui.elements.NowPlayingPortraitCover
 import com.craftworks.music.ui.elements.bounceClick
-import com.craftworks.music.ui.elements.moveClick
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
+import com.craftworks.music.ui.elements.moveClick
 import com.craftworks.music.ui.screens.backgroundType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -150,25 +150,15 @@ fun NowPlayingContent(
     snackbarHostState: SnackbarHostState? = SnackbarHostState(),
     navHostController: NavHostController = rememberNavController()
 ) {
-    println("Full Recompose NowPlaying.kt")
-
     if (scaffoldState == null) return
 
     Box {
         // UI PLAYING STATE
-        var isPlaying by remember { mutableStateOf(false) }
-        DisposableEffect(Unit) {
-            val player = SongHelper.player
-            val listener = object : Player.Listener {
-                override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                    isPlaying = playWhenReady
-                }
-            }
-            player.addListener(listener)
-            onDispose {
-                player.removeListener(listener)
-            }
-        }
+
+
+        val mediaController by rememberManagedMediaController()
+
+        var isPlaying by remember { mutableStateOf(mediaController?.playWhenReady ?: false) }
 
         //region Update Content + Backgrounds
         // handle back presses
@@ -545,6 +535,8 @@ fun SliderUpdating(isLandscape: Boolean? = false){
     )
     val sliderHeight = if (isLandscape == true) 24.dp else 12.dp
 
+    val mediaController by rememberManagedMediaController()
+
     Slider(
         enabled = (transcodingBitrate.value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
         modifier = Modifier
@@ -560,15 +552,18 @@ fun SliderUpdating(isLandscape: Boolean? = false){
             SongHelper.currentPosition = it.toLong() },
         onValueChangeFinished = {
             SongHelper.isSeeking = false
-            SongHelper.player.seekTo(sliderPos.intValue.toLong())},
-        valueRange = 0f..(SongHelper.currentSong.duration.toFloat()),
+            mediaController?.seekTo(sliderPos.intValue.toLong())
+                                },
+        valueRange = 0f..((mediaController?.duration ?: 0).coerceAtLeast(0L).toFloat()),
         colors = SliderDefaults.colors(
             activeTrackColor = MaterialTheme.colorScheme.onBackground,
             inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
         ),
         thumb = {}
     )
-    Box (modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp)) {
+    Box (modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 32.dp)) {
         Text(
             text = formatMilliseconds(sliderPos.intValue.toFloat()),
             fontWeight = FontWeight.Light,
@@ -597,6 +592,8 @@ fun SliderUpdating(isLandscape: Boolean? = false){
 
 @Composable // Previous Song, Play/Pause, Next Song
 fun MainButtons(song: Song, isPlaying: Boolean ? = false){
+    val mediaController by rememberManagedMediaController()
+
     // Previous Song
     Box(modifier = Modifier
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
@@ -604,7 +601,9 @@ fun MainButtons(song: Song, isPlaying: Boolean ? = false){
         Button(
             onClick = {
                 if (SongHelper.currentSong.isRadio == true) return@Button
-                SongHelper.previousSong(song)
+                mediaController?.seekToPreviousMediaItem()
+                println("MediaController has previous media item? ${mediaController?.hasPreviousMediaItem()}")
+                println("MediaController previous item index? ${mediaController?.previousMediaItemIndex}")
             },
             shape = CircleShape,
             modifier = Modifier
@@ -616,7 +615,7 @@ fun MainButtons(song: Song, isPlaying: Boolean ? = false){
         ) {
 
             Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.round_skip_previous_24),
+                imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_previous),
 
                 tint = MaterialTheme.colorScheme.onBackground,
                 contentDescription = "Previous Song",
@@ -632,7 +631,7 @@ fun MainButtons(song: Song, isPlaying: Boolean ? = false){
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
     {
         Button(
-            onClick = { SongHelper.player.playWhenReady = !SongHelper.player.playWhenReady },
+            onClick = { mediaController?.playWhenReady = !(mediaController?.playWhenReady?: true) },
             shape = CircleShape,
             modifier = Modifier
                 .size(92.dp)
@@ -644,7 +643,7 @@ fun MainButtons(song: Song, isPlaying: Boolean ? = false){
         ) {
             Icon(
                 imageVector = if (isPlaying == true)
-                    ImageVector.vectorResource(R.drawable.round_pause_24)
+                    ImageVector.vectorResource(R.drawable.media3_notification_pause)
                 else
                     Icons.Rounded.PlayArrow,
 
@@ -664,7 +663,7 @@ fun MainButtons(song: Song, isPlaying: Boolean ? = false){
         Button(
             onClick = {
                 if (SongHelper.currentSong.isRadio == true) return@Button
-                SongHelper.nextSong(song)
+                mediaController?.seekToNextMediaItem()
             },
             shape = CircleShape,
             modifier = Modifier
@@ -676,7 +675,7 @@ fun MainButtons(song: Song, isPlaying: Boolean ? = false){
         ) {
 
             Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.round_skip_next_24),
+                imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_next),
                 tint = MaterialTheme.colorScheme.onBackground,
                 contentDescription = "Next Song",
                 modifier = Modifier

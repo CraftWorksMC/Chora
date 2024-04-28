@@ -190,6 +190,7 @@ class saveManager(private val context: Context){
             val parts = navidromeString.split(",")
             if (parts.size == 3) {
                 val navidromeProvider = NavidromeProvider(parts[0], parts[1], parts[2])
+                if (navidromeServersList.contains(navidromeProvider)) return
                 navidromeServersList.add(navidromeProvider)
                 println(navidromeProvider)
             }
@@ -204,6 +205,7 @@ class saveManager(private val context: Context){
             val parts = localString.split(",")
             if (parts.size == 2) {
                 val localProvider = LocalProvider(parts[0], parts[1].toBoolean())
+                if (localProviderList.contains(localProvider)) return
                 localProviderList.add(localProvider)
                 println(localProvider)
             }

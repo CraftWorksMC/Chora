@@ -20,6 +20,8 @@ import com.craftworks.music.data.songsList
 import java.io.FileNotFoundException
 
 fun getSongsOnDevice(context: Context){
+    if (localProviderList.isEmpty()) return
+
     val contentResolver: ContentResolver = context.contentResolver
     val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
     val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DATA} LIKE ?"

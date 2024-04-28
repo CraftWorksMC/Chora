@@ -3,6 +3,7 @@ package com.craftworks.music
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
@@ -87,9 +88,11 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     lateinit var navController: NavHostController
 
-
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        val serviceIntent = Intent(applicationContext, AutoMediaLibraryService::class.java)
+        applicationContext.startService(serviceIntent)
+
         super.onCreate(savedInstanceState)
 
         Timer().scheduleAtFixedRate(object : TimerTask() {
@@ -298,9 +301,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PlayPause() {
     if (songState && !SongHelper.player.isPlaying) {
-        SongHelper.player.playWhenReady = true
+        //SongHelper.player.playWhenReady = true
     } else {
-        SongHelper.pauseStream()
+        //SongHelper.pauseStream()
     }
 }
 

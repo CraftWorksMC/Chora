@@ -32,8 +32,6 @@ suspend fun getNavidromeBitmap(context: Context): Bitmap {
             .build()
         val result = (loading.execute(request) as SuccessResult).drawable
 
-        SongHelper.updateNotification(context)
-
         return (result as BitmapDrawable).bitmap.copy(Bitmap.Config.RGBA_F16, true)
     }
     catch (_: Exception){
