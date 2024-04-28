@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
+import com.craftworks.music.auto.rememberManagedMediaController
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.artistList
@@ -342,6 +344,9 @@ fun NowPlayingLandscape(
 fun NowPlayingMiniPlayer(
     scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     isPlaying: Boolean = true){
+
+    val mediaController by rememberManagedMediaController()
+
     val coroutineScope = rememberCoroutineScope()
     Box (modifier = Modifier
         .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp))
@@ -408,24 +413,6 @@ fun NowPlayingMiniPlayer(
                         textAlign = TextAlign.Start
                     )
                 }
-                /*
-                if (showMoreInfo.value) {
-                    SongHelper.currentSong.format.let {format ->
-                        Text(
-                            text = "${format.toString()} • ${
-                                if (SongHelper.currentSong.navidromeID == "Local")
-                                    stringResource(R.string.Source_Local)
-                                else
-                                    stringResource(R.string.Source_Navidrome)
-                            } ",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Thin,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                            maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                }*/
             }
 
             // Play/Pause Icon
@@ -446,8 +433,7 @@ fun NowPlayingMiniPlayer(
                         .bounceClick()
                         .clip(RoundedCornerShape(12.dp))
                         .clickable {
-                            SongHelper.player.playWhenReady =
-                                !SongHelper.player.playWhenReady
+                            mediaController?.playWhenReady = !(mediaController?.playWhenReady ?: true)
                         }
                 )
             }

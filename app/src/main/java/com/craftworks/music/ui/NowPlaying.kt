@@ -58,6 +58,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -415,6 +416,8 @@ fun NowPlayingContent(
 @Composable
 @Preview(showBackground = true)
 fun LyricsView(isLandscape: Boolean = false) {
+    val mediaController by rememberManagedMediaController()
+
     val topBottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.15f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
     val state = rememberScrollState()
     var currentLyricIndex by remember { mutableIntStateOf(0) }
@@ -458,7 +461,7 @@ fun LyricsView(isLandscape: Boolean = false) {
                     modifier = Modifier
                         .height((dpToSp).dp)
                         .clickable {
-                            SongHelper.player.seekTo(lyric.timestamp.toLong())
+                            mediaController?.seekTo(lyric.timestamp.toLong())
                             currentLyricIndex = index
                             lyric.isCurrentLyric = false
                         }
@@ -530,12 +533,15 @@ fun LyricsView(isLandscape: Boolean = false) {
 @Composable
 fun SliderUpdating(isLandscape: Boolean? = false){
 
+    val mediaController by rememberManagedMediaController()
+
+    val currentPos by remember { mutableFloatStateOf(mediaController?.currentPosition?.toFloat() ?: 0f) }
     val animatedSliderValue by animateFloatAsState(targetValue = sliderPos.intValue.toFloat(),
         label = "Smooth Slider Update"
     )
     val sliderHeight = if (isLandscape == true) 24.dp else 12.dp
 
-    val mediaController by rememberManagedMediaController()
+
 
     Slider(
         enabled = (transcodingBitrate.value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
@@ -548,12 +554,10 @@ fun SliderUpdating(isLandscape: Boolean? = false){
         value = animatedSliderValue,
         onValueChange = {
             SongHelper.isSeeking = true
-            sliderPos.intValue = it.toInt()
-            SongHelper.currentPosition = it.toLong() },
+            sliderPos.intValue = it.toInt() },
         onValueChangeFinished = {
             SongHelper.isSeeking = false
-            mediaController?.seekTo(sliderPos.intValue.toLong())
-                                },
+            mediaController?.seekTo(sliderPos.intValue.toLong()) },
         valueRange = 0f..((mediaController?.duration ?: 0).coerceAtLeast(0L).toFloat()),
         colors = SliderDefaults.colors(
             activeTrackColor = MaterialTheme.colorScheme.onBackground,
@@ -771,13 +775,15 @@ fun DownloadButton(snackbarHostState: SnackbarHostState?,
 }
 @Composable
 fun ShuffleButton(size: Dp){
+    val mediaController by rememberManagedMediaController()
+
     Box(modifier = Modifier
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
     {
         Button(
             onClick = {
                 shuffleSongs.value = !shuffleSongs.value
-                SongHelper.player.shuffleModeEnabled = shuffleSongs.value
+                mediaController?.shuffleModeEnabled = shuffleSongs.value
             },
             shape = CircleShape,
             modifier = Modifier.size(size),
@@ -798,13 +804,14 @@ fun ShuffleButton(size: Dp){
 }
 @Composable
 fun RepeatButton(size: Dp){
+    val mediaController by rememberManagedMediaController()
     Box(modifier = Modifier
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
     {
         Button(
             onClick = {
                 repeatSong.value = !repeatSong.value
-                SongHelper.player.repeatMode =
+                mediaController?.repeatMode =
                     if (repeatSong.value)
                         Player.REPEAT_MODE_ONE
                     else

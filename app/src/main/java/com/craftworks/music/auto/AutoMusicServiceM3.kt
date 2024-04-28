@@ -11,7 +11,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import com.craftworks.music.SongHelper
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
@@ -126,7 +125,6 @@ class AutoLibraryService : MediaLibraryService() {
 //            .build()
 //
 //        player.repeatMode = Player.REPEAT_MODE_ALL
-        player = SongHelper.player
 
         //Fetching music when the service starts
         queryMusic(true)

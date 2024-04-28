@@ -39,7 +39,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -61,7 +60,6 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.craftworks.music.SongHelper.Companion.initPlayer
 import com.craftworks.music.auto.AutoMediaLibraryService
 import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.bottomNavigationItems
@@ -100,14 +98,14 @@ class MainActivity : ComponentActivity() {
             override fun run() {
                 handler.post {
                     try {
-                        if (SongHelper.isSeeking || SongHelper.player.isPlaying || !SongHelper.player.isLoading){
+                        if (!SongHelper.isSeeking){
                             SongHelper.updateCurrentPos()
                         }
 
                         /* SYNCED LYRICS */
                         for (a in 0 until SyncedLyric.size - 1) { //Added 750ms offset
-                            if (SyncedLyric[a].timestamp <= SongHelper.currentPosition + 750 &&
-                                SyncedLyric[a + 1].timestamp >= SongHelper.currentPosition + 750) {
+                            if (SyncedLyric[a].timestamp <= sliderPos.intValue + 750 &&
+                                SyncedLyric[a + 1].timestamp >= sliderPos.intValue + 750) {
 
                                     SyncedLyric[a] = SyncedLyric[a].copy(isCurrentLyric = true)
                                     SyncedLyric.forEachIndexed { index, syncedLyric ->
@@ -242,8 +240,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-
-            PlayPause()
         }
 
         val requestPermissionLauncher =
@@ -270,7 +266,6 @@ class MainActivity : ComponentActivity() {
             }
 
             override fun onActivityStarted(activity: Activity) {
-                initPlayer(this@MainActivity)
             }
 
             override fun onActivityResumed(activity: Activity) {
@@ -295,15 +290,6 @@ class MainActivity : ComponentActivity() {
             }
         })
 
-    }
-}
-
-@Composable
-fun PlayPause() {
-    if (songState && !SongHelper.player.isPlaying) {
-        //SongHelper.player.playWhenReady = true
-    } else {
-        //SongHelper.pauseStream()
     }
 }
 

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
@@ -18,6 +19,7 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import com.craftworks.music.SongHelper
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
@@ -34,8 +36,8 @@ import com.google.common.util.concurrent.ListenableFuture
 class AutoMediaLibraryService : MediaLibraryService() {
 
     //region Vars
-    @UnstableApi
     lateinit var player: ExoPlayer
+
     private var session: MediaLibrarySession? = null
 
     private val rootItem = MediaItem.Builder()
@@ -56,7 +58,7 @@ class AutoMediaLibraryService : MediaLibraryService() {
             MediaMetadata.Builder()
                 .setIsBrowsable(true)
                 .setIsPlayable(false)
-                .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
+                .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
                 .setTitle("Chora - All Songs")
                 .setArtworkUri(
                     Uri.parse("android.resource://com.craftworks.music/drawable/ic_notification_icon")
@@ -70,7 +72,6 @@ class AutoMediaLibraryService : MediaLibraryService() {
 
     //endregion
 
-    @OptIn(UnstableApi::class)
     override fun onCreate() {
         Log.d("AA", "onCreate: Android Auto")
 
@@ -84,15 +85,22 @@ class AutoMediaLibraryService : MediaLibraryService() {
 
     @OptIn(UnstableApi::class)
     fun initializePlayer(){
+
         player = ExoPlayer.Builder(applicationContext)
             .setSeekParameters(SeekParameters.CLOSEST_SYNC)
             .setRenderersFactory(
                 DefaultRenderersFactory(applicationContext).setExtensionRendererMode(
                     DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER /* We prefer extensions, such as FFmpeg */
                 ))
+            .setWakeMode(
+                if (useNavidromeServer.value)
+                    C.WAKE_MODE_NETWORK
+                else
+                    C.WAKE_MODE_LOCAL)
             .setHandleAudioBecomingNoisy(true)
             .setAudioAttributes(AudioAttributes.DEFAULT, true)
             .build()
+
         player.availableCommands.buildUpon()
             .add(Player.COMMAND_SET_SHUFFLE_MODE)
             .add(Player.COMMAND_SET_REPEAT_MODE)
@@ -120,23 +128,32 @@ class AutoMediaLibraryService : MediaLibraryService() {
             override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
                 super.onMediaMetadataChanged(mediaMetadata)
 
-                val extras = mediaMetadata.extras
+//                val extras = mediaMetadata.extras
+//
+//                SongHelper.currentSong = Song(
+//                    title = mediaMetadata.title.toString(),
+//                    artist = mediaMetadata.artist.toString(),
+//                    duration = extras?.getInt("duration") ?: 0,
+//                    imageUrl = Uri.parse(mediaMetadata.artworkUri.toString()),
+//                    year = mediaMetadata.releaseYear.toString(),
+//                    album = mediaMetadata.albumTitle.toString(),
+//                    format = extras?.getString("MoreInfo"),
+//                    navidromeID = extras?.getString("NavidromeID"),
+//                    isRadio = extras?.getBoolean("isRadio")
+//                )
+//                println("imageURL: ${player.mediaMetadata.artworkUri}, duration: ${extras?.getInt("duration")}")
+//                println(SongHelper.currentSong)
 
-                SongHelper.currentSong = Song(
-                    title = mediaMetadata.title.toString(),
-                    artist = mediaMetadata.artist.toString(),
-                    duration = extras?.getInt("duration") ?: 0,
-                    imageUrl = Uri.parse(player.mediaMetadata.artworkUri.toString()),
-                    year = mediaMetadata.releaseYear.toString(),
-                    album = mediaMetadata.albumTitle.toString(),
-                    format = extras?.getString("MoreInfo"),
-                    navidromeID = extras?.getString("NavidromeID"),
-                    isRadio = extras?.getBoolean("isRadio")
-                )
-                println(SongHelper.currentSong)
+                try {
+                    SongHelper.currentSong = SongHelper.currentList[SongHelper.currentList.indexOfFirst { it.media.toString() == player.currentMediaItem?.mediaId }]
+                }
+                catch (e: IndexOutOfBoundsException){
+                    Log.d("AA", "Empty Song, Invalid Index")
+                }
+
+
                 if (SongHelper.currentSong.isRadio == false)
                     getLyrics()
-
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -145,18 +162,16 @@ class AutoMediaLibraryService : MediaLibraryService() {
             }
         })
 
-        Log.d("AA", "Initialized Player: $player")
-
         session = MediaLibrarySession.Builder(this, player, LibrarySessionCallback()).setId("AutoSession").build()
 
-        //player.setMediaItems(addMediaItems(true))
+        Log.d("AA", "Initialized Player: $player")
+
+        player.setMediaItems(addMediaItems(songsList))
     }
 
-    fun addMediaItems(initial: Boolean = false): List<MediaItem>{
-
-        if (!initial) return listOf()
-
-        for (song in SongHelper.currentList) {
+    fun addMediaItems(currentList:List<Song>): List<MediaItem> {
+        tracklist.clear()
+        for (song in currentList) {
             val mediaMetadata = MediaMetadata.Builder()
                 .setTitle(song.title)
                 .setArtist(song.artist)
@@ -184,7 +199,10 @@ class AutoMediaLibraryService : MediaLibraryService() {
         println("tracklist items: $tracklist")
         Log.d("AA", "Added Songs To Android Auto!")
 
-        session?.notifyChildrenChanged("nodeTRACKLIST", tracklist.size, null)
+        session?.connectedControllers?.forEach {
+            (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", tracklist.size, /* params= */ null)
+        }
+
         return tracklist
     }
 
@@ -202,7 +220,10 @@ class AutoMediaLibraryService : MediaLibraryService() {
             startPositionMs: Long
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
             val newItems = mediaItems.map {
-                it.buildUpon().setUri(it.mediaId).build()
+                it.buildUpon()
+                    .setUri(it.mediaId)
+                    .setMediaMetadata(it.mediaMetadata)
+                    .build()
             }.toMutableList()
 
             return super.onSetMediaItems(

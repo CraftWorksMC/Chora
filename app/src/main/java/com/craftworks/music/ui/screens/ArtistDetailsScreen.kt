@@ -61,6 +61,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.SongHelper
+import com.craftworks.music.auto.rememberManagedMediaController
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
@@ -82,6 +83,8 @@ import java.net.URL
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ArtistDetails(navHostController: NavHostController = rememberNavController()) {
+
+    val mediaController by rememberManagedMediaController()
 
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
@@ -213,7 +216,7 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
             Button(
                 onClick = {
                     shuffleSongs.value = true
-                    SongHelper.player.shuffleModeEnabled = true
+                    mediaController?.shuffleModeEnabled = true
 
                     val random = artistSongs.indices.random()
                     SongHelper.currentSong = artistSongs[random]
