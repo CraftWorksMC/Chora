@@ -67,7 +67,7 @@ fun SongsScreen() {
                 SongHelper.currentSong = song
                 SongHelper.currentList = allSongsList
                 //songState = true
-                song.media?.let { SongHelper.playStream(context = context, url = it) } })
+                song.media?.let { SongHelper.playStream(context, it) } })
         }
     }
 

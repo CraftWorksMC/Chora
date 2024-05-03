@@ -6,9 +6,12 @@ import android.content.Context
 import android.database.Cursor
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Artist
 import com.craftworks.music.data.Song
@@ -17,6 +20,7 @@ import com.craftworks.music.data.artistList
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.songsList
+import com.craftworks.music.data.tracklist
 import java.io.FileNotFoundException
 
 fun getSongsOnDevice(context: Context){
@@ -87,6 +91,33 @@ fun getSongsOnDevice(context: Context){
                 if (!songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
                     songsList.add(song);
                 }
+
+                //region Add MediaItem to Tracklist.
+                val mediaMetadata = MediaMetadata.Builder()
+                    .setIsPlayable(true)
+                    .setIsBrowsable(false)
+                    .setTitle(thisTitle)
+                    .setArtist(thisArtist)
+                    .setAlbumTitle(thisAlbum)
+                    .setArtworkUri(imageUri)
+                    //.setReleaseYear(thisYear.toIntOrNull() ?: 0)
+                    .setExtras(Bundle().apply {
+                        putInt("duration", thisDuration)
+                        putString("MoreInfo", "$thisFormat • $thisBitrate")
+                        putString("NavidromeID", "Local")
+                        putBoolean("isRadio", false)
+                    })
+                    .build()
+
+                val mediaItem = MediaItem.Builder()
+                    .setMediaId(contentUri.toString())
+                    .setMediaMetadata(mediaMetadata)
+                    .setUri(contentUri)
+                    .build()
+
+                tracklist.add(mediaItem)
+                Log.d("Tracklist", "MediaID: ${mediaItem.mediaId}, MediaURI: $contentUri")
+                //endregion
 
                 // Add songs to album
                 val album = Album(

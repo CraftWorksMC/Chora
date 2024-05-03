@@ -1,7 +1,7 @@
 package com.craftworks.music.auto
 
+import android.content.Intent
 import android.net.Uri
-import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
@@ -18,8 +18,7 @@ import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import com.craftworks.music.SongHelper
-import com.craftworks.music.data.Song
-import com.craftworks.music.data.songsList
+import com.craftworks.music.data.tracklist
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
@@ -38,7 +37,7 @@ class AutoMediaLibraryService : MediaLibraryService() {
     //region Vars
     lateinit var player: ExoPlayer
 
-    private var session: MediaLibrarySession? = null
+    var session: MediaLibrarySession? = null
 
     private val rootItem = MediaItem.Builder()
         .setMediaId("nodeROOT")
@@ -68,7 +67,7 @@ class AutoMediaLibraryService : MediaLibraryService() {
         .build()
 
     private val rootHierarchy = listOf(subrootTracklistItem)
-    val tracklist = mutableListOf<MediaItem>()
+
 
     //endregion
 
@@ -106,7 +105,7 @@ class AutoMediaLibraryService : MediaLibraryService() {
             .add(Player.COMMAND_SET_REPEAT_MODE)
             .build()
 
-        player.repeatMode = Player.REPEAT_MODE_ALL
+        player.repeatMode = Player.REPEAT_MODE_OFF
         player.shuffleModeEnabled = false
 
         player.addListener(object : Player.Listener {
@@ -166,35 +165,10 @@ class AutoMediaLibraryService : MediaLibraryService() {
 
         Log.d("AA", "Initialized Player: $player")
 
-        player.setMediaItems(addMediaItems(songsList))
+        //player.setMediaItems(addMediaItems())
     }
 
-    fun addMediaItems(currentList:List<Song>): List<MediaItem> {
-        tracklist.clear()
-        for (song in currentList) {
-            val mediaMetadata = MediaMetadata.Builder()
-                .setTitle(song.title)
-                .setArtist(song.artist)
-                .setAlbumTitle(song.album)
-                .setArtworkUri(song.imageUrl)
-                .setReleaseYear(song.year?.toIntOrNull() ?: 0)
-                .setExtras(Bundle().apply {
-                    putInt("duration", song.duration)
-                    putString("MoreInfo", "${song.format} • ${song.bitrate}")
-                    putString("NavidromeID", song.navidromeID)
-                    putBoolean("isRadio", false)
-                })
-                .setIsBrowsable(false)
-                .setIsPlayable(true)
-                .build()
-            tracklist.add(
-                MediaItem.Builder()
-                    .setMediaMetadata(mediaMetadata)
-                    .setMediaId(song.media.toString())
-                    .setUri(song.media.toString())
-                    .build()
-            )
-        }
+    fun addMediaItems() {
         println("tracklist size: ${tracklist.size}")
         println("tracklist items: $tracklist")
         Log.d("AA", "Added Songs To Android Auto!")
@@ -202,8 +176,14 @@ class AutoMediaLibraryService : MediaLibraryService() {
         session?.connectedControllers?.forEach {
             (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", tracklist.size, /* params= */ null)
         }
+    }
 
-        return tracklist
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        // Check if the player is not ready to play or there are no items in the media queue
+        if (!player.playWhenReady || player.mediaItemCount == 0) {
+            // Stop the service
+            stopSelf()
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
@@ -219,12 +199,18 @@ class AutoMediaLibraryService : MediaLibraryService() {
             startIndex: Int,
             startPositionMs: Long
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-            val newItems = mediaItems.map {
-                it.buildUpon()
-                    .setUri(it.mediaId)
-                    .setMediaMetadata(it.mediaMetadata)
+            val newItems = mutableListOf<MediaItem>()
+            for (item in mediaItems) {
+                val newItem = item.buildUpon()
+                    .setUri(item.mediaId)
+                    .setMediaMetadata(item.mediaMetadata)
                     .build()
-            }.toMutableList()
+                newItems.add(newItem)
+            }
+
+            session?.connectedControllers?.forEach {
+                (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", newItems.size, /* params= */ null)
+            }
 
             return super.onSetMediaItems(
                 mediaSession,
@@ -233,6 +219,23 @@ class AutoMediaLibraryService : MediaLibraryService() {
                 startIndex,
                 startPositionMs
             )
+        }
+
+        @OptIn(UnstableApi::class)
+        override fun onPlaybackResumption(
+            mediaSession: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+            println("onPlaybackResumption")
+            // Create a list of media items to be played
+            // Create a MediaItemsWithStartPosition object with the media items and starting position
+
+            val mediaItemsWithStartPosition = MediaSession.MediaItemsWithStartPosition(tracklist, 0,0)
+            session?.connectedControllers?.forEach {
+                (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", tracklist.size, /* params= */ null)
+            }
+
+            return Futures.immediateFuture(mediaItemsWithStartPosition)
         }
 
         override fun onGetLibraryRoot(
@@ -277,12 +280,11 @@ class AutoMediaLibraryService : MediaLibraryService() {
             )
             return Futures.immediateFuture(LibraryResult.ofVoid()) //super.onSubscribe(session, browser, parentId, params)
         }
-
     }
 
     override fun onDestroy() {
         session?.run {
-            //SongHelper.releasePlayer()
+            player.release()
             release()
             session = null
         }

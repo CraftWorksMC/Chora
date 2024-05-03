@@ -18,6 +18,7 @@ Sorry for the recent lack of updates, school is taking a lot of my time. hopeful
 - Android Auto.
 ## In Progress
 
+- Complete Backend Rewrite...
 - Fixing Crashes.
 ## Roadmap
 

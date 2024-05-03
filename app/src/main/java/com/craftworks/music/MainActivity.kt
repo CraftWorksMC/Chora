@@ -89,7 +89,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         val serviceIntent = Intent(applicationContext, AutoMediaLibraryService::class.java)
-        applicationContext.startService(serviceIntent)
+        applicationContext.startForegroundService(serviceIntent)
 
         super.onCreate(savedInstanceState)
 
@@ -98,9 +98,7 @@ class MainActivity : ComponentActivity() {
             override fun run() {
                 handler.post {
                     try {
-                        if (!SongHelper.isSeeking){
-                            SongHelper.updateCurrentPos()
-                        }
+                        SongHelper.updateCurrentPos()
 
                         /* SYNCED LYRICS */
                         for (a in 0 until SyncedLyric.size - 1) { //Added 750ms offset

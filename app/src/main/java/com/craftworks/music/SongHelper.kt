@@ -11,6 +11,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.auto.AutoMediaLibraryService
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.tracklist
 import com.craftworks.music.lyrics.getLyrics
 
 class SongHelper {
@@ -39,18 +40,22 @@ class SongHelper {
                 mediaController.stop()
             }
 
+            //mediaController?.clearMediaItems()
+
             // Start From 0
             sliderPos.intValue = 0
 
-            val index = currentList.indexOfFirst { it.media == url }
-            val mediaItems = AutoMediaLibraryService().addMediaItems(currentList)
+            val index = tracklist.indexOfFirst { it.mediaId == url.toString() }
 
-            mediaController?.setMediaItems(mediaItems, index, 0)
+            mediaController?.setMediaItems(tracklist, index, 0)
 
+            AutoMediaLibraryService().addMediaItems()
+
+            //mediaController?.seekToDefaultPosition(index)
             mediaController?.prepare()
-            mediaController?.playWhenReady = true
+            mediaController?.play()
 
-            println("Index: $index, playlist size: ${mediaController?.mediaItemCount}")
+            println("Index: $index, playlist size: ${mediaController?.mediaItemCount}, timeline items: ${mediaController?.currentTimeline?.periodCount}")
 
             if (isRadio == false)
                 getLyrics()
