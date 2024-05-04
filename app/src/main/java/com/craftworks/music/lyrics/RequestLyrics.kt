@@ -1,6 +1,7 @@
 package com.craftworks.music.lyrics
 
-import com.craftworks.music.SongHelper
+import android.util.Log
+import com.craftworks.music.player.SongHelper
 import com.craftworks.music.data.Lyric
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.SyncedLyric
@@ -11,7 +12,7 @@ import java.net.URL
 private var isGetLyricsRunning = false
 
 fun getLyrics(){
-    println("is lyrics running? $isGetLyricsRunning")
+    Log.d("LYRICS", "is lyrics running? $isGetLyricsRunning")
 
     if (isGetLyricsRunning)
         return
@@ -67,7 +68,7 @@ fun getLyrics(){
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
-            println("Reset isGetLyricsRunning")
+            Log.d("LYRICS", "Reset isGetLyricsRunning")
             isGetLyricsRunning = false
         }
 

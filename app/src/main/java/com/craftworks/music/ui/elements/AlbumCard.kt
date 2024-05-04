@@ -36,7 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.SongHelper
+import com.craftworks.music.player.SongHelper
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.songsList
 

@@ -98,7 +98,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                         stringResource(R.string.Source_Local),
                         stringResource(R.string.Source_Navidrome)
                     )
-                    var selectedOptionText by remember { mutableStateOf(options[1]) }
+                    var selectedOptionText by remember { mutableStateOf(options[0]) }
 
                     ExposedDropdownMenuBox(
                         expanded = expanded,

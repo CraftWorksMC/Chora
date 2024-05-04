@@ -74,7 +74,6 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
 
     // handle back presses
     BackHandler(true) {
-        println("Called BackHandler")
         navHostController.navigate(Screen.Home.route) {
             launchSingleTop = true
         }
@@ -179,7 +178,6 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         navHostController.navigate(Screen.S_Providers.route) {
                             launchSingleTop = true
                         }
-                        println("Navigated To Providers Route")
                     },
                     verticalAlignment = Alignment.CenterVertically
                 ){
@@ -216,7 +214,6 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         navHostController.navigate(Screen.S_Playback.route) {
                             launchSingleTop = true
                         }
-                        println("Navigated To Playback Route")
                     },
                     verticalAlignment = Alignment.CenterVertically
                 ){

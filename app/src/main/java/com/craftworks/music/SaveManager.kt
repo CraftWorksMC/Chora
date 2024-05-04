@@ -112,7 +112,7 @@ class saveManager(private val context: Context){
     //endregion
 
     fun loadSettings() {
-        println("LOADING SETTINGS!")
+        Log.d("LOAD", "Started Loading Settings!")
 
         loadPreferences()
 
@@ -153,12 +153,16 @@ class saveManager(private val context: Context){
     //region Load Single Components
 
     private fun loadPreferences(){
+        Log.d("LOAD", "Loading Preferences")
+
         username.value = sharedPreferences.getString("username", "Username") ?: "Username"
         backgroundType.value = sharedPreferences.getString("backgroundType", "Animated Blur") ?: "Animated Blur"
         showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
         transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
     }
     private fun loadBottomNavItems(){
+        Log.d("LOAD", "Loading Bottom Nav Items")
+
         // Get Artists List
         val bottomNavItemsString = (sharedPreferences.getString("bottomNavItems", "") ?: "").split(";")
         bottomNavItemsString.forEach { bottomNavItem ->
@@ -181,7 +185,7 @@ class saveManager(private val context: Context){
         }
     }
     private fun loadNavidromeProviders(){
-        println("Loading Navidrome Providers From Local Storage")
+        Log.d("LOAD", "Loading Navidrome Providers")
 
         useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
 
@@ -192,13 +196,13 @@ class saveManager(private val context: Context){
                 val navidromeProvider = NavidromeProvider(parts[0], parts[1], parts[2])
                 if (navidromeServersList.contains(navidromeProvider)) return
                 navidromeServersList.add(navidromeProvider)
-                println(navidromeProvider)
             }
         }
         selectedNavidromeServerIndex.intValue = sharedPreferences.getInt("activeNavidromeServer", 0)
     }
     private fun loadLocalProviders(){
-        println("Loading Local Providers From Local Storage")
+        Log.d("LOAD", "Loading Local Providers")
+
         // Get Local Providers List
         val localListStrings = (sharedPreferences.getString("localProviderList", "") ?: "").split(";")
         localListStrings.forEach { localString ->
@@ -207,13 +211,12 @@ class saveManager(private val context: Context){
                 val localProvider = LocalProvider(parts[0], parts[1].toBoolean())
                 if (localProviderList.contains(localProvider)) return
                 localProviderList.add(localProvider)
-                println(localProvider)
             }
         }
         selectedLocalProvider.intValue = sharedPreferences.getInt("activeLocalProvider", 0)
     }
     private fun loadArtists(){
-        println("Loading Artists From Local Storage")
+        Log.d("LOAD", "Loading Cached Artists")
 
         // Get Artists List
         val artistListStrings = (sharedPreferences.getString("artistsList", "") ?: "").split(";")
@@ -245,7 +248,7 @@ class saveManager(private val context: Context){
         }
     }
     fun loadRadios(){
-        println("Loading Radios From Local Storage")
+        Log.d("LOAD", "Loading Radios")
 
         // Get Radios List
         val radioListStrings = (sharedPreferences.getString("radioList", "") ?: "").split(";")
@@ -265,7 +268,8 @@ class saveManager(private val context: Context){
         }
     }
     fun loadPlaylists(){
-        println("Loading Playlists")
+        Log.d("LOAD", "Loading Offline Playlists")
+
         // Get Local Playlists
         val localPlaylistStrings = (sharedPreferences.getString("localPlaylistList", "") ?: "").split(";")
         localPlaylistStrings.forEach { localString ->

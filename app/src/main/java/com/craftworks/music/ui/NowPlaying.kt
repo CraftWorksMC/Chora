@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -102,8 +103,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.SongHelper
-import com.craftworks.music.auto.rememberManagedMediaController
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.SyncedLyric
@@ -172,7 +173,9 @@ fun NowPlayingContent(
 
         // Update Song Bitmap
         LaunchedEffect(SongHelper.currentSong) {
-            println("Getting Cover Art Bitmap")
+
+            if (SongHelper.currentSong.imageUrl == Uri.EMPTY) return@LaunchedEffect
+
             bitmap.value =
                 if (SongHelper.currentSong.navidromeID != "Local" &&
                     navidromeServersList.isNotEmpty() &&
@@ -181,6 +184,7 @@ fun NowPlayingContent(
                     getNavidromeBitmap(context)
                 else //Don't crash if there's no album art!
                     try {
+                        Log.d("LOCAL", "Getting Local Cover Art Bitmap")
                         ImageDecoder.decodeBitmap(
                             ImageDecoder.createSource(
                                 context.contentResolver,

@@ -48,7 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.SongHelper.Companion.minPercentageScrobble
+import com.craftworks.music.player.SongHelper.Companion.minPercentageScrobble
 import com.craftworks.music.data.Screen
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.dialogs.TranscodingDialog

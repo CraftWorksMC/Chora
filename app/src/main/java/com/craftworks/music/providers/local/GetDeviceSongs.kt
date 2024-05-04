@@ -100,7 +100,7 @@ fun getSongsOnDevice(context: Context){
                     .setArtist(thisArtist)
                     .setAlbumTitle(thisAlbum)
                     .setArtworkUri(imageUri)
-                    //.setReleaseYear(thisYear.toIntOrNull() ?: 0)
+                    //.setReleaseYear(thisYear.toInt() ?: 2024)
                     .setExtras(Bundle().apply {
                         putInt("duration", thisDuration)
                         putString("MoreInfo", "$thisFormat • $thisBitrate")
@@ -115,8 +115,8 @@ fun getSongsOnDevice(context: Context){
                     .setUri(contentUri)
                     .build()
 
-                tracklist.add(mediaItem)
-                Log.d("Tracklist", "MediaID: ${mediaItem.mediaId}, MediaURI: $contentUri")
+                if (!tracklist.contains(mediaItem))
+                    tracklist.add(mediaItem)
                 //endregion
 
                 // Add songs to album

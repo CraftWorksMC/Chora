@@ -51,8 +51,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.SongHelper
-import com.craftworks.music.auto.rememberManagedMediaController
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.artistList
@@ -81,7 +81,6 @@ fun NowPlayingPortraitCover (
     val textFadingEdge = Brush.horizontalGradient(0.85f to Color.Red, 1f to Color.Transparent)
 
     Column(modifier = Modifier.heightIn(min=420.dp)) {
-        println("Recomposing Image + Text")
         /* Album Cover */
         Box(modifier = Modifier
             .heightIn(min = 320.dp)
@@ -186,7 +185,7 @@ fun NowPlayingPortraitCover (
             }
 
             if (showMoreInfo.value) {
-                SongHelper.currentSong.format.let {format ->
+                SongHelper.currentSong.format.let { format ->
                     Text(
                         text = "${format.toString()} • ${
                             if (SongHelper.currentSong.navidromeID == "Local")
@@ -286,7 +285,7 @@ fun NowPlayingLandscape(
                     )
                 }
                 if (showMoreInfo.value) {
-                    SongHelper.currentSong.format.let {format ->
+                    SongHelper.currentSong.format.let { format ->
                         Text(
                             text = format.toString(),
                             style = MaterialTheme.typography.titleMedium,

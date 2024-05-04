@@ -2,7 +2,7 @@ package com.craftworks.music.providers.navidrome
 
 import android.os.Environment
 import androidx.compose.material3.SnackbarHostState
-import com.craftworks.music.SongHelper
+import com.craftworks.music.player.SongHelper
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.useNavidromeServer

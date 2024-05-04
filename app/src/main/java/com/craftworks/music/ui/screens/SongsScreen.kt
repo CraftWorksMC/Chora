@@ -13,6 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -24,9 +25,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
-import com.craftworks.music.SongHelper
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
+import com.craftworks.music.data.tracklist
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
@@ -35,12 +38,15 @@ import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SongsScreen() {
+    val mediaController by rememberManagedMediaController()
+
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val context = LocalContext.current
     /* SONGS ICON + TEXT */
     Column(modifier = Modifier
         .fillMaxWidth()
-        .padding(start = leftPadding,
+        .padding(
+            start = leftPadding,
             top = WindowInsets.statusBars
                 .asPaddingValues()
                 .calculateTopPadding()
@@ -64,10 +70,10 @@ fun SongsScreen() {
             val allSongsList = songsList.sortedBy { song: Song -> song.title }
 
             SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->
-                SongHelper.currentSong = song
-                SongHelper.currentList = allSongsList
+                //SongHelper.currentSong = song
+                SongHelper.currentTracklist = tracklist
                 //songState = true
-                song.media?.let { SongHelper.playStream(context, it) } })
+                song.media?.let { SongHelper.playStream(context, it, false, mediaController) } })
         }
     }
 

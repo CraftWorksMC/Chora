@@ -54,7 +54,7 @@
 
         <!-- why is this so hard -->
         <service
-            android:name=".auto.AutoMediaLibraryService"
+            android:name=".player.ChoraMediaLibraryService"
             android:foregroundServiceType="mediaPlayback"
             android:exported="true"
             android:permission="android.permission.FOREGROUND_SERVICE">

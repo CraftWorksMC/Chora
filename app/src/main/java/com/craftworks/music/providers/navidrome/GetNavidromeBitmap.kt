@@ -4,10 +4,11 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
+import android.util.Log
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
-import com.craftworks.music.SongHelper
+import com.craftworks.music.player.SongHelper
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 
@@ -24,7 +25,7 @@ suspend fun getNavidromeBitmap(context: Context): Bitmap {
             Bitmap.Config.ARGB_8888
         )
 
-        println("Getting Navidrome Bitmap")
+        Log.d("NAVIDROME", "Getting Navidrome Cover Art Bitmap!")
 
         val loading = ImageLoader(context)
         val request = ImageRequest.Builder(context)

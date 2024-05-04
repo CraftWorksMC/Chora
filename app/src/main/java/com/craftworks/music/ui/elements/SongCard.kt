@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Song
@@ -56,18 +57,18 @@ import com.craftworks.music.ui.screens.showRadioModifyDialog
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SongsCard(song: Song, onClick: () -> Unit){
+fun SongsCard(song: MediaItem, onClick: () -> Unit){
                 Card(
                     modifier = Modifier
                         .padding(12.dp, 48.dp, 0.dp, 0.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .combinedClickable(
-                            onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
+                            onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.mediaMetadata.title) },
                             onLongClick = {
-                                if (song.isRadio == false) return@combinedClickable
+                                if (song.mediaMetadata.extras?.getBoolean("isRadio") == false) return@combinedClickable
                                 showRadioModifyDialog.value = true
                                 selectedRadioIndex.intValue =
-                                    radioList.indexOf(radioList.firstOrNull { it.name == song.artist && it.media == song.media })
+                                    radioList.indexOf(radioList.firstOrNull { it.name == song.mediaMetadata.artist && it.media.toString() == song.mediaId })
                             },
                             onLongClickLabel = "Modify Radio"
                         ),
@@ -87,9 +88,9 @@ fun SongsCard(song: Song, onClick: () -> Unit){
 
                         AsyncImage(
                             model =
-                            if (song.imageUrl == Uri.EMPTY && song.isRadio == true)
+                            if (song.mediaMetadata.artworkUri == Uri.EMPTY && song.mediaMetadata.extras?.getBoolean("isRadio") == true)
                                 R.drawable.rounded_cell_tower_24
-                            else song.imageUrl,
+                            else song.mediaMetadata.artworkUri,
                             placeholder = painterResource(R.drawable.placeholder),
                             fallback = painterResource(R.drawable.placeholder),
                             contentScale = ContentScale.FillHeight,
@@ -104,7 +105,7 @@ fun SongsCard(song: Song, onClick: () -> Unit){
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Text(
-                            text = song.title,
+                            text = song.mediaMetadata.title.toString(),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onBackground,
@@ -114,7 +115,7 @@ fun SongsCard(song: Song, onClick: () -> Unit){
                         )
 
                         Text(
-                            text = song.artist,
+                            text = song.mediaMetadata.artist.toString(),
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Normal,
                             color = MaterialTheme.colorScheme.onBackground.copy(0.75f),

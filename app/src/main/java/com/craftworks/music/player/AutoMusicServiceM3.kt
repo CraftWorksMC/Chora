@@ -1,4 +1,4 @@
-package com.craftworks.music.auto
+package com.craftworks.music.player
 
 import android.net.Uri
 import android.util.Log

@@ -1,4 +1,4 @@
-package com.craftworks.music.auto
+package com.craftworks.music.player
 
 import android.content.Intent
 import android.net.Uri
@@ -11,13 +11,11 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import com.craftworks.music.SongHelper
 import com.craftworks.music.data.tracklist
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.lyrics.getLyrics
@@ -32,11 +30,10 @@ import com.google.common.util.concurrent.ListenableFuture
     https://stackoverflow.com/questions/76838126/can-i-define-a-medialibraryservice-without-an-app
 */
 
-class AutoMediaLibraryService : MediaLibraryService() {
+class ChoraMediaLibraryService : MediaLibraryService() {
 
     //region Vars
     lateinit var player: ExoPlayer
-
     var session: MediaLibrarySession? = null
 
     private val rootItem = MediaItem.Builder()
@@ -65,9 +62,7 @@ class AutoMediaLibraryService : MediaLibraryService() {
                 .build()
         )
         .build()
-
     private val rootHierarchy = listOf(subrootTracklistItem)
-
 
     //endregion
 
@@ -87,10 +82,10 @@ class AutoMediaLibraryService : MediaLibraryService() {
 
         player = ExoPlayer.Builder(applicationContext)
             .setSeekParameters(SeekParameters.CLOSEST_SYNC)
-            .setRenderersFactory(
-                DefaultRenderersFactory(applicationContext).setExtensionRendererMode(
-                    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER /* We prefer extensions, such as FFmpeg */
-                ))
+//            .setRenderersFactory(
+//                DefaultRenderersFactory(applicationContext).setExtensionRendererMode(
+//                    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER /* We prefer extensions, such as FFmpeg */
+//                ))
             .setWakeMode(
                 if (useNavidromeServer.value)
                     C.WAKE_MODE_NETWORK
@@ -160,22 +155,20 @@ class AutoMediaLibraryService : MediaLibraryService() {
                 Log.e("PLAYER", error.stackTraceToString())
             }
         })
+        player.setPlaybackSpeed(1f) //Avoid negative speed error.
 
         session = MediaLibrarySession.Builder(this, player, LibrarySessionCallback()).setId("AutoSession").build()
 
-        Log.d("AA", "Initialized Player: $player")
+        Log.d("AA", "Initialized MediaLibraryService.")
 
         //player.setMediaItems(addMediaItems())
     }
 
-    fun addMediaItems() {
-        println("tracklist size: ${tracklist.size}")
-        println("tracklist items: $tracklist")
-        Log.d("AA", "Added Songs To Android Auto!")
-
+    fun notifyNewSessionItems() {
         session?.connectedControllers?.forEach {
-            (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", tracklist.size, /* params= */ null)
+            (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", SongHelper.currentTracklist.size, null)
         }
+        Log.d("AA", "Notified MediaLibrarySession with new tracklist. (Length: ${SongHelper.currentTracklist.size})")
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -191,46 +184,70 @@ class AutoMediaLibraryService : MediaLibraryService() {
     }
 
     private inner class LibrarySessionCallback : MediaLibrarySession.Callback {
-        @UnstableApi
-        override fun onSetMediaItems(
-            mediaSession: MediaSession,
-            controller: MediaSession.ControllerInfo,
-            mediaItems: MutableList<MediaItem>,
-            startIndex: Int,
-            startPositionMs: Long
-        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-            val newItems = mutableListOf<MediaItem>()
-            for (item in mediaItems) {
-                val newItem = item.buildUpon()
-                    .setUri(item.mediaId)
-                    .setMediaMetadata(item.mediaMetadata)
-                    .build()
-                newItems.add(newItem)
-            }
-
-            session?.connectedControllers?.forEach {
-                (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", newItems.size, /* params= */ null)
-            }
-
-            return super.onSetMediaItems(
-                mediaSession,
-                controller,
-                newItems,
-                startIndex,
-                startPositionMs
-            )
-        }
+//        @UnstableApi
+//        override fun onSetMediaItems(
+//            mediaSession: MediaSession,
+//            controller: MediaSession.ControllerInfo,
+//            mediaItems: MutableList<MediaItem>,
+//            startIndex: Int,
+//            startPositionMs: Long
+//        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+//
+//            val newItems = mutableListOf<MediaItem>()
+//
+//            for (item in tracklist) {
+//                val newItem = item.buildUpon()
+//                    .setUri(item.mediaId)
+//                    .setMediaMetadata(item.mediaMetadata)
+//                    .build()
+//                newItems.add(newItem)
+//            }
+//            Log.d("AA", "onSetMediaItems: oldItems: ${mediaItems.size} |newItems: ${newItems.size}")
+//            session?.connectedControllers?.forEach {
+//                (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", newItems.size, /* params= */ null)
+//            }
+//
+//            return super.onSetMediaItems(
+//                mediaSession,
+//                controller,
+//                newItems,
+//                startIndex,
+//                startPositionMs
+//            )
+//        }
+//        override fun onAddMediaItems(
+//            mediaSession: MediaSession,
+//            controller: MediaSession.ControllerInfo,
+//            mediaItems: MutableList<MediaItem>
+//        ): ListenableFuture<MutableList<MediaItem>> {
+//            println("ONADDMEDIAITEMS: ${mediaItems.size}")
+//            val newItems = mutableListOf<MediaItem>()
+//
+//            for (item in mediaItems){
+//                val newItem = item.buildUpon()
+//                    .setUri(item.mediaId)
+//                    .setMediaMetadata(item.mediaMetadata)
+//                    .build()
+//                newItems.add(newItem)
+//            }
+//
+//            return super.onAddMediaItems(mediaSession, controller, newItems)
+//        }
 
         @OptIn(UnstableApi::class)
         override fun onPlaybackResumption(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-            println("onPlaybackResumption")
+            Log.d("AA", "onPlaybackResumption")
             // Create a list of media items to be played
             // Create a MediaItemsWithStartPosition object with the media items and starting position
 
-            val mediaItemsWithStartPosition = MediaSession.MediaItemsWithStartPosition(tracklist, 0,0)
+            //val index = tracklist.indexOf(mediaSession.player.currentMediaItem)
+            val index = SongHelper.currentTrackIndex.intValue
+            Log.d("AA", "Player Index: $index")
+
+            val mediaItemsWithStartPosition = MediaSession.MediaItemsWithStartPosition(tracklist, index,0)
             session?.connectedControllers?.forEach {
                 (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", tracklist.size, /* params= */ null)
             }

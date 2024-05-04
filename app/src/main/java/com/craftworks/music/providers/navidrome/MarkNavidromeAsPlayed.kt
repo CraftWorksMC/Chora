@@ -1,6 +1,6 @@
 package com.craftworks.music.providers.navidrome
 
-import com.craftworks.music.SongHelper
+import com.craftworks.music.player.SongHelper
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex

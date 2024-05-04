@@ -1,4 +1,4 @@
-@file:OptIn(UnstableApi::class) package com.craftworks.music
+@file:OptIn(UnstableApi::class) package com.craftworks.music.player
 
 import android.content.Context
 import android.net.Uri
@@ -7,12 +7,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
-import com.craftworks.music.auto.AutoMediaLibraryService
+import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.songsList
 import com.craftworks.music.data.tracklist
 import com.craftworks.music.lyrics.getLyrics
+import com.craftworks.music.sliderPos
 
 class SongHelper {
     companion object{
@@ -32,37 +35,39 @@ class SongHelper {
                 album = ""))
 
         var currentList:List<Song> = emptyList()
+        var currentTracklist:List<MediaItem> = emptyList()
+
+        var currentTrackIndex = mutableIntStateOf(0)
 
         var minPercentageScrobble = mutableIntStateOf(75)
 
         fun playStream(context: Context, url: Uri, isRadio: Boolean ? = false, mediaController: MediaController? = null) {
+
+            //if (currentTracklist.isEmpty()) return
+
             if (mediaController?.isPlaying == true){
                 mediaController.stop()
             }
-
-            //mediaController?.clearMediaItems()
-
-            // Start From 0
             sliderPos.intValue = 0
 
-            val index = tracklist.indexOfFirst { it.mediaId == url.toString() }
+            currentTrackIndex.intValue = tracklist.indexOfFirst { it.mediaId == url.toString() }
+            currentSong = songsList[currentTrackIndex.intValue]
 
-            mediaController?.setMediaItems(tracklist, index, 0)
+            mediaController?.setMediaItems(tracklist)
 
-            AutoMediaLibraryService().addMediaItems()
+            ChoraMediaLibraryService().notifyNewSessionItems()
 
-            //mediaController?.seekToDefaultPosition(index)
             mediaController?.prepare()
             mediaController?.play()
 
-            println("Index: $index, playlist size: ${mediaController?.mediaItemCount}, timeline items: ${mediaController?.currentTimeline?.periodCount}")
+            println("Index: ${currentTrackIndex.intValue}, playlist size: ${mediaController?.mediaItemCount}")
 
             if (isRadio == false)
                 getLyrics()
         }
 
         fun updateCurrentPos(){
-            sliderPos.intValue = AutoMediaLibraryService().player.currentPosition.toInt()
+            sliderPos.intValue = ChoraMediaLibraryService().player.currentPosition.toInt()
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.craftworks.music.providers
 
-import com.craftworks.music.SongHelper
+import com.craftworks.music.player.SongHelper
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader

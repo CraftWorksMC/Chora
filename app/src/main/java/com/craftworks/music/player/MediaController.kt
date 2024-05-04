@@ -1,4 +1,4 @@
-package com.craftworks.music.auto
+package com.craftworks.music.player
 
 import android.content.ComponentName
 import android.content.Context
@@ -42,7 +42,7 @@ internal class MediaControllerManager private constructor(context: Context) : Re
         if (factory == null || factory?.isDone == true) {
             factory = MediaController.Builder(
                 appContext,
-                SessionToken(appContext, ComponentName(appContext, AutoMediaLibraryService::class.java))
+                SessionToken(appContext, ComponentName(appContext, ChoraMediaLibraryService::class.java))
             ).buildAsync()
         }
         factory?.addListener(

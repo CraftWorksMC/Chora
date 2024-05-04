@@ -41,7 +41,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.SongHelper
+import com.craftworks.music.player.SongHelper
 import com.craftworks.music.data.Screen
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.ui.elements.BottomSpacer

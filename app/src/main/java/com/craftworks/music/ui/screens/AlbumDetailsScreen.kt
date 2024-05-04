@@ -56,8 +56,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.SongHelper
-import com.craftworks.music.auto.rememberManagedMediaController
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.artistList

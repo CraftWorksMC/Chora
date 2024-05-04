@@ -60,9 +60,10 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.craftworks.music.auto.AutoMediaLibraryService
+import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.bottomNavigationItems
+import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.NowPlayingContent
 import com.craftworks.music.ui.dpToPx
 import com.craftworks.music.ui.elements.bounceClick
@@ -88,8 +89,8 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        val serviceIntent = Intent(applicationContext, AutoMediaLibraryService::class.java)
-        applicationContext.startForegroundService(serviceIntent)
+        val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
+        applicationContext.startService(serviceIntent)
 
         super.onCreate(savedInstanceState)
 
@@ -244,7 +245,7 @@ class MainActivity : ComponentActivity() {
             registerForActivityResult(
                 ActivityResultContracts.RequestPermission()
             ) { isGranted: Boolean ->
-                Log.d("PERMISSIONS", "READ_MEDIA_AUDIO: $isGranted")
+                Log.d("PERMISSIONS", "Is 'READ_MEDIA_AUDIO' permission granted? $isGranted")
             }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -283,7 +284,7 @@ class MainActivity : ComponentActivity() {
             }
 
             override fun onActivityDestroyed(activity: Activity) {
-                AutoMediaLibraryService().onDestroy()
+                ChoraMediaLibraryService().onDestroy()
                 println("Destroyed, Goodbye :(")
             }
         })
