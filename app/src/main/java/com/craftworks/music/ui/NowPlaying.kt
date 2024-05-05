@@ -59,7 +59,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -98,13 +97,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.media3.common.Player
+import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.SyncedLyric
@@ -114,6 +112,8 @@ import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.getLyrics
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
 import com.craftworks.music.repeatSong
@@ -127,6 +127,7 @@ import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.elements.moveClick
 import com.craftworks.music.ui.screens.backgroundType
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -160,7 +161,12 @@ fun NowPlayingContent(
 
         val mediaController by rememberManagedMediaController()
 
-        var isPlaying by remember { mutableStateOf(mediaController?.playWhenReady ?: false) }
+        var isPlaying by remember { mutableStateOf(false) }
+
+        LaunchedEffect(mediaController) {
+            isPlaying = mediaController?.isPlaying == true
+        }
+
 
         //region Update Content + Backgrounds
         // handle back presses
@@ -324,7 +330,7 @@ fun NowPlayingContent(
                                 .padding(top = 12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            SliderUpdating()
+                            SliderUpdating(false, mediaController)
                         }
 
                         //region Buttons
@@ -535,11 +541,17 @@ fun LyricsView(isLandscape: Boolean = false) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SliderUpdating(isLandscape: Boolean? = false){
+fun SliderUpdating(isLandscape: Boolean? = false, mediaController: MediaController?){
 
-    val mediaController by rememberManagedMediaController()
+    LaunchedEffect(mediaController) {
+        while (true){
+            delay(1000)
+            if (mediaController?.isPlaying == true){
+                sliderPos.intValue = mediaController.currentPosition.toInt()
+            }
+        }
+    }
 
-    val currentPos by remember { mutableFloatStateOf(mediaController?.currentPosition?.toFloat() ?: 0f) }
     val animatedSliderValue by animateFloatAsState(targetValue = sliderPos.intValue.toFloat(),
         label = "Smooth Slider Update"
     )
@@ -562,7 +574,7 @@ fun SliderUpdating(isLandscape: Boolean? = false){
         onValueChangeFinished = {
             SongHelper.isSeeking = false
             mediaController?.seekTo(sliderPos.intValue.toLong()) },
-        valueRange = 0f..((mediaController?.duration ?: 0).coerceAtLeast(0L).toFloat()),
+        valueRange = 0f..(SongHelper.currentSong.duration.toFloat()),
         colors = SliderDefaults.colors(
             activeTrackColor = MaterialTheme.colorScheme.onBackground,
             inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),

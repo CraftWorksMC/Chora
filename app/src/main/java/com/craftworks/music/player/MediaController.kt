@@ -24,7 +24,7 @@ import com.google.common.util.concurrent.MoreExecutors
  * This class observes the Remember lifecycle to release the MediaController when it's no longer needed.
  */
 @Stable
-internal class MediaControllerManager private constructor(context: Context) : RememberObserver {
+class MediaControllerManager private constructor(context: Context) : RememberObserver {
     private val appContext = context.applicationContext
     private var factory: ListenableFuture<MediaController>? = null
     var controller = mutableStateOf<MediaController?>(null)
@@ -73,8 +73,8 @@ internal class MediaControllerManager private constructor(context: Context) : Re
     }
 
     // Lifecycle methods for the RememberObserver interface.
-    override fun onAbandoned() { release() }
-    override fun onForgotten() { release() }
+    override fun onAbandoned() { }
+    override fun onForgotten() { }
     override fun onRemembered() {}
 
     companion object {

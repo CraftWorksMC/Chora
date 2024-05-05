@@ -1,10 +1,10 @@
 package com.craftworks.music.lyrics
 
 import android.util.Log
-import com.craftworks.music.player.SongHelper
 import com.craftworks.music.data.Lyric
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.SyncedLyric
+import com.craftworks.music.player.SongHelper
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -38,6 +38,7 @@ fun getLyrics(){
 
                 if (responseCode == 404){
                     PlainLyrics = "No Lyrics / Instrumental"
+                    return@Thread
                 }
 
                 inputStream.bufferedReader().use {

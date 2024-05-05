@@ -10,10 +10,8 @@ import androidx.compose.runtime.setValue
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
-import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
-import com.craftworks.music.data.tracklist
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.sliderPos
 
@@ -43,22 +41,24 @@ class SongHelper {
 
         fun playStream(context: Context, url: Uri, isRadio: Boolean ? = false, mediaController: MediaController? = null) {
 
-            //if (currentTracklist.isEmpty()) return
+            if (currentTracklist.isEmpty()) return
 
             if (mediaController?.isPlaying == true){
                 mediaController.stop()
             }
+
+            //mediaController?.clearMediaItems()
             sliderPos.intValue = 0
 
-            currentTrackIndex.intValue = tracklist.indexOfFirst { it.mediaId == url.toString() }
+            currentTrackIndex.intValue = currentTracklist.indexOfFirst { it.mediaId == url.toString() }
             currentSong = songsList[currentTrackIndex.intValue]
 
-            mediaController?.setMediaItems(tracklist)
+            mediaController?.setMediaItems(currentTracklist)
 
             ChoraMediaLibraryService().notifyNewSessionItems()
 
             mediaController?.prepare()
-            mediaController?.play()
+            mediaController?.playWhenReady = true
 
             println("Index: ${currentTrackIndex.intValue}, playlist size: ${mediaController?.mediaItemCount}")
 
@@ -66,8 +66,8 @@ class SongHelper {
                 getLyrics()
         }
 
-        fun updateCurrentPos(){
-            sliderPos.intValue = ChoraMediaLibraryService().player.currentPosition.toInt()
+        fun updateCurrentPos(mediaController: MediaController?){
+            sliderPos.intValue = mediaController?.currentPosition?.toInt() ?: 0
         }
     }
 }

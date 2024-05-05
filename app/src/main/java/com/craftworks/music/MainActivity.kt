@@ -57,12 +57,13 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.bottomNavigationItems
+import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.NowPlayingContent
 import com.craftworks.music.ui.dpToPx
@@ -89,8 +90,11 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
-        applicationContext.startService(serviceIntent)
+
+        lifecycleScope.launch {
+            val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
+            applicationContext.startService(serviceIntent)
+        }
 
         super.onCreate(savedInstanceState)
 
@@ -99,9 +103,11 @@ class MainActivity : ComponentActivity() {
             override fun run() {
                 handler.post {
                     try {
-                        SongHelper.updateCurrentPos()
+                        //SongHelper.updateCurrentPos()
 
                         /* SYNCED LYRICS */
+                        if (SyncedLyric.size < 1) return@post
+
                         for (a in 0 until SyncedLyric.size - 1) { //Added 750ms offset
                             if (SyncedLyric[a].timestamp <= sliderPos.intValue + 750 &&
                                 SyncedLyric[a + 1].timestamp >= sliderPos.intValue + 750) {

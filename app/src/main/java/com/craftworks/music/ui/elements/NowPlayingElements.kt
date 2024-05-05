@@ -51,13 +51,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.fadingEdge
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.DownloadButton
 import com.craftworks.music.ui.LyricsButton
 import com.craftworks.music.ui.LyricsView
@@ -159,7 +159,12 @@ fun NowPlayingPortraitCover (
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
                                 selectedArtist =
-                                    artistList.firstOrNull() { it.name.equals(artistName, ignoreCase = true) }!!
+                                    artistList.firstOrNull() {
+                                        it.name.equals(
+                                            artistName,
+                                            ignoreCase = true
+                                        )
+                                    }!!
                                 coroutine.launch {
                                     scaffoldState.bottomSheetState.partialExpand()
                                 }
@@ -216,6 +221,8 @@ fun NowPlayingLandscape(
     snackbarHostState: SnackbarHostState? = SnackbarHostState(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
+    val mediaController by rememberManagedMediaController()
+
     Row(modifier = Modifier
         .fillMaxSize()
         .padding(start = 6.dp),
@@ -303,7 +310,7 @@ fun NowPlayingLandscape(
                 .fillMaxWidth()
                 .padding(end = 12.dp)
                 .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                SliderUpdating(true)
+                SliderUpdating(true, mediaController)
             }
 
             //region BUTTONS
@@ -432,7 +439,8 @@ fun NowPlayingMiniPlayer(
                         .bounceClick()
                         .clip(RoundedCornerShape(12.dp))
                         .clickable {
-                            mediaController?.playWhenReady = !(mediaController?.playWhenReady ?: true)
+                            mediaController?.playWhenReady =
+                                !(mediaController?.playWhenReady ?: true)
                         }
                 )
             }

@@ -16,6 +16,7 @@ import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import com.craftworks.music.data.Song
 import com.craftworks.music.data.tracklist
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.lyrics.getLyrics
@@ -24,6 +25,9 @@ import com.craftworks.music.saveManager
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /*
     Thanks to Yurowitz on StackOverflow for this! Used it as a template.
@@ -64,13 +68,17 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         .build()
     private val rootHierarchy = listOf(subrootTracklistItem)
 
+    private val serviceMainScope = CoroutineScope(Dispatchers.Main)
+    private val serviceIOScope = CoroutineScope(Dispatchers.IO)
+
     //endregion
 
     override fun onCreate() {
         Log.d("AA", "onCreate: Android Auto")
 
-        //SongHelper.initPlayer(this)
-        saveManager(applicationContext).loadSettings()
+        serviceMainScope.launch {
+            saveManager(applicationContext).loadSettings()
+        }
 
         initializePlayer()
 
@@ -138,12 +146,23 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 //                println("imageURL: ${player.mediaMetadata.artworkUri}, duration: ${extras?.getInt("duration")}")
 //                println(SongHelper.currentSong)
 
-                try {
-                    SongHelper.currentSong = SongHelper.currentList[SongHelper.currentList.indexOfFirst { it.media.toString() == player.currentMediaItem?.mediaId }]
+                serviceIOScope.launch {
+                    val song = Song(
+                        title = mediaMetadata.title.toString(),
+                        artist = mediaMetadata.artist.toString(),
+                        album = mediaMetadata.albumTitle.toString(),
+                        imageUrl = mediaMetadata.artworkUri ?: Uri.EMPTY,
+                        duration = mediaMetadata.extras?.getInt("duration") ?: 0
+                    )
+
+                    SongHelper.currentSong = song
                 }
-                catch (e: IndexOutOfBoundsException){
-                    Log.d("AA", "Empty Song, Invalid Index")
-                }
+//                try {
+//                    SongHelper.currentSong = SongHelper.currentList[SongHelper.currentList.indexOfFirst { it.title == mediaMetadata.title }]
+//                }
+//                catch (e: IndexOutOfBoundsException){
+//                    Log.d("AA", "Empty Song, Invalid Index")
+//                }
 
 
                 if (SongHelper.currentSong.isRadio == false)
@@ -247,9 +266,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             val index = SongHelper.currentTrackIndex.intValue
             Log.d("AA", "Player Index: $index")
 
-            val mediaItemsWithStartPosition = MediaSession.MediaItemsWithStartPosition(tracklist, index,0)
+            val mediaItemsWithStartPosition = MediaSession.MediaItemsWithStartPosition(SongHelper.currentTracklist, index,0)
             session?.connectedControllers?.forEach {
-                (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", tracklist.size, /* params= */ null)
+                (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", SongHelper.currentTracklist.size, /* params= */ null)
             }
 
             return Futures.immediateFuture(mediaItemsWithStartPosition)

@@ -24,12 +24,13 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
 import com.craftworks.music.R
-import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.tracklist
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
@@ -38,8 +39,6 @@ import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SongsScreen() {
-    val mediaController by rememberManagedMediaController()
-
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val context = LocalContext.current
     /* SONGS ICON + TEXT */
@@ -69,9 +68,11 @@ fun SongsScreen() {
         Column(modifier = Modifier.padding(horizontal = 12.dp)) {
             val allSongsList = songsList.sortedBy { song: Song -> song.title }
 
+            val mediaController by rememberManagedMediaController()
+
             SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->
-                //SongHelper.currentSong = song
-                SongHelper.currentTracklist = tracklist
+                SongHelper.currentSong = song
+                SongHelper.currentTracklist = tracklist.sortedBy { item: MediaItem -> item.mediaMetadata.title.toString() }
                 //songState = true
                 song.media?.let { SongHelper.playStream(context, it, false, mediaController) } })
         }
