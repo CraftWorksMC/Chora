@@ -130,40 +130,20 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
                 super.onMediaMetadataChanged(mediaMetadata)
 
-//                val extras = mediaMetadata.extras
-//
-//                SongHelper.currentSong = Song(
-//                    title = mediaMetadata.title.toString(),
-//                    artist = mediaMetadata.artist.toString(),
-//                    duration = extras?.getInt("duration") ?: 0,
-//                    imageUrl = Uri.parse(mediaMetadata.artworkUri.toString()),
-//                    year = mediaMetadata.releaseYear.toString(),
-//                    album = mediaMetadata.albumTitle.toString(),
-//                    format = extras?.getString("MoreInfo"),
-//                    navidromeID = extras?.getString("NavidromeID"),
-//                    isRadio = extras?.getBoolean("isRadio")
-//                )
-//                println("imageURL: ${player.mediaMetadata.artworkUri}, duration: ${extras?.getInt("duration")}")
-//                println(SongHelper.currentSong)
-
                 serviceIOScope.launch {
                     val song = Song(
                         title = mediaMetadata.title.toString(),
                         artist = mediaMetadata.artist.toString(),
+                        duration = mediaMetadata.extras?.getInt("duration") ?: 0,
+                        imageUrl = Uri.parse(mediaMetadata.artworkUri.toString()),
+                        year = mediaMetadata.releaseYear.toString(),
                         album = mediaMetadata.albumTitle.toString(),
-                        imageUrl = mediaMetadata.artworkUri ?: Uri.EMPTY,
-                        duration = mediaMetadata.extras?.getInt("duration") ?: 0
-                    )
+                        format = mediaMetadata.extras?.getString("MoreInfo"),
+                        navidromeID = mediaMetadata.extras?.getString("NavidromeID"),
+                        isRadio = mediaMetadata.extras?.getBoolean("isRadio"))
 
                     SongHelper.currentSong = song
                 }
-//                try {
-//                    SongHelper.currentSong = SongHelper.currentList[SongHelper.currentList.indexOfFirst { it.title == mediaMetadata.title }]
-//                }
-//                catch (e: IndexOutOfBoundsException){
-//                    Log.d("AA", "Empty Song, Invalid Index")
-//                }
-
 
                 if (SongHelper.currentSong.isRadio == false)
                     getLyrics()
@@ -174,13 +154,10 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 Log.e("PLAYER", error.stackTraceToString())
             }
         })
-        player.setPlaybackSpeed(1f) //Avoid negative speed error.
 
         session = MediaLibrarySession.Builder(this, player, LibrarySessionCallback()).setId("AutoSession").build()
 
         Log.d("AA", "Initialized MediaLibraryService.")
-
-        //player.setMediaItems(addMediaItems())
     }
 
     fun notifyNewSessionItems() {
@@ -203,76 +180,52 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     }
 
     private inner class LibrarySessionCallback : MediaLibrarySession.Callback {
-//        @UnstableApi
-//        override fun onSetMediaItems(
-//            mediaSession: MediaSession,
-//            controller: MediaSession.ControllerInfo,
-//            mediaItems: MutableList<MediaItem>,
-//            startIndex: Int,
-//            startPositionMs: Long
-//        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-//
-//            val newItems = mutableListOf<MediaItem>()
-//
-//            for (item in tracklist) {
-//                val newItem = item.buildUpon()
-//                    .setUri(item.mediaId)
-//                    .setMediaMetadata(item.mediaMetadata)
-//                    .build()
-//                newItems.add(newItem)
-//            }
-//            Log.d("AA", "onSetMediaItems: oldItems: ${mediaItems.size} |newItems: ${newItems.size}")
-//            session?.connectedControllers?.forEach {
-//                (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", newItems.size, /* params= */ null)
-//            }
-//
-//            return super.onSetMediaItems(
-//                mediaSession,
-//                controller,
-//                newItems,
-//                startIndex,
-//                startPositionMs
-//            )
-//        }
-//        override fun onAddMediaItems(
-//            mediaSession: MediaSession,
-//            controller: MediaSession.ControllerInfo,
-//            mediaItems: MutableList<MediaItem>
-//        ): ListenableFuture<MutableList<MediaItem>> {
-//            println("ONADDMEDIAITEMS: ${mediaItems.size}")
-//            val newItems = mutableListOf<MediaItem>()
-//
-//            for (item in mediaItems){
-//                val newItem = item.buildUpon()
-//                    .setUri(item.mediaId)
-//                    .setMediaMetadata(item.mediaMetadata)
-//                    .build()
-//                newItems.add(newItem)
-//            }
-//
-//            return super.onAddMediaItems(mediaSession, controller, newItems)
-//        }
-
-        @OptIn(UnstableApi::class)
-        override fun onPlaybackResumption(
+        @UnstableApi
+        override fun onSetMediaItems(
             mediaSession: MediaSession,
-            controller: MediaSession.ControllerInfo
+            controller: MediaSession.ControllerInfo,
+            mediaItems: MutableList<MediaItem>,
+            startIndex: Int,
+            startPositionMs: Long
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-            Log.d("AA", "onPlaybackResumption")
-            // Create a list of media items to be played
-            // Create a MediaItemsWithStartPosition object with the media items and starting position
-
-            //val index = tracklist.indexOf(mediaSession.player.currentMediaItem)
-            val index = SongHelper.currentTrackIndex.intValue
-            Log.d("AA", "Player Index: $index")
-
-            val mediaItemsWithStartPosition = MediaSession.MediaItemsWithStartPosition(SongHelper.currentTracklist, index,0)
-            session?.connectedControllers?.forEach {
-                (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", SongHelper.currentTracklist.size, /* params= */ null)
+            val newItems = SongHelper.currentTracklist.map {
+                it.buildUpon().setUri(it.mediaId).build()
             }
+            val newIndex =
+                if (startIndex == C.INDEX_UNSET)
+                    SongHelper.currentTrackIndex.intValue
+                else
+                    startIndex
 
-            return Futures.immediateFuture(mediaItemsWithStartPosition)
+            Log.d("AA", "onSetMediaItems startIndex: $newIndex")
+
+            return super.onSetMediaItems(
+                mediaSession,
+                controller,
+                newItems,
+                newIndex,
+                startPositionMs
+            )
         }
+
+//        @OptIn(UnstableApi::class)
+//        override fun onPlaybackResumption(
+//            mediaSession: MediaSession,
+//            controller: MediaSession.ControllerInfo
+//        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+//            Log.d("AA", "onPlaybackResumption")
+//            // Create a list of media items to be played
+//            // Create a MediaItemsWithStartPosition object with the media items and starting position
+//
+//            val index = SongHelper.currentTrackIndex.intValue
+//            Log.d("AA", "Player Index: $index")
+//
+//            val mediaItemsWithStartPosition = MediaSession.MediaItemsWithStartPosition(SongHelper.currentTracklist, index,0)
+//
+//            notifyNewSessionItems()
+//
+//            return Futures.immediateFuture(mediaItemsWithStartPosition)
+//        }
 
         override fun onGetLibraryRoot(
             session: MediaLibrarySession,

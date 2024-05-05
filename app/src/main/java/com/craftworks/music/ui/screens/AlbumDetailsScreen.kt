@@ -56,8 +56,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.artistList
@@ -68,6 +66,8 @@ import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
@@ -202,7 +202,7 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                     SongHelper.currentSong = albumSongs[0]
                     SongHelper.currentList = albumSongs
                     //songState = true
-                    albumSongs[0].media?.let { SongHelper.playStream(context = context, url = it)}
+                    albumSongs[0].media?.let { SongHelper.playStream(it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -222,7 +222,7 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                     val random = albumSongs.indices.random()
                     SongHelper.currentSong = albumSongs[random]
                     SongHelper.currentList = albumSongs
-                    albumSongs[random].media?.let { SongHelper.playStream(context = context, url = it)}
+                    albumSongs[random].media?.let { SongHelper.playStream(it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -256,7 +256,7 @@ fun AlbumDetails(navHostController: NavHostController = rememberNavController())
                         sliderPos.intValue = 0
                         SongHelper.currentSong = song
                         SongHelper.currentList = albumSongs
-                        song.media?.let { SongHelper.playStream(context = context, url = it)}
+                        song.media?.let { SongHelper.playStream(it)}
                         //markSongAsPlayed(song)
                         if (useNavidromeServer.value && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")){
                             try {

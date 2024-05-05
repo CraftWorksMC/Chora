@@ -41,9 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
-import com.craftworks.music.player.SongHelper
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.useNavidromeServer
+import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.getIcecastMetadata
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.saveManager
@@ -125,7 +125,7 @@ fun RadioScreen() {
                     return@RadiosGrid
 
                 SongHelper.currentSong = song
-                song.media?.let { SongHelper.playStream(context, it, true) }
+                song.media?.let { SongHelper.playStream(it, true) }
                 // Get Metadata
                 val icecastUrl = "${song.media}/status-json.xsl"
                 Thread{

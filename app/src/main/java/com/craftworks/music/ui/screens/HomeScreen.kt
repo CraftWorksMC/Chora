@@ -56,14 +56,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.ui.elements.BottomSpacer
@@ -212,7 +212,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                 SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
                     //SongHelper.currentSong = song
                     SongHelper.currentList = recentlyPlayedSongsList
-                    song.media?.let { SongHelper.playStream(context = context, url = it, false, mediaController) }
+                    song.media?.let { SongHelper.playStream(it, false, mediaController) }
                 })
             }
 
@@ -236,7 +236,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                     //SongHelper.currentSong = song
                     SongHelper.currentList = recentSongsList
                     //songState = true
-                    song.media?.let { SongHelper.playStream(context = context, url = it, false, mediaController) }
+                    song.media?.let { SongHelper.playStream(it, false, mediaController) }
                 })
             }
 
@@ -258,7 +258,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                     //SongHelper.currentSong = song
                     SongHelper.currentList = mostPlayedList
                     //songState = true
-                    song.media?.let { SongHelper.playStream(context = context, url = it, false, mediaController) }
+                    song.media?.let { SongHelper.playStream(it, false, mediaController) }
                 })
             }
 
@@ -281,7 +281,7 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
                     //SongHelper.currentSong = song
                     SongHelper.currentList = shuffledSongsList.value
                     //songState = true
-                    song.media?.let { SongHelper.playStream(context = context, url = it, false, mediaController) }
+                    song.media?.let { SongHelper.playStream(it, false, mediaController) }
                 })
             }
 

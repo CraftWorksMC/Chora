@@ -55,11 +55,11 @@ fun getSongsOnDevice(context: Context){
             val bitrateColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.BITRATE)
             do {
                 val thisId = cursor.getLong(idColumn)
-                val thisArtist = cursor.getString(artistColumn)
+                val thisArtist = cursor.getString(artistColumn).split("~")[0]
                 val thisTitle = cursor.getString(titleColumn)
                 val thisDuration = cursor.getInt(durationColumn)
                 val thisDateAdded = cursor.getString(dateAddedColumn)
-                val thisYear = cursor.getString(yearColumn)
+                val thisYear = cursor.getInt(yearColumn)
                 val thisFormat = cursor.getString(formatColumn)
                 val thisBitrate = cursor.getString(bitrateColumn)
                 val thisAlbum = cursor.getString(albumColumn)
@@ -83,7 +83,7 @@ fun getSongsOnDevice(context: Context){
                     media = contentUri,
                     duration = thisDuration,
                     dateAdded = thisDateAdded,
-                    year = thisYear,
+                    year = thisYear.toString(),
                     format = thisFormat.uppercase().drop(6),
                     bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else "",
                     navidromeID = "Local"
@@ -100,10 +100,10 @@ fun getSongsOnDevice(context: Context){
                     .setArtist(thisArtist)
                     .setAlbumTitle(thisAlbum)
                     .setArtworkUri(imageUri)
-                    //.setReleaseYear(thisYear.toInt() ?: 2024)
+                    .setReleaseYear(thisYear)
                     .setExtras(Bundle().apply {
                         putInt("duration", thisDuration)
-                        putString("MoreInfo", "$thisFormat • $thisBitrate")
+                        putString("MoreInfo", "${thisFormat.uppercase().split("/")[1]} • ${thisBitrate.toInt() / 1000}")
                         putString("NavidromeID", "Local")
                         putBoolean("isRadio", false)
                     })
@@ -123,7 +123,7 @@ fun getSongsOnDevice(context: Context){
                 val album = Album(
                     name = thisAlbum,
                     artist = thisArtist,
-                    year = if (!thisYear.isNullOrBlank()) thisYear else "",
+                    year = thisYear.toString(),
                     coverArt = imageUri
                 )
                 if (!albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){

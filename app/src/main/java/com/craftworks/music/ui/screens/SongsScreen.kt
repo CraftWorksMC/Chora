@@ -74,7 +74,7 @@ fun SongsScreen() {
                 SongHelper.currentSong = song
                 SongHelper.currentTracklist = tracklist.sortedBy { item: MediaItem -> item.mediaMetadata.title.toString() }
                 //songState = true
-                song.media?.let { SongHelper.playStream(context, it, false, mediaController) } })
+                song.media?.let { SongHelper.playStream(it, false, mediaController) } })
         }
     }
 

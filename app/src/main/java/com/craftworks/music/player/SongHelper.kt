@@ -1,6 +1,5 @@
 @file:OptIn(UnstableApi::class) package com.craftworks.music.player
 
-import android.content.Context
 import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.compose.runtime.getValue
@@ -19,9 +18,6 @@ class SongHelper {
     companion object{
         var isSeeking = false
 
-        //private lateinit var notification: Notification
-        //private lateinit var notificationManager: NotificationManager
-
         var currentSong by mutableStateOf(
             Song(
                 title = "",
@@ -39,35 +35,23 @@ class SongHelper {
 
         var minPercentageScrobble = mutableIntStateOf(75)
 
-        fun playStream(context: Context, url: Uri, isRadio: Boolean ? = false, mediaController: MediaController? = null) {
+        fun playStream(url: Uri, isRadio: Boolean ? = false, mediaController: MediaController? = null) {
+            if (currentTracklist.isEmpty() || mediaController?.isConnected == false) return
 
-            if (currentTracklist.isEmpty()) return
-
-            if (mediaController?.isPlaying == true){
-                mediaController.stop()
-            }
-
-            //mediaController?.clearMediaItems()
             sliderPos.intValue = 0
 
             currentTrackIndex.intValue = currentTracklist.indexOfFirst { it.mediaId == url.toString() }
-            currentSong = songsList[currentTrackIndex.intValue]
+            currentSong = songsList.sortedBy { it.title }[currentTrackIndex.intValue]
 
-            mediaController?.setMediaItems(currentTracklist)
-
+            mediaController?.setMediaItems(currentTracklist, currentTrackIndex.intValue, 0)
             ChoraMediaLibraryService().notifyNewSessionItems()
-
             mediaController?.prepare()
-            mediaController?.playWhenReady = true
+            mediaController?.play()
 
             println("Index: ${currentTrackIndex.intValue}, playlist size: ${mediaController?.mediaItemCount}")
 
             if (isRadio == false)
                 getLyrics()
-        }
-
-        fun updateCurrentPos(mediaController: MediaController?){
-            sliderPos.intValue = mediaController?.currentPosition?.toInt() ?: 0
         }
     }
 }

@@ -201,7 +201,7 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
                 onClick = {
                     SongHelper.currentSong = artistSongs[0]
                     SongHelper.currentList = artistSongs
-                    artistSongs[0].media?.let { SongHelper.playStream(context = context, url = it)}
+                    artistSongs[0].media?.let { SongHelper.playStream(it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -221,7 +221,7 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
                     val random = artistSongs.indices.random()
                     SongHelper.currentSong = artistSongs[random]
                     SongHelper.currentList = artistSongs
-                    artistSongs[random].media?.let { SongHelper.playStream(context = context, url = it)}
+                    artistSongs[random].media?.let { SongHelper.playStream(it)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -280,7 +280,7 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
                         sliderPos.intValue = 0
                         SongHelper.currentSong = song
                         SongHelper.currentList = artistSongs
-                        song.media?.let { SongHelper.playStream(context = context, url = it)}
+                        song.media?.let { SongHelper.playStream(it)}
                         //markSongAsPlayed(song)
                         if (useNavidromeServer.value && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")){
                             try {
