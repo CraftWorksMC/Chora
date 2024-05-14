@@ -194,10 +194,11 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                         .setUri(mediaItem.mediaId)
                         .build()
                 }
+            val updatedStartIndex = SongHelper.currentTracklist.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
             Log.d("AA", "updatedMediaItem: ${updatedMediaItems[0].mediaMetadata.title.toString()}")
             //notifyNewSessionItems()
 
-            return super.onSetMediaItems(mediaSession, controller, updatedMediaItems, startIndex, startPositionMs)
+            return super.onSetMediaItems(mediaSession, controller, updatedMediaItems, updatedStartIndex, startPositionMs)
         }
 
 //        override fun onAddMediaItems(
