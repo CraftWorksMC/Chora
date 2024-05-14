@@ -13,6 +13,8 @@ import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.sliderPos
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 class SongHelper {
     companion object{
@@ -35,16 +37,22 @@ class SongHelper {
 
         var minPercentageScrobble = mutableIntStateOf(75)
 
+
+        private val serviceIOScope = CoroutineScope(Dispatchers.Main)
+
         fun playStream(url: Uri, isRadio: Boolean ? = false, mediaController: MediaController? = null) {
             if (currentTracklist.isEmpty() || mediaController?.isConnected == false) return
 
             sliderPos.intValue = 0
-
             currentTrackIndex.intValue = currentTracklist.indexOfFirst { it.mediaId == url.toString() }
             currentSong = songsList.sortedBy { it.title }[currentTrackIndex.intValue]
+            if (!currentTracklist.contains(mediaController?.currentMediaItem ?: MediaItem.EMPTY)){
+                mediaController?.setMediaItems(currentTracklist.sortedBy { it.mediaMetadata.title.toString() }, currentTrackIndex.intValue, 0)
+            }
+            else {
+                mediaController?.seekToDefaultPosition(currentTrackIndex.intValue)
+            }
 
-            mediaController?.setMediaItems(currentTracklist, currentTrackIndex.intValue, 0)
-            ChoraMediaLibraryService().notifyNewSessionItems()
             mediaController?.prepare()
             mediaController?.play()
 
@@ -52,6 +60,7 @@ class SongHelper {
 
             if (isRadio == false)
                 getLyrics()
+
         }
     }
 }

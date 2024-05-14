@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 class ChoraMediaLibraryService : MediaLibraryService() {
 
     //region Vars
-    lateinit var player: ExoPlayer
+    lateinit var player: Player
     var session: MediaLibrarySession? = null
 
     private val rootItem = MediaItem.Builder()
@@ -73,27 +73,24 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     //endregion
 
+    @OptIn(UnstableApi::class)
     override fun onCreate() {
-        Log.d("AA", "onCreate: Android Auto")
+        super.onCreate()
 
-        serviceMainScope.launch {
-            saveManager(applicationContext).loadSettings()
-        }
+        Log.d("AA", "onCreate: Android Auto")
 
         initializePlayer()
 
-        super.onCreate()
+        serviceMainScope.launch {
+            saveManager(this@ChoraMediaLibraryService).loadSettings()
+        }
     }
 
     @OptIn(UnstableApi::class)
     fun initializePlayer(){
 
-        player = ExoPlayer.Builder(applicationContext)
+        player = ExoPlayer.Builder(this)
             .setSeekParameters(SeekParameters.CLOSEST_SYNC)
-//            .setRenderersFactory(
-//                DefaultRenderersFactory(applicationContext).setExtensionRendererMode(
-//                    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER /* We prefer extensions, such as FFmpeg */
-//                ))
             .setWakeMode(
                 if (useNavidromeServer.value)
                     C.WAKE_MODE_NETWORK
@@ -170,7 +167,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     override fun onTaskRemoved(rootIntent: Intent?) {
         // Check if the player is not ready to play or there are no items in the media queue
         if (!player.playWhenReady || player.mediaItemCount == 0) {
-            // Stop the service
             stopSelf()
         }
     }
@@ -180,7 +176,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     }
 
     private inner class LibrarySessionCallback : MediaLibrarySession.Callback {
-        @UnstableApi
+
+        @OptIn(UnstableApi::class)
         override fun onSetMediaItems(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
@@ -188,44 +185,40 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             startIndex: Int,
             startPositionMs: Long
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-            val newItems = SongHelper.currentTracklist.map {
-                it.buildUpon().setUri(it.mediaId).build()
-            }
-            val newIndex =
-                if (startIndex == C.INDEX_UNSET)
-                    SongHelper.currentTrackIndex.intValue
-                else
-                    startIndex
+            // We need to use URI from requestMetaData because of https://github.com/androidx/media/issues/282
+            val updatedMediaItems: List<MediaItem> =
+                SongHelper.currentTracklist.map { mediaItem ->
+                    MediaItem.Builder()
+                        .setMediaId(mediaItem.mediaId)
+                        .setMediaMetadata(mediaItem.mediaMetadata)
+                        .setUri(mediaItem.mediaId)
+                        .build()
+                }
+            Log.d("AA", "updatedMediaItem: ${updatedMediaItems[0].mediaMetadata.title.toString()}")
+            //notifyNewSessionItems()
 
-            Log.d("AA", "onSetMediaItems startIndex: $newIndex")
-
-            return super.onSetMediaItems(
-                mediaSession,
-                controller,
-                newItems,
-                newIndex,
-                startPositionMs
-            )
+            return super.onSetMediaItems(mediaSession, controller, updatedMediaItems, startIndex, startPositionMs)
         }
 
-//        @OptIn(UnstableApi::class)
-//        override fun onPlaybackResumption(
+//        override fun onAddMediaItems(
 //            mediaSession: MediaSession,
-//            controller: MediaSession.ControllerInfo
-//        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-//            Log.d("AA", "onPlaybackResumption")
-//            // Create a list of media items to be played
-//            // Create a MediaItemsWithStartPosition object with the media items and starting position
-//
-//            val index = SongHelper.currentTrackIndex.intValue
-//            Log.d("AA", "Player Index: $index")
-//
-//            val mediaItemsWithStartPosition = MediaSession.MediaItemsWithStartPosition(SongHelper.currentTracklist, index,0)
-//
-//            notifyNewSessionItems()
-//
-//            return Futures.immediateFuture(mediaItemsWithStartPosition)
+//            controller: MediaSession.ControllerInfo,
+//            mediaItems: List<MediaItem>
+//        ): ListenableFuture<List<MediaItem>> {
+//            // We need to use URI from requestMetaData because of https://github.com/androidx/media/issues/282
+//            val updatedMediaItems: List<MediaItem> =
+//                SongHelper.currentTracklist.map { mediaItem ->
+//                    MediaItem.Builder()
+//                        .setMediaId(mediaItem.mediaId)
+//                        .setMediaMetadata(mediaItem.mediaMetadata)
+//                        .setUri(mediaItem.mediaId)
+//                        .build()
+//                }
+//            Log.d("AA", "updatedMediaItem: ${updatedMediaItems[0].mediaMetadata.title.toString()}")
+//            return Futures.immediateFuture(updatedMediaItems)
 //        }
+
+
 
         override fun onGetLibraryRoot(
             session: MediaLibrarySession,
@@ -244,12 +237,23 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 LibraryResult.ofItemList(
                     when (parentId) {
                         "nodeROOT" -> rootHierarchy
-                        "nodeTRACKLIST" -> tracklist
+                        "nodeTRACKLIST" -> SongHelper.currentTracklist
                         else -> rootHierarchy
                     },
                     params
                 )
             )
+        }
+
+        override fun onGetItem(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            mediaId: String
+        ): ListenableFuture<LibraryResult<MediaItem>> {
+            val mediaItem = SongHelper.currentTracklist.find { it.mediaId == mediaId }
+                ?: return Futures.immediateFuture(LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE))
+
+            return Futures.immediateFuture(LibraryResult.ofItem(mediaItem, LibraryParams.Builder().build()))
         }
 
         override fun onSubscribe(

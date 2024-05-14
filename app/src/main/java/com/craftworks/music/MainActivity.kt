@@ -57,7 +57,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -91,14 +90,12 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        lifecycleScope.launch {
-            val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
-            applicationContext.startService(serviceIntent)
-        }
+        val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
+        this.startService(serviceIntent)
 
         super.onCreate(savedInstanceState)
 
-        Timer().scheduleAtFixedRate(object : TimerTask() {
+        Timer().schedule(object : TimerTask() {
             private val handler = Handler(Looper.getMainLooper())
             override fun run() {
                 handler.post {
