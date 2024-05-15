@@ -161,11 +161,21 @@ fun NowPlayingContent(
 
         val mediaController by rememberManagedMediaController()
 
-        var isPlaying by remember { mutableStateOf(false) }
+        var playing by remember { mutableStateOf(false) }
+        var buffering by remember { mutableStateOf(false) }
 
-        LaunchedEffect(mediaController) {
-            isPlaying = mediaController?.isPlaying == true
-        }
+        mediaController?.addListener(object : Player.Listener {
+//                override fun onIsPlayingChanged(isPlaying: Boolean) {
+//                    super.onIsPlayingChanged(isPlaying)
+//                    playing = isPlaying
+//                }
+
+                override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                    super.onPlayWhenReadyChanged(playWhenReady, reason)
+                    playing = playWhenReady
+                }
+            }
+        )
 
 
         //region Update Content + Backgrounds
@@ -301,7 +311,7 @@ fun NowPlayingContent(
         Box(modifier = Modifier
             .graphicsLayer { translationY = -offsetY }
             .zIndex(1f)) {
-            NowPlayingMiniPlayer(scaffoldState, isPlaying)
+            NowPlayingMiniPlayer(scaffoldState, playing)
         }
 
         // MAIN UI
@@ -350,7 +360,7 @@ fun NowPlayingContent(
                             ) {
                                 ShuffleButton(32.dp)
 
-                                MainButtons(song, isPlaying)
+                                MainButtons(song, playing)
 
                                 RepeatButton(32.dp)
                             }
@@ -409,7 +419,7 @@ fun NowPlayingContent(
 
                     NowPlayingLandscape(
                         lyricsOpen || scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
-                        isPlaying,
+                        playing,
                         song,
                         snackbarHostState,
                         coroutineScope

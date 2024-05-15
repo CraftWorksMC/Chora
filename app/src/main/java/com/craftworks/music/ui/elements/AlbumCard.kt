@@ -24,11 +24,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,13 +39,16 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.songsList
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 
 @Composable
 fun AlbumCard(album: Album, onClick: () -> Unit){
-    val context = LocalContext.current
+    val mediaController by rememberManagedMediaController()
+
     Card(
         onClick = { onClick() },
-        modifier = Modifier.padding(12.dp)
+        modifier = Modifier
+            .padding(12.dp)
             .aspectRatio(0.8f),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
@@ -61,7 +64,9 @@ fun AlbumCard(album: Album, onClick: () -> Unit){
                 .wrapContentHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box (modifier = Modifier.aspectRatio(1f).weight(1f)){
+            Box (modifier = Modifier
+                .aspectRatio(1f)
+                .weight(1f)){
                 AsyncImage(
                     model = album.coverArt,
                     placeholder = painterResource(R.drawable.placeholder),
@@ -76,9 +81,12 @@ fun AlbumCard(album: Album, onClick: () -> Unit){
                     onClick = { // Play First Song in Album
                         SongHelper.currentSong = songsList.filter { it.album == album.name }[0]
                         SongHelper.currentList = songsList.filter { it.album == album.name }
-                        songsList.filter { it.album == album.name }[0].media?.let { SongHelper.playStream(it)} },
+                        songsList.filter { it.album == album.name }[0].media?.let { SongHelper.playStream(it, false, mediaController)} },
                     shape = CircleShape,
-                    modifier = Modifier.size(48.dp).align(Alignment.BottomStart).padding(6.dp),
+                    modifier = Modifier
+                        .size(48.dp)
+                        .align(Alignment.BottomStart)
+                        .padding(6.dp),
                     contentPadding = PaddingValues(2.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.background.copy(0.5f)

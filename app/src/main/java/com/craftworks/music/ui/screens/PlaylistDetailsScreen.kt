@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -31,7 +32,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +44,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 
@@ -111,13 +112,13 @@ fun PlaylistDetails(navHostController: NavHostController = rememberNavController
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        val context = LocalContext.current
+        val mediaController by rememberManagedMediaController()
         Column(modifier = Modifier.padding(12.dp, top = 0.dp)) {
             selectedPlaylist?.songs?.let {
                 SongsHorizontalColumn(it, onSongSelected = { song ->
                     SongHelper.currentSong = song
                     SongHelper.currentList = selectedPlaylist!!.songs
-                    song.media?.let { songUri -> SongHelper.playStream(songUri) }
+                    song.media?.let { songUri -> SongHelper.playStream(songUri, false, mediaController) }
                 })
             }
         }

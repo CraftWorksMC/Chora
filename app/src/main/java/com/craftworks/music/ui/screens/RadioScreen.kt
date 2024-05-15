@@ -26,6 +26,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -44,6 +45,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.getIcecastMetadata
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.saveManager
@@ -63,7 +65,9 @@ var selectedRadioIndex = mutableIntStateOf(0)
 fun RadioScreen() {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     if (radioList.isEmpty() && useNavidromeServer.value) getNavidromeRadios()
+
     val context = LocalContext.current
+    val mediaController by rememberManagedMediaController()
 
     val state = rememberPullToRefreshState()
     if (state.isRefreshing) {
@@ -125,7 +129,7 @@ fun RadioScreen() {
                     return@RadiosGrid
 
                 SongHelper.currentSong = song
-                song.media?.let { SongHelper.playStream(it, true) }
+                song.media?.let { SongHelper.playStream(it, true, mediaController) }
                 // Get Metadata
                 val icecastUrl = "${song.media}/status-json.xsl"
                 Thread{

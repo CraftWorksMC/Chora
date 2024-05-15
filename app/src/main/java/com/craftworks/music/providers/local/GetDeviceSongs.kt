@@ -6,12 +6,9 @@ import android.content.Context
 import android.database.Cursor
 import android.media.MediaScannerConnection
 import android.net.Uri
-import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Artist
 import com.craftworks.music.data.Song
@@ -20,7 +17,6 @@ import com.craftworks.music.data.artistList
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.songsList
-import com.craftworks.music.data.tracklist
 import java.io.FileNotFoundException
 
 fun getSongsOnDevice(context: Context){
@@ -92,33 +88,6 @@ fun getSongsOnDevice(context: Context){
                     songsList.add(song);
                 }
 
-                //region Add MediaItem to Tracklist.
-                val mediaMetadata = MediaMetadata.Builder()
-                    .setIsPlayable(true)
-                    .setIsBrowsable(false)
-                    .setTitle(thisTitle)
-                    .setArtist(thisArtist)
-                    .setAlbumTitle(thisAlbum)
-                    .setArtworkUri(imageUri)
-                    .setReleaseYear(thisYear)
-                    .setExtras(Bundle().apply {
-                        putInt("duration", thisDuration)
-                        putString("MoreInfo", "${thisFormat.uppercase().split("/")[1]} • ${thisBitrate.toInt() / 1000}")
-                        putString("NavidromeID", "Local")
-                        putBoolean("isRadio", false)
-                    })
-                    .build()
-
-                val mediaItem = MediaItem.Builder()
-                    .setMediaId(contentUri.toString())
-                    .setMediaMetadata(mediaMetadata)
-                    .setUri(contentUri)
-                    .build()
-
-                if (!tracklist.contains(mediaItem))
-                    tracklist.add(mediaItem)
-                //endregion
-
                 // Add songs to album
                 val album = Album(
                     name = thisAlbum,
@@ -132,13 +101,13 @@ fun getSongsOnDevice(context: Context){
 
                 // Add artists to ArtistList
                 val artist = Artist(
-                    name = thisAlbum,
+                    name = thisArtist,
                     imageUri = Uri.EMPTY,
                     navidromeID = "Local",
                     description = "",
                     similarArtistsID = ""
                 )
-                if (!artistList.contains(artistList.firstOrNull { it.name == album.name })){
+                if (!artistList.contains(artistList.firstOrNull { it.name == artist.name })){
                     artistList.add(artist)
                 }
 

@@ -80,8 +80,6 @@ var sliderPos = mutableIntStateOf(0)
 var repeatSong = mutableStateOf(false)
 var shuffleSongs = mutableStateOf(false)
 
-var songState by mutableStateOf(false)
-
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")

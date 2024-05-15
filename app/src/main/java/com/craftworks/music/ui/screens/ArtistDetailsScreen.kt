@@ -46,7 +46,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -60,8 +59,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
@@ -70,6 +67,8 @@ import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.shuffleSongs
@@ -88,7 +87,6 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
 
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
-    val context = LocalContext.current
 
     getNavidromeArtistDetails(selectedArtist.navidromeID, selectedArtist.name)
 
@@ -199,9 +197,10 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
             verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = {
+                    if (artistSongs.isEmpty()) return@Button
                     SongHelper.currentSong = artistSongs[0]
                     SongHelper.currentList = artistSongs
-                    artistSongs[0].media?.let { SongHelper.playStream(it)}
+                    artistSongs[0].media?.let { SongHelper.playStream(it, false, mediaController)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -215,13 +214,14 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
             }
             Button(
                 onClick = {
+                    if (artistSongs.isEmpty()) return@Button
                     shuffleSongs.value = true
                     mediaController?.shuffleModeEnabled = true
 
                     val random = artistSongs.indices.random()
                     SongHelper.currentSong = artistSongs[random]
                     SongHelper.currentList = artistSongs
-                    artistSongs[random].media?.let { SongHelper.playStream(it)}
+                    artistSongs[random].media?.let { SongHelper.playStream(it, false, mediaController)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,

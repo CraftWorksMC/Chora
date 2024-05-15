@@ -2,7 +2,6 @@ package com.craftworks.music.data
 
 import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
-import androidx.media3.common.MediaItem
 
 data class Song (
     val imageUrl: Uri,
@@ -22,4 +21,3 @@ data class Song (
 )
 
 val songsList: MutableList<Song> = mutableStateListOf()
-val tracklist = mutableListOf<MediaItem>()

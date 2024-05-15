@@ -17,7 +17,6 @@ import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import com.craftworks.music.data.Song
-import com.craftworks.music.data.tracklist
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
@@ -100,11 +99,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             .setAudioAttributes(AudioAttributes.DEFAULT, true)
             .build()
 
-        player.availableCommands.buildUpon()
-            .add(Player.COMMAND_SET_SHUFFLE_MODE)
-            .add(Player.COMMAND_SET_REPEAT_MODE)
-            .build()
-
         player.repeatMode = Player.REPEAT_MODE_OFF
         player.shuffleModeEnabled = false
 
@@ -157,12 +151,12 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         Log.d("AA", "Initialized MediaLibraryService.")
     }
 
-    fun notifyNewSessionItems() {
+/*    fun notifyNewSessionItems() {
         session?.connectedControllers?.forEach {
             (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", SongHelper.currentTracklist.size, null)
         }
         Log.d("AA", "Notified MediaLibrarySession with new tracklist. (Length: ${SongHelper.currentTracklist.size})")
-    }
+    }*/
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         // Check if the player is not ready to play or there are no items in the media queue
@@ -194,31 +188,15 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                         .setUri(mediaItem.mediaId)
                         .build()
                 }
-            val updatedStartIndex = SongHelper.currentTracklist.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
-            Log.d("AA", "updatedMediaItem: ${updatedMediaItems[0].mediaMetadata.title.toString()}")
-            //notifyNewSessionItems()
+            val updatedStartIndex =
+                if (SongHelper.currentSong.isRadio == false)
+                    updatedMediaItems.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
+                else 0
+
+            Log.d("AA", "updatedStartIndex: $updatedStartIndex")
 
             return super.onSetMediaItems(mediaSession, controller, updatedMediaItems, updatedStartIndex, startPositionMs)
         }
-
-//        override fun onAddMediaItems(
-//            mediaSession: MediaSession,
-//            controller: MediaSession.ControllerInfo,
-//            mediaItems: List<MediaItem>
-//        ): ListenableFuture<List<MediaItem>> {
-//            // We need to use URI from requestMetaData because of https://github.com/androidx/media/issues/282
-//            val updatedMediaItems: List<MediaItem> =
-//                SongHelper.currentTracklist.map { mediaItem ->
-//                    MediaItem.Builder()
-//                        .setMediaId(mediaItem.mediaId)
-//                        .setMediaMetadata(mediaItem.mediaMetadata)
-//                        .setUri(mediaItem.mediaId)
-//                        .build()
-//                }
-//            Log.d("AA", "updatedMediaItem: ${updatedMediaItems[0].mediaMetadata.title.toString()}")
-//            return Futures.immediateFuture(updatedMediaItems)
-//        }
-
 
 
         override fun onGetLibraryRoot(
@@ -267,7 +245,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 parentId,
                 when (parentId) {
                     "nodeROOT" -> 2
-                    "nodeTRACKLIST" -> tracklist.size
+                    "nodeTRACKLIST" -> SongHelper.currentTracklist.size
                     else -> 0
                 },
                 params
