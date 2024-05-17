@@ -1,6 +1,5 @@
 package com.craftworks.music.player
 
-import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
@@ -17,7 +16,6 @@ import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import com.craftworks.music.MainActivity
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
@@ -73,7 +71,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     private val serviceMainScope = CoroutineScope(Dispatchers.Main)
     private val serviceIOScope = CoroutineScope(Dispatchers.IO)
 
-    private var androidAutoAllSongsTracklist = mutableListOf<MediaItem>()
+    var androidAutoAllSongsTracklist = mutableListOf<MediaItem>()
 
     //endregion
 
@@ -83,11 +81,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         Log.d("AA", "onCreate: Android Auto")
 
+        saveManager(this@ChoraMediaLibraryService).loadSettings()
         initializePlayer()
-
-        serviceMainScope.launch {
-            saveManager(this@ChoraMediaLibraryService).loadSettings()
-        }
     }
 
     @OptIn(UnstableApi::class)
@@ -152,12 +147,12 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         })
 
         // Launch MainActivity when clicking on the notification.
-        val intent = Intent(applicationContext, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+          //val intent = Intent(applicationContext, MainActivity::class.java)
+          //val pendingIntent = PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         session = MediaLibrarySession.Builder(this, player, LibrarySessionCallback())
             .setId("AutoSession")
-            .setSessionActivity(pendingIntent)
+          //.setSessionActivity(pendingIntent)
             .build()
 
         // Add all songs to android auto.
@@ -180,10 +175,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
             androidAutoAllSongsTracklist.add(mediaItem)
         }
+        SongHelper.currentTracklist = androidAutoAllSongsTracklist
 
-        session?.connectedControllers?.forEach {
-            (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", androidAutoAllSongsTracklist.size, null)
-        }
+        session?.notifyChildrenChanged("nodeTRACKLIST", androidAutoAllSongsTracklist.size, null)
 
         Log.d("AA", "Initialized MediaLibraryService.")
     }
@@ -228,7 +222,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             val updatedStartIndex =
                 if (SongHelper.currentSong.isRadio == false)
                     updatedMediaItems.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
-                else 0
+                else {
+                    androidAutoAllSongsTracklist.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
+                }
 
             Log.d("AA", "updatedStartIndex: $updatedStartIndex")
 
