@@ -1,7 +1,6 @@
-package com.craftworks.music.ui.elements
+package com.craftworks.music.ui.elements.dialogs
 
 import android.content.Context
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -57,6 +55,7 @@ import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.navidromeStatus
+import com.craftworks.music.ui.elements.bounceClick
 import java.net.URL
 
 //region PREVIEWS
@@ -290,24 +289,8 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                     .bounceClick(),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Crossfade(
-                                    targetState = navidromeStatus.value,
-                                    label = "Loading Button Animation"
-                                ) { status ->
-                                    when (status) {
-                                        "" -> Text(
-                                            stringResource(R.string.Action_Login),
-                                            modifier = Modifier.height(24.dp)
-                                        )
-
-                                        "ok" -> Text(
-                                            stringResource(R.string.Action_Success),
-                                            modifier = Modifier
-                                                .height(24.dp)
-                                                .wrapContentHeight(Alignment.CenterVertically)
-                                        )
-                                    }
-                                }
+                                Text(stringResource(R.string.Action_Login),
+                                    modifier = Modifier.height(24.dp))
                             }
                         }
                     //endregion

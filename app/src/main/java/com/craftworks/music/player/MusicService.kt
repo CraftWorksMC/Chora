@@ -175,6 +175,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
             androidAutoAllSongsTracklist.add(mediaItem)
         }
+        androidAutoAllSongsTracklist = androidAutoAllSongsTracklist.sortedBy { it.mediaMetadata.title.toString() }.toMutableList()
         SongHelper.currentTracklist = androidAutoAllSongsTracklist
 
         session?.notifyChildrenChanged("nodeTRACKLIST", androidAutoAllSongsTracklist.size, null)
@@ -223,7 +224,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 if (SongHelper.currentSong.isRadio == false)
                     updatedMediaItems.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
                 else {
-                    androidAutoAllSongsTracklist.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
+                    0
                 }
 
             Log.d("AA", "updatedStartIndex: $updatedStartIndex")

@@ -48,7 +48,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.ui.elements.CreateMediaProviderDialog
+import com.craftworks.music.ui.elements.dialogs.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.LocalProviderCard
 import com.craftworks.music.ui.elements.NavidromeProviderCard
 import com.craftworks.music.ui.elements.bottomSpacerHeightDp
