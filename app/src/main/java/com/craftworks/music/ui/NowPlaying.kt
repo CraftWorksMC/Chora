@@ -6,6 +6,8 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
@@ -129,6 +131,8 @@ import com.craftworks.music.ui.screens.backgroundType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Timer
+import java.util.TimerTask
 
 
 var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
@@ -136,7 +140,6 @@ var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
 var lyricsOpen by mutableStateOf(false)
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showSystemUi = false, showBackground = true)
 @Composable
 fun NowPlayingContent(
     song: Song = Song(
@@ -151,32 +154,22 @@ fun NowPlayingContent(
     context: Context = LocalContext.current,
     scaffoldState: BottomSheetScaffoldState? = rememberBottomSheetScaffoldState(),
     snackbarHostState: SnackbarHostState? = SnackbarHostState(),
-    navHostController: NavHostController = rememberNavController()
+    navHostController: NavHostController = rememberNavController(),
+    mediaController: MediaController?
 ) {
     if (scaffoldState == null) return
 
     Box {
         // UI PLAYING STATE
-
-
-        val mediaController by rememberManagedMediaController()
-
         var playing by remember { mutableStateOf(false) }
-        var buffering by remember { mutableStateOf(false) }
 
         mediaController?.addListener(object : Player.Listener {
-//                override fun onIsPlayingChanged(isPlaying: Boolean) {
-//                    super.onIsPlayingChanged(isPlaying)
-//                    playing = isPlaying
-//                }
-
                 override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
                     super.onPlayWhenReadyChanged(playWhenReady, reason)
                     playing = playWhenReady
                 }
             }
         )
-
 
         //region Update Content + Backgrounds
         // handle back presses
@@ -311,7 +304,7 @@ fun NowPlayingContent(
         Box(modifier = Modifier
             .graphicsLayer { translationY = -offsetY }
             .zIndex(1f)) {
-            NowPlayingMiniPlayer(scaffoldState, playing)
+            NowPlayingMiniPlayer(scaffoldState, playing, mediaController)
         }
 
         // MAIN UI
@@ -331,7 +324,7 @@ fun NowPlayingContent(
                 ) {
                     Column {
                         // Album Art + Info
-                        NowPlayingPortraitCover(navHostController, scaffoldState)
+                        NowPlayingPortraitCover(navHostController, scaffoldState, mediaController)
 
                         // Seek Bar
                         Column(
@@ -358,11 +351,11 @@ fun NowPlayingContent(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                ShuffleButton(32.dp)
+                                ShuffleButton(32.dp, mediaController)
 
-                                MainButtons(song, playing)
+                                MainButtons(mediaController, playing)
 
-                                RepeatButton(32.dp)
+                                RepeatButton(32.dp, mediaController)
                             }
 
                             Row(
@@ -422,7 +415,8 @@ fun NowPlayingContent(
                         playing,
                         song,
                         snackbarHostState,
-                        coroutineScope
+                        coroutineScope,
+                        mediaController
                     )
                 }
 
@@ -434,9 +428,35 @@ fun NowPlayingContent(
 }
 
 @Composable
-@Preview(showBackground = true)
-fun LyricsView(isLandscape: Boolean = false) {
-    val mediaController by rememberManagedMediaController()
+fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) {
+
+    // Update synced lyrics each second.
+    Timer().schedule(object : TimerTask() {
+        private val handler = Handler(Looper.getMainLooper())
+        override fun run() {
+            handler.post {
+                try {
+                    /* SYNCED LYRICS */
+                    if (SyncedLyric.size < 1) return@post
+
+                    for (a in 0 until SyncedLyric.size - 1) { //Added 750ms offset
+                        if (SyncedLyric[a].timestamp <= sliderPos.intValue + 750 &&
+                            SyncedLyric[a + 1].timestamp >= sliderPos.intValue + 750) {
+
+                            SyncedLyric[a] = SyncedLyric[a].copy(isCurrentLyric = true)
+                            SyncedLyric.forEachIndexed { index, syncedLyric ->
+                                if (index != a) {
+                                    SyncedLyric[index] = syncedLyric.copy(isCurrentLyric = false)
+                                }
+                            }
+                        }
+                    }
+                }catch (_: Exception){
+
+                }
+            }
+        }
+    }, 0, 1000)
 
     val topBottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.15f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
     val state = rememberScrollState()
@@ -621,9 +641,7 @@ fun SliderUpdating(isLandscape: Boolean? = false, mediaController: MediaControll
 //region Reusable buttons
 
 @Composable // Previous Song, Play/Pause, Next Song
-fun MainButtons(song: Song, isPlaying: Boolean ? = false){
-    val mediaController by rememberManagedMediaController()
-
+fun MainButtons(mediaController: MediaController?, isPlaying: Boolean ? = false){
     // Previous Song
     Box(modifier = Modifier
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
@@ -715,6 +733,7 @@ fun MainButtons(song: Song, isPlaying: Boolean ? = false){
         }
     }
 }
+
 @Composable
 fun LyricsButton(size: Dp){
     Box(modifier = Modifier
@@ -800,9 +819,7 @@ fun DownloadButton(snackbarHostState: SnackbarHostState?,
     }
 }
 @Composable
-fun ShuffleButton(size: Dp){
-    val mediaController by rememberManagedMediaController()
-
+fun ShuffleButton(size: Dp, mediaController: MediaController?){
     Box(modifier = Modifier
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
     {
@@ -829,8 +846,7 @@ fun ShuffleButton(size: Dp){
     }
 }
 @Composable
-fun RepeatButton(size: Dp){
-    val mediaController by rememberManagedMediaController()
+fun RepeatButton(size: Dp, mediaController: MediaController?){
     Box(modifier = Modifier
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
     {

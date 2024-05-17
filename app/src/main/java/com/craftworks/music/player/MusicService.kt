@@ -1,5 +1,6 @@
 package com.craftworks.music.player
 
+import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
@@ -16,7 +17,9 @@ import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import com.craftworks.music.MainActivity
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
@@ -69,6 +72,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     private val serviceMainScope = CoroutineScope(Dispatchers.Main)
     private val serviceIOScope = CoroutineScope(Dispatchers.IO)
+
+    private var androidAutoAllSongsTracklist = mutableListOf<MediaItem>()
 
     //endregion
 
@@ -146,7 +151,39 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             }
         })
 
-        session = MediaLibrarySession.Builder(this, player, LibrarySessionCallback()).setId("AutoSession").build()
+        // Launch MainActivity when clicking on the notification.
+        val intent = Intent(applicationContext, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+        session = MediaLibrarySession.Builder(this, player, LibrarySessionCallback())
+            .setId("AutoSession")
+            .setSessionActivity(pendingIntent)
+            .build()
+
+        // Add all songs to android auto.
+        // For now it will only contain an ordered list of all the songs.
+        for (song in songsList){
+            val mediaMetadata = MediaMetadata.Builder()
+                .setTitle(song.title)
+                .setArtist(song.artist)
+                .setAlbumTitle(song.album)
+                .setArtworkUri(song.imageUrl)
+                .setReleaseYear(song.year?.toInt())
+                .setIsBrowsable(false)
+                .setIsPlayable(true)
+                .build()
+            val mediaItem = MediaItem.Builder()
+                .setUri(song.media)
+                .setMediaId(song.media.toString())
+                .setMediaMetadata(mediaMetadata)
+                .build()
+
+            androidAutoAllSongsTracklist.add(mediaItem)
+        }
+
+        session?.connectedControllers?.forEach {
+            (session as MediaLibrarySession).notifyChildrenChanged(it, "nodeTRACKLIST", androidAutoAllSongsTracklist.size, null)
+        }
 
         Log.d("AA", "Initialized MediaLibraryService.")
     }
@@ -216,7 +253,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 LibraryResult.ofItemList(
                     when (parentId) {
                         "nodeROOT" -> rootHierarchy
-                        "nodeTRACKLIST" -> SongHelper.currentTracklist
+                        "nodeTRACKLIST" -> androidAutoAllSongsTracklist
                         else -> rootHierarchy
                     },
                     params
@@ -229,7 +266,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             browser: MediaSession.ControllerInfo,
             mediaId: String
         ): ListenableFuture<LibraryResult<MediaItem>> {
-            val mediaItem = SongHelper.currentTracklist.find { it.mediaId == mediaId }
+            val mediaItem = androidAutoAllSongsTracklist.find { it.mediaId == mediaId }
                 ?: return Futures.immediateFuture(LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE))
 
             return Futures.immediateFuture(LibraryResult.ofItem(mediaItem, LibraryParams.Builder().build()))
@@ -245,7 +282,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 parentId,
                 when (parentId) {
                     "nodeROOT" -> 2
-                    "nodeTRACKLIST" -> SongHelper.currentTracklist.size
+                    "nodeTRACKLIST" -> androidAutoAllSongsTracklist.size
                     else -> 0
                 },
                 params

@@ -29,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,8 +44,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
@@ -57,7 +56,6 @@ import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.DownloadButton
 import com.craftworks.music.ui.LyricsButton
 import com.craftworks.music.ui.LyricsView
@@ -72,10 +70,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview(showBackground = true)
 fun NowPlayingPortraitCover (
     navHostController: NavHostController = rememberNavController(),
-    scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState()
+    scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
+    mediaController: MediaController?
 ){
 
     val textFadingEdge = Brush.horizontalGradient(0.85f to Color.Red, 1f to Color.Transparent)
@@ -92,7 +90,7 @@ fun NowPlayingPortraitCover (
                         .fillMaxWidth()
                         .aspectRatio(1f),
                         contentAlignment = Alignment.Center){
-                        LyricsView(false)
+                        LyricsView(false, mediaController)
                     }
                 }
                 else {
@@ -211,18 +209,14 @@ fun NowPlayingPortraitCover (
 }
 
 @Composable
-@Preview(device = "spec:width=640dp,height=342dp,dpi=240", showBackground = true,
-    showSystemUi = true
-)
 fun NowPlayingLandscape(
     collapsed: Boolean? = false,
     isPlaying: Boolean? = false,
     song: Song = SongHelper.currentSong,
     snackbarHostState: SnackbarHostState? = SnackbarHostState(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    mediaController: MediaController?
 ) {
-    val mediaController by rememberManagedMediaController()
-
     Row(modifier = Modifier
         .fillMaxSize()
         .padding(start = 6.dp),
@@ -235,7 +229,7 @@ fun NowPlayingLandscape(
             contentAlignment = Alignment.Center){
             AnimatedContent(lyricsOpen, label = "Crossfade between lyrics") {
                 if (it){
-                    LyricsView(true)
+                    LyricsView(true, mediaController)
                 }
                 else {
                     AsyncImage(
@@ -321,7 +315,7 @@ fun NowPlayingLandscape(
                     .padding(horizontal = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically) {
-                    MainButtons(song, isPlaying)
+                    MainButtons(mediaController, isPlaying)
                 }
                 // BUTTONS
                 Row(modifier = Modifier
@@ -332,9 +326,9 @@ fun NowPlayingLandscape(
                     verticalAlignment = Alignment.CenterVertically) {
                     LyricsButton(48.dp)
 
-                    ShuffleButton(48.dp)
+                    ShuffleButton(48.dp, mediaController)
 
-                    RepeatButton(48.dp)
+                    RepeatButton(48.dp, mediaController)
 
                     DownloadButton(snackbarHostState, coroutineScope, 48.dp)
                 }
@@ -346,12 +340,11 @@ fun NowPlayingLandscape(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
 fun NowPlayingMiniPlayer(
     scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
-    isPlaying: Boolean = true){
-
-    val mediaController by rememberManagedMediaController()
+    isPlaying: Boolean = true,
+    mediaController: MediaController?
+) {
 
     val coroutineScope = rememberCoroutineScope()
     Box (modifier = Modifier

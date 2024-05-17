@@ -129,6 +129,7 @@ fun RadioScreen(
                     return@RadiosGrid
 
                 SongHelper.currentSong = song
+                SongHelper.currentList = listOf()
                 song.media?.let { SongHelper.playStream(it, true, mediaController) }
                 // Get Metadata
                 val icecastUrl = "${song.media}/status-json.xsl"

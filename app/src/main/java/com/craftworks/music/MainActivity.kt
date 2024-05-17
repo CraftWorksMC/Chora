@@ -8,8 +8,6 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -60,10 +58,10 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.NowPlayingContent
 import com.craftworks.music.ui.dpToPx
 import com.craftworks.music.ui.elements.bounceClick
@@ -72,8 +70,6 @@ import kotlinx.coroutines.launch
 import java.sql.Date
 import java.text.SimpleDateFormat
 import java.util.Locale
-import java.util.Timer
-import java.util.TimerTask
 
 
 var sliderPos = mutableIntStateOf(0)
@@ -93,35 +89,6 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        Timer().schedule(object : TimerTask() {
-            private val handler = Handler(Looper.getMainLooper())
-            override fun run() {
-                handler.post {
-                    try {
-                        //SongHelper.updateCurrentPos()
-
-                        /* SYNCED LYRICS */
-                        if (SyncedLyric.size < 1) return@post
-
-                        for (a in 0 until SyncedLyric.size - 1) { //Added 750ms offset
-                            if (SyncedLyric[a].timestamp <= sliderPos.intValue + 750 &&
-                                SyncedLyric[a + 1].timestamp >= sliderPos.intValue + 750) {
-
-                                    SyncedLyric[a] = SyncedLyric[a].copy(isCurrentLyric = true)
-                                    SyncedLyric.forEachIndexed { index, syncedLyric ->
-                                        if (index != a) {
-                                            SyncedLyric[index] = syncedLyric.copy(isCurrentLyric = false)
-                                        }
-                                    }
-                            }
-                        }
-                    }catch (_: Exception){
-
-                    }
-                }
-            }
-        }, 0, 1000)
-
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val scaffoldState = BottomSheetScaffoldState(
@@ -139,6 +106,8 @@ class MainActivity : ComponentActivity() {
             MusicPlayerTheme {
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
                 navController = rememberNavController()
+
+                val mediaController = rememberManagedMediaController()
                 var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
 
                 val coroutineScope = rememberCoroutineScope()
@@ -207,7 +176,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     ) {
-                        paddingValues -> SetupNavGraph(navController = navController, paddingValues)
+                        paddingValues -> SetupNavGraph(navController = navController, paddingValues, mediaController.value)
                         BottomSheetScaffold(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -233,7 +202,8 @@ class MainActivity : ComponentActivity() {
                                     context = this@MainActivity,
                                     scaffoldState = scaffoldState,
                                     snackbarHostState = snackbarHostState,
-                                    navHostController = navController
+                                    navHostController = navController,
+                                    mediaController = mediaController.value
                                 )
                             }) {
                         }
