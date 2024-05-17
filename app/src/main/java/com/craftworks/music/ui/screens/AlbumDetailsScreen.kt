@@ -51,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
@@ -63,7 +64,6 @@ import com.craftworks.music.data.songsList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalSongCard
@@ -79,9 +79,10 @@ var selectedAlbum by mutableStateOf<Album?>(
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun AlbumDetails(navHostController: NavHostController = rememberNavController()) {
-
-    val mediaController by rememberManagedMediaController()
+fun AlbumDetails(
+    navHostController: NavHostController = rememberNavController(),
+    mediaController: MediaController? = null
+) {
 
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))

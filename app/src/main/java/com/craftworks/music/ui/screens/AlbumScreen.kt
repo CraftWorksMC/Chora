@@ -30,6 +30,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
@@ -49,10 +50,14 @@ import java.net.URL
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = false)
 @Composable
-fun AlbumScreen(navHostController: NavHostController = rememberNavController()) {
-    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
+fun AlbumScreen(
+    navHostController: NavHostController = rememberNavController(),
+    mediaController: MediaController? = null
+) {
 
+    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val context = LocalContext.current
+
     val state = rememberPullToRefreshState()
     if (state.isRefreshing) {
         LaunchedEffect(true) {
@@ -95,7 +100,7 @@ fun AlbumScreen(navHostController: NavHostController = rememberNavController()) 
 
             val sortedAlbumList = albumList.sortedBy { it.name }
 
-            AlbumGrid(sortedAlbumList, onAlbumSelected = { album ->
+            AlbumGrid(sortedAlbumList, mediaController, onAlbumSelected = { album ->
                 navHostController.navigate(Screen.AlbumDetails.route) {
                     launchSingleTop = true
                 }

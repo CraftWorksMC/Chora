@@ -55,6 +55,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
@@ -68,7 +69,6 @@ import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.shuffleSongs
@@ -81,9 +81,10 @@ import java.net.URL
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun ArtistDetails(navHostController: NavHostController = rememberNavController()) {
-
-    val mediaController by rememberManagedMediaController()
+fun ArtistDetails(
+    navHostController: NavHostController = rememberNavController(),
+    mediaController: MediaController? = null
+) {
 
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
@@ -250,7 +251,7 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
             )
 
             /* SONGS ROW */
-            AlbumRow(albums = artistAlbums, onAlbumSelected = { album ->
+            AlbumRow(albums = artistAlbums, mediaController, onAlbumSelected = { album ->
                 navHostController.navigate(Screen.AlbumDetails.route) {
                     launchSingleTop = true
                 }
@@ -277,18 +278,9 @@ fun ArtistDetails(navHostController: NavHostController = rememberNavController()
                 )
                 for(song in artistSongs){
                     HorizontalSongCard(song = song, onClick = {
-                        sliderPos.intValue = 0
                         SongHelper.currentSong = song
                         SongHelper.currentList = artistSongs
-                        song.media?.let { SongHelper.playStream(it)}
-                        //markSongAsPlayed(song)
-                        if (useNavidromeServer.value && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")){
-                            try {
-                                getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
-                            } catch (_: Exception){
-                                // DO NOTHING
-                            }
-                        }
+                        song.media?.let { SongHelper.playStream(it, false, mediaController)}
                     })
                 }
             }

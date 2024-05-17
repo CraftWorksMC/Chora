@@ -22,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -37,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
@@ -44,16 +44,20 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = false)
 @Composable
-fun PlaylistDetails(navHostController: NavHostController = rememberNavController()) {
+fun PlaylistDetails(
+    navHostController: NavHostController = rememberNavController(),
+    mediaController: MediaController? = null
+) {
+
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red, Color.Transparent))
+
     /* RADIO ICON + TEXT */
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -112,7 +116,6 @@ fun PlaylistDetails(navHostController: NavHostController = rememberNavController
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        val mediaController by rememberManagedMediaController()
         Column(modifier = Modifier.padding(12.dp, top = 0.dp)) {
             selectedPlaylist?.songs?.let {
                 SongsHorizontalColumn(it, onSongSelected = { song ->

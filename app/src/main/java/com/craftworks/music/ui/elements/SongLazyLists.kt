@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
@@ -122,7 +123,7 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
 //region Albums
 @ExperimentalFoundationApi
 @Composable
-fun AlbumGrid(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
+fun AlbumGrid(albums: List<Album>, mediaController: MediaController?, onAlbumSelected: (album: Album) -> Unit){
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = Modifier
@@ -134,6 +135,7 @@ fun AlbumGrid(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
     ) {
         items(albums) {album ->
             AlbumCard(album = album,
+                mediaController = mediaController,
                 onClick = {
                     onAlbumSelected(album)
                 })
@@ -142,7 +144,7 @@ fun AlbumGrid(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
 }
 @ExperimentalFoundationApi
 @Composable
-fun AlbumRow(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
+fun AlbumRow(albums: List<Album>, mediaController: MediaController?, onAlbumSelected: (album: Album) -> Unit){
     LazyRow(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -152,6 +154,7 @@ fun AlbumRow(albums: List<Album>, onAlbumSelected: (album: Album) -> Unit){
     ) {
         items(albums) {album ->
             AlbumCard(album = album,
+                mediaController = mediaController,
                 onClick = {
                     onAlbumSelected(album)
                 })

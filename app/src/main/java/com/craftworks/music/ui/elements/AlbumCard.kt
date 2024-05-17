@@ -24,7 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,17 +33,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media3.session.MediaController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.songsList
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 
 @Composable
-fun AlbumCard(album: Album, onClick: () -> Unit){
-    val mediaController by rememberManagedMediaController()
-
+fun AlbumCard(album: Album, mediaController: MediaController?, onClick: () -> Unit){
     Card(
         onClick = { onClick() },
         modifier = Modifier

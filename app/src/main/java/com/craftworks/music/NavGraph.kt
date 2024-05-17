@@ -11,11 +11,13 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.craftworks.music.data.Screen
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
 import com.craftworks.music.ui.screens.ArtistDetails
@@ -36,6 +38,8 @@ fun SetupNavGraph(
     navController: NavHostController,
     paddingValues: PaddingValues
 ){
+    val mediaController by rememberManagedMediaController()
+
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
         modifier = Modifier.padding(bottom = (/* Stupid PaddingValues Error. */ paddingValues.calculateBottomPadding() * 0) ),
@@ -52,28 +56,28 @@ fun SetupNavGraph(
     )
     {
         composable(route = Screen.Home.route) {
-            HomeScreen(navController)
+            HomeScreen(navController, mediaController)
         }
         composable(route = Screen.Song.route) {
-            SongsScreen()
+            SongsScreen(mediaController)
         }
         composable(route = Screen.Radio.route) {
-            RadioScreen()
+            RadioScreen(mediaController)
         }
 
         //Albums
         composable(route = Screen.Albums.route) {
-            AlbumScreen(navController)
+            AlbumScreen(navController, mediaController)
         }
         composable(route = Screen.AlbumDetails.route) {
-            AlbumDetails(navController)
+            AlbumDetails(navController, mediaController)
         }
         //Artist
         composable(route = Screen.Artists.route) {
             ArtistsScreen(navController)
         }
         composable(route = Screen.AristDetails.route) {
-            ArtistDetails(navController)
+            ArtistDetails(navController, mediaController)
         }
 
         //Playlists
@@ -81,7 +85,7 @@ fun SetupNavGraph(
             PlaylistScreen(navController)
         }
         composable(route = Screen.PlaylistDetails.route) {
-            PlaylistDetails(navController)
+            PlaylistDetails(navController, mediaController)
         }
 
         //Settings

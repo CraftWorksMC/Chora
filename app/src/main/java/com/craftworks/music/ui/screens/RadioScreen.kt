@@ -26,7 +26,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -41,11 +40,11 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.getIcecastMetadata
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.saveManager
@@ -62,12 +61,13 @@ var selectedRadioIndex = mutableIntStateOf(0)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun RadioScreen() {
+fun RadioScreen(
+    mediaController: MediaController? = null
+) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     if (radioList.isEmpty() && useNavidromeServer.value) getNavidromeRadios()
 
     val context = LocalContext.current
-    val mediaController by rememberManagedMediaController()
 
     val state = rememberPullToRefreshState()
     if (state.isRefreshing) {

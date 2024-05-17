@@ -53,6 +53,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
@@ -63,7 +64,6 @@ import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.ui.elements.BottomSpacer
@@ -79,7 +79,11 @@ import java.net.URL
     uiMode = Configuration.UI_MODE_NIGHT_YES,
     wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE
 )
-fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
+fun HomeScreen(
+    navHostController: NavHostController = rememberNavController(),
+    mediaController: MediaController? = null
+) {
+
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     val context = LocalContext.current
@@ -88,8 +92,6 @@ fun HomeScreen(navHostController: NavHostController = rememberNavController()) {
     var recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }.take(20)
     var mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }.take(20)
     var shuffledSongsList = remember { mutableStateOf(songsList.take(20).shuffled()) }
-
-    val mediaController by rememberManagedMediaController()
 
     val state = rememberPullToRefreshState()
     if (state.isRefreshing) {
