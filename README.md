@@ -19,10 +19,7 @@ To help keep this project free and open source to everyone, consider donating, t
 - Synced And Unsynced Lyrics. [From lrclib.net]
 - Navidrome and Local playlists.
 - Android Auto.
-## In Progress
 
-- Complete Backend Rewrite...
-- Fixing Crashes.
 ## Roadmap
 
 - Jellyfin (Music) Support.
