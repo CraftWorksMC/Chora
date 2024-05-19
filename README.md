@@ -35,7 +35,7 @@ To help keep this project free and open source to everyone, consider donating, t
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/Now-Playing-PlainLyrics.png?raw=true" width=200>
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/HomeScreen.png?raw=true" width=200>
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/PlaylistScreen.png?raw=true" width=200>
-    <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/PlaylistDetails.png?raw=true" width=200>
+    <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/AlbumScreen.png?raw=true" width=200>
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/RadioScreen.png?raw=true" width=200>
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/SettingScreen.png?raw=true" width=200>
 </p>
