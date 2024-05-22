@@ -244,10 +244,13 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                     try {
                                         username = username.trim()
                                         password = password.trim()
+                                        if (url.startsWith("https")){
+                                            url = url.removeSuffix("/").trim() + ":443"
+                                        }
                                         //saveManager(context).saveSettings()
                                         if (checkNavidromeURL(url, username, password)) {
                                             val server = NavidromeProvider(
-                                                url.removeSuffix("/"),
+                                                url,
                                                 username,
                                                 password
                                             )

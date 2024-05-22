@@ -30,8 +30,7 @@ fun checkNavidromeURL(navidromeUrl: String, username: String, password: String):
 
             with(statusUrl.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET
-
-
+                instanceFollowRedirects = true
                 Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
 
                 if (responseCode == 404){
@@ -44,6 +43,7 @@ fun checkNavidromeURL(navidromeUrl: String, username: String, password: String):
                     parseNavidromeStatusXML(it, "/subsonic-response", "/subsonic-response/error")
                 }
             }
+
 
         } catch (e: Exception) {
             Log.d("NAVIDROME", "Unknown Error.")
