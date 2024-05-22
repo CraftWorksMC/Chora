@@ -163,7 +163,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 .setArtist(song.artist)
                 .setAlbumTitle(song.album)
                 .setArtworkUri(song.imageUrl)
-                .setReleaseYear(song.year?.toInt())
+                .setReleaseYear(song.year?.toIntOrNull() ?: 0)
                 .setIsBrowsable(false)
                 .setIsPlayable(true)
                 .build()

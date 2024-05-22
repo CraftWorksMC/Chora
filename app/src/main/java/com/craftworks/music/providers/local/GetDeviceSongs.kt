@@ -79,7 +79,7 @@ fun getSongsOnDevice(context: Context){
                     media = contentUri,
                     duration = thisDuration,
                     dateAdded = thisDateAdded,
-                    year = thisYear.toString(),
+                    year = thisYear.toString().replace("null", "0"),
                     format = thisFormat.uppercase().drop(6),
                     bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else "",
                     navidromeID = "Local"

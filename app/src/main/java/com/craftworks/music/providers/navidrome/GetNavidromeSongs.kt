@@ -58,7 +58,7 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
         val songAlbum = attributes.getNamedItem("album")?.textContent ?: ""
         val songArtist = attributes.getNamedItem("artist")?.textContent ?: ""
         val songDuration = attributes.getNamedItem("duration")?.textContent?.toIntOrNull() ?: 0
-        val songYear = attributes.getNamedItem("year")?.textContent ?: ""
+        val songYear = attributes.getNamedItem("year")?.textContent ?: "0"
         val songPlayCount = attributes.getNamedItem("playCount")?.textContent?.toIntOrNull() ?: 0
         val songDateAdded = attributes.getNamedItem("created")?.textContent ?: ""
         val songMimeType = attributes.getNamedItem("suffix")?.textContent?.uppercase() ?: ""

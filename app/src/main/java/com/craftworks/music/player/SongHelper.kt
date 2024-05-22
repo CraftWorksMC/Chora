@@ -48,7 +48,7 @@ class SongHelper {
                     .setArtist(song.artist)
                     .setAlbumTitle(song.album)
                     .setArtworkUri(song.imageUrl)
-                    .setReleaseYear(song.year?.toInt())
+                    .setReleaseYear(song.year?.toIntOrNull() ?: 0)
                     .setExtras(Bundle().apply {
                         putInt("duration", song.duration)
                         putString("MoreInfo", "${song.format} • ${song.bitrate}")

@@ -8,7 +8,6 @@ import java.io.BufferedReader
 import java.io.StringReader
 import java.net.HttpURLConnection
 import java.net.URL
-import java.net.UnknownHostException
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
@@ -32,6 +31,7 @@ fun checkNavidromeURL(navidromeUrl: String, username: String, password: String):
             with(statusUrl.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET
 
+
                 Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
 
                 if (responseCode == 404){
@@ -45,8 +45,8 @@ fun checkNavidromeURL(navidromeUrl: String, username: String, password: String):
                 }
             }
 
-        } catch (e: UnknownHostException) {
-            Log.d("NAVIDROME", "Unknown Host")
+        } catch (e: Exception) {
+            Log.d("NAVIDROME", "Unknown Error.")
             navidromeStatus.value = "Invalid URL"
             return@Thread
         }
