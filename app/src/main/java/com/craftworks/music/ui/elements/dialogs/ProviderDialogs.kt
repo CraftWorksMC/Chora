@@ -245,7 +245,9 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                         username = username.trim()
                                         password = password.trim()
                                         if (url.startsWith("https")){
-                                            url = url.removeSuffix("/").trim() + ":443"
+                                            url = url.removeSuffix("/").trim()
+                                            if (!url.endsWith("443"))
+                                                url += ":443"
                                         }
                                         //saveManager(context).saveSettings()
                                         if (checkNavidromeURL(url, username, password)) {
