@@ -20,6 +20,16 @@ To help keep this project free and open source to everyone, consider donating, t
 - Navidrome and Local playlists.
 - Android Auto.
 
+## In Progress
+
+- Complete Navidrome integration re-write (it's buggy af)
+
+## Known Issues
+
+- Can't login to Navidrome if behind HTTPS in some cases.
+- Can't login to Navidrome if password contains some special characters like '#'
+- Navidrome duplicated albums.
+
 ## Roadmap
 
 - Jellyfin (Music) Support.
