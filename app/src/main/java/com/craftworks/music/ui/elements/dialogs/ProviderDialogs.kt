@@ -49,12 +49,12 @@ import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.checkNavidromeURL
 import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.navidromeStatus
+import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.bounceClick
 import java.net.URL
 
@@ -97,7 +97,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                         stringResource(R.string.Source_Local),
                         stringResource(R.string.Source_Navidrome)
                     )
-                    var selectedOptionText by remember { mutableStateOf(options[0]) }
+                    var selectedOptionText by remember { mutableStateOf(options[1]) }
 
                     ExposedDropdownMenuBox(
                         expanded = expanded,
@@ -244,13 +244,12 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                     try {
                                         username = username.trim()
                                         password = password.trim()
-                                        if (url.startsWith("https")){
-                                            url = url.removeSuffix("/").trim()
-                                            if (!url.endsWith("443"))
-                                                url += ":443"
-                                        }
-                                        //saveManager(context).saveSettings()
-                                        if (checkNavidromeURL(url, username, password)) {
+                                        url = url.removeSuffix("/").trim()
+
+                                        sendNavidromeGETRequest(url, username, password, "ping")
+
+                                        if (navidromeStatus.value == "ok") {
+
                                             val server = NavidromeProvider(
                                                 url,
                                                 username,

@@ -15,9 +15,9 @@ import javax.xml.xpath.XPathFactory
 var navidromeStatus = mutableStateOf("")
 
 fun checkNavidromeURL(navidromeUrl: String, username: String, password: String): Boolean {
-    if (navidromeUrl.take(4) != "http"){
+
+    if (!navidromeUrl.startsWith("http")){
         navidromeStatus.value = "Invalid URL"
-        Log.d("NAVIDROME", "Invalid URL")
         return false
     }
 
@@ -25,8 +25,7 @@ fun checkNavidromeURL(navidromeUrl: String, username: String, password: String):
         try {
             Log.d("NAVIDROME", "Checking Connection...")
 
-            val statusUrl =
-                URL("$navidromeUrl/rest/ping.view?&u=$username&p=$password&v=1.12.0&c=Chora")
+            val statusUrl = URL("$navidromeUrl/rest/ping.view?&u=$username&p=$password&v=1.12.0&c=Chora")
 
             with(statusUrl.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"  // optional default is GET
@@ -43,8 +42,6 @@ fun checkNavidromeURL(navidromeUrl: String, username: String, password: String):
                     parseNavidromeStatusXML(it, "/subsonic-response", "/subsonic-response/error")
                 }
             }
-
-
         } catch (e: Exception) {
             Log.d("NAVIDROME", "Unknown Error.")
             navidromeStatus.value = "Invalid URL"
@@ -52,6 +49,7 @@ fun checkNavidromeURL(navidromeUrl: String, username: String, password: String):
         }
     }
     thread.start()
+    thread.join()
 
     if (navidromeStatus.value == "ok"){
         Log.d("NAVIDROME", "Successfully logged in!")
