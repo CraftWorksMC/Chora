@@ -246,7 +246,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                         password = password.trim()
                                         url = url.removeSuffix("/").trim()
 
-                                        sendNavidromeGETRequest(url, username, password, "ping")
+                                        sendNavidromeGETRequest(url, username, password, "ping.view?")
 
                                         if (navidromeStatus.value == "ok") {
 

@@ -145,7 +145,7 @@ fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: Mutable
             requestMethod = "GET"
             Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
             inputStream.bufferedReader().use {
-                parseSongXML(it, "/subsonic-response/playlist/entry", playlistSongs)
+                parseNavidromeSongXML(it, "/subsonic-response/playlist/entry", playlistSongs)
             }
         }
 

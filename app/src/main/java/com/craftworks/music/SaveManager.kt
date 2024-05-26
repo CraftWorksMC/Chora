@@ -25,6 +25,7 @@ import com.craftworks.music.providers.navidrome.getNavidromeArtists
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
@@ -132,11 +133,20 @@ class saveManager(private val context: Context){
         if (useNavidromeServer.value)
             try {
 
+                sendNavidromeGETRequest(
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+                    "getAlbumList.view?type=newest&size=100&offset=0"
+                )
+
                 if (localProviderList[selectedLocalProvider.intValue].enabled)
                     getSongsOnDevice(context)
                 getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
                 getNavidromePlaylists()
                 getNavidromeRadios()
+
+
 
                 if (artistList.isEmpty())
                     getNavidromeArtists()

@@ -1,6 +1,12 @@
 package com.craftworks.music.providers.navidrome
 
+import android.net.Uri
 import android.util.Log
+import com.craftworks.music.data.Album
+import com.craftworks.music.data.albumList
+import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.gitlab.mvysny.konsumexml.konsumeXml
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
@@ -8,28 +14,27 @@ import javax.net.ssl.HttpsURLConnection
 
 fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String, endpoint: String) {
 
-
     // Generate a random password salt and MD5 hash.
-    val passwordSalt = generateSalt(5)
+    val passwordSalt = generateSalt(8)
     val passwordHash = md5Hash(password + passwordSalt)
     Log.d("NAVIDROME", "baseUrl: $baseUrl, passwordSalt: $passwordSalt, endpoint: $endpoint")
 
     // All get requests come from this file.
-    val url = URL("$baseUrl/rest/$endpoint.view?&u=$username&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
+    val url = URL("$baseUrl/rest/$endpoint&u=$username&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
 
+    // Use HTTPS connection for allowing self-signed ssl certificates.
     val connection = if (url.protocol == "https") {
         url.openConnection() as HttpsURLConnection
     } else {
         url.openConnection() as HttpURLConnection
     }
-    Log.d("NAVIDROME", "opened connection as $connection, protocol: ${url.protocol}")
 
     val thread = Thread {
         with(connection) {
             requestMethod = "GET"
-            instanceFollowRedirects = true
+            instanceFollowRedirects = true // Might fix issues with reverse proxies.
 
-            Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+            Log.d("NAVIDROME", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
 
             // region Response Codes
             if (responseCode == 404) {
@@ -45,10 +50,13 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
             // endregion
 
             inputStream.bufferedReader().use {
-                when (endpoint) {
-                    "ping" -> parseNavidromeStatusXML(it, "/subsonic-response", "/subsonic-response/error")
+                when {
+                    endpoint.startsWith("ping") -> parseNavidromeStatusXML(it, "/subsonic-response", "/subsonic-response/error")
+                    //"search3.view?query=''&songCount=500" -> parseNavidromeSongXML(it, "/subsonic-response/searchResult3/song", songsList)
+                    endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML(it.readLine(), baseUrl, username, password)
                 }
             }
+
         }
     }
     thread.start()
@@ -64,4 +72,57 @@ fun generateSalt(length: Int): String {
     return (1..length)
         .map { allowedChars.random() }
         .joinToString("")
+}
+
+fun parseNavidromeAlbumXML(
+    response: String,
+    navidromeUrl: String,
+    navidromeUsername: String,
+    navidromePassword: String) {
+
+    // Avoid crashing by removing some useless tags.
+    val newResponse = response
+        .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
+        .replace("<replayGain></replayGain>", "")
+
+    newResponse.konsumeXml().apply {
+        child("subsonic-response"){
+            child("albumList"){
+                children("album"){
+                    val albumTitle = attributes.getValue("title")
+                    val albumArtist = attributes.getValue("artist")
+                    val albumYear = attributes.getValueOrNull("year") ?: "0"
+                    val albumID = attributes.getValue("id")
+
+                    val passwordSalt = generateSalt(8)
+                    val passwordHash = md5Hash(navidromePassword + passwordSalt)
+
+                    val albumArtUri = Uri.parse("$navidromeUrl/rest/getCoverArt.view?&id=$albumID&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
+
+                    val album = Album(
+                        name = albumTitle,
+                        artist = albumArtist,
+                        year = albumYear,
+                        coverArt = albumArtUri,
+                        navidromeID = albumID
+                    )
+                    if (albumList.none { it.name == albumTitle })
+                        albumList.add(album)
+                }.apply {
+                    // Get albums 100 at a time.
+                    if (size == 100){
+                        val albumOffset = (albumList.size + 1)
+                        sendNavidromeGETRequest(
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+                            "getAlbumList.view?type=newest&size=100&offset=$albumOffset"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    Log.d("NAVIDROME", "Added albums! Total: ${albumList.size}")
 }

@@ -2,10 +2,8 @@ package com.craftworks.music.providers.navidrome
 
 import android.net.Uri
 import android.util.Log
-import com.craftworks.music.data.Album
 import com.craftworks.music.data.Artist
 import com.craftworks.music.data.Song
-import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
@@ -36,7 +34,7 @@ fun getNavidromeSongs(url: URL){
                 Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
 
                 inputStream.bufferedReader().use {
-                    parseSongXML(it, "/subsonic-response/searchResult3/song", songsList)
+                    parseNavidromeSongXML(it, "/subsonic-response/searchResult3/song", songsList)
                 }
             }
         } catch (e: Exception) {
@@ -46,7 +44,7 @@ fun getNavidromeSongs(url: URL){
     thread.start()
 }
 
-fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Song>){
+fun parseNavidromeSongXML(input: BufferedReader, xpath: String, songList: MutableList<Song>){
     val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(InputSource(StringReader(input.readText())))
     val elementNodeList = XPathFactory.newInstance().newXPath().evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
 
@@ -92,15 +90,15 @@ fun parseSongXML(input: BufferedReader, xpath: String, songList: MutableList<Son
             songList.add(song)
         }
 
-        val album = Album(
-            name = songAlbum,
-            artist = songArtist,
-            year = songYear,
-            coverArt = songImageUrl
-        )
-        if (albumList.none { it.name == album.name && it.artist == album.artist }) {
-            albumList.add(album)
-        }
+//        val album = Album(
+//            name = songAlbum,
+//            artist = songArtist,
+//            year = songYear,
+//            coverArt = songImageUrl
+//        )
+//        if (albumList.none { it.name == album.name && it.artist == album.artist }) {
+//            albumList.add(album)
+//        }
 
         val artist = Artist(
             name = songArtist,

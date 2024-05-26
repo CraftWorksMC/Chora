@@ -9,7 +9,7 @@ data class Album (
     val year: String,
     val coverArt: Uri,
     val songs: List<Song> = emptyList(),
-    val navidromeID: String? = ""
+    val navidromeID: String? = "Local"
 )
 
 var albumList:MutableList<Album> = mutableStateListOf()
