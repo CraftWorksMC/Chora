@@ -59,8 +59,6 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
-import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
@@ -70,7 +68,6 @@ import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.SongsRow
 import kotlinx.coroutines.delay
-import java.net.URL
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,7 +100,7 @@ fun HomeScreen(
             delay(100) //Avoids Crashes
 
             if (useNavidromeServer.value)
-                getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                getNavidromeSongs()
 
             delay(1500)
 

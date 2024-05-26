@@ -2,110 +2,107 @@ package com.craftworks.music.providers.navidrome
 
 import android.net.Uri
 import android.util.Log
-import com.craftworks.music.data.Artist
 import com.craftworks.music.data.Song
-import com.craftworks.music.data.artistList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
-import org.w3c.dom.NodeList
-import org.xml.sax.InputSource
-import java.io.BufferedReader
-import java.io.StringReader
-import java.net.HttpURLConnection
-import java.net.URL
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.xpath.XPathConstants
-import javax.xml.xpath.XPathFactory
+import com.gitlab.mvysny.konsumexml.getValueInt
+import com.gitlab.mvysny.konsumexml.konsumeXml
 
-fun getNavidromeSongs(url: URL){
-    println("getting navidrome songs!")
-    if (navidromeServersList.isEmpty()) return
-
-    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password == "") return
-
-    val thread = Thread {
-        try {
-            with(url.openConnection() as HttpURLConnection) {
-                requestMethod = "GET"  // optional default is GET
-
-                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-
-                inputStream.bufferedReader().use {
-                    parseNavidromeSongXML(it, "/subsonic-response/searchResult3/song", songsList)
-                }
-            }
-        } catch (e: Exception) {
-            Log.d("Exception", e.toString())
-        }
-    }
-    thread.start()
+fun getNavidromeSongs(){
+    sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "search3.view?query=''&songCount=100&songOffset=0&artistCount=0&albumCount=0"
+    )
 }
 
-fun parseNavidromeSongXML(input: BufferedReader, xpath: String, songList: MutableList<Song>){
-    val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(InputSource(StringReader(input.readText())))
-    val elementNodeList = XPathFactory.newInstance().newXPath().evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
+fun parseNavidromeSongXML(
+    response: String,
+    navidromeUrl: String,
+    navidromeUsername: String,
+    navidromePassword: String) {
 
-    for (a in 0 until elementNodeList.length) {
-        val attributes = elementNodeList.item(a).attributes
+    // Avoid crashing by removing some useless tags.
+    val newResponse = response
+        .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
 
-        val songId = attributes.getNamedItem("id")?.textContent ?: ""
-        val songTitle = attributes.getNamedItem("title")?.textContent ?: ""
-        val songAlbum = attributes.getNamedItem("album")?.textContent ?: ""
-        val songArtist = attributes.getNamedItem("artist")?.textContent ?: ""
-        val songDuration = attributes.getNamedItem("duration")?.textContent?.toIntOrNull() ?: 0
-        val songYear = attributes.getNamedItem("year")?.textContent ?: "0"
-        val songPlayCount = attributes.getNamedItem("playCount")?.textContent?.toIntOrNull() ?: 0
-        val songDateAdded = attributes.getNamedItem("created")?.textContent ?: ""
-        val songMimeType = attributes.getNamedItem("suffix")?.textContent?.uppercase() ?: ""
-        val songBitrate = attributes.getNamedItem("bitRate")?.textContent ?: ""
-        val songLastPlayed = attributes.getNamedItem("played")?.textContent ?: ""
+    newResponse.konsumeXml().apply {
+        child("subsonic-response"){
+            child("searchResult3"){
+                children("song"){
+                    //region getValues
+                    val songTitle = attributes.getValue("title")
+                    val songArtist = attributes.getValue("artist")
+                    val songAlbum = attributes.getValue("album")
+                    val songYear = attributes.getValueOrNull("year") ?: "0"
+                    val songID = attributes.getValue("id")
+                    val songDuration = attributes.getValueInt("duration") * 1000
+                    val songPlayCount = attributes.getValueInt("playCount")
+                    val songDateAdded = attributes.getValue("created")
+                    val songFormat = attributes.getValue("suffix").uppercase()
+                    val songBitrate = attributes.getValue("bitRate")
+                    val songLastPlayed = attributes.getValue("played")
 
-        val songMedia = if (transcodingBitrate.value != "No Transcoding")
-            Uri.parse("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/stream.view?&id=$songId&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&format=mp3&maxBitRate=${transcodingBitrate.value}&v=1.12.0&c=Chora")
-        else
-            Uri.parse("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/stream.view?&id=$songId&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
+                    // Generate password salt and hash for songArtUri
+                    val passwordSaltArt = generateSalt(8)
+                    val passwordHashArt = md5Hash(navidromePassword + passwordSaltArt)
 
-        val songImageUrl = Uri.parse("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getCoverArt.view?&id=$songId&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
+                    val songArtUri =
+                        Uri.parse("$navidromeUrl/rest/getCoverArt.view?&id=$songID&u=$navidromeUsername&t=$passwordHashArt&s=$passwordSaltArt&v=1.16.1&c=Chora")
 
-        val song = Song(
-            title = songTitle,
-            album = songAlbum,
-            artist = songArtist,
-            duration = songDuration * 1000,
-            media = songMedia,
-            imageUrl = songImageUrl,
-            year = songYear,
-            timesPlayed = songPlayCount,
-            navidromeID = songId,
-            format = songMimeType,
-            bitrate = songBitrate,
-            dateAdded = songDateAdded,
-            lastPlayed = songLastPlayed
-        )
+                    // Generate password salt and hash for songMedia
+                    val passwordSaltMedia = generateSalt(8)
+                    val passwordHashMedia = md5Hash(navidromePassword + passwordSaltMedia)
 
-        if (songList.none { it.title == song.title && it.artist == song.artist }) {
-            songList.add(song)
-        }
+                    val songMedia = if (transcodingBitrate.value != "No Transcoding")
+                        Uri.parse("$navidromeUrl/rest/stream.view?&id=$songID&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&format=mp3&maxBitRate=${transcodingBitrate.value}&v=1.12.0&c=Chora")
+                    else
+                        Uri.parse("$navidromeUrl/rest/stream.view?&id=$songID&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.12.0&c=Chora")
 
-//        val album = Album(
-//            name = songAlbum,
-//            artist = songArtist,
-//            year = songYear,
-//            coverArt = songImageUrl
-//        )
-//        if (albumList.none { it.name == album.name && it.artist == album.artist }) {
-//            albumList.add(album)
-//        }
+                    //endregion
 
-        val artist = Artist(
-            name = songArtist,
-            navidromeID = "Local"
-        )
-        if (artistList.none { it.name == artist.name }) {
-            artistList.add(artist)
+                    //region Add song to songsList
+                    val song = Song(
+                        songArtUri,
+                        songTitle,
+                        songArtist,
+                        songAlbum,
+                        songDuration,
+                        isRadio = false,
+                        songMedia,
+                        songPlayCount,
+                        songDateAdded,
+                        songYear,
+                        songFormat,
+                        songBitrate,
+                        songID,
+                        songLastPlayed
+                    )
+
+                    if (songsList.none { it.title == songTitle && it.artist == songArtist && it.navidromeID == songID })
+                        songsList.add(song)
+                    //endregion
+
+                    skipContents()
+                    finish()
+                }.apply {
+                    // Get songs 100 at a time.
+                    if (size == 100){
+                        val songOffset = songsList.size
+                        sendNavidromeGETRequest(
+                            navidromeUrl,
+                            navidromeUsername,
+                            navidromePassword,
+                            "search3.view?query=''&songCount=100&songOffset=$songOffset&artistCount=0&albumCount=0"
+                        )
+                    }
+                }
+            }
         }
     }
+
+    Log.d("NAVIDROME", "Added songs! Total: ${songsList.size}")
 }

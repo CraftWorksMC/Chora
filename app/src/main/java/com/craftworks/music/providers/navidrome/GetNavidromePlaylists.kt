@@ -5,45 +5,31 @@ import android.util.Log
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.selectedNavidromeServerIndex
-import org.w3c.dom.NodeList
-import org.xml.sax.InputSource
+import com.craftworks.music.data.songsList
+import com.craftworks.music.ui.screens.selectedPlaylist
+import com.gitlab.mvysny.konsumexml.konsumeXml
 import org.xmlpull.v1.XmlPullParserException
-import java.io.BufferedReader
 import java.io.IOException
-import java.io.StringReader
 import java.net.HttpURLConnection
 import java.net.URL
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.xpath.XPathConstants
-import javax.xml.xpath.XPathFactory
 
 @Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromePlaylists(){
-    //if (navidromeServersList.isEmpty()) return
-    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
-
-    val thread = Thread {
-        try {
-            val url =
-                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getPlaylists.view?&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
-
-            with(url.openConnection() as HttpURLConnection) {
-                requestMethod = "GET"  // optional default is GET
-
-                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-
-                inputStream.bufferedReader().use {
-                    parsePlaylistXML(it, "/subsonic-response/playlists/playlist", playlistList)
-                }
-            }
-        } catch (e: Exception) {
-            Log.d("Exception", e.toString())
-        }
-    }
-    thread.start()
+    sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "getPlaylists.view?"
+    )
+}
+fun getNavidromePlaylistDetails(){
+    sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "getPlaylist.view?id=${selectedPlaylist?.navidromeID}"
+    )
 }
 
 fun createNavidromePlaylist(playlistName: String){
@@ -122,42 +108,61 @@ fun addSongToNavidromePlaylist(playlistID: String, songID: String){
     thread.start()
 }
 
-fun parsePlaylistXML(input: BufferedReader, xpath: String, playlistList: MutableList<Playlist>){
-    val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(InputSource(StringReader(input.readText())))
-    val elementNodeList = XPathFactory.newInstance().newXPath().evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
+fun parseNavidromePlaylistsXML(response: String,
+                               navidromeUrl: String,
+                               navidromeUsername: String,
+                               navidromePassword: String,
+                               playlistList: MutableList<Playlist>){
 
-    for (a in 0 until elementNodeList.length) {
-        val attributes = elementNodeList.item(a).attributes
-        val playlistID = attributes.getNamedItem("id")?.textContent ?: ""
-        val playlistName = attributes.getNamedItem("name")?.textContent ?: ""
-        val playlistCover = attributes.getNamedItem("coverArt")?.textContent?.let {
-            Uri.parse("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getCoverArt.view?id=$it&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
-        } ?: Uri.EMPTY
+    // Avoid crashing by removing some useless tags.
+    val newResponse = response
+        .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
 
-        if (playlistName.isNotEmpty()) {
-            Log.d("NAVIDROME", "Added Playlist: $playlistName")
-        }
+    newResponse.konsumeXml().apply {
+        child("subsonic-response") {
+            child("playlists") {
+                children("playlist"){
+                    val passwordSalt = generateSalt(8)
+                    val passwordHash = md5Hash(navidromePassword + passwordSalt)
 
-        val playlistSongs: MutableList<Song> = mutableListOf()
-        val playlistSongsURL = URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getPlaylist.view?id=$playlistID&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
+                    val playlistID = attributes.getValue("id")
+                    val playlistName = attributes.getValue("name")
+                    val playlistArt = Uri.parse("$navidromeUrl/rest/getCoverArt.view?id=$playlistID&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora")
 
-        with(playlistSongsURL.openConnection() as HttpURLConnection) {
-            requestMethod = "GET"
-            Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-            inputStream.bufferedReader().use {
-                parseNavidromeSongXML(it, "/subsonic-response/playlist/entry", playlistSongs)
+                    val playlist = Playlist(
+                        name = playlistName,
+                        coverArt = playlistArt,
+                        navidromeID = playlistID
+                    )
+
+                    if (playlistList.none { it.navidromeID == playlistID }) {
+                        playlistList.add(playlist)
+                    }
+                }
             }
-        }
-
-        val playlist = Playlist(
-            name = playlistName,
-            coverArt = playlistCover,
-            navidromeID = playlistID,
-            songs = playlistSongs
-        )
-
-        if (playlistList.none { it.navidromeID == playlistID }) {
-            playlistList.add(playlist)
         }
     }
 }
+
+fun parseNavidromePlaylistXML(response: String){
+
+    // Avoid crashing by removing some useless tags.
+    val newResponse = response
+        .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
+
+    newResponse.konsumeXml().apply {
+        child("subsonic-response") {
+            child("playlist") {
+                val playlistSongs = mutableListOf<Song>()
+                children("entry"){
+                    val songID = attributes.getValue("id")
+                    playlistSongs.add(songsList.first { it.navidromeID == songID })
+
+                    skipContents()
+                }
+                selectedPlaylist = selectedPlaylist?.copy(songs = playlistSongs)
+            }
+        }
+    }
+}
+

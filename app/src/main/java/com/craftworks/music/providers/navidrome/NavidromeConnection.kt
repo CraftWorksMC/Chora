@@ -4,8 +4,8 @@ import android.net.Uri
 import android.util.Log
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.albumList
-import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.data.playlistList
+import com.craftworks.music.data.radioList
 import com.gitlab.mvysny.konsumexml.konsumeXml
 import java.net.HttpURLConnection
 import java.net.URL
@@ -53,7 +53,13 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
                 when {
                     endpoint.startsWith("ping") -> parseNavidromeStatusXML(it, "/subsonic-response", "/subsonic-response/error")
                     //"search3.view?query=''&songCount=500" -> parseNavidromeSongXML(it, "/subsonic-response/searchResult3/song", songsList)
-                    endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML(it.readLine(), baseUrl, username, password)
+                    endpoint.startsWith("search3")      -> parseNavidromeSongXML    (it.readLine(), baseUrl, username, password)
+                    endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML   (it.readLine(), baseUrl, username, password)
+                    endpoint.startsWith("getArtists")   -> parseNavidromeArtistsXML (it.readLine(), baseUrl, username, password)
+                    endpoint.startsWith("getArtistInfo")-> parseNavidromeArtistXML  (it.readLine())
+                    endpoint.startsWith("getPlaylists") -> parseNavidromePlaylistsXML(it.readLine(), baseUrl, username, password, playlistList)
+                    endpoint.startsWith("getPlaylist.") -> parseNavidromePlaylistXML(it.readLine())
+                    endpoint.startsWith("getInternetRadioStations") -> parseRadioXML(it, "/subsonic-response/internetRadioStations/internetRadioStation", radioList)
                 }
             }
 
@@ -83,7 +89,6 @@ fun parseNavidromeAlbumXML(
     // Avoid crashing by removing some useless tags.
     val newResponse = response
         .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
-        .replace("<replayGain></replayGain>", "")
 
     newResponse.konsumeXml().apply {
         child("subsonic-response"){
@@ -108,14 +113,18 @@ fun parseNavidromeAlbumXML(
                     )
                     if (albumList.none { it.name == albumTitle })
                         albumList.add(album)
+
+                    skipContents()
+                    finish()
                 }.apply {
+
                     // Get albums 100 at a time.
                     if (size == 100){
                         val albumOffset = (albumList.size + 1)
                         sendNavidromeGETRequest(
-                            navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-                            navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-                            navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+                            navidromeUrl,
+                            navidromeUsername,
+                            navidromePassword,
                             "getAlbumList.view?type=newest&size=100&offset=$albumOffset"
                         )
                     }

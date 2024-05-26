@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -33,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,23 +60,16 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.data.Album
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
-import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedArtist
-import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
-import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.shuffleSongs
-import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalSongCard
-import java.net.URL
 
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)
@@ -89,19 +82,13 @@ fun ArtistDetails(
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
-    getNavidromeArtistDetails(selectedArtist.navidromeID, selectedArtist.name)
+    LaunchedEffect(selectedArtist) {
+        getNavidromeArtistDetails(selectedArtist.navidromeID)
+    }
 
     val artistSongs = songsList.filter { it.artist.contains(selectedArtist.name) }
     val artistAlbums = albumList.filter { it.artist.contains(selectedArtist.name) }
         .sortedByDescending { album -> album.year }
-    val artistAlbumsTesting = listOf(
-        Album(
-            "Album name!",
-            "Album Artist",
-            "2024",
-            Uri.EMPTY
-        )
-    )
 
     Column(modifier = Modifier
         .fillMaxWidth()

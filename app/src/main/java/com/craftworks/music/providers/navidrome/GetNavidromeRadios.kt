@@ -5,7 +5,6 @@ import android.util.Log
 import com.craftworks.music.R
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
@@ -25,31 +24,12 @@ fun getNavidromeRadios(){
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
         navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
 
-    val thread = Thread {
-        try {
-            val url =
-                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/getInternetRadioStations.view?&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
-
-            //radioList.clear()
-
-            with(url.openConnection() as HttpURLConnection) {
-                requestMethod = "GET"  // optional default is GET
-
-                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-
-                inputStream.bufferedReader().use {
-                    parseRadioXML(
-                        it,
-                        "/subsonic-response/internetRadioStations/internetRadioStation",
-                        radioList
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            Log.d("Exception", e.toString())
-        }
-    }
-    thread.start()
+    sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "getInternetRadioStations.view?"
+    )
 }
 
 fun parseRadioXML(input: BufferedReader, xpath: String, radiosList: MutableList<Radio>){

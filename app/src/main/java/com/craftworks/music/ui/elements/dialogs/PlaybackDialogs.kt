@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
+import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.ui.elements.bounceClick
 
 //region PREVIEWS
@@ -70,6 +71,7 @@ fun TranscodingDialog(setShowDialog: (Boolean) -> Unit) {
                                 selected = bitrate == transcodingBitrate.value,
                                 onClick = {
                                     transcodingBitrate.value = bitrate
+                                    getNavidromeSongs()
                                     setShowDialog(false)
                                 },
                                 modifier = Modifier

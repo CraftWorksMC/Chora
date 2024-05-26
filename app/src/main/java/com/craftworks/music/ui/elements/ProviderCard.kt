@@ -44,14 +44,13 @@ import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.selectedLocalProvider
+import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
-import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.useNavidromeServer
-import java.net.URL
 
 @Preview
 @Composable
@@ -136,7 +135,7 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
                         selectedNavidromeServerIndex.intValue >= 0 &&
                         navidromeServersList.isNotEmpty()){
 
-                        getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                        getNavidromeSongs()
                         getNavidromePlaylists()
                         getNavidromeRadios()
                     }
@@ -217,7 +216,7 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("https:/
                 if (it){
                     selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
                     // Reload Navidrome
-                    getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                    getNavidromeSongs()
                     getNavidromePlaylists()
                     getNavidromeRadios()
 

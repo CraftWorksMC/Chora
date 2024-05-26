@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -42,8 +43,10 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.navidrome.getNavidromePlaylistDetails
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 
@@ -54,14 +57,23 @@ fun PlaylistDetails(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null
 ) {
-
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red, Color.Transparent))
+
+    LaunchedEffect(selectedPlaylist?.navidromeID) {
+        if (useNavidromeServer.value && selectedPlaylist?.songs?.isEmpty() == true){
+            getNavidromePlaylistDetails()
+        }
+    }
 
     /* RADIO ICON + TEXT */
     Column(modifier = Modifier
         .fillMaxWidth()
-        .padding(start = leftPadding, top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())) {
+        .padding(start = leftPadding,
+            top = WindowInsets.statusBars
+                .asPaddingValues()
+                .calculateTopPadding()
+        )) {
         Box (modifier = Modifier
             .padding(horizontal = 12.dp)
             .height(128.dp)

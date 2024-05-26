@@ -34,7 +34,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.net.URL
 
 class saveManager(private val context: Context){
     private val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
@@ -140,13 +139,14 @@ class saveManager(private val context: Context){
                     "getAlbumList.view?type=newest&size=100&offset=0"
                 )
 
+                getNavidromeSongs()
+
                 if (localProviderList[selectedLocalProvider.intValue].enabled)
                     getSongsOnDevice(context)
-                getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+
+                //getNavidromeSongs()
                 getNavidromePlaylists()
                 getNavidromeRadios()
-
-
 
                 if (artistList.isEmpty())
                     getNavidromeArtists()

@@ -40,11 +40,10 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import kotlinx.coroutines.delay
-import java.net.URL
 
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
@@ -63,7 +62,12 @@ fun AlbumScreen(
         LaunchedEffect(true) {
             albumList.clear()
             if (useNavidromeServer.value){
-                getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                sendNavidromeGETRequest(
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+                    "getAlbumList.view?type=newest&size=100&offset=0"
+                )
             }
             else{
                 getSongsOnDevice(context)

@@ -42,21 +42,18 @@ import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.data.artistList
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
+import com.craftworks.music.providers.navidrome.getNavidromeArtists
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.bounceClick
-import java.net.URL
 
 //region PREVIEWS
 @Preview(showBackground = true)
@@ -262,17 +259,11 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                             selectedNavidromeServerIndex.intValue =
                                                 navidromeServersList.indexOf(server)
 
-                                            getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
+                                            getNavidromeSongs()
                                             getNavidromePlaylists()
                                             getNavidromeRadios()
+                                            getNavidromeArtists()
 
-                                            for (artist in artistList) {
-                                                if (useNavidromeServer.value)
-                                                    getNavidromeArtistDetails(
-                                                        artist.navidromeID,
-                                                        artist.name
-                                                    )
-                                            }
                                             navidromeStatus.value = ""
                                             setShowDialog(false)
                                         }
