@@ -36,11 +36,9 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
-import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
+import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import kotlinx.coroutines.delay
@@ -62,12 +60,7 @@ fun AlbumScreen(
         LaunchedEffect(true) {
             albumList.clear()
             if (useNavidromeServer.value){
-                sendNavidromeGETRequest(
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-                    "getAlbumList.view?type=newest&size=100&offset=0"
-                )
+                getNavidromeAlbums()
             }
             else{
                 getSongsOnDevice(context)

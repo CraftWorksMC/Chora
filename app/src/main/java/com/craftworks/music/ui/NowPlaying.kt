@@ -93,7 +93,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -115,7 +114,6 @@ import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
 import com.craftworks.music.repeatSong
@@ -790,6 +788,7 @@ fun DownloadButton(snackbarHostState: SnackbarHostState?,
                 if (navidromeServersList.isEmpty() || !useNavidromeServer.value || SongHelper.currentSong.navidromeID == "Local") return@Button
                 if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
                     navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@Button
+
                 downloadNavidromeSong("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${SongHelper.currentSong.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",
                     snackbarHostState = snackbarHostState,
                     coroutineScope)

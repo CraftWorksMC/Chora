@@ -47,12 +47,9 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.getNavidromeArtists
-import com.craftworks.music.providers.navidrome.getNavidromePlaylists
-import com.craftworks.music.providers.navidrome.getNavidromeRadios
-import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.providers.navidrome.navidromeStatus
-import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
+import com.craftworks.music.providers.navidrome.reloadNavidrome
 import com.craftworks.music.ui.elements.bounceClick
 
 //region PREVIEWS
@@ -243,7 +240,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                         password = password.trim()
                                         url = url.removeSuffix("/").trim()
 
-                                        sendNavidromeGETRequest(url, username, password, "ping.view?")
+                                        getNavidromeStatus(url, username, password)
 
                                         if (navidromeStatus.value == "ok") {
 
@@ -259,10 +256,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                             selectedNavidromeServerIndex.intValue =
                                                 navidromeServersList.indexOf(server)
 
-                                            getNavidromeSongs()
-                                            getNavidromePlaylists()
-                                            getNavidromeRadios()
-                                            getNavidromeArtists()
+                                            reloadNavidrome()
 
                                             navidromeStatus.value = ""
                                             setShowDialog(false)

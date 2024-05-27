@@ -168,17 +168,18 @@ fun ArtistDetails(
             .clickable {
                 expanded = !expanded
             }){
-            if (selectedArtist.description == "") return@Box
-            Text(
-                text = selectedArtist.description,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Light,
-                fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                textAlign = TextAlign.Start,
-                maxLines = if (expanded) 100 else 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(if (selectedArtist.description.isBlank()) 0.dp else 6.dp)
-            )
+            if (selectedArtist.description.isNotBlank()){
+                Text(
+                    text = selectedArtist.description,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Light,
+                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                    textAlign = TextAlign.Start,
+                    maxLines = if (expanded) 100 else 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(if (selectedArtist.description.isBlank()) 0.dp else 6.dp)
+                )
+            }
         }
 
         // Play and shuffle buttons

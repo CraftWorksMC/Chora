@@ -39,18 +39,13 @@ import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.data.albumList
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.getNavidromePlaylists
-import com.craftworks.music.providers.navidrome.getNavidromeRadios
-import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.providers.navidrome.reloadNavidrome
 
 @Preview
 @Composable
@@ -126,18 +121,16 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
                         getSongsOnDevice(context)
                 }
                 else {
-                    songsList.clear()
-                    albumList.clear()
-                    //radioList.clear()
-                    playlistList.clear()
+//                    songsList.clear()
+//                    albumList.clear()
+//                    radioList.clear()
+//                    playlistList.clear()
 
                     if (useNavidromeServer.value &&
                         selectedNavidromeServerIndex.intValue >= 0 &&
                         navidromeServersList.isNotEmpty()){
 
-                        getNavidromeSongs()
-                        getNavidromePlaylists()
-                        getNavidromeRadios()
+                        reloadNavidrome()
                     }
                 }
             }
@@ -208,17 +201,15 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("https:/
             onCheckedChange = { checked = it
                 useNavidromeServer.value = it
 
-                songsList.clear()
-                albumList.clear()
-                //radioList.clear()
-                playlistList.clear()
+//                songsList.clear()
+//                albumList.clear()
+//                radioList.clear()
+//                playlistList.clear()
 
                 if (it){
                     selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
-                    // Reload Navidrome
-                    getNavidromeSongs()
-                    getNavidromePlaylists()
-                    getNavidromeRadios()
+
+                    reloadNavidrome()
 
                     // Make very sure that the selectedLocalProvider actually exists
                     if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)

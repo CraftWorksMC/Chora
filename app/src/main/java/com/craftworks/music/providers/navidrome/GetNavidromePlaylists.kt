@@ -5,6 +5,7 @@ import android.util.Log
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.screens.selectedPlaylist
@@ -108,8 +109,7 @@ fun addSongToNavidromePlaylist(playlistID: String, songID: String){
 fun parseNavidromePlaylistsXML(response: String,
                                navidromeUrl: String,
                                navidromeUsername: String,
-                               navidromePassword: String,
-                               playlistList: MutableList<Playlist>){
+                               navidromePassword: String){
 
     // Avoid crashing by removing some useless tags.
     val newResponse = response

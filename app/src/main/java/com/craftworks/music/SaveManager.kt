@@ -21,11 +21,11 @@ import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
+import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.providers.navidrome.getNavidromeArtists
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
-import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
@@ -131,25 +131,19 @@ class saveManager(private val context: Context){
         // Get Media Items
         if (useNavidromeServer.value)
             try {
-
-                sendNavidromeGETRequest(
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-                    "getAlbumList.view?type=newest&size=100&offset=0"
-                )
-
                 getNavidromeSongs()
+
+                getNavidromeAlbums()
+
+                getNavidromePlaylists()
+
+                getNavidromeRadios()
+
+                getNavidromeArtists()
 
                 if (localProviderList[selectedLocalProvider.intValue].enabled)
                     getSongsOnDevice(context)
 
-                //getNavidromeSongs()
-                getNavidromePlaylists()
-                getNavidromeRadios()
-
-                if (artistList.isEmpty())
-                    getNavidromeArtists()
             } catch (_: Exception){
                 // DO NOTHING
             }
@@ -276,6 +270,9 @@ class saveManager(private val context: Context){
                 radioList.add(radio)
             }
         }
+
+        if (useNavidromeServer.value)
+            getNavidromeRadios()
     }
     fun loadPlaylists(){
         Log.d("LOAD", "Loading Offline Playlists")

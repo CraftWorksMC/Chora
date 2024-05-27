@@ -1,28 +1,14 @@
 package com.craftworks.music.providers.navidrome
 
 import android.net.Uri
-import android.util.Log
 import com.craftworks.music.R
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedNavidromeServerIndex
-import org.w3c.dom.NodeList
-import org.xml.sax.InputSource
-import org.xmlpull.v1.XmlPullParserException
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.StringReader
-import java.net.HttpURLConnection
-import java.net.URL
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.xpath.XPathConstants
-import javax.xml.xpath.XPathFactory
+import com.gitlab.mvysny.konsumexml.konsumeXml
 
 fun getNavidromeRadios(){
-    if (navidromeServersList.isEmpty()) return
-    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return
-
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
@@ -31,100 +17,128 @@ fun getNavidromeRadios(){
     )
 }
 
-fun parseRadioXML(input: BufferedReader, xpath: String, radiosList: MutableList<Radio>){
-    val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(InputSource(StringReader(input.readText())))
-    val elementNodeList = XPathFactory.newInstance().newXPath().evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
+fun deleteNavidromeRadio(id:String){
+//    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
+//        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
+//        navidromeStatus.value != "ok") return
+//
+//    val thread = Thread {
+//        try {
+//            val navidromeUrl =
+//                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/deleteInternetRadioStation.view?id=$id&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
+//
+//            with(navidromeUrl.openConnection() as HttpURLConnection) {
+//                requestMethod = "GET"  // optional default is GET
+//                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+//            }
+//        } catch (e: Exception) {
+//            Log.d("Exception", e.toString())
+//        }
+//    }
+//    thread.start()
 
-    for (a in 0 until elementNodeList.length) {
-        val attributes = elementNodeList.item(a).attributes
-        val radioID = attributes.getNamedItem("id")?.textContent ?: ""
-        val radioName = attributes.getNamedItem("name")?.textContent ?: ""
-        val radioUrl = attributes.getNamedItem("streamUrl")?.textContent?.let { Uri.parse(it) } ?: Uri.EMPTY
-
-        if (radioName.isNotEmpty()) {
-            Log.d("NAVIDROME", "Added Radio: $radioName")
-        }
-
-        val radio = Radio(
-            name = radioName,
-            imageUrl = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
-            homepageUrl = "",
-            media = radioUrl,
-            navidromeID = radioID
-        )
-
-        if (radiosList.none { it.media == radio.media }) {
-            radiosList.add(radio)
-        }
-    }
+    sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "deleteInternetRadioStation.view?id=$id"
+    )
 }
 
-fun deleteNavidromeRadioStation(id:String){
-    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
-        navidromeStatus.value != "ok") return
+fun modifyNavidromeRadio(id:String, name:String, url:String, homePage:String){
+//    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
+//        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
+//        navidromeStatus.value != "ok") return
+//
+//    val thread = Thread {
+//        try {
+//            val navidromeUrl =
+//                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&id=$id&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
+//
+//            with(navidromeUrl.openConnection() as HttpURLConnection) {
+//                requestMethod = "GET"  // optional default is GET
+//                Log.d(
+//                    "GET",
+//                    "\nSent 'GET' request to URL : $navidromeUrl; Response Code : $responseCode"
+//                )
+//            }
+//
+//            getNavidromeRadios()
+//        } catch (e: Exception) {
+//            Log.d("Exception", e.toString())
+//        }
+//    }
+//    thread.start()
 
-    val thread = Thread {
-        try {
-            val navidromeUrl =
-                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/deleteInternetRadioStation.view?id=$id&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
-
-            with(navidromeUrl.openConnection() as HttpURLConnection) {
-                requestMethod = "GET"  // optional default is GET
-                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-            }
-        } catch (e: Exception) {
-            Log.d("Exception", e.toString())
-        }
-    }
-    thread.start()
+    sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&id=$id"
+    )
 }
 
-fun modifyNavidromeRadoStation(id:String, name:String, url:String, homePage:String){
-    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
-        navidromeStatus.value != "ok") return
+fun createNavidromeRadio(name:String, url:String, homePage:String){
+//    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
+//        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
+//        navidromeStatus.value != "ok") return
+//
+//    val thread = Thread {
+//        try {
+//            Log.d("useNavidromeServer", "URL: $url")
+//
+//            val navidromeUrl =
+//                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
+//
+//            with(navidromeUrl.openConnection() as HttpURLConnection) {
+//                requestMethod = "GET"  // optional default is GET
+//                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+//            }
+//        } catch (e: Exception) {
+//            Log.d("Exception", e.toString())
+//        }
+//    }
+//    thread.start()
 
-    val thread = Thread {
-        try {
-            val navidromeUrl =
-                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&id=$id&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
-
-            with(navidromeUrl.openConnection() as HttpURLConnection) {
-                requestMethod = "GET"  // optional default is GET
-                Log.d(
-                    "GET",
-                    "\nSent 'GET' request to URL : $navidromeUrl; Response Code : $responseCode"
-                )
-            }
-
-            getNavidromeRadios()
-        } catch (e: Exception) {
-            Log.d("Exception", e.toString())
-        }
-    }
-    thread.start()
+    sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage"
+    )
 }
 
-fun createNavidromeRadioStation(name:String, url:String, homePage:String){
-    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
-        navidromeStatus.value != "ok") return
+fun parseNavidromeRadioXML(response: String){
 
-    val thread = Thread {
-        try {
-            Log.d("useNavidromeServer", "URL: $url")
+    // Avoid crashing by removing some useless tags.
+    val newResponse = response
+        .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
 
-            val navidromeUrl =
-                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
+    newResponse.konsumeXml().apply {
+        child("subsonic-response"){
+            child("internetRadioStations"){
+                children("internetRadioStation"){
+                    val radioName = attributes.getValue("name")
+                    val radioUrl = attributes.getValue("streamUrl")
+                    val radioHomepage = attributes.getValueOrNull("homePageUrl") ?: ""
+                    val radioID = attributes.getValue("id")
 
-            with(navidromeUrl.openConnection() as HttpURLConnection) {
-                requestMethod = "GET"  // optional default is GET
-                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+                    val radio = Radio(
+                        name = radioName,
+                        imageUrl = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
+                        homepageUrl = radioHomepage,
+                        media = Uri.parse(radioUrl),
+                        navidromeID = radioID
+                    )
+
+                    if (radioList.none { it.media == radio.media }) {
+                        radioList.add(radio)
+                    }
+
+                    skipContents()
+                    finish()
+                }
             }
-        } catch (e: Exception) {
-            Log.d("Exception", e.toString())
         }
     }
-    thread.start()
 }

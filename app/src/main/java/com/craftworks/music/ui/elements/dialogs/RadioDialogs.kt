@@ -41,10 +41,10 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.useNavidromeServer
-import com.craftworks.music.providers.navidrome.createNavidromeRadioStation
-import com.craftworks.music.providers.navidrome.deleteNavidromeRadioStation
+import com.craftworks.music.providers.navidrome.createNavidromeRadio
+import com.craftworks.music.providers.navidrome.deleteNavidromeRadio
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
-import com.craftworks.music.providers.navidrome.modifyNavidromeRadoStation
+import com.craftworks.music.providers.navidrome.modifyNavidromeRadio
 import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
 
@@ -137,7 +137,7 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                                 if (radioName.isBlank() && radioUrl.isBlank()) return@Button
 
                                 if (useNavidromeServer.value){
-                                    createNavidromeRadioStation(
+                                    createNavidromeRadio(
                                         radioName,
                                         radioUrl,
                                         radioPage)
@@ -252,7 +252,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                                 setShowDialog(false)
                                 radioList.remove(radio)
                                 if (useNavidromeServer.value) radio.navidromeID?.let {
-                                    deleteNavidromeRadioStation(
+                                    deleteNavidromeRadio(
                                         it
                                     )
                                 }
@@ -275,7 +275,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                             onClick = {
                                 if (radioName.isBlank() && radioUrl.isBlank()) return@Button
                                 if (useNavidromeServer.value) radio.navidromeID?.let {
-                                    modifyNavidromeRadoStation(
+                                    modifyNavidromeRadio(
                                         it,
                                         radioName,
                                         radioUrl,

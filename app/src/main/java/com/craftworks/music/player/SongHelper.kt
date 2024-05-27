@@ -13,7 +13,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
-import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.sliderPos
 
 class SongHelper {
@@ -78,7 +77,7 @@ class SongHelper {
 
                 println("Index: ${currentTrackIndex}, playlist size: ${mediaController?.mediaItemCount}")
 
-                getLyrics()
+                //getLyrics()
             }
             else {
                 val radioMetadata = MediaMetadata.Builder()

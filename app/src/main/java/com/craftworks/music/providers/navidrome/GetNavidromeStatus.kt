@@ -6,8 +6,11 @@ import com.gitlab.mvysny.konsumexml.konsumeXml
 
 var navidromeStatus = mutableStateOf("")
 
-fun parseNavidromeStatusXML(response: String){
+fun getNavidromeStatus(url: String, username: String, password: String){
+    sendNavidromeGETRequest(url, username, password, "ping.view?")
+}
 
+fun parseNavidromeStatusXML(response: String){
     // Avoid crashing by removing some useless tags.
     val newResponse = response
         .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
