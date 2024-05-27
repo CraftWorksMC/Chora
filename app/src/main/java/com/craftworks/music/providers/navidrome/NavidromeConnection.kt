@@ -51,15 +51,14 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
 
             inputStream.bufferedReader().use {
                 when {
-                    endpoint.startsWith("ping") -> parseNavidromeStatusXML(it, "/subsonic-response", "/subsonic-response/error")
-                    //"search3.view?query=''&songCount=500" -> parseNavidromeSongXML(it, "/subsonic-response/searchResult3/song", songsList)
-                    endpoint.startsWith("search3")      -> parseNavidromeSongXML    (it.readLine(), baseUrl, username, password)
-                    endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML   (it.readLine(), baseUrl, username, password)
-                    endpoint.startsWith("getArtists")   -> parseNavidromeArtistsXML (it.readLine(), baseUrl, username, password)
-                    endpoint.startsWith("getArtistInfo")-> parseNavidromeArtistXML  (it.readLine())
+                    endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (it.readLine())
+                    endpoint.startsWith("search3")      -> parseNavidromeSongXML     (it.readLine(), baseUrl, username, password)
+                    endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML    (it.readLine(), baseUrl, username, password)
+                    endpoint.startsWith("getArtists")   -> parseNavidromeArtistsXML  (it.readLine(), baseUrl, username, password)
+                    endpoint.startsWith("getArtistInfo")-> parseNavidromeArtistXML   (it.readLine())
                     endpoint.startsWith("getPlaylists") -> parseNavidromePlaylistsXML(it.readLine(), baseUrl, username, password, playlistList)
-                    endpoint.startsWith("getPlaylist.") -> parseNavidromePlaylistXML(it.readLine())
-                    endpoint.startsWith("getInternetRadioStations") -> parseRadioXML(it, "/subsonic-response/internetRadioStations/internetRadioStation", radioList)
+                    endpoint.startsWith("getPlaylist.") -> parseNavidromePlaylistXML (it.readLine())
+                    endpoint.startsWith("getInternetRadioStations") -> parseRadioXML (it, "/subsonic-response/internetRadioStations/internetRadioStation", radioList)
                 }
             }
 

@@ -47,8 +47,8 @@ fun parseNavidromeArtistsXML(
                         val artistImage = attributes.getValue("artistImageUrl")
                         val artistID = attributes.getValue("id")
 
-                        val passwordSalt = generateSalt(8)
-                        val passwordHash = md5Hash(navidromePassword + passwordSalt)
+                        //val passwordSalt = generateSalt(8)
+                        //val passwordHash = md5Hash(navidromePassword + passwordSalt)
 
                         //val albumArtUri = Uri.parse("$navidromeUrl/rest/getCoverArt.view?&id=$artistID&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
 
@@ -92,7 +92,7 @@ fun parseNavidromeArtistXML(
     newResponse.konsumeXml().apply {
         child("subsonic-response"){
             child("artistInfo"){
-                val artistBiography = childTextOrNull("biography")?.replace(Regex("<a[^>]*>.*?</a>"), "") ?: "No biography available"
+                val artistBiography = childTextOrNull("biography")?.replace(Regex("<a[^>]*>.*?</a>"), "") ?: ""
 
                 selectedArtist = selectedArtist.copy(description = artistBiography)
 

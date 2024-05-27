@@ -18,7 +18,6 @@ import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
 
-@Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromeRadios(){
     if (navidromeServersList.isEmpty()) return
     if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||

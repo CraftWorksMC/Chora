@@ -115,7 +115,10 @@ fun ArtistDetails(
                 modifier = Modifier
                     .fillMaxWidth()
                     //.fadingEdge(imageFadingEdge)
-                    .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
+                    .clip(if (selectedArtist.description != "")
+                            RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp)
+                        else
+                            RoundedCornerShape(12.dp))
                     .blur(12.dp)
             )
             Button(
@@ -158,22 +161,23 @@ fun ArtistDetails(
         Box(modifier = Modifier
             .padding(horizontal = 12.dp)
             .fillMaxWidth()
-            .heightIn(min = 32.dp)
+            .heightIn(min = if (selectedArtist.description.isBlank()) 0.dp else 32.dp)
             .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .animateContentSize()
             .clickable {
                 expanded = !expanded
             }){
+            if (selectedArtist.description == "") return@Box
             Text(
-                text = selectedArtist.description.ifBlank { "No Description Available." },
+                text = selectedArtist.description,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Light,
                 fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                 textAlign = TextAlign.Start,
                 maxLines = if (expanded) 100 else 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(6.dp)
+                modifier = Modifier.padding(if (selectedArtist.description.isBlank()) 0.dp else 6.dp)
             )
         }
 

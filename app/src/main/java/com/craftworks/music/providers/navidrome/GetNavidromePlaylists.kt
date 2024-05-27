@@ -9,12 +9,9 @@ import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.screens.selectedPlaylist
 import com.gitlab.mvysny.konsumexml.konsumeXml
-import org.xmlpull.v1.XmlPullParserException
-import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
-@Throws(XmlPullParserException::class, IOException::class)
 fun getNavidromePlaylists(){
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
@@ -165,4 +162,3 @@ fun parseNavidromePlaylistXML(response: String){
         }
     }
 }
-
