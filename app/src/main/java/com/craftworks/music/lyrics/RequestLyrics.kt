@@ -6,8 +6,8 @@ import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.player.SongHelper
 import org.json.JSONObject
-import java.net.HttpURLConnection
 import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 
 private var isGetLyricsRunning = false
 
@@ -31,8 +31,11 @@ fun getLyrics(){
 
             val url = URL("https://lrclib.net/api/get?artist_name=${SongHelper.currentSong.artist.replace(" ", "+")}&track_name=${SongHelper.currentSong.title.replace(" ", "+")}&album_name=${SongHelper.currentSong.album.replace(" ", "+")}&duration=${SongHelper.currentSong.duration.div(1000)}")
 
-            with(url.openConnection() as HttpURLConnection) {
-                requestMethod = "GET"  // optional default is GET
+            with(url.openConnection() as HttpsURLConnection) {
+                requestMethod = "GET"
+
+                // Set User-Agent as per LRCLIB documentation: https://lrclib.net/docs
+                setRequestProperty("User-Agent", "Chora - Navidrome Client (https://github.com/CraftWorksMC/Chora)")
 
                 println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")
 
