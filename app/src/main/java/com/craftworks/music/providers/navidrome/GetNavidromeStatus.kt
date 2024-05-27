@@ -29,8 +29,8 @@ fun parseNavidromeStatusXML(response: String){
             }
             else navidromeStatus.value = "ok"
 
-            finish()
             attributes.getValue("version")
+            finish()
         }
     }
 }
