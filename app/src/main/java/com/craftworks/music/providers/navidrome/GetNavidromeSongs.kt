@@ -8,6 +8,7 @@ import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.gitlab.mvysny.konsumexml.getValueInt
+import com.gitlab.mvysny.konsumexml.getValueIntOrNull
 import com.gitlab.mvysny.konsumexml.konsumeXml
 
 fun getNavidromeSongs(){
@@ -40,11 +41,11 @@ fun parseNavidromeSongXML(
                     val songYear = attributes.getValueOrNull("year") ?: "0"
                     val songID = attributes.getValue("id")
                     val songDuration = attributes.getValueInt("duration") * 1000
-                    val songPlayCount = attributes.getValueInt("playCount")
+                    val songPlayCount = attributes.getValueIntOrNull("playCount") ?: 0
                     val songDateAdded = attributes.getValue("created")
                     val songFormat = attributes.getValue("suffix").uppercase()
                     val songBitrate = attributes.getValue("bitRate")
-                    val songLastPlayed = attributes.getValue("played")
+                    val songLastPlayed = attributes.getValueOrNull("played") ?: ""
 
                     // Generate password salt and hash for songArtUri
                     val passwordSaltArt = generateSalt(8)
