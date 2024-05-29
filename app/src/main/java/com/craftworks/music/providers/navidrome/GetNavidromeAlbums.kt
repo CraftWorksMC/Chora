@@ -49,8 +49,10 @@ fun parseNavidromeAlbumXML(
                         coverArt = albumArtUri,
                         navidromeID = albumID
                     )
-                    if (albumList.none { it.name == albumTitle })
-                        albumList.add(album)
+                    synchronized(albumList){
+                        if (albumList.none { it.name == albumTitle })
+                            albumList.add(album)
+                    }
 
                     skipContents()
                     finish()

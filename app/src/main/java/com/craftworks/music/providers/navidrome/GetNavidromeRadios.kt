@@ -131,8 +131,10 @@ fun parseNavidromeRadioXML(response: String){
                         navidromeID = radioID
                     )
 
-                    if (radioList.none { it.media == radio.media }) {
-                        radioList.add(radio)
+                    synchronized(radioList){
+                        if (radioList.none { it.media == radio.media }) {
+                            radioList.add(radio)
+                        }
                     }
 
                     skipContents()

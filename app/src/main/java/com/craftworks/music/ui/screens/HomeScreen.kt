@@ -3,6 +3,7 @@ package com.craftworks.music.ui.screens
 import android.content.res.Configuration
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -50,7 +51,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.session.MediaController
@@ -70,17 +70,13 @@ import com.craftworks.music.ui.elements.SongsRow
 import kotlinx.coroutines.delay
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-@Preview(showBackground = true, showSystemUi = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE
-)
+@Preview(showBackground = true, showSystemUi = true)
 fun HomeScreen(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null
 ) {
-
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     val context = LocalContext.current
@@ -121,6 +117,7 @@ fun HomeScreen(
             .wrapContentHeight()
             .verticalScroll(rememberScrollState())) {
 
+            /* GREETING */
             Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(
@@ -193,6 +190,28 @@ fun HomeScreen(
 
             HorizontalLineWithNavidromeCheck()
 
+//            /* SORTING OPTIONS */
+//            Row(modifier = Modifier.fillMaxWidth().padding(6.dp).height(24.dp),
+//                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.End) {
+//                Button(
+//                    onClick = { },
+//                    shape = CircleShape,
+//                    modifier = Modifier.size(24.dp),
+//                    contentPadding = PaddingValues(2.dp),
+//                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+//                ) {
+//                    Icon(
+//                        imageVector = ImageVector.vectorResource(R.drawable.rounded_settings_24),
+//                        tint = MaterialTheme.colorScheme.onBackground,
+//                        contentDescription = "Settings",
+//                        modifier = Modifier
+//                            .height(32.dp)
+//                            .size(32.dp)
+//                    )
+//                }
+//            }
+
             /* RECENTLY PLAYED */
             Box(
                 modifier = Modifier
@@ -213,6 +232,14 @@ fun HomeScreen(
                     SongHelper.currentList = recentlyPlayedSongsList
                     song.media?.let { SongHelper.playStream(it, false, mediaController) }
                 })
+
+//                val recentAlbums = albumList.sortedByDescending { it.datePlayed }.take(20)
+//                AlbumRow(albums = recentAlbums, mediaController, onAlbumSelected = { album ->
+//                    navHostController.navigate(Screen.AlbumDetails.route) {
+//                        launchSingleTop = true
+//                    }
+//                    selectedAlbum = album }
+//                )
             }
 
 

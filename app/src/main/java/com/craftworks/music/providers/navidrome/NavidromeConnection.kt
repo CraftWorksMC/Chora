@@ -56,12 +56,15 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
                     // Playlists
                     endpoint.startsWith("getPlaylists") -> parseNavidromePlaylistsXML(it.readLine(), baseUrl, username, password)
                     endpoint.startsWith("getPlaylist.") -> parseNavidromePlaylistXML (it.readLine())
+                    endpoint.startsWith("updatePlaylist") -> getNavidromePlaylists()
+                    endpoint.startsWith("createPlaylist") -> getNavidromePlaylists()
+                    endpoint.startsWith("deletePlaylist") -> getNavidromePlaylists()
 
                     // Radios
                     endpoint.startsWith("getInternetRadioStations") -> parseNavidromeRadioXML (it.readLine())
                 }
             }
-
+            inputStream.close()
         }
     }
     thread.start()

@@ -1,20 +1,38 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -24,7 +42,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
@@ -38,6 +55,8 @@ fun SongsScreen(
     mediaController: MediaController? = null
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
+    var isSearchFieldOpen by remember { mutableStateOf(false) }
+    var searchFilter by remember { mutableStateOf("") }
 
     /* SONGS ICON + TEXT */
     Column(modifier = Modifier
@@ -60,17 +79,57 @@ fun SongsScreen(
                 fontWeight = FontWeight.Bold,
                 fontSize = MaterialTheme.typography.headlineLarge.fontSize
             )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(onClick = { isSearchFieldOpen = !isSearchFieldOpen },
+                modifier = Modifier
+                    .padding(end = 12.dp)
+                    .size(48.dp)) {
+                Icon(Icons.Rounded.Search, contentDescription = "Search all songs")
+            }
         }
         HorizontalLineWithNavidromeCheck()
 
+        AnimatedVisibility(
+            visible = isSearchFieldOpen,
+            enter = expandVertically(),
+            exit = shrinkVertically()) {
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp)
+            ) {
+                val focusRequester = remember { FocusRequester() }
+                TextField(
+                    value = searchFilter,
+                    onValueChange = { searchFilter = it },
+                    label = { Text(stringResource(R.string.Action_Search)) },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
+                        .focusRequester(focusRequester))
+
+                LaunchedEffect(isSearchFieldOpen) {
+                    if (isSearchFieldOpen)
+                        focusRequester.requestFocus()
+                    else
+                        focusRequester.freeFocus()
+                }
+            }
+        }
+
         Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-            val allSongsList = songsList.sortedBy { song: Song -> song.title }
+            var allSongsList = remember { songsList.sortedBy { it.title } }.toMutableList()
+
+            if (searchFilter.isNotBlank()){
+                allSongsList = allSongsList.filter { it.title.contains(searchFilter, true) ||
+                        it.artist.contains(searchFilter, true) }.toMutableList()
+            }
 
             SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->
                 SongHelper.currentSong = song
-                SongHelper.currentList = allSongsList
-                //SongHelper.currentTracklist = tracklist.sortedBy { item: MediaItem -> item.mediaMetadata.title.toString() }
-                //songState = true
+                SongHelper.currentList = songsList.sortedBy { song.title }
                 song.media?.let { SongHelper.playStream(it, false, mediaController) } })
         }
     }

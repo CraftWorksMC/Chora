@@ -57,8 +57,10 @@ fun parseNavidromeArtistsXML(
                             imageUri = Uri.parse(artistImage),
                             navidromeID = artistID
                         )
-                        if (artistList.none { it.navidromeID == artistID || it.name == artistID })
-                            artistList.add(artist)
+                        synchronized(artistList){
+                            if (artistList.none { it.navidromeID == artistID || it.name == artistID })
+                                artistList.add(artist)
+                        }
 
                         skipContents()
                         finish()

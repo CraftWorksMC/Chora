@@ -16,6 +16,7 @@
     <string name="Dialog_Add_To_Playlist">Aggiungi / Alla Playlist</string>
     <string name="Label_Playlist_Name">Nome Playlist:</string>
     <string name="Action_Reset">Reimposta</string>
+    <string name="Action_Search">Cerca</string>
     <string name="Action_Play">Riproduci</string>
     <string name="Action_Shuffle">Shuffle</string>
     <string name="Action_Add">Aggiungi</string>

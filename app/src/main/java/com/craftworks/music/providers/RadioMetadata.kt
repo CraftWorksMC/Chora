@@ -1,5 +1,6 @@
 package com.craftworks.music.providers
 
+import android.util.Log
 import com.craftworks.music.player.SongHelper
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -22,6 +23,7 @@ fun getIcecastMetadata(urlString: String): String {
             response.append(line)
         }
         reader.close()
+        Log.d("ICECAST", "Getting IceCast Radio Metadata")
         parseIcecastMetadata(response.toString())
         return response.toString()
     } else {

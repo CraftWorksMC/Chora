@@ -84,8 +84,10 @@ fun getSongsOnDevice(context: Context){
                     bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else "",
                     navidromeID = "Local"
                 )
-                if (!songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
-                    songsList.add(song);
+                synchronized(songsList){
+                    if (!songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
+                        songsList.add(song);
+                    }
                 }
 
                 // Add songs to album
@@ -95,8 +97,10 @@ fun getSongsOnDevice(context: Context){
                     year = thisYear.toString(),
                     coverArt = imageUri
                 )
-                if (!albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
-                    albumList.add(album)
+                synchronized(albumList){
+                    if (!albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){
+                        albumList.add(album)
+                    }
                 }
 
                 // Add artists to ArtistList
@@ -107,8 +111,10 @@ fun getSongsOnDevice(context: Context){
                     description = "",
                     similarArtistsID = ""
                 )
-                if (!artistList.contains(artistList.firstOrNull { it.name == artist.name })){
-                    artistList.add(artist)
+                synchronized(artistList){
+                    if (!artistList.contains(artistList.firstOrNull { it.name == artist.name })){
+                        artistList.add(artist)
+                    }
                 }
 
             } while (cursor.moveToNext())

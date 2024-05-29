@@ -1,7 +1,6 @@
 package com.craftworks.music.providers.navidrome
 
 import android.net.Uri
-import android.util.Log
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
@@ -10,8 +9,6 @@ import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.screens.selectedPlaylist
 import com.gitlab.mvysny.konsumexml.konsumeXml
-import java.net.HttpURLConnection
-import java.net.URL
 
 fun getNavidromePlaylists(){
     sendNavidromeGETRequest(
@@ -31,79 +28,28 @@ fun getNavidromePlaylistDetails(){
 }
 
 fun createNavidromePlaylist(playlistName: String){
-    if (navidromeServersList.isEmpty()) return
-    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
-        navidromeStatus.value != "ok") return
-
-    val thread = Thread {
-        try {
-            val url =
-                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/createPlaylist.view?&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&name=${playlistName}&v=1.12.0&c=Chora")
-
-            with(url.openConnection() as HttpURLConnection) {
-                requestMethod = "GET"  // optional default is GET
-
-                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-            }
-
-            getNavidromePlaylists()
-
-        } catch (e: Exception) {
-            Log.d("Exception", e.toString())
-        }
-    }
-    thread.start()
+    sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "createPlaylist.view?name=$playlistName"
+    )
 }
 fun deleteNavidromePlaylist(playlistID: String){
-    if (navidromeServersList.isEmpty()) return
-    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
-        navidromeStatus.value != "ok") return
-
-    val thread = Thread {
-        try {
-            val url =
-                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/deletePlaylist.view?&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&id=${playlistID}&v=1.12.0&c=Chora")
-
-            with(url.openConnection() as HttpURLConnection) {
-                requestMethod = "GET"  // optional default is GET
-
-                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-            }
-
-            getNavidromePlaylists()
-
-        } catch (e: Exception) {
-            Log.d("Exception", e.toString())
-        }
-    }
-    thread.start()
+    sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "deletePlaylist.view?id=$playlistID"
+    )
 }
 fun addSongToNavidromePlaylist(playlistID: String, songID: String){
-    if (navidromeServersList.isEmpty()) return
-    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
-        navidromeStatus.value != "ok") return
-
-    val thread = Thread {
-        try {
-            val url =
-                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/updatePlaylist.view?&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&playlistId=${playlistID}&songIdToAdd=${songID}&v=1.12.0&c=Chora")
-
-            with(url.openConnection() as HttpURLConnection) {
-                requestMethod = "GET"  // optional default is GET
-
-                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-            }
-
-            getNavidromePlaylists()
-
-        } catch (e: Exception) {
-            Log.d("Exception", e.toString())
-        }
-    }
-    thread.start()
+    sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "updatePlaylist.view?playlistId=$playlistID&songIdToAdd=$songID"
+    )
 }
 
 fun parseNavidromePlaylistsXML(response: String,
@@ -131,9 +77,10 @@ fun parseNavidromePlaylistsXML(response: String,
                         coverArt = playlistArt,
                         navidromeID = playlistID
                     )
-
-                    if (playlistList.none { it.navidromeID == playlistID }) {
-                        playlistList.add(playlist)
+                    synchronized(playlistList){
+                        if (playlistList.none { it.navidromeID == playlistID }) {
+                            playlistList.add(playlist)
+                        }
                     }
                 }
             }

@@ -83,8 +83,10 @@ fun parseNavidromeSongXML(
                         songLastPlayed
                     )
 
-                    if (songsList.none { it.title == songTitle && it.artist == songArtist && it.navidromeID == songID })
-                        songsList.add(song)
+                    synchronized(songsList){
+                        if (songsList.none { it.title == songTitle && it.artist == songArtist && it.navidromeID == songID })
+                            songsList.add(song)
+                    }
                     //endregion
 
                     skipContents()
