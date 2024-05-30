@@ -7,7 +7,6 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
-import com.gitlab.mvysny.konsumexml.getValueInt
 import com.gitlab.mvysny.konsumexml.getValueIntOrNull
 import com.gitlab.mvysny.konsumexml.konsumeXml
 
@@ -40,11 +39,11 @@ fun parseNavidromeSongXML(
                     val songAlbum = attributes.getValue("album")
                     val songYear = attributes.getValueOrNull("year") ?: "0"
                     val songID = attributes.getValue("id")
-                    val songDuration = attributes.getValueInt("duration") * 1000
+                    val songDuration = (attributes.getValueIntOrNull("duration") ?: 0) * 1000
                     val songPlayCount = attributes.getValueIntOrNull("playCount") ?: 0
                     val songDateAdded = attributes.getValue("created")
                     val songFormat = attributes.getValue("suffix").uppercase()
-                    val songBitrate = attributes.getValue("bitRate")
+                    val songBitrate = attributes.getValueOrNull("bitRate") ?: ""
                     val songLastPlayed = attributes.getValueOrNull("played") ?: ""
 
                     // Generate password salt and hash for songArtUri
@@ -92,14 +91,14 @@ fun parseNavidromeSongXML(
                     skipContents()
                     finish()
                 }.apply {
-                    // Get songs 100 at a time.
-                    if (size == 100){
+                    // Get songs 200 at a time.
+                    if (size == 200){
                         val songOffset = songsList.size
                         sendNavidromeGETRequest(
                             navidromeUrl,
                             navidromeUsername,
                             navidromePassword,
-                            "search3.view?query=''&songCount=100&songOffset=$songOffset&artistCount=0&albumCount=0"
+                            "search3.view?query=''&songCount=200&songOffset=$songOffset&artistCount=0&albumCount=0"
                         )
                     }
                 }

@@ -57,15 +57,14 @@ fun parseNavidromeAlbumXML(
                     skipContents()
                     finish()
                 }.apply {
-
                     // Get albums 100 at a time.
-                    if (size == 100){
+                    if (size == 500){
                         val albumOffset = (albumList.size + 1)
                         sendNavidromeGETRequest(
                             navidromeUrl,
                             navidromeUsername,
                             navidromePassword,
-                            "getAlbumList.view?type=newest&size=100&offset=$albumOffset"
+                            "getAlbumList.view?type=newest&size=500&offset=$albumOffset"
                         )
                     }
                 }
