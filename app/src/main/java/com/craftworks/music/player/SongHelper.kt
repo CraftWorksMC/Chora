@@ -70,7 +70,7 @@ class SongHelper {
                 val currentTrackIndex = currentTracklist.indexOfFirst { it.mediaId == url.toString() }
                 currentSong = songsList.sortedBy { it.title }[currentTrackIndex]
 
-                mediaController?.setMediaItems(currentTracklist)
+                mediaController?.setMediaItems(currentTracklist, currentTrackIndex, 0)
                 mediaController?.seekToDefaultPosition(currentTrackIndex)
                 mediaController?.prepare()
                 mediaController?.play()
