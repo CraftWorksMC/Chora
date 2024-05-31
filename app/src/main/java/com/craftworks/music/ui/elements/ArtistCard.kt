@@ -55,7 +55,7 @@ fun ArtistCard(artist: Artist, onClick: () -> Unit){
                     model = if (artist.imageUri != Uri.EMPTY) artist.imageUri else null,
                     placeholder = painterResource(R.drawable.rounded_artist_24),
                     fallback = painterResource(R.drawable.rounded_artist_24),
-                    contentScale = ContentScale.FillWidth,
+                    contentScale = ContentScale.Crop,
                     contentDescription = "Album Image",
                     modifier = Modifier
                         .fillMaxHeight()
