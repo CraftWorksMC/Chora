@@ -7,7 +7,7 @@ import java.net.URL
 import java.security.MessageDigest
 import javax.net.ssl.HttpsURLConnection
 
-var navidromeSyncInProgress = mutableStateOf(false)
+var navidromeSyncInProgress = mutableStateOf(true)
 
 fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String, endpoint: String) {
 
@@ -53,7 +53,7 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
                     endpoint.startsWith("search3")      -> parseNavidromeSongXML     (it.readLine(), baseUrl, username, password)
                     endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML    (it.readLine(), baseUrl, username, password)
 
-                    // Artistss
+                    // Artists
                     endpoint.startsWith("getArtists")   -> parseNavidromeArtistsXML  (it.readLine(), baseUrl, username, password)
                     endpoint.startsWith("getArtistInfo")-> parseNavidromeArtistXML   (it.readLine())
 

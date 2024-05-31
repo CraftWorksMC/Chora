@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -133,11 +134,13 @@ fun RadioScreen(
                 song.media?.let { SongHelper.playStream(it, true, mediaController) }
                 // Get Metadata
                 val icecastUrl = "${song.media}/status-json.xsl"
+                Log.d("ICECAST", "Getting Icecast Metadata")
                 Thread{
                     try {
                         val metadata = getIcecastMetadata(icecastUrl)
                         println(metadata)
-                    }catch (_: Exception){
+                    }catch (e: Exception){
+                        Log.d("ICECAST", "Exception: $e")
                     }
                 }.start()
             })

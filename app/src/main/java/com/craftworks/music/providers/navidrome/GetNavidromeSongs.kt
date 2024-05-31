@@ -33,6 +33,9 @@ fun parseNavidromeSongXML(
         child("subsonic-response"){
             child("searchResult3"){
                 children("song"){
+
+                    navidromeSyncInProgress.value = true
+
                     //region getValues
                     val songTitle = attributes.getValue("title")
                     val songArtist = attributes.getValue("artist")
@@ -102,7 +105,6 @@ fun parseNavidromeSongXML(
                             navidromePassword,
                             "search3.view?query=''&songCount=500&songOffset=$songOffset&artistCount=0&albumCount=0"
                         )
-                        navidromeSyncInProgress.value = true
                     }
                 }
             }
