@@ -56,4 +56,5 @@
     <string name="Label_Sorting">Ordina Per</string>
     <string name="Navidrome_Error">Nessuna connessione al server Navidrome.</string>
     <string name="Setting_NavidromeLogo">Mostra Logo Navidrome</string>
+    <string name="Navidrome_Sync">Sincronizzazione con Navidrome in corso...</string>
 </resources>

@@ -1,13 +1,17 @@
 package com.craftworks.music.providers.navidrome
 
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
 import javax.net.ssl.HttpsURLConnection
 
+var navidromeSyncInProgress = mutableStateOf(false)
+
 fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String, endpoint: String) {
 
+    navidromeSyncInProgress.value = true
     // Generate a random password salt and MD5 hash.
     val passwordSalt = generateSalt(8)
     val passwordHash = md5Hash(password + passwordSalt)
@@ -49,7 +53,7 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
                     endpoint.startsWith("search3")      -> parseNavidromeSongXML     (it.readLine(), baseUrl, username, password)
                     endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML    (it.readLine(), baseUrl, username, password)
 
-                    // Artists
+                    // Artistss
                     endpoint.startsWith("getArtists")   -> parseNavidromeArtistsXML  (it.readLine(), baseUrl, username, password)
                     endpoint.startsWith("getArtistInfo")-> parseNavidromeArtistXML   (it.readLine())
 
@@ -66,6 +70,8 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
             }
             inputStream.close()
         }
+
+        navidromeSyncInProgress.value = false
     }
     thread.start()
 }

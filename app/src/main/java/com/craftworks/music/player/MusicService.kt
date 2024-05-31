@@ -81,7 +81,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         Log.d("AA", "onCreate: Android Auto")
 
-        saveManager(this@ChoraMediaLibraryService).loadSettings()
+        saveManager(this).loadSettings()
         initializePlayer()
     }
 
@@ -116,28 +116,48 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
                 if (useNavidromeServer.value)
                     markNavidromeSongAsPlayed(SongHelper.currentSong)
-            }
-
-            override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-                super.onMediaMetadataChanged(mediaMetadata)
 
                 serviceIOScope.launch {
                     val song = Song(
-                        title = mediaMetadata.title.toString(),
-                        artist = mediaMetadata.artist.toString(),
-                        duration = mediaMetadata.extras?.getInt("duration") ?: 0,
-                        imageUrl = Uri.parse(mediaMetadata.artworkUri.toString()),
-                        year = mediaMetadata.releaseYear.toString(),
-                        album = mediaMetadata.albumTitle.toString(),
-                        format = mediaMetadata.extras?.getString("MoreInfo"),
-                        navidromeID = mediaMetadata.extras?.getString("NavidromeID"),
-                        isRadio = mediaMetadata.extras?.getBoolean("isRadio"))
-
+                        title = mediaItem?.mediaMetadata?.title.toString(),
+                        artist = mediaItem?.mediaMetadata?.artist.toString(),
+                        duration = mediaItem?.mediaMetadata?.extras?.getInt("duration") ?: 0,
+                        imageUrl = Uri.parse(mediaItem?.mediaMetadata?.artworkUri.toString()),
+                        year = mediaItem?.mediaMetadata?.releaseYear.toString(),
+                        album = mediaItem?.mediaMetadata?.albumTitle.toString(),
+                        format = mediaItem?.mediaMetadata?.extras?.getString("MoreInfo"),
+                        navidromeID = mediaItem?.mediaMetadata?.extras?.getString("NavidromeID"),
+                        isRadio = mediaItem?.mediaMetadata?.extras?.getBoolean("isRadio"))
                     SongHelper.currentSong = song
                 }
 
                 if (SongHelper.currentSong.isRadio == false)
                     getLyrics()
+            }
+
+            override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+                super.onMediaMetadataChanged(mediaMetadata)
+
+//                if (SongHelper.currentSong.title == mediaMetadata.title.toString() &&
+//                    SongHelper.currentSong.artist == mediaMetadata.artist.toString())
+//                    return //Don't update metadata if song is already the same
+//
+//                serviceIOScope.launch {
+//                    val song = Song(
+//                        title = mediaMetadata.title.toString(),
+//                        artist = mediaMetadata.artist.toString(),
+//                        duration = mediaMetadata.extras?.getInt("duration") ?: 0,
+//                        imageUrl = Uri.parse(mediaMetadata.artworkUri.toString()),
+//                        year = mediaMetadata.releaseYear.toString(),
+//                        album = mediaMetadata.albumTitle.toString(),
+//                        format = mediaMetadata.extras?.getString("MoreInfo"),
+//                        navidromeID = mediaMetadata.extras?.getString("NavidromeID"),
+//                        isRadio = mediaMetadata.extras?.getBoolean("isRadio"))
+//                    SongHelper.currentSong = song
+//                }
+//
+//                if (SongHelper.currentSong.isRadio == false)
+//                    getLyrics()
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -157,23 +177,25 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         // Add all songs to android auto.
         // For now it will only contain an ordered list of all the songs.
-        for (song in songsList){
-            val mediaMetadata = MediaMetadata.Builder()
-                .setTitle(song.title)
-                .setArtist(song.artist)
-                .setAlbumTitle(song.album)
-                .setArtworkUri(song.imageUrl)
-                .setReleaseYear(song.year?.toIntOrNull() ?: 0)
-                .setIsBrowsable(false)
-                .setIsPlayable(true)
-                .build()
-            val mediaItem = MediaItem.Builder()
-                .setUri(song.media)
-                .setMediaId(song.media.toString())
-                .setMediaMetadata(mediaMetadata)
-                .build()
+        synchronized(songsList){
+            for (song in songsList){
+                val mediaMetadata = MediaMetadata.Builder()
+                    .setTitle(song.title)
+                    .setArtist(song.artist)
+                    .setAlbumTitle(song.album)
+                    .setArtworkUri(song.imageUrl)
+                    .setReleaseYear(song.year?.toIntOrNull() ?: 0)
+                    .setIsBrowsable(false)
+                    .setIsPlayable(true)
+                    .build()
+                val mediaItem = MediaItem.Builder()
+                    .setUri(song.media)
+                    .setMediaId(song.media.toString())
+                    .setMediaMetadata(mediaMetadata)
+                    .build()
 
-            androidAutoAllSongsTracklist.add(mediaItem)
+                androidAutoAllSongsTracklist.add(mediaItem)
+            }
         }
         androidAutoAllSongsTracklist = androidAutoAllSongsTracklist.sortedBy { it.mediaMetadata.title.toString() }.toMutableList()
         SongHelper.currentTracklist = androidAutoAllSongsTracklist

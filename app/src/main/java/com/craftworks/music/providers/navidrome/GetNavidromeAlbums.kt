@@ -13,7 +13,7 @@ fun getNavidromeAlbums(){
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
         navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "getAlbumList.view?type=newest&size=100&offset=0"
+        "getAlbumList.view?type=newest&size=500&offset=0"
     )
 }
 
@@ -66,6 +66,7 @@ fun parseNavidromeAlbumXML(
                             navidromePassword,
                             "getAlbumList.view?type=newest&size=500&offset=$albumOffset"
                         )
+                        navidromeSyncInProgress.value = true
                     }
                 }
             }

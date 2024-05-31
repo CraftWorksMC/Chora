@@ -26,6 +26,7 @@ import com.craftworks.music.providers.navidrome.getNavidromeArtists
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.screens.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
@@ -131,6 +132,13 @@ class saveManager(private val context: Context){
         // Get Media Items
         if (useNavidromeServer.value)
             try {
+
+                getNavidromeStatus(
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+                )
+
                 getNavidromeSongs()
 
                 getNavidromeAlbums()
@@ -141,8 +149,10 @@ class saveManager(private val context: Context){
 
                 getNavidromeArtists()
 
-                if (localProviderList[selectedLocalProvider.intValue].enabled)
-                    getSongsOnDevice(context)
+                if (localProviderList.isNotEmpty()){
+                    if (localProviderList[selectedLocalProvider.intValue].enabled)
+                        getSongsOnDevice(context)
+                }
 
             } catch (_: Exception){
                 // DO NOTHING

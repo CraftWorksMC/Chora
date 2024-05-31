@@ -87,7 +87,7 @@ fun AlbumDetails(
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
-    val albumSongs = songsList.filter { it.album == selectedAlbum?.name }
+    val albumSongs = songsList.filter { it.album == selectedAlbum?.name }.sortedBy { it.trackIndex }
 
     val otherSongsFromSameArtist = songsList.filter { it.artist == selectedAlbum?.artist }.toMutableList()
     otherSongsFromSameArtist.removeAll(albumSongs)

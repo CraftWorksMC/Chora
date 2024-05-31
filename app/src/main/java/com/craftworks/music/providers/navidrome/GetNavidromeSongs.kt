@@ -15,7 +15,7 @@ fun getNavidromeSongs(){
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
         navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "search3.view?query=''&songCount=100&songOffset=0&artistCount=0&albumCount=0"
+        "search3.view?query=''&songCount=500&songOffset=0&artistCount=0&albumCount=0"
     )
 }
 
@@ -45,6 +45,7 @@ fun parseNavidromeSongXML(
                     val songFormat = attributes.getValue("suffix").uppercase()
                     val songBitrate = attributes.getValueOrNull("bitRate") ?: ""
                     val songLastPlayed = attributes.getValueOrNull("played") ?: ""
+                    val songTrackIndex = attributes.getValueIntOrNull("track") ?: 0
 
                     // Generate password salt and hash for songArtUri
                     val passwordSaltArt = generateSalt(8)
@@ -79,7 +80,8 @@ fun parseNavidromeSongXML(
                         songFormat,
                         songBitrate,
                         songID,
-                        songLastPlayed
+                        songLastPlayed,
+                        songTrackIndex
                     )
 
                     synchronized(songsList){
@@ -92,14 +94,15 @@ fun parseNavidromeSongXML(
                     finish()
                 }.apply {
                     // Get songs 200 at a time.
-                    if (size == 200){
+                    if (size == 500){
                         val songOffset = songsList.size
                         sendNavidromeGETRequest(
                             navidromeUrl,
                             navidromeUsername,
                             navidromePassword,
-                            "search3.view?query=''&songCount=200&songOffset=$songOffset&artistCount=0&albumCount=0"
+                            "search3.view?query=''&songCount=500&songOffset=$songOffset&artistCount=0&albumCount=0"
                         )
+                        navidromeSyncInProgress.value = true
                     }
                 }
             }

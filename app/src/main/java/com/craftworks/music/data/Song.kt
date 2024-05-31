@@ -17,7 +17,8 @@ data class Song (
     val format: String? = "MP3",
     val bitrate: String? = "320",
     val navidromeID: String? = "",
-    val lastPlayed: String? = ""
+    val lastPlayed: String? = "",
+    val trackIndex: Int? = 0
 )
 
 val songsList: MutableList<Song> = mutableStateListOf()
