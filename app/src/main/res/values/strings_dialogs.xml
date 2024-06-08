@@ -2,6 +2,7 @@
 <resources>
     <!-- Provider Dialog -->
     <string name="Dialog_Media_Source">Media Source</string>
+        <string name="No_Providers_Splash">You haven\'t added a media provider yet. Add one now to start listening to some tunes!</string>
         <string name="Source_Navidrome" translatable="false">Navidrome</string>
         <string name="Source_Local">Local Folder</string>
         <!-- Local -->

@@ -81,10 +81,18 @@ fun HomeScreen(
 
     val context = LocalContext.current
 
+
     var recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(20)
     var recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }.take(20)
     var mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }.take(20)
-    var shuffledSongsList = remember { mutableStateOf(songsList.take(20).shuffled()) }
+    var shuffledSongsList = listOf<Song>() //songsList.take(20).shuffled()
+
+    LaunchedEffect(songsList) {
+        recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(20)
+        recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }.take(20)
+        mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }.take(20)
+        shuffledSongsList = songsList.take(20).shuffled()
+    }
 
     val state = rememberPullToRefreshState()
     if (state.isRefreshing) {
@@ -103,7 +111,7 @@ fun HomeScreen(
             recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
             recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
             mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
-            shuffledSongsList = mutableStateOf(songsList.take(10).shuffled())
+            shuffledSongsList = songsList.take(10).shuffled()
 
             state.endRefresh()
         }
@@ -303,9 +311,9 @@ fun HomeScreen(
                 )
 
                 /* SONGS ROW */
-                SongsRow(songsList = shuffledSongsList.value, onSongSelected = { song ->
+                SongsRow(songsList = shuffledSongsList, onSongSelected = { song ->
                     //SongHelper.currentSong = song
-                    SongHelper.currentList = shuffledSongsList.value
+                    SongHelper.currentList = shuffledSongsList
                     //songState = true
                     song.media?.let { SongHelper.playStream(it, false, mediaController) }
                 })

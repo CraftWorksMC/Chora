@@ -130,35 +130,38 @@ class saveManager(private val context: Context){
         loadPlaylists()
 
         // Get Media Items
-        if (useNavidromeServer.value)
-            try {
+        if (useNavidromeServer.value) {
+//            try {
 
-                getNavidromeStatus(
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-                )
+            getNavidromeStatus(
+                navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+                navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+                navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+            )
 
-                getNavidromeSongs()
+            getNavidromeSongs()
 
-                getNavidromeAlbums()
+            getNavidromeAlbums()
 
-                getNavidromePlaylists()
+            getNavidromePlaylists()
 
-                getNavidromeRadios()
+            getNavidromeRadios()
 
-                getNavidromeArtists()
+            getNavidromeArtists()
 
-                if (localProviderList.isNotEmpty()){
-                    if (localProviderList[selectedLocalProvider.intValue].enabled)
-                        getSongsOnDevice(context)
-                }
-
-            } catch (_: Exception){
-                // DO NOTHING
+            if (localProviderList.isNotEmpty()) {
+                if (localProviderList[selectedLocalProvider.intValue].enabled)
+                    getSongsOnDevice(context)
             }
-        else if (localProviderList.isNotEmpty())
+
+//            } catch (_: Exception){
+//                // DO NOTHING
+//            }
+        }
+        if (localProviderList.isNotEmpty())
             getSongsOnDevice(this@saveManager.context)
+
+        if (navidromeServersList.isEmpty() && localProviderList.isEmpty()) showNoProviderDialog.value = true
 
         // Finished Loading Settings
         Log.d("LOAD", "Loaded Settings!")

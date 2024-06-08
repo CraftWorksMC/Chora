@@ -14,6 +14,7 @@
     <string name="Action_Add">Add</string>
     <string name="Action_Success">Success</string>
     <string name="Action_Login">Login</string>
+    <string name="Action_Go">Let\'s Go!</string>
 
     <!-- Playlists -->
     <string name="Action_CreatePlaylist">Create Playlist</string>

@@ -39,9 +39,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavHostController
 import com.craftworks.music.R
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
+import com.craftworks.music.data.Screen
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedLocalProvider
@@ -57,6 +59,11 @@ import com.craftworks.music.ui.elements.bounceClick
 @Composable
 fun PreviewProviderDialog(){
     CreateMediaProviderDialog(setShowDialog = { })
+}
+@Preview(showBackground = true)
+@Composable
+fun PreviewNoMediaProvidersDialog(){
+    NoMediaProvidersDialog(setShowDialog = { }, NavHostController(LocalContext.current))
 }
 //endregion
 
@@ -283,6 +290,57 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                             }
                         }
                     //endregion
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavHostController) {
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+        ) {
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.Settings_Header_Media),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+
+                    Text(
+                        text = stringResource(R.string.No_Providers_Splash),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    Button(
+                        onClick = { navController.navigate(Screen.S_Providers.route) {
+                            launchSingleTop = true
+                        }; setShowDialog(false) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onBackground
+                        ),
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 24.dp, start = 40.dp, end = 40.dp)
+                            .height(50.dp)
+                            .widthIn(max = 320.dp)
+                            .fillMaxWidth()
+                            .bounceClick(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(stringResource(R.string.Action_Go),
+                            modifier = Modifier.height(24.dp))
+                    }
                 }
             }
         }

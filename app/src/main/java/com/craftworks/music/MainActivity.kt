@@ -40,6 +40,7 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -59,12 +60,16 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.data.bottomNavigationItems
+import com.craftworks.music.data.localProviderList
+import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.NowPlayingContent
 import com.craftworks.music.ui.dpToPx
 import com.craftworks.music.ui.elements.bounceClick
+import com.craftworks.music.ui.elements.dialogs.CreateMediaProviderDialog
+import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
 import com.craftworks.music.ui.theme.MusicPlayerTheme
 import kotlinx.coroutines.launch
 import java.sql.Date
@@ -75,6 +80,8 @@ import java.util.Locale
 var sliderPos = mutableIntStateOf(0)
 var repeatSong = mutableStateOf(false)
 var shuffleSongs = mutableStateOf(false)
+
+var showNoProviderDialog = mutableStateOf(false)
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -102,7 +109,6 @@ class MainActivity : ComponentActivity() {
         val snackbarHostState = SnackbarHostState()
 
         setContent {
-
             MusicPlayerTheme {
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
                 navController = rememberNavController()
@@ -117,6 +123,8 @@ class MainActivity : ComponentActivity() {
                         dpToPx(-80 - WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding().value.toInt())
                     else 0,
                     label = "Fullscreen Translation")
+
+
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -209,6 +217,9 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+
+                if(showNoProviderDialog.value)
+                    NoMediaProvidersDialog(setShowDialog = { showNoProviderDialog.value = it }, navController)
             }
         }
 

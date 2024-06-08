@@ -7,7 +7,7 @@ import java.net.URL
 import java.security.MessageDigest
 import javax.net.ssl.HttpsURLConnection
 
-var navidromeSyncInProgress = mutableStateOf(true)
+var navidromeSyncInProgress = mutableStateOf(false)
 
 fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String, endpoint: String) {
 

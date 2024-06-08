@@ -172,18 +172,20 @@ fun NowPlayingPortraitCover (
                             }
                     )
                 }
-                SongHelper.currentSong.year?.let { year ->
-                    Text(
-                        text = " • $year",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        maxLines = 1, overflow = TextOverflow.Visible,
-                        softWrap = false,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
+                if (SongHelper.currentSong.year != "0"){
+                    SongHelper.currentSong.year?.let { year ->
+                        Text(
+                            text = " • $year",
+                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            maxLines = 1, overflow = TextOverflow.Visible,
+                            softWrap = false,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
 
-                    )
+                        )
+                    }
                 }
             }
 
@@ -277,7 +279,8 @@ fun NowPlayingLandscape(
                         if (it.length > 20 && collapsed == false)
                             it.substring(0, 17) + "..." + " • " + SongHelper.currentSong.year
                         else
-                            it + " • " + SongHelper.currentSong.year,
+                            it + if (SongHelper.currentSong.year != "0") " • " + SongHelper.currentSong.year
+                            else "",
                         fontSize = MaterialTheme.typography.bodyMedium.fontSize,
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -404,7 +407,8 @@ fun NowPlayingMiniPlayer(
                         else if (it.length > 24)
                             it.substring(0, 21) + "..." + " • " + SongHelper.currentSong.year
                         else
-                            it + " • " + SongHelper.currentSong.year,
+                            it + if (SongHelper.currentSong.year != "0") " • " + SongHelper.currentSong.year
+                                 else "",
                         fontSize = MaterialTheme.typography.bodyMedium.fontSize,
                         fontWeight = FontWeight.Light,
                         color = MaterialTheme.colorScheme.onBackground,

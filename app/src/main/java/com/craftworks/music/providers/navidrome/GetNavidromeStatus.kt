@@ -16,7 +16,7 @@ fun parseNavidromeStatusXML(response: String){
         .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
 
     newResponse.konsumeXml().apply {
-        child("subsonic-response"){
+        childOrNull("subsonic-response"){
             val status = attributes.getValue("status")
 
             if (status == "failed"){
