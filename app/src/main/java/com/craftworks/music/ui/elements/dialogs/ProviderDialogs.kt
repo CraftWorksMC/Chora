@@ -2,8 +2,10 @@ package com.craftworks.music.ui.elements.dialogs
 
 import android.content.Context
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -52,6 +54,7 @@ import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.providers.navidrome.reloadNavidrome
+import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
 
 //region PREVIEWS
@@ -186,6 +189,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                 value = url,
                                 onValueChange = { url = it },
                                 label = { Text(stringResource(R.string.Label_Navidrome_URL)) },
+                                placeholder = { Text("http://domain.tld:<port>")},
                                 singleLine = true,
                                 isError = navidromeStatus.value == "Invalid URL"
                             )
@@ -227,11 +231,13 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
 
                             if (navidromeStatus.value != "") {
                                 Column(
-                                    modifier = Modifier.fillMaxWidth().animateContentSize(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .animateContentSize(),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(
-                                        text = navidromeStatus.value,
+                                        text = "Status: ${navidromeStatus.value}",
                                         fontWeight = FontWeight.Medium,
                                         fontSize = MaterialTheme.typography.bodyMedium.fontSize,
                                         color = MaterialTheme.colorScheme.onBackground,
@@ -240,54 +246,72 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                 }
                             }
 
-                            Button(
-                                onClick = {
-                                    try {
+                            Row(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 24.dp),horizontalArrangement = Arrangement.SpaceEvenly){
+                                Button(
+                                    onClick = {
                                         username = username.trim()
                                         password = password.trim()
                                         url = url.removeSuffix("/").trim()
-
                                         getNavidromeStatus(url, username, password)
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        contentColor = MaterialTheme.colorScheme.onBackground
+                                    ),
+                                    modifier = Modifier
+                                        //.padding(top = 24.dp)
+                                        .padding(6.dp)
+                                        .height(50.dp)
+                                        //.widthIn(max = 64.dp)
+                                        .weight(1f)
+                                        .fillMaxWidth()
+                                        .bounceClick(),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text(stringResource(R.string.Action_Login),
+                                        modifier = Modifier.height(24.dp))
+                                }
+                                Button(
+                                    onClick = {
+                                        val server = NavidromeProvider(
+                                            url,
+                                            username,
+                                            password
+                                        )
 
-                                        if (navidromeStatus.value == "ok") {
-
-                                            val server = NavidromeProvider(
-                                                url,
-                                                username,
-                                                password
-                                            )
-
-                                            if (!navidromeServersList.contains(server)) {
-                                                navidromeServersList.add(server)
-                                            }
-                                            selectedNavidromeServerIndex.intValue =
-                                                navidromeServersList.indexOf(server)
-
-                                            reloadNavidrome()
-
-                                            navidromeStatus.value = ""
-                                            setShowDialog(false)
+                                        if (!navidromeServersList.contains(server)) {
+                                            navidromeServersList.add(server)
                                         }
-                                    } catch (_: Exception) {
-                                        // DO NOTHING
-                                    }
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    contentColor = MaterialTheme.colorScheme.onBackground
-                                ),
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(top = 24.dp, start = 40.dp, end = 40.dp)
-                                    .height(50.dp)
-                                    .widthIn(max = 320.dp)
-                                    .fillMaxWidth()
-                                    .bounceClick(),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text(stringResource(R.string.Action_Login),
-                                    modifier = Modifier.height(24.dp))
+                                        selectedNavidromeServerIndex.intValue =
+                                            navidromeServersList.indexOf(server)
+
+                                        saveManager(context).saveSettings()
+                                        reloadNavidrome(context)
+
+                                        navidromeStatus.value = ""
+                                        setShowDialog(false)
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        contentColor = MaterialTheme.colorScheme.onBackground
+                                    ),
+                                    modifier = Modifier
+                                        .padding(6.dp)
+                                        .height(50.dp)
+                                        //.widthIn(max = 320.dp)
+                                        .weight(1f)
+                                        .fillMaxWidth()
+                                        .bounceClick(),
+                                    shape = RoundedCornerShape(12.dp),
+                                    enabled = navidromeStatus.value == "ok"
+                                ) {
+                                    Text(stringResource(R.string.Action_Add),
+                                        modifier = Modifier.height(24.dp))
+                                }
                             }
+
                         }
                     //endregion
                 }

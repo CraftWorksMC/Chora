@@ -121,16 +121,11 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
                         getSongsOnDevice(context)
                 }
                 else {
-//                    songsList.clear()
-//                    albumList.clear()
-//                    radioList.clear()
-//                    playlistList.clear()
-
                     if (useNavidromeServer.value &&
                         selectedNavidromeServerIndex.intValue >= 0 &&
                         navidromeServersList.isNotEmpty()){
 
-                        reloadNavidrome()
+                        reloadNavidrome(context)
                     }
                 }
             }
@@ -201,15 +196,10 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("https:/
             onCheckedChange = { checked = it
                 useNavidromeServer.value = it
 
-//                songsList.clear()
-//                albumList.clear()
-//                radioList.clear()
-//                playlistList.clear()
-
                 if (it){
                     selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
 
-                    reloadNavidrome()
+                    reloadNavidrome(context)
 
                     // Make very sure that the selectedLocalProvider actually exists
                     if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)

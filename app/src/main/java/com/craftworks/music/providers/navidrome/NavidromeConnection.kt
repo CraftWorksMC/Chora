@@ -1,16 +1,25 @@
 package com.craftworks.music.providers.navidrome
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import com.craftworks.music.data.albumList
+import com.craftworks.music.data.artistList
+import com.craftworks.music.data.localProviderList
+import com.craftworks.music.data.playlistList
+import com.craftworks.music.data.radioList
+import com.craftworks.music.data.songsList
+import com.craftworks.music.providers.local.getSongsOnDevice
 import java.net.HttpURLConnection
+import java.net.MalformedURLException
 import java.net.URL
+import java.net.UnknownHostException
 import java.security.MessageDigest
 import javax.net.ssl.HttpsURLConnection
 
 var navidromeSyncInProgress = mutableStateOf(false)
 
 fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String, endpoint: String) {
-
     navidromeSyncInProgress.value = true
     // Generate a random password salt and MD5 hash.
     val passwordSalt = generateSalt(8)
@@ -20,6 +29,11 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
     // All get requests come from this file.
     val url = URL("$baseUrl/rest/$endpoint&u=$username&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
 
+    if (url.protocol.isEmpty() && url.host.isEmpty()){
+        navidromeStatus.value = "Invalid URL"
+        return
+    }
+
     // Use HTTPS connection for allowing self-signed ssl certificates.
     val connection = if (url.protocol == "https") {
         url.openConnection() as HttpsURLConnection
@@ -28,47 +42,51 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
     }
 
     val thread = Thread {
-        with(connection) {
-            requestMethod = "GET"
-            instanceFollowRedirects = true // Might fix issues with reverse proxies.
+        try {
+            with(connection) {
+                requestMethod = "GET"
+                instanceFollowRedirects = true // Might fix issues with reverse proxies.
 
-            Log.d("NAVIDROME", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+                Log.d("NAVIDROME", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
 
-            // region Response Codes
-            if (responseCode == 404) {
-                Log.d("NAVIDROME", "404")
-                navidromeStatus.value = "Invalid URL"
-                return@Thread
-            }
-            if (responseCode == 503) {
-                Log.d("NAVIDROME", "503")
-                navidromeStatus.value = "Access Denied, 503"
-                return@Thread
-            }
-            // endregion
-
-            inputStream.bufferedReader().use {
-                when {
-                    endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (it.readLine())
-                    endpoint.startsWith("search3")      -> parseNavidromeSongXML     (it.readLine(), baseUrl, username, password)
-                    endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML    (it.readLine(), baseUrl, username, password)
-
-                    // Artists
-                    endpoint.startsWith("getArtists")   -> parseNavidromeArtistsXML  (it.readLine(), baseUrl, username, password)
-                    endpoint.startsWith("getArtistInfo")-> parseNavidromeArtistXML   (it.readLine())
-
-                    // Playlists
-                    endpoint.startsWith("getPlaylists") -> parseNavidromePlaylistsXML(it.readLine(), baseUrl, username, password)
-                    endpoint.startsWith("getPlaylist.") -> parseNavidromePlaylistXML (it.readLine())
-                    endpoint.startsWith("updatePlaylist") -> getNavidromePlaylists()
-                    endpoint.startsWith("createPlaylist") -> getNavidromePlaylists()
-                    endpoint.startsWith("deletePlaylist") -> getNavidromePlaylists()
-
-                    // Radios
-                    endpoint.startsWith("getInternetRadioStations") -> parseNavidromeRadioXML (it.readLine())
+                if (responseCode != 200){
+                    Log.d("NAVIDROME", responseCode.toString())
+                    navidromeStatus.value = "HTTP Error $responseCode"
+                    navidromeSyncInProgress.value = false
+                    return@Thread
                 }
+
+                inputStream.bufferedReader().use {
+                    when {
+                        endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (it.readLine())
+                        endpoint.startsWith("search3")      -> parseNavidromeSongXML     (it.readLine(), baseUrl, username, password)
+                        endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML    (it.readLine(), baseUrl, username, password)
+
+                        // Artists
+                        endpoint.startsWith("getArtists")   -> parseNavidromeArtistsXML  (it.readLine(), baseUrl, username, password)
+                        endpoint.startsWith("getArtistInfo")-> parseNavidromeArtistXML   (it.readLine())
+
+                        // Playlists
+                        endpoint.startsWith("getPlaylists") -> parseNavidromePlaylistsXML(it.readLine(), baseUrl, username, password)
+                        endpoint.startsWith("getPlaylist.") -> parseNavidromePlaylistXML (it.readLine())
+                        endpoint.startsWith("updatePlaylist") -> getNavidromePlaylists()
+                        endpoint.startsWith("createPlaylist") -> getNavidromePlaylists()
+                        endpoint.startsWith("deletePlaylist") -> getNavidromePlaylists()
+
+                        // Radios
+                        endpoint.startsWith("getInternetRadioStations") -> parseNavidromeRadioXML (it.readLine())
+                    }
+                }
+                inputStream.close()
             }
-            inputStream.close()
+        }
+        catch (e: UnknownHostException){
+            navidromeStatus.value = "Invalid URL"
+            Log.d("NAVIDROME", "Unknown Host.")
+        }
+        catch (e: MalformedURLException){
+            navidromeStatus.value = "Invalid URL"
+            Log.d("NAVIDROME", "Malformed URL.")
         }
 
         navidromeSyncInProgress.value = false
@@ -76,7 +94,16 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
     thread.start()
 }
 
-fun reloadNavidrome(){
+fun reloadNavidrome(context: Context){
+    songsList.clear()
+    albumList.clear()
+    artistList.clear()
+    playlistList.clear()
+    radioList.clear()
+
+    if (localProviderList.isNotEmpty())
+        getSongsOnDevice(context)
+
     getNavidromeSongs()
     getNavidromeAlbums()
     getNavidromeArtists()

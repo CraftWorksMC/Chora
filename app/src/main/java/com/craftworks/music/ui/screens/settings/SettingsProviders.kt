@@ -17,8 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -48,6 +48,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.ui.elements.dialogs.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.LocalProviderCard
 import com.craftworks.music.ui.elements.NavidromeProviderCard
@@ -58,10 +59,7 @@ import com.craftworks.music.ui.elements.bounceClick
 @Preview(showSystemUi = false, showBackground = true)
 fun S_ProviderScreen(navHostController: NavHostController = rememberNavController()) {
     val context = LocalContext.current.applicationContext
-    val leftPadding =
-        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-    val bottomPadding =
-        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 80.dp + 72.dp + 12.dp else 72.dp
+    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     var showNavidromeServerDialog by remember { mutableStateOf(false) }
 
@@ -106,7 +104,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             tint = MaterialTheme.colorScheme.onBackground,
                             contentDescription = "Return To Settings",
                             modifier = Modifier
@@ -146,7 +144,8 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
         ){
             FloatingActionButton(
                 onClick = {
-                          showNavidromeServerDialog = true
+                    showNavidromeServerDialog = true
+                    navidromeStatus.value = ""
                 },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.secondary,

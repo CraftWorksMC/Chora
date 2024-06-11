@@ -45,7 +45,7 @@ fun HorizontalLineWithNavidromeCheck(){
             0.dp)
     ) {
         Text(
-            text = stringResource(R.string.Navidrome_Error) + "Status: " + navidromeStatus.value,
+            text = stringResource(R.string.Navidrome_Error) + " Status: " + navidromeStatus.value,
             //color = Color(0xFF181926),
             color = MaterialTheme.colorScheme.onErrorContainer,
             fontWeight = FontWeight.SemiBold,
