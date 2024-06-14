@@ -17,11 +17,14 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
@@ -36,7 +39,14 @@ import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
 import com.craftworks.music.data.Song
+import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.data.songsList
+import com.craftworks.music.data.useNavidromeServer
+import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.sliderPos
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 
 //region Songs
 @Composable
@@ -89,32 +99,48 @@ fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
     }
 }
 @Composable
-fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
+fun SongsHorizontalColumn(songList: List<Song>, onSongSelected: (song: Song) -> Unit, isSearch: Boolean? = false){
     var isSongSelected by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+
+    // Load more songs at scroll
+    if (useNavidromeServer.value && isSearch == false){
+        LaunchedEffect(listState) {
+            snapshotFlow {
+                val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                val totalItemsCount = listState.layoutInfo.totalItemsCount
+
+                lastVisibleItemIndex != null && totalItemsCount > 0 &&
+                        (totalItemsCount - lastVisibleItemIndex) <= 10
+            }
+                .distinctUntilChanged()
+                .filter { it }
+                .collect {
+                    val songOffset = songsList.size
+                    sendNavidromeGETRequest(
+                        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+                        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+                        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+                        "search3.view?query=''&songCount=100&songOffset=$songOffset&artistCount=0&albumCount=0&f=json"
+                    )
+                }
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .wrapContentHeight()
             .fillMaxWidth(),
         contentPadding = PaddingValues(
             bottom = bottomSpacerHeightDp()
-        )
+        ),
+        state = listState
     ) {
-        items(songsList) {song ->
+        items(songList) { song ->
             HorizontalSongCard(song = song, onClick = {
                 isSongSelected = true
                 sliderPos.intValue = 0
                 onSongSelected(song)
-                //markSongAsPlayed(song)
-//                if (navidromeServersList.isEmpty()) return@HorizontalSongCard
-//                if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-//                    navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@HorizontalSongCard
-//                if (useNavidromeServer.value && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")){
-//                    try {
-//                        getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
-//                    } catch (_: Exception){
-//                        // DO NOTHING
-//                    }
-//                }
             })
         }
     }

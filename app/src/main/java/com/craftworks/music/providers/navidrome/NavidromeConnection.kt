@@ -81,7 +81,7 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
                 inputStream.bufferedReader().use {
                     when {
                         endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (it.readLine())
-                        endpoint.startsWith("search3")      -> parseNavidromeSongJSON     (it.readLine(), baseUrl, username, password)
+                        endpoint.startsWith("search3")      -> parseNavidromeSongJSON    (it.readLine(), baseUrl, username, password, endpoint)
                         endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML    (it.readLine(), baseUrl, username, password)
 
                         // Artists

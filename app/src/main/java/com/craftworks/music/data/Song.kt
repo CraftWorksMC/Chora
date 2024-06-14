@@ -9,23 +9,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.LinkedList
 
-//data class Song (
-//    val imageUrl: Uri,
-//    val title: String,
-//    val artist: String,
-//    val album: String,
-//    val duration: Int,
-//    val isRadio: Boolean? = false,
-//    val media: Uri? = null,
-//    var timesPlayed: Int? = 0,
-//    val dateAdded: String? = "",
-//    val year: String? = "",
-//    val format: String? = "MP3",
-//    val bitrate: String? = "320",
-//    val navidromeID: String? = "",
-//    val lastPlayed: String? = "",
-//    val trackIndex: Int? = 0
-//)
+@Serializable
+data class SearchResult3(val song: List<Song>? = listOf())
 
 @Serializable
 data class Song(
@@ -83,48 +68,5 @@ data class ReplayGain(
     val trackGain: Float? = 0f,
     val trackPeak: Float? = 0f,
     val albumPeak: Float? = 0f)
-
-@Serializable
-data class SearchResult3(val song: List<Song>)
-
-//@Serializable
-//data class SongJson(
-//    val id : String,
-//    val parent : String,
-//    val isDir : Boolean,
-//    val title : String,
-//    val album : String,
-//    val artist : String,
-//    val track : Int? = 0,
-//    val year : Int? = 0,
-//    val genre : String? = "",
-//    val coverArt : String,
-//    val size : Int,
-//    val contentType : String,
-//    val suffix : String,
-//    val duration: Int ? = 0,
-//    val bitrate: Int? = 0,
-//    val path : String,
-//    val playCount : Int? = 0,
-//    val discNumber: Int? = 0,
-//    val created : String,
-//    val albumId : String,
-//    val artistId : String? = "",
-//    val type : String,
-//    val isVideo : Boolean,
-//    val played : String? = "",
-//    val bpm : Int,
-//    val comment : String? = "",
-//    val sortName : String? = "",
-//    val mediaType : String,
-//    val musicBrainzId : String? = "",
-//    val genres : List<Genre>,
-//    val replayGain : ReplayGain? = null,
-//    val channelCount : Int? = 2,
-//    val samplingRate : Int? = 0
-//
-//    // OpenSubsonic
-//)
-
 
 var songsList: MutableList<Song> = mutableStateListOf()

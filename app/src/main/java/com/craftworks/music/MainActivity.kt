@@ -90,11 +90,10 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-
-        val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
-        this.startService(serviceIntent)
-
         super.onCreate(savedInstanceState)
+
+//        val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
+//        this.startService(serviceIntent)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -244,6 +243,8 @@ class MainActivity : ComponentActivity() {
         // SAVE SETTINGS ON APP EXIT
         registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
+                this@MainActivity.startService(serviceIntent)
             }
 
             override fun onActivityStarted(activity: Activity) {

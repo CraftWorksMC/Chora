@@ -2,6 +2,7 @@ package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
 import android.net.Uri
+import android.view.KeyEvent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -15,17 +16,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -41,16 +41,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
+import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.search3SongList
+import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
@@ -158,9 +165,26 @@ fun SongsScreen(
                 val focusRequester = remember { FocusRequester() }
                 TextField(
                     value = searchFilter,
-                    onValueChange = { searchFilter = it },
+                    onValueChange = {
+                        searchFilter = it
+                        if (it.isBlank()){
+                            getNavidromeSongs()
+                            isSearchFieldOpen = false
+                        } },
                     label = { Text(stringResource(R.string.Action_Search)) },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            sendNavidromeGETRequest(
+                                navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+                                navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+                                navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+                                "search3.view?query=${searchFilter}&songCount=500&artistCount=0&albumCount=0&f=json"
+                            )
+                            isSearchFieldOpen = false
+                        }
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
@@ -178,23 +202,25 @@ fun SongsScreen(
         Column(modifier = Modifier.padding(horizontal = 12.dp)) {
             var allSongsList = remember { songsList }.toMutableList()
 
-            if (searchFilter.isNotBlank()){
-                allSongsList = allSongsList.filter { it.title.contains(searchFilter, true) ||
-                        it.artist.contains(searchFilter, true) }.toMutableList()
+            LaunchedEffect(searchFilter) {
+                if (searchFilter.isNotBlank()){
+                    songsList.clear()
+                }
             }
 
-            allSongsList = when (selectedSortOption) {
-                "Name (A-Z)" -> allSongsList.sortedBy { it.title }.toMutableList()
-                "Name (Z-A)" -> allSongsList.sortedByDescending { it.title }.toMutableList()
-                "Date Added" -> allSongsList.sortedBy { it.dateAdded }.toMutableList()
-                "Last Played" -> allSongsList.sortedByDescending { it.lastPlayed }.toMutableList()
-                else -> allSongsList.sortedBy { it.title }.toMutableList() // Default sorting or handle unknown option
-            }
+//            allSongsList = when (selectedSortOption) {
+//                "Name (A-Z)" -> allSongsList.sortedBy { it.title }.toMutableList()
+//                "Name (Z-A)" -> allSongsList.sortedByDescending { it.title }.toMutableList()
+//                "Date Added" -> allSongsList.sortedBy { it.dateAdded }.toMutableList()
+//                "Last Played" -> allSongsList.sortedByDescending { it.lastPlayed }.toMutableList()
+//                else -> allSongsList.sortedBy { it.title }.toMutableList() // Default sorting or handle unknown option
+//            }
 
-            SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->
+            SongsHorizontalColumn(songList = allSongsList, onSongSelected = { song ->
                 SongHelper.currentSong = song
                 SongHelper.currentList = songsList.sortedBy { song.title }
-                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) } })
+                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) } },
+                searchFilter.isNotBlank())
         }
     }
 
