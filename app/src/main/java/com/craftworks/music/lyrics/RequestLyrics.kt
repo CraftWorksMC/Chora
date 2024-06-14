@@ -29,7 +29,7 @@ fun getLyrics(){
             PlainLyrics = "Getting Lyrics..."
             SyncedLyric.clear()
 
-            val url = URL("https://lrclib.net/api/get?artist_name=${SongHelper.currentSong.artist.replace(" ", "+")}&track_name=${SongHelper.currentSong.title.replace(" ", "+")}&album_name=${SongHelper.currentSong.album.replace(" ", "+")}&duration=${SongHelper.currentSong.duration.div(1000)}")
+            val url = URL("https://lrclib.net/api/get?artist_name=${SongHelper.currentSong.artist.replace(" ", "+")}&track_name=${SongHelper.currentSong.title.replace(" ", "+")}&album_name=${SongHelper.currentSong.album.replace(" ", "+")}&duration=${SongHelper.currentSong.duration}")
 
             with(url.openConnection() as HttpsURLConnection) {
                 requestMethod = "GET"

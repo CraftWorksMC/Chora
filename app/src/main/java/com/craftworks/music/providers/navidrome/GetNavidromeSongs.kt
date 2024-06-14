@@ -1,21 +1,32 @@
 package com.craftworks.music.providers.navidrome
 
+import android.graphics.Color
 import android.net.Uri
 import android.util.Log
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
+import com.craftworks.music.repeatSong
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.gitlab.mvysny.konsumexml.getValueIntOrNull
 import com.gitlab.mvysny.konsumexml.konsumeXml
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.IntArraySerializer
+import kotlinx.serialization.json.*
+import kotlinx.serialization.encoding.*
+import kotlinx.serialization.descriptors.*
 
 fun getNavidromeSongs(){
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
         navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "search3.view?query=''&songCount=500&songOffset=0&artistCount=0&albumCount=0"
+        "search3.view?query=''&songCount=10000&songOffset=0&artistCount=0&albumCount=0&f=json"
     )
 }
 
@@ -69,28 +80,28 @@ fun parseNavidromeSongXML(
                     //endregion
 
                     //region Add song to songsList
-                    val song = Song(
-                        songArtUri,
-                        songTitle,
-                        songArtist,
-                        songAlbum,
-                        songDuration,
-                        isRadio = false,
-                        songMedia,
-                        songPlayCount,
-                        songDateAdded,
-                        songYear,
-                        songFormat,
-                        songBitrate,
-                        songID,
-                        songLastPlayed,
-                        songTrackIndex
-                    )
+//                    val song = Song(
+//                        songArtUri,
+//                        songTitle,
+//                        songArtist,
+//                        songAlbum,
+//                        songDuration,
+//                        isRadio = false,
+//                        songMedia,
+//                        songPlayCount,
+//                        songDateAdded,
+//                        songYear,
+//                        songFormat,
+//                        songBitrate,
+//                        songID,
+//                        songLastPlayed,
+//                        songTrackIndex
+//                    )
 
-                    synchronized(songsList){
-                        if (songsList.none { it.title == songTitle && it.artist == songArtist && it.navidromeID == songID })
-                            songsList.add(song)
-                    }
+//                    synchronized(songsList){
+//                        if (songsList.none { it.title == songTitle && it.artist == songArtist && it.navidromeID == songID })
+//                            //songsList.add(song)
+//                    }
                     //endregion
 
                     skipContents()
@@ -112,4 +123,48 @@ fun parseNavidromeSongXML(
     }
 
     Log.d("NAVIDROME", "Added songs! Total: ${songsList.size}")
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+fun parseNavidromeSongJSON(
+    response: String,
+    navidromeUrl: String,
+    navidromeUsername: String,
+    navidromePassword: String
+){
+    val jsonParser = Json { ignoreUnknownKeys = true }
+    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
+        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
+    )
+
+    subsonicResponse.searchResult3.song.map {
+        // Generate password salt and hash for songMedia
+        val passwordSaltMedia = generateSalt(8)
+        val passwordHashMedia = md5Hash(navidromePassword + passwordSaltMedia)
+
+        // Generate password salt and hash for songArtUri
+        val passwordSaltArt = generateSalt(8)
+        val passwordHashArt = md5Hash(navidromePassword + passwordSaltArt)
+
+
+        it.media = if (transcodingBitrate.value != "No Transcoding")
+            "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&format=mp3&maxBitRate=${transcodingBitrate.value}&v=1.12.0&c=Chora"
+        else
+            "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.12.0&c=Chora"
+
+        it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashArt&s=$passwordSaltArt&v=1.16.1&c=Chora"
+    }
+
+    songsList.addAll(subsonicResponse.searchResult3.song)
+    Log.d("NAVIDROME", "Added songs. Total: ${songsList.size}")
+
+    if (subsonicResponse.searchResult3.song.size == 500){
+        val songOffset = songsList.size
+        sendNavidromeGETRequest(
+            navidromeUrl,
+            navidromeUsername,
+            navidromePassword,
+            "search3.view?query=''&songCount=500&songOffset=$songOffset&artistCount=0&albumCount=0&f=json"
+        )
+    }
 }

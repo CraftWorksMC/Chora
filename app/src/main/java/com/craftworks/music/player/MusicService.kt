@@ -2,8 +2,10 @@ package com.craftworks.music.player
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -81,7 +83,15 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         Log.d("AA", "onCreate: Android Auto")
 
-        saveManager(this).loadSettings()
+        saveManager(this).loadPreferences()
+        saveManager(this).loadBottomNavItems()
+
+        saveManager(this).loadNavidromeProviders()
+        saveManager(this).loadLocalProviders()
+
+        serviceIOScope.launch {
+            saveManager(this@ChoraMediaLibraryService).loadSettings()
+        }
         initializePlayer()
     }
 
@@ -122,12 +132,31 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                         title = mediaItem?.mediaMetadata?.title.toString(),
                         artist = mediaItem?.mediaMetadata?.artist.toString(),
                         duration = mediaItem?.mediaMetadata?.extras?.getInt("duration") ?: 0,
-                        imageUrl = Uri.parse(mediaItem?.mediaMetadata?.artworkUri.toString()),
-                        year = mediaItem?.mediaMetadata?.releaseYear.toString(),
+                        imageUrl = mediaItem?.mediaMetadata?.artworkUri.toString(),
+                        year = mediaItem?.mediaMetadata?.releaseYear,
                         album = mediaItem?.mediaMetadata?.albumTitle.toString(),
-                        format = mediaItem?.mediaMetadata?.extras?.getString("MoreInfo"),
-                        navidromeID = mediaItem?.mediaMetadata?.extras?.getString("NavidromeID"),
-                        isRadio = mediaItem?.mediaMetadata?.extras?.getBoolean("isRadio"))
+                        format = mediaItem?.mediaMetadata?.extras?.getString("Format").toString(),
+                        bitrate = mediaItem?.mediaMetadata?.extras?.getInt("Bitrate"),
+                        navidromeID = mediaItem?.mediaMetadata?.extras?.getString("NavidromeID").toString(),
+                        isRadio = mediaItem?.mediaMetadata?.extras?.getBoolean("isRadio"),
+                        albumId = "",
+                        bpm = 0,
+                        contentType = "music",
+                        dateAdded = "",
+                        timesPlayed = 0,
+                        genre = "",
+                        parent = "",
+                        sortName = "",
+                        comment = "",
+                        lastPlayed = "",
+                        isVideo = false,
+                        genres = listOf(),
+                        isDir = false,
+                        mediaType = "song",
+                        path = "",
+                        size = 0,
+                        type = "song"
+                    )
                     SongHelper.currentSong = song
                 }
 
@@ -183,10 +212,16 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     .setTitle(song.title)
                     .setArtist(song.artist)
                     .setAlbumTitle(song.album)
-                    .setArtworkUri(song.imageUrl)
-                    .setReleaseYear(song.year?.toIntOrNull() ?: 0)
+                    .setArtworkUri(Uri.parse(song.imageUrl))
+                    .setReleaseYear(song.year)
                     .setIsBrowsable(false)
                     .setIsPlayable(true)
+                    .setExtras(Bundle().apply {
+                        putString("Format", song.format)
+                        song.bitrate?.let { putInt("Bitrate", it) }
+                        putString("navidromeID", song.navidromeID)
+                        putInt("Duration", song.duration)
+                    })
                     .build()
                 val mediaItem = MediaItem.Builder()
                     .setUri(song.media)

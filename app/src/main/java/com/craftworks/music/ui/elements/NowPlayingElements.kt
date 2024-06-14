@@ -172,7 +172,7 @@ fun NowPlayingPortraitCover (
                             }
                     )
                 }
-                if (SongHelper.currentSong.year != "0"){
+                if (SongHelper.currentSong.year != 0){
                     SongHelper.currentSong.year?.let { year ->
                         Text(
                             text = " • $year",
@@ -190,21 +190,19 @@ fun NowPlayingPortraitCover (
             }
 
             if (showMoreInfo.value) {
-                SongHelper.currentSong.format.let { format ->
-                    Text(
-                        text = "${format.toString()} • ${
-                            if (SongHelper.currentSong.navidromeID == "Local")
-                                stringResource(R.string.Source_Local)
-                            else
-                                stringResource(R.string.Source_Navidrome)
-                        } ",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Light,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                        maxLines = 1,
-                        textAlign = TextAlign.Start
-                    )
-                }
+                Text(
+                    text = "${SongHelper.currentSong.format} • ${SongHelper.currentSong.bitrate} • ${
+                        if (SongHelper.currentSong.navidromeID == "Local")
+                            stringResource(R.string.Source_Local)
+                        else
+                            stringResource(R.string.Source_Navidrome)
+                    } ",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Light,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    maxLines = 1,
+                    textAlign = TextAlign.Start
+                )
             }
         }
     }
@@ -279,7 +277,7 @@ fun NowPlayingLandscape(
                         if (it.length > 20 && collapsed == false)
                             it.substring(0, 17) + "..." + " • " + SongHelper.currentSong.year
                         else
-                            it + if (SongHelper.currentSong.year != "0") " • " + SongHelper.currentSong.year
+                            it + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year
                             else "",
                         fontSize = MaterialTheme.typography.bodyMedium.fontSize,
                         fontWeight = FontWeight.Normal,
@@ -407,7 +405,7 @@ fun NowPlayingMiniPlayer(
                         else if (it.length > 24)
                             it.substring(0, 21) + "..." + " • " + SongHelper.currentSong.year
                         else
-                            it + if (SongHelper.currentSong.year != "0") " • " + SongHelper.currentSong.year
+                            it + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year
                                  else "",
                         fontSize = MaterialTheme.typography.bodyMedium.fontSize,
                         fontWeight = FontWeight.Light,

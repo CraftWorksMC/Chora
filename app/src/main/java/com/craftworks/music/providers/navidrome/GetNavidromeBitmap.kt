@@ -19,7 +19,7 @@ suspend fun getNavidromeBitmap(context: Context): Bitmap {
 
         if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
             navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
-            SongHelper.currentSong.imageUrl == Uri.EMPTY) return Bitmap.createBitmap(
+            SongHelper.currentSong.imageUrl == "") return Bitmap.createBitmap(
             1,
             1,
             Bitmap.Config.ARGB_8888

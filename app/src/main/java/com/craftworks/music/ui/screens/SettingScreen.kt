@@ -55,14 +55,7 @@ import com.craftworks.music.ui.elements.bounceClick
 var username = mutableStateOf("Username")
 var showMoreInfo = mutableStateOf(true)
 var showNavidromeLogo = mutableStateOf(true)
-
-// BACKGROUND TYPES
-val backgroundTypes = listOf(
-    "Plain",
-    "Static Blur",
-    "Animated Blur"
-)
-var backgroundType = mutableStateOf(backgroundTypes[2])
+var homeScreenUseAlbums = mutableStateOf(true)
 
 @Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL

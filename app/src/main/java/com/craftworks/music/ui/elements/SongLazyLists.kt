@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -53,8 +54,8 @@ fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
                 .setTitle(song.title)
                 .setArtist(song.artist)
                 .setAlbumTitle(song.album)
-                .setArtworkUri(song.imageUrl)
-                .setReleaseYear(song.year?.toIntOrNull() ?: 0)
+                .setArtworkUri(Uri.parse(song.imageUrl))
+                .setReleaseYear(song.year)
                 .setExtras(Bundle().apply {
                     putInt("duration", song.duration)
                     putString("MoreInfo", "${song.format} • ${song.bitrate}")
@@ -125,10 +126,11 @@ fun SongsHorizontalColumn(songsList: List<Song>, onSongSelected: (song: Song) ->
 @Composable
 fun AlbumGrid(albums: List<Album>, mediaController: MediaController?, onAlbumSelected: (album: Album) -> Unit){
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+        columns = GridCells.Adaptive(128.dp),
         modifier = Modifier
             .wrapContentWidth()
-            .fillMaxHeight(),
+            .fillMaxHeight()
+            .padding(end = 12.dp),
         contentPadding = PaddingValues(
             bottom = bottomSpacerHeightDp()
         )
@@ -148,8 +150,9 @@ fun AlbumRow(albums: List<Album>, mediaController: MediaController?, onAlbumSele
     LazyRow(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
-            start = 6.dp,end = 6.dp,
-            top = 32.dp
+            //start = 6.dp,end = 6.dp,
+            top = 32.dp,
+            end = 12.dp
         )
     ) {
         items(albums) {album ->
@@ -204,13 +207,14 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
         items(radioList) {radio ->
             val song = Song(
                 title = radio.name,
-                imageUrl = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
+                imageUrl = "android.resource://com.craftworks.music/" + R.drawable.radioplaceholder,
                 artist = radio.name,
-                media = radio.media,
+                media = radio.media.toString(),
                 duration = 0,
                 album = "Internet Radio",
-                year = "2024",
-                isRadio = true)
+                year = 2024,
+                isRadio = true,
+                albumId = "", dateAdded = "", format = "MP3", path = "", parent = "", bpm = 0, navidromeID = "Radio", size = 0)
 
             RadioCard(
                 radio = radio,

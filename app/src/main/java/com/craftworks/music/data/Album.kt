@@ -11,7 +11,8 @@ data class Album (
     val songs: List<Song> = emptyList(),
     val navidromeID: String? = "Local",
     val dateAdded: String? = "",
-    val datePlayed: String? = ""
+    val datePlayed: String? = "",
+    val timesPlayed: Int? = 0
 )
 
 var albumList:MutableList<Album> = mutableStateListOf()

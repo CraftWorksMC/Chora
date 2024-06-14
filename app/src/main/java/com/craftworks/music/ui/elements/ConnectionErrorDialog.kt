@@ -11,6 +11,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -25,8 +28,17 @@ import com.craftworks.music.providers.navidrome.navidromeSyncInProgress
 @Composable
 @Preview
 fun HorizontalLineWithNavidromeCheck(){
+    val showError = remember { mutableStateOf(false) }
+    val errorStatus = remember { mutableStateOf("") }
+    LaunchedEffect(key1 = navidromeStatus) {
+        showError.value = useNavidromeServer.value && (navidromeStatus.value != "ok" && navidromeStatus.value != "")
+        errorStatus.value =  navidromeStatus.value
+    }
+
     HorizontalDivider(
-        modifier = Modifier.fillMaxWidth().padding(12.dp, 0.dp, 12.dp, 0.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp, 0.dp, 12.dp, 0.dp),
         thickness = 2.dp,
         color = MaterialTheme.colorScheme.onBackground
     )
@@ -38,14 +50,16 @@ fun HorizontalLineWithNavidromeCheck(){
         .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
         //.background(Color(0xFFed8796)) // Catppuccin Macchiato Red.
         .background(MaterialTheme.colorScheme.errorContainer)
-        .heightIn(max =
-        if (useNavidromeServer.value && (navidromeStatus.value != "ok" && navidromeStatus.value != ""))
-            128.dp
-        else
-            0.dp)
+        .heightIn(
+            max =
+            if (showError.value)
+                128.dp
+            else
+                0.dp
+        )
     ) {
         Text(
-            text = stringResource(R.string.Navidrome_Error) + " Status: " + navidromeStatus.value,
+            text = stringResource(R.string.Navidrome_Error) + " Status: " + errorStatus.value,
             //color = Color(0xFF181926),
             color = MaterialTheme.colorScheme.onErrorContainer,
             fontWeight = FontWeight.SemiBold,
@@ -60,11 +74,13 @@ fun HorizontalLineWithNavidromeCheck(){
         .padding(horizontal = 12.dp)
         .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
         .background(MaterialTheme.colorScheme.primaryContainer) // Catppuccin Macchiato Yellow.
-        .heightIn(max =
-        if (navidromeSyncInProgress.value)
-            128.dp
-        else
-            0.dp)
+        .heightIn(
+            max =
+            if (navidromeSyncInProgress.value)
+                128.dp
+            else
+                0.dp
+        )
     ) {
         Text(
             text = stringResource(R.string.Navidrome_Sync),

@@ -3,6 +3,8 @@ package com.craftworks.music.providers.navidrome
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import com.craftworks.music.data.SearchResult3
+import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.localProviderList
@@ -10,6 +12,13 @@ import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.invoke
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.URL
@@ -19,12 +28,24 @@ import javax.net.ssl.HttpsURLConnection
 
 var navidromeSyncInProgress = mutableStateOf(false)
 
+@Serializable
+@SerialName("subsonic-response")
+data class SubsonicResponse(
+    val status: String,
+    val version: String,
+    val type: String,
+    val serverVersion: String,
+    val openSubsonic: Boolean,
+    val searchResult3: SearchResult3
+)
+
+
 fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String, endpoint: String) {
     navidromeSyncInProgress.value = true
     // Generate a random password salt and MD5 hash.
     val passwordSalt = generateSalt(8)
     val passwordHash = md5Hash(password + passwordSalt)
-    Log.d("NAVIDROME", "baseUrl: $baseUrl, passwordSalt: $passwordSalt, endpoint: $endpoint")
+    //Log.d("NAVIDROME", "baseUrl: $baseUrl, passwordSalt: $passwordSalt, endpoint: $endpoint")
 
     // All get requests come from this file.
     val url = URL("$baseUrl/rest/$endpoint&u=$username&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
@@ -41,7 +62,8 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
         url.openConnection() as HttpURLConnection
     }
 
-    val thread = Thread {
+    val coroutine = CoroutineScope(Dispatchers.Default)
+    coroutine.launch {
         try {
             with(connection) {
                 requestMethod = "GET"
@@ -53,13 +75,13 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
                     Log.d("NAVIDROME", responseCode.toString())
                     navidromeStatus.value = "HTTP Error $responseCode"
                     navidromeSyncInProgress.value = false
-                    return@Thread
+                    return@launch
                 }
 
                 inputStream.bufferedReader().use {
                     when {
                         endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (it.readLine())
-                        endpoint.startsWith("search3")      -> parseNavidromeSongXML     (it.readLine(), baseUrl, username, password)
+                        endpoint.startsWith("search3")      -> parseNavidromeSongJSON     (it.readLine(), baseUrl, username, password)
                         endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML    (it.readLine(), baseUrl, username, password)
 
                         // Artists
@@ -91,7 +113,10 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
 
         navidromeSyncInProgress.value = false
     }
-    thread.start()
+//    val thread = Thread {
+//
+//    }
+//    thread.start()
 }
 
 fun reloadNavidrome(context: Context){

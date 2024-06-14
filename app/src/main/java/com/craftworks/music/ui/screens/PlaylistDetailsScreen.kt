@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -133,7 +134,7 @@ fun PlaylistDetails(
                 SongsHorizontalColumn(it, onSongSelected = { song ->
                     SongHelper.currentSong = song
                     SongHelper.currentList = selectedPlaylist!!.songs
-                    song.media?.let { songUri -> SongHelper.playStream(songUri, false, mediaController) }
+                    song.media?.let { songUri -> SongHelper.playStream(Uri.parse(songUri), false, mediaController) }
                 })
             }
         }

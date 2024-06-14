@@ -125,7 +125,7 @@ import com.craftworks.music.ui.elements.NowPlayingPortraitCover
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.elements.moveClick
-import com.craftworks.music.ui.screens.backgroundType
+import com.craftworks.music.ui.elements.dialogs.backgroundType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -144,10 +144,16 @@ fun NowPlayingContent(
         title = "Song Title",
         artist = "Song Artist",
         duration = 69420,
-        imageUrl = Uri.EMPTY,
+        imageUrl = "",
         dateAdded = "",
-        year = "2023",
-        album = "Album Name"
+        year = 2024,
+        album = "Album Name",
+        albumId = "",
+        bpm = 0,
+        navidromeID = "Local",
+        format = "MP3",
+        parent = "",
+        path = "", size = 0
     ),
     context: Context = LocalContext.current,
     scaffoldState: BottomSheetScaffoldState? = rememberBottomSheetScaffoldState(),
@@ -181,7 +187,7 @@ fun NowPlayingContent(
         // Update Song Bitmap
         LaunchedEffect(SongHelper.currentSong) {
 
-            if (SongHelper.currentSong.imageUrl == Uri.EMPTY) return@LaunchedEffect
+            if (SongHelper.currentSong.imageUrl == "") return@LaunchedEffect
 
             bitmap.value =
                 if (SongHelper.currentSong.navidromeID != "Local" &&
@@ -195,7 +201,7 @@ fun NowPlayingContent(
                         ImageDecoder.decodeBitmap(
                             ImageDecoder.createSource(
                                 context.contentResolver,
-                                SongHelper.currentSong.imageUrl
+                                Uri.parse(SongHelper.currentSong.imageUrl)
                             )
                         ).copy(Bitmap.Config.RGBA_F16, true)
                     } catch (_: Exception) {
@@ -230,7 +236,7 @@ fun NowPlayingContent(
             ) {
                 var size by remember { mutableStateOf(Size.Zero) }
 
-                if (SongHelper.currentSong.imageUrl == Uri.EMPTY) return@Surface
+                if (SongHelper.currentSong.imageUrl == "") return@Surface
 
                 val palette = Palette.from(bitmap.value).generate()
 
@@ -613,7 +619,7 @@ fun SliderUpdating(isLandscape: Boolean? = false, mediaController: MediaControll
         .fillMaxWidth()
         .padding(horizontal = 32.dp)) {
         Text(
-            text = formatMilliseconds(sliderPos.intValue.toFloat()),
+            text = formatMilliseconds(sliderPos.intValue * 1000),
             fontWeight = FontWeight.Light,
             textAlign = TextAlign.Start,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
@@ -624,7 +630,7 @@ fun SliderUpdating(isLandscape: Boolean? = false, mediaController: MediaControll
         )
 
         Text(
-            text = formatMilliseconds(SongHelper.currentSong.duration.toFloat()),
+            text = formatMilliseconds(SongHelper.currentSong.duration),
             fontWeight = FontWeight.Light,
             textAlign = TextAlign.End,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),

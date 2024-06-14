@@ -56,6 +56,7 @@ import com.craftworks.music.data.Song
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge
+import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.providers.navidrome.addSongToNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromePlaylist
@@ -86,7 +87,7 @@ fun PreviewDeletePlaylistDialog(){
 
 var showAddSongToPlaylistDialog = mutableStateOf(false)
 var showNewPlaylistDialog = mutableStateOf(false)
-var songToAddToPlaylist = mutableStateOf(Song(Uri.EMPTY, "", "", "", 0))
+var songToAddToPlaylist = mutableStateOf(SongHelper.currentSong)
 var showDeletePlaylistDialog = mutableStateOf(false)
 var playlistToDelete = mutableStateOf(Playlist("", Uri.EMPTY))
 

@@ -21,13 +21,43 @@ class SongHelper {
 
         var currentSong by mutableStateOf(
             Song(
-                title = "",
-                artist = "",
-                duration = 0,
-                imageUrl = Uri.EMPTY,
-                dateAdded = "",
-                year = "",
-                album = ""))
+                "id",
+                "parent",
+                false,
+                "",
+                "",
+                "",
+                0,
+                0,
+                "",
+                "",
+                0,
+                "contentType",
+                "suffix",
+                0,
+                0,
+                "path",
+                0,
+                0,
+                "",
+                "",
+                "",
+                "type",
+                false,
+                "",
+                0,
+                "",
+                "",
+                "mediaType",
+                "",
+                listOf(),
+                null,
+                2,
+                0,
+                false,
+                "media",
+            )
+        )
 
         var currentList:List<Song> = emptyList()
         var currentTracklist = mutableListOf<MediaItem>()
@@ -46,8 +76,8 @@ class SongHelper {
                     .setTitle(song.title)
                     .setArtist(song.artist)
                     .setAlbumTitle(song.album)
-                    .setArtworkUri(song.imageUrl)
-                    .setReleaseYear(song.year?.toIntOrNull() ?: 0)
+                    .setArtworkUri(Uri.parse(song.imageUrl))
+                    .setReleaseYear(song.year)
                     .setExtras(Bundle().apply {
                         putInt("duration", song.duration)
                         putString("MoreInfo", "${song.format} • ${song.bitrate}")
@@ -86,8 +116,8 @@ class SongHelper {
                     .setTitle(currentSong.title)
                     .setArtist(currentSong.artist)
                     .setAlbumTitle(currentSong.album)
-                    .setArtworkUri(currentSong.imageUrl)
-                    .setReleaseYear(currentSong.year?.toInt())
+                    .setArtworkUri(Uri.parse(currentSong.imageUrl))
+                    .setReleaseYear(currentSong.year)
                     .setExtras(Bundle().apply {
                         putInt("duration", currentSong.duration)
                         putString("MoreInfo", "${currentSong.format} • ${currentSong.bitrate}")

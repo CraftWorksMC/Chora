@@ -6,6 +6,7 @@ import com.craftworks.music.data.Album
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.gitlab.mvysny.konsumexml.getValueIntOrNull
 import com.gitlab.mvysny.konsumexml.konsumeXml
 
 fun getNavidromeAlbums(){
@@ -35,6 +36,9 @@ fun parseNavidromeAlbumXML(
                     val albumArtist = attributes.getValue("artist")
                     val albumYear = attributes.getValueOrNull("year") ?: "0"
                     val albumID = attributes.getValue("id")
+                    val albumDateAdded = attributes.getValueOrNull("created") ?: "0"
+                    val albumDatePlayed = attributes.getValueOrNull("played") ?: "0"
+                    val albumPlayCount = attributes.getValueIntOrNull("playCount") ?: 0
 
                     val passwordSalt = generateSalt(8)
                     val passwordHash = md5Hash(navidromePassword + passwordSalt)
@@ -47,7 +51,10 @@ fun parseNavidromeAlbumXML(
                         artist = albumArtist,
                         year = albumYear,
                         coverArt = albumArtUri,
-                        navidromeID = albumID
+                        navidromeID = albumID,
+                        dateAdded = albumDateAdded,
+                        datePlayed = albumDatePlayed,
+                        timesPlayed = albumPlayCount
                     )
                     synchronized(albumList){
                         if (albumList.none { it.name == albumTitle })

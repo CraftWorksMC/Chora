@@ -19,13 +19,13 @@ suspend fun localPlaylistImageGenerator(songs:List<Song>, context:Context): Uri?
 
     // Determine the maximum width and height among the images
     val maxWidth = songs.take(4).maxOfOrNull { uri ->
-        val source = ImageDecoder.createSource(context.contentResolver, uri.imageUrl)
+        val source = ImageDecoder.createSource(context.contentResolver, Uri.parse(uri.imageUrl))
         val bitmap = ImageDecoder.decodeBitmap(source)
         bitmap.width
     } ?: 0
 
     val maxHeight = songs.take(4).maxOfOrNull { uri ->
-        val source = ImageDecoder.createSource(context.contentResolver, uri.imageUrl)
+        val source = ImageDecoder.createSource(context.contentResolver, Uri.parse(uri.imageUrl))
         val bitmap = ImageDecoder.decodeBitmap(source)
         bitmap.height
     } ?: 0
@@ -36,7 +36,7 @@ suspend fun localPlaylistImageGenerator(songs:List<Song>, context:Context): Uri?
 
     // Convert URIs to Bitmaps and draw onto the combined Bitmap
     songs.take(4).forEachIndexed { index, uri ->
-        val source = ImageDecoder.createSource(context.contentResolver, uri.imageUrl)
+        val source = ImageDecoder.createSource(context.contentResolver, Uri.parse(uri.imageUrl))
         val bitmap = ImageDecoder.decodeBitmap(source)
         val scaledBitmap = Bitmap.createScaledBitmap(bitmap, maxWidth, maxHeight, true).copy(Bitmap.Config.RGBA_F16, true)
         val x = (index % 2) * maxWidth

@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -14,11 +15,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -56,7 +63,9 @@ fun SongsScreen(
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     var isSearchFieldOpen by remember { mutableStateOf(false) }
+
     var searchFilter by remember { mutableStateOf("") }
+    var selectedSortOption by remember { mutableStateOf("Name (A-Z)") }
 
     /* SONGS ICON + TEXT */
     Column(modifier = Modifier
@@ -84,11 +93,58 @@ fun SongsScreen(
 
             IconButton(onClick = { isSearchFieldOpen = !isSearchFieldOpen },
                 modifier = Modifier
-                    .padding(end = 12.dp)
                     .size(48.dp)) {
                 Icon(Icons.Rounded.Search, contentDescription = "Search all songs")
             }
+
+            /* SORTING OPTIONS */
+            var expanded by remember { mutableStateOf(false) }
+            Box(
+                modifier = Modifier
+                    .padding(end = 12.dp)
+                    .size(48.dp)
+            ) {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(Icons.Rounded.MoreVert, contentDescription = "Sort songs")
+                }
+
+                DropdownMenu(
+                    modifier = Modifier,
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Name (A-Z)") },
+                        onClick = {
+                            expanded = false
+                            selectedSortOption = "Name (A-Z)"
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Name (Z-A)") },
+                        onClick = {
+                            expanded = false
+                            selectedSortOption = "Name (Z-A)"
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Date Added") },
+                        onClick = {
+                            expanded = false
+                            selectedSortOption = "Date Added"
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Last Played") },
+                        onClick = {
+                            expanded = false
+                            selectedSortOption = "Last Played"
+                        }
+                    )
+                }
+            }
         }
+
         HorizontalLineWithNavidromeCheck()
 
         AnimatedVisibility(
@@ -120,17 +176,25 @@ fun SongsScreen(
         }
 
         Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-            var allSongsList = remember { songsList.sortedBy { it.title } }.toMutableList()
+            var allSongsList = remember { songsList }.toMutableList()
 
             if (searchFilter.isNotBlank()){
                 allSongsList = allSongsList.filter { it.title.contains(searchFilter, true) ||
                         it.artist.contains(searchFilter, true) }.toMutableList()
             }
 
+            allSongsList = when (selectedSortOption) {
+                "Name (A-Z)" -> allSongsList.sortedBy { it.title }.toMutableList()
+                "Name (Z-A)" -> allSongsList.sortedByDescending { it.title }.toMutableList()
+                "Date Added" -> allSongsList.sortedBy { it.dateAdded }.toMutableList()
+                "Last Played" -> allSongsList.sortedByDescending { it.lastPlayed }.toMutableList()
+                else -> allSongsList.sortedBy { it.title }.toMutableList() // Default sorting or handle unknown option
+            }
+
             SongsHorizontalColumn(songsList = allSongsList, onSongSelected = { song ->
                 SongHelper.currentSong = song
                 SongHelper.currentList = songsList.sortedBy { song.title }
-                song.media?.let { SongHelper.playStream(it, false, mediaController) } })
+                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) } })
         }
     }
 

@@ -193,7 +193,7 @@ class MainActivity : ComponentActivity() {
                             sheetPeekHeight =
                             if (SongHelper.currentSong.title == "" &&
                                 SongHelper.currentSong.duration == 0 &&
-                                SongHelper.currentSong.imageUrl == Uri.EMPTY)
+                                SongHelper.currentSong.imageUrl == "")
                                 0.dp // Hide Mini-player if empty
                             else if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
                                 72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -274,9 +274,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-fun formatMilliseconds(milliseconds: Float): String {
-    val format = SimpleDateFormat("mm:ss", Locale.getDefault())
-    return format.format(Date(milliseconds.toLong()))
+fun formatMilliseconds(seconds: Int): String {
+    //val format = SimpleDateFormat("mm:ss", Locale.getDefault())
+    //return format.format(Date(milliseconds.toLong()))
+    return String.format(Locale.getDefault(), "%02d:%02d", seconds / 60, seconds % 60)
 }
 fun Modifier.fadingEdge(brush: Brush) = this
     .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)

@@ -63,12 +63,12 @@ fun getSongsOnDevice(context: Context){
                 val contentUri: Uri =
                     ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, thisId)
 
-                var imageUri: Uri = Uri.EMPTY
-                try {
-                    imageUri = Uri.parse("content://media/external/audio/media/$thisId/albumart")
+                val imageUri: String = try {
+                    "content://media/external/audio/media/$thisId/albumart"
                 } catch (_: FileNotFoundException){
                     println("No Album Art!")
-                }
+                }.toString()
+
 
                 // Add Song
                 val song = Song(
@@ -76,13 +76,18 @@ fun getSongsOnDevice(context: Context){
                     artist = thisArtist.split("~")[0],
                     album = thisAlbum,
                     imageUrl = imageUri,
-                    media = contentUri,
+                    media = contentUri.toString(),
                     duration = thisDuration,
                     dateAdded = thisDateAdded,
-                    year = thisYear.toString().replace("null", "0"),
+                    year = thisYear,
                     format = thisFormat.uppercase().drop(6),
-                    bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000).toString() else "",
-                    navidromeID = "Local"
+                    bitrate = if (!thisBitrate.isNullOrBlank()) (thisBitrate.toInt() / 1000) else 0,
+                    navidromeID = "Local",
+                    parent = "none",
+                    albumId = "Local",
+                    size = 0,
+                    path = "",
+                    bpm = 0
                 )
                 synchronized(songsList){
                     if (!songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
@@ -95,7 +100,7 @@ fun getSongsOnDevice(context: Context){
                     name = thisAlbum,
                     artist = thisArtist,
                     year = thisYear.toString(),
-                    coverArt = imageUri
+                    coverArt = Uri.parse(imageUri)
                 )
                 synchronized(albumList){
                     if (!albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){

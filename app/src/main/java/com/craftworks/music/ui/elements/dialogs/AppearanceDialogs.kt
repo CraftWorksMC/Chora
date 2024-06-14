@@ -1,4 +1,4 @@
-package com.craftworks.music.ui.elements
+package com.craftworks.music.ui.elements.dialogs
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -46,10 +46,17 @@ import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.saveManager
-import com.craftworks.music.ui.screens.backgroundType
-import com.craftworks.music.ui.screens.backgroundTypes
+import com.craftworks.music.ui.elements.bounceClick
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyColumnState
+
+// BACKGROUND TYPES
+val backgroundTypes = listOf(
+    "Plain",
+    "Static Blur",
+    "Animated Blur"
+)
+var backgroundType = mutableStateOf(backgroundTypes[1])
 
 //region PREVIEWS
 @Preview(showBackground = true)
@@ -276,3 +283,4 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
         }
     }
 }
+

@@ -2,9 +2,12 @@ package com.craftworks.music
 
 import android.content.Context
 import android.net.Uri
+import android.provider.MediaStore.Audio.Genres
 import android.util.Log
+import androidx.compose.runtime.rememberCoroutineScope
 import com.craftworks.music.data.Artist
 import com.craftworks.music.data.BottomNavItem
+import com.craftworks.music.data.Genre
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Playlist
@@ -28,13 +31,15 @@ import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
-import com.craftworks.music.ui.screens.backgroundType
+import com.craftworks.music.ui.elements.dialogs.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.username
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class saveManager(private val context: Context){
     private val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
@@ -112,56 +117,35 @@ class saveManager(private val context: Context){
 
     //endregion
 
-    fun loadSettings() {
+    suspend fun loadSettings() {
         Log.d("LOAD", "Started Loading Settings!")
 
-        loadPreferences()
+        coroutineScope {
 
-        loadBottomNavItems()
+            loadArtists()
+            loadRadios()
+            loadPlaylists()
 
-        loadNavidromeProviders()
-
-        loadLocalProviders()
-
-        loadArtists()
-
-        loadRadios()
-
-        loadPlaylists()
-
-        // Get Media Items
-        if (useNavidromeServer.value) {
-//            try {
-
-            getNavidromeStatus(
-                navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-                navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-                navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-            )
-
-            getNavidromeSongs()
-
-            getNavidromeAlbums()
-
-            getNavidromePlaylists()
-
-            getNavidromeRadios()
-
-            getNavidromeArtists()
+            if (useNavidromeServer.value) {
+                launch { getNavidromeStatus(
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+                ) }
+                launch { getNavidromeSongs() }
+                //launch { getNavidromeAlbums() }
+                //launch { getNavidromePlaylists() }
+                //launch { getNavidromeRadios() }
+                //launch { getNavidromeArtists() }
+            }
 
             if (localProviderList.isNotEmpty()) {
                 if (localProviderList[selectedLocalProvider.intValue].enabled)
-                    getSongsOnDevice(context)
+                    launch {getSongsOnDevice(context) }
             }
 
-//            } catch (_: Exception){
-//                // DO NOTHING
-//            }
+            if (navidromeServersList.isEmpty() && localProviderList.isEmpty()) showNoProviderDialog.value = true
         }
-        if (localProviderList.isNotEmpty())
-            getSongsOnDevice(this@saveManager.context)
-
-        if (navidromeServersList.isEmpty() && localProviderList.isEmpty()) showNoProviderDialog.value = true
 
         // Finished Loading Settings
         Log.d("LOAD", "Loaded Settings!")
@@ -169,7 +153,7 @@ class saveManager(private val context: Context){
 
     //region Load Single Components
 
-    private fun loadPreferences(){
+    fun loadPreferences(){
         Log.d("LOAD", "Loading Preferences")
 
         username.value = sharedPreferences.getString("username", "Username") ?: "Username"
@@ -177,7 +161,7 @@ class saveManager(private val context: Context){
         showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
         transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
     }
-    private fun loadBottomNavItems(){
+    fun loadBottomNavItems(){
         Log.d("LOAD", "Loading Bottom Nav Items")
 
         // Get Artists List
@@ -201,7 +185,7 @@ class saveManager(private val context: Context){
             }
         }
     }
-    private fun loadNavidromeProviders(){
+    fun loadNavidromeProviders(){
         Log.d("LOAD", "Loading Navidrome Providers")
 
         useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
@@ -217,7 +201,7 @@ class saveManager(private val context: Context){
         }
         selectedNavidromeServerIndex.intValue = sharedPreferences.getInt("activeNavidromeServer", 0)
     }
-    private fun loadLocalProviders(){
+    fun loadLocalProviders(){
         Log.d("LOAD", "Loading Local Providers")
 
         // Get Local Providers List
@@ -302,20 +286,42 @@ class saveManager(private val context: Context){
                 val songs = songMatches.map { matchResult ->
                     val groups = matchResult.groupValues
                     Song(
-                        imageUrl = Uri.parse(groups[1]),
-                        title = groups[2],
-                        artist = groups[3],
-                        album = groups[4],
-                        duration = groups[5].toInt(),
-                        isRadio = groups[6].toBoolean(),
-                        media = Uri.parse(groups[7]),
-                        timesPlayed = groups[8].toInt(),
-                        dateAdded = groups[9],
-                        year = groups[10],
-                        format = groups[11],
-                        bitrate = groups[12],
-                        navidromeID = groups[13],
-                        lastPlayed = groups[14]
+                        groups[1],
+                        groups[2],
+                        groups[3].toBoolean(),
+                        groups[4],
+                        groups[5],
+                        groups[6],
+                        groups[7].toInt(),
+                        groups[8].toInt(),
+                        groups[9],
+                        groups[10],
+                        groups[11].toInt(),
+                        groups[12],
+                        groups[13],
+                        groups[14].toInt(),
+                        groups[15].toInt(),
+                        groups[16],
+                        groups[17].toInt(),
+                        groups[18].toInt(),
+                        groups[19],
+                        groups[20],
+                        groups[21],
+                        groups[22],
+                        groups[23].toBoolean(),
+                        groups[24],
+                        groups[25].toInt(),
+                        groups[26],
+                        groups[27],
+                        groups[28],
+                        groups[29],
+                        listOf(),
+                        null,
+                        groups[32].toInt(),
+                        groups[33].toInt(),
+                        groups[34].toBoolean(),
+                        groups[35],
+                        groups[36].toInt(),
                     )
                 }
 

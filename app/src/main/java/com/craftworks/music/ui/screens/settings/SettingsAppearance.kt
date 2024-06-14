@@ -49,10 +49,10 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.bottomNavigationItems
-import com.craftworks.music.ui.elements.BackgroundDialog
+import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
 import com.craftworks.music.ui.elements.BottomSpacer
-import com.craftworks.music.ui.elements.NavbarItemsDialog
-import com.craftworks.music.ui.screens.backgroundType
+import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
+import com.craftworks.music.ui.elements.dialogs.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.showNavidromeLogo
 import com.craftworks.music.ui.screens.username

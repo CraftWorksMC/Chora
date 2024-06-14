@@ -119,9 +119,7 @@ fun AlbumDetails(
                     .blur(8.dp)
             )
             Button(
-                onClick = { navHostController.navigate(Screen.Albums.route) {
-                    launchSingleTop = true
-                } },
+                onClick = { navHostController.popBackStack() },
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .padding(top = 12.dp, start = 12.dp)
@@ -172,7 +170,7 @@ fun AlbumDetails(
                         albumDuration += song.duration
                     }
                     Text(
-                        text = formatMilliseconds(albumDuration.toFloat()),
+                        text = formatMilliseconds(albumDuration),
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Normal,
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
@@ -193,7 +191,7 @@ fun AlbumDetails(
                 onClick = {
                     SongHelper.currentSong = albumSongs[0]
                     SongHelper.currentList = albumSongs
-                    albumSongs[0].media?.let { SongHelper.playStream(it, false, mediaController)}
+                    albumSongs[0].media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -213,7 +211,7 @@ fun AlbumDetails(
                     val random = albumSongs.indices.random()
                     SongHelper.currentSong = albumSongs[random]
                     SongHelper.currentList = albumSongs
-                    albumSongs[random].media?.let { SongHelper.playStream(it, false, mediaController)}
+                    albumSongs[random].media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -246,7 +244,7 @@ fun AlbumDetails(
                     HorizontalSongCard(song = song, onClick = {
                         SongHelper.currentSong = song
                         SongHelper.currentList = albumSongs
-                        song.media?.let { SongHelper.playStream(it, false, mediaController)}
+                        song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
                     })
                 }
             }
@@ -272,7 +270,7 @@ fun AlbumDetails(
                 SongsRow(songsList = otherSongsFromSameArtist, onSongSelected = { song ->
                     SongHelper.currentSong = song
                     SongHelper.currentList = otherSongsFromSameArtist
-                    song.media?.let { SongHelper.playStream(it, false, mediaController)}
+                    song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
                 })
             }
         }

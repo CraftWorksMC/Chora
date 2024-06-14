@@ -188,7 +188,7 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
                 )
             }
             Text(
-                text = formatMilliseconds(song.duration.toFloat()),
+                text = formatMilliseconds(song.duration),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -241,12 +241,5 @@ fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
                 }
             }
         }
-    }
-}
-
-@Composable
-@Preview
-fun HorizontalSongCardPreview(){
-        HorizontalSongCard(song = Song(title = "Very Long Song Title That Overflows", artist = "Song Artist", duration = 69420, imageUrl = Uri.EMPTY, year = "2023", dateAdded = "10/11/23", album = "Album")){
     }
 }

@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -193,7 +194,7 @@ fun ArtistDetails(
                     if (artistSongs.isEmpty()) return@Button
                     SongHelper.currentSong = artistSongs[0]
                     SongHelper.currentList = artistSongs
-                    artistSongs[0].media?.let { SongHelper.playStream(it, false, mediaController)}
+                    artistSongs[0].media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -214,7 +215,7 @@ fun ArtistDetails(
                     val random = artistSongs.indices.random()
                     SongHelper.currentSong = artistSongs[random]
                     SongHelper.currentList = artistSongs
-                    artistSongs[random].media?.let { SongHelper.playStream(it, false, mediaController)}
+                    artistSongs[random].media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -272,7 +273,7 @@ fun ArtistDetails(
                     HorizontalSongCard(song = song, onClick = {
                         SongHelper.currentSong = song
                         SongHelper.currentList = artistSongs
-                        song.media?.let { SongHelper.playStream(it, false, mediaController)}
+                        song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
                     })
                 }
             }
