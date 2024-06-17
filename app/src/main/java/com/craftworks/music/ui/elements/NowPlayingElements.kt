@@ -52,7 +52,6 @@ import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.fadingEdge
@@ -76,7 +75,7 @@ fun NowPlayingPortraitCover (
     scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     mediaController: MediaController?
 ){
-
+    println("Recomposing whole NowPlayingPortraitCover")
     val textFadingEdge = Brush.horizontalGradient(0.85f to Color.Red, 1f to Color.Transparent)
 
     Column(modifier = Modifier.heightIn(min=420.dp)) {

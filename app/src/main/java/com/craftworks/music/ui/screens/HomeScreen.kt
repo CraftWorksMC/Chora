@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,22 +20,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
@@ -48,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,8 +63,8 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
+import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
@@ -83,9 +75,10 @@ import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.SongsRow
-import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
-import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -99,18 +92,27 @@ fun HomeScreen(
 
     val context = LocalContext.current
 
+    var recentlyPlayedAlbums by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
+    var recentAlbums by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
+    var mostPlayedAlbums by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
+    var shuffledAlbums by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
 
-//    var recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(20)
-//    var recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }.take(20)
-//    var mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }.take(20)
-//    var shuffledSongsList = listOf<Song>() //songsList.take(20).shuffled()
-//
-//    LaunchedEffect(songsList) {
-//        recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(20)
-//        recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }.take(20)
-//        mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }.take(20)
-//        shuffledSongsList = songsList.take(20).shuffled()
-//    }
+    LaunchedEffect(Unit) {
+        println("Getting Home Screen Albums")
+
+        coroutineScope {
+            val recentlyPlayedDeferred  = async { getNavidromeAlbums("recent", 20) }
+            val recentDeferred          = async { getNavidromeAlbums("newest", 20) }
+            val mostPlayedDeferred      = async { getNavidromeAlbums("frequent", 20) }
+            val shuffledDeferred        = async { getNavidromeAlbums("random", 20) }
+
+            // Handle results and potential errors
+            recentlyPlayedAlbums = recentlyPlayedDeferred.await()
+            recentAlbums = recentDeferred.await()
+            mostPlayedAlbums = mostPlayedDeferred.await()
+            shuffledAlbums = shuffledDeferred.await()
+        }
+    }
 
     val state = rememberPullToRefreshState()
     if (state.isRefreshing) {
@@ -124,10 +126,21 @@ fun HomeScreen(
 
             if (useNavidromeServer.value){
                 songsList.addAll(getNavidromeSongs())
-                getNavidromeAlbums()
+                coroutineScope {
+                    val recentlyPlayedDeferred  = async { getNavidromeAlbums("recent", 20) }
+                    val recentDeferred          = async { getNavidromeAlbums("newest", 20) }
+                    val mostPlayedDeferred      = async { getNavidromeAlbums("frequent", 20) }
+                    val shuffledDeferred        = async { getNavidromeAlbums("random", 20) }
+
+                    // Handle results and potential errors
+                    recentlyPlayedAlbums = recentlyPlayedDeferred.await()
+                    recentAlbums = recentDeferred.await()
+                    mostPlayedAlbums = mostPlayedDeferred.await()
+                    shuffledAlbums = shuffledDeferred.await()
+                }
             }
 
-            delay(1500)
+            //delay(1500)
 
 //            recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
 //            recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
@@ -237,7 +250,8 @@ fun HomeScreen(
 
                 if (homeScreenUseAlbums.value){
                     /* ALBUMS ROW */
-                    val recentlyPlayedAlbums = albumList.sortedByDescending { it.played }.take(20)
+                    //val recentlyPlayedAlbums = albumList.sortedByDescending { it.played }.take(20)
+
                     AlbumRow(albums = recentlyPlayedAlbums, mediaController = mediaController) { album ->
                         navHostController.navigate(Screen.AlbumDetails.route) {
                             launchSingleTop = true
@@ -272,8 +286,8 @@ fun HomeScreen(
 
                 if (homeScreenUseAlbums.value){
                     /* ALBUMS ROW */
-                    val recentlyAddedAlbums = albumList.sortedByDescending { it.created }.take(20)
-                    AlbumRow(albums = recentlyAddedAlbums, mediaController = mediaController) { album ->
+                    //val recentlyAddedAlbums = albumList.sortedByDescending { it.created }.take(20)
+                    AlbumRow(albums = recentAlbums, mediaController = mediaController) { album ->
                         navHostController.navigate(Screen.AlbumDetails.route) {
                             launchSingleTop = true
                         }
@@ -307,7 +321,7 @@ fun HomeScreen(
                 )
                 if (homeScreenUseAlbums.value){
                     /* ALBUMS ROW */
-                    val mostPlayedAlbums = albumList.sortedByDescending { it.playCount }.take(20)
+                    //val mostPlayedAlbums = albumList.sortedByDescending { it.playCount }.take(20)
                     AlbumRow(albums = mostPlayedAlbums, mediaController = mediaController) { album ->
                         navHostController.navigate(Screen.AlbumDetails.route) {
                             launchSingleTop = true
@@ -342,10 +356,10 @@ fun HomeScreen(
                 )
                 if (homeScreenUseAlbums.value){
                     /* ALBUMS ROW */
-                    val shuffledAlbumsList = remember {
-                        derivedStateOf { albumList.shuffled().take(20) }
-                    }
-                    AlbumRow(albums = shuffledAlbumsList.value, mediaController = mediaController) { album ->
+//                    val shuffledAlbumsList = remember {
+//                        derivedStateOf { albumList.shuffled().take(20) }
+//                    }
+                    AlbumRow(albums = shuffledAlbums, mediaController = mediaController) { album ->
                         navHostController.navigate(Screen.AlbumDetails.route) {
                             launchSingleTop = true
                         }

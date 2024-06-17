@@ -92,8 +92,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
-//        this.startService(serviceIntent)
+        saveManager(this).loadNavidromeProviders()
+        saveManager(this).loadLocalProviders()
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 

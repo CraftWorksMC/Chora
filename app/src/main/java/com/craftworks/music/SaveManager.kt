@@ -2,18 +2,15 @@ package com.craftworks.music
 
 import android.content.Context
 import android.net.Uri
-import android.provider.MediaStore.Audio.Genres
 import android.util.Log
-import androidx.compose.runtime.rememberCoroutineScope
 import com.craftworks.music.data.Artist
 import com.craftworks.music.data.BottomNavItem
-import com.craftworks.music.data.Genre
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
-import com.craftworks.music.data.Song
+import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.data.localProviderList
@@ -32,8 +29,8 @@ import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.getNavidromeStatus
-import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.elements.dialogs.backgroundType
+import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.username
 import kotlinx.coroutines.CoroutineScope
@@ -41,7 +38,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class saveManager(private val context: Context){
     private val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
@@ -135,7 +131,7 @@ class saveManager(private val context: Context){
                     navidromeServersList[selectedNavidromeServerIndex.intValue].password,
                 ) }
                 launch { songsList.addAll(getNavidromeSongs()) }
-                launch { getNavidromeAlbums() }
+                launch { albumList.addAll(getNavidromeAlbums()) }
                 launch { getNavidromePlaylists() }
                 launch { getNavidromeRadios() }
                 launch { getNavidromeArtists() }

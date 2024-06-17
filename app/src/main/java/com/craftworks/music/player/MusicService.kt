@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -19,10 +18,8 @@ import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
-import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.lyrics.requestLyrics
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
 import com.craftworks.music.saveManager
@@ -87,9 +84,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         saveManager(this).loadPreferences()
         saveManager(this).loadBottomNavItems()
-
-        saveManager(this).loadNavidromeProviders()
-        saveManager(this).loadLocalProviders()
 
         serviceIOScope.launch {
             saveManager(this@ChoraMediaLibraryService).loadSettings()

@@ -50,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
@@ -72,6 +73,11 @@ fun SongsScreen(
 
     var searchFilter by remember { mutableStateOf("") }
     var selectedSortOption by remember { mutableStateOf("Name (A-Z)") }
+
+    var allSongsList by remember { mutableStateOf<List<MediaData.Song>>(emptyList()) }
+
+    if (allSongsList.isEmpty())
+        allSongsList = songsList
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -171,7 +177,7 @@ fun SongsScreen(
                         if (it.isBlank()){
                             coroutineScope.launch {
                                 songsList.addAll(getNavidromeSongs())
-                                isSearchFieldOpen = false
+                                //isSearchFieldOpen = false
                             }
                         } },
                     label = { Text(stringResource(R.string.Action_Search)) },
@@ -180,12 +186,13 @@ fun SongsScreen(
                     keyboardActions = KeyboardActions(
                         onSearch = {
                             coroutineScope.launch {
-                                sendNavidromeGETRequest(
+                                songsList.addAll(sendNavidromeGETRequest(
                                     navidromeServersList[selectedNavidromeServerIndex.intValue].url,
                                     navidromeServersList[selectedNavidromeServerIndex.intValue].username,
                                     navidromeServersList[selectedNavidromeServerIndex.intValue].password,
                                     "search3.view?query=${searchFilter}&songCount=500&artistCount=0&albumCount=0&f=json"
-                                )
+                                ).filterIsInstance<MediaData.Song>())
+
                                 isSearchFieldOpen = false
                             }
                         }
@@ -205,7 +212,6 @@ fun SongsScreen(
         }
 
         Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-            var allSongsList = remember { songsList }.toMutableList()
 
             LaunchedEffect(searchFilter) {
                 if (searchFilter.isNotBlank()){

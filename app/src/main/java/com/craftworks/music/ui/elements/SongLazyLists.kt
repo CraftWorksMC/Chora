@@ -34,20 +34,17 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.Album
 import com.craftworks.music.data.Artist
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.sliderPos
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
@@ -124,12 +121,12 @@ fun SongsHorizontalColumn(songList: List<MediaData.Song>, onSongSelected: (song:
                 .collect {
                     coroutineScope.launch {
                         val songOffset = songsList.size
-                        sendNavidromeGETRequest(
+                        songsList.addAll(sendNavidromeGETRequest(
                             navidromeServersList[selectedNavidromeServerIndex.intValue].url,
                             navidromeServersList[selectedNavidromeServerIndex.intValue].username,
                             navidromeServersList[selectedNavidromeServerIndex.intValue].password,
                             "search3.view?query=''&songCount=100&songOffset=$songOffset&artistCount=0&albumCount=0&f=json"
-                        )
+                        ).filterIsInstance<MediaData.Song>())
                     }
                 }
         }
@@ -158,7 +155,7 @@ fun SongsHorizontalColumn(songList: List<MediaData.Song>, onSongSelected: (song:
 //region Albums
 @ExperimentalFoundationApi
 @Composable
-fun AlbumGrid(albums: List<Album>, mediaController: MediaController?, onAlbumSelected: (album: Album) -> Unit){
+fun AlbumGrid(albums: List<MediaData.Album>, mediaController: MediaController?, onAlbumSelected: (album: MediaData.Album) -> Unit){
     LazyVerticalGrid(
         columns = GridCells.Adaptive(128.dp),
         modifier = Modifier
@@ -180,7 +177,7 @@ fun AlbumGrid(albums: List<Album>, mediaController: MediaController?, onAlbumSel
 }
 @ExperimentalFoundationApi
 @Composable
-fun AlbumRow(albums: List<Album>, mediaController: MediaController?, onAlbumSelected: (album: Album) -> Unit){
+fun AlbumRow(albums: List<MediaData.Album>, mediaController: MediaController?, onAlbumSelected: (album: MediaData.Album) -> Unit){
     LazyRow(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(

@@ -81,7 +81,7 @@ fun AlbumScreen(
         LaunchedEffect(true) {
             albumList.clear()
             if (useNavidromeServer.value){
-                getNavidromeAlbums()
+                albumList.addAll(getNavidromeAlbums())
             }
             else{
                 getSongsOnDevice(context)

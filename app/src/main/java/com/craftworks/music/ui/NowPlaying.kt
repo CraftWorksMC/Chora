@@ -6,8 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
@@ -39,10 +37,8 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.BottomSheetScaffoldState
@@ -69,7 +65,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -110,7 +109,6 @@ import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.PlainLyrics
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
@@ -128,14 +126,12 @@ import com.craftworks.music.ui.elements.NowPlayingLandscape
 import com.craftworks.music.ui.elements.NowPlayingMiniPlayer
 import com.craftworks.music.ui.elements.NowPlayingPortraitCover
 import com.craftworks.music.ui.elements.bounceClick
+import com.craftworks.music.ui.elements.dialogs.backgroundType
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.elements.moveClick
-import com.craftworks.music.ui.elements.dialogs.backgroundType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.Timer
-import java.util.TimerTask
 
 
 var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
@@ -440,23 +436,23 @@ fun NowPlayingContent(
 fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) {
 
     println("Recomposing LyricsView")
-    LaunchedEffect(key1 = Unit) {
-        while (true) {
-            try {
-                val currentPosition = sliderPos.intValue.toLong() + 500 // Assuming sliderPos is in milliseconds
-                val currentIndex = SyncedLyric.indexOfFirst { it.timestamp > currentPosition } - 1
-                val previousIndex = SyncedLyric.indexOfFirst { it.isCurrentLyric }
+    var currentLyricIndex by remember { mutableIntStateOf(0) }
 
-                if (currentIndex in 0 until SyncedLyric.size) {
-                    if (currentIndex != previousIndex) {
-                        if (previousIndex != -1) {
-                            SyncedLyric[previousIndex] = SyncedLyric[previousIndex].copy(isCurrentLyric = false)
-                        }
-                        SyncedLyric[currentIndex] = SyncedLyric[currentIndex].copy(isCurrentLyric = true)
-                    }
+    LaunchedEffect(SyncedLyric, sliderPos) {
+        snapshotFlow { sliderPos.intValue.toLong() + 750 }
+            .collect { currentPosition ->
+                val newIndex = (SyncedLyric.indexOfFirst { it.timestamp > currentPosition } - 1).coerceAtLeast(0)
+
+                println(newIndex)
+
+                if (newIndex in 0..SyncedLyric.size) {
+                    currentLyricIndex = newIndex
+                    SyncedLyric = SyncedLyric.mapIndexed { index, lyric ->
+                        lyric.copy(isCurrentLyric = index == newIndex)
+                    }.toMutableStateList()
                 }
 
-                // Calculate the delay until the next lyric change
+                // Calculate the delay between lyrics.
                 val nextLyricIndex = SyncedLyric.indexOfFirst { it.timestamp > currentPosition }
                 val delayMillis = if (nextLyricIndex in 0 until SyncedLyric.size) {
                     (SyncedLyric[nextLyricIndex].timestamp - currentPosition).coerceAtLeast(0)
@@ -465,120 +461,15 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
                 }
                 delay(delayMillis)
             }
-            catch (_: Exception) { }
-        }
     }
 
     val topBottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.15f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
-    //val state = rememberScrollState()
     val state = rememberLazyListState()
-    var currentLyricIndex by remember { mutableIntStateOf(0) }
 
-    //val dpToSp = 32 * LocalContext.current.resources.displayMetrics.density
 
     LaunchedEffect(currentLyricIndex) {
         state.animateScrollToItem(currentLyricIndex)
     }
-
-    /*
-    Column(
-        modifier =
-        if (isLandscape) {
-            Modifier
-                .width(256.dp)
-                .fillMaxHeight()
-                .padding(horizontal = 12.dp)
-        } else {
-            Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp)
-        }
-            .fadingEdge(topBottomFade)
-            .verticalScroll(state),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        if (SyncedLyric.size >= 1) {
-            Box(modifier = Modifier.height(if (isLandscape) 32.dp else 60.dp))
-            SyncedLyric.forEachIndexed { index, lyric ->
-                val lyricAlpha: Float by animateFloatAsState(
-                    if (lyric.isCurrentLyric) 1f else 0.5f,
-                    label = "Current Lyric Alpha"
-                )
-                if (lyric.isCurrentLyric) currentLyricIndex = index
-
-                Box(
-                    modifier = Modifier
-                        .height((dpToSp).dp)
-                        .clickable {
-                            mediaController?.seekTo(lyric.timestamp.toLong())
-                            currentLyricIndex = index
-                            lyric.isCurrentLyric = false
-                        }
-                        .graphicsLayer(
-                            scaleX = if (lyric.isCurrentLyric) 1f else 0.9f,
-                            scaleY = if (lyric.isCurrentLyric) 1f else 0.9f
-                        )
-                        .animateContentSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (lyric.content == "") "• • •" else lyric.content,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground.copy(lyricAlpha),
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        lineHeight = 32.sp
-                    )
-                }
-            }
-        }
-        else {
-            Box(modifier = Modifier.height(if (isLandscape) 32.dp else 60.dp))
-            if (PlainLyrics == "Getting Lyrics..."){
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .size(32.dp),
-                    strokeCap = StrokeCap.Round
-                )
-            }
-            Text(
-                text = PlainLyrics,
-                style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                lineHeight = MaterialTheme.typography.titleLarge.lineHeight.times(1.2)
-            )
-            if (PlainLyrics == "No Lyrics / Instrumental"){
-                Box(
-                    modifier = Modifier
-                        .height((dpToSp).dp)
-                        .clickable {
-                            getLyrics()
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Retry",
-                        style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        textDecoration = TextDecoration.Underline,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        lineHeight = 32.sp
-                    )
-                }
-            }
-        }
-    }
-    */
 
     LazyColumn(
         modifier = if (isLandscape) {
@@ -609,13 +500,13 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
             }
         }
         // For displaying Synced Lyrics
-        if (SyncedLyric.size >= 1) {
+        if (SyncedLyric.isNotEmpty()) {
             itemsIndexed(SyncedLyric) { index, lyric ->
                 val lyricAlpha: Float by animateFloatAsState(
                     if (lyric.isCurrentLyric) 1f else 0.5f,
                     label = "Current Lyric Alpha"
                 )
-                if (lyric.isCurrentLyric) currentLyricIndex = index
+                //if (lyric.isCurrentLyric) currentLyricIndex = index
 
                 Box(
                     modifier = Modifier
@@ -625,12 +516,12 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
                         .clickable {
                             mediaController?.seekTo(lyric.timestamp.toLong())
                             currentLyricIndex = index
-                            lyric.isCurrentLyric = false
                         }
-                        .graphicsLayer(
-                            scaleX = if (lyric.isCurrentLyric) 1f else 0.9f,
-                            scaleY = if (lyric.isCurrentLyric) 1f else 0.9f
-                        )
+                        .graphicsLayer {
+                            val isCurrent = currentLyricIndex == index
+                            scaleX = if (isCurrent) 1f else 0.9f
+                            scaleY = if (isCurrent) 1f else 0.9f
+                        }
                         .animateContentSize(),
                     contentAlignment = Alignment.Center
                 ) {

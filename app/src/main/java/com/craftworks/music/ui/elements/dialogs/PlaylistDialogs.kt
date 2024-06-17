@@ -52,7 +52,6 @@ import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Playlist
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge

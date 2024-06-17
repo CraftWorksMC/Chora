@@ -12,7 +12,6 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.sliderPos
 

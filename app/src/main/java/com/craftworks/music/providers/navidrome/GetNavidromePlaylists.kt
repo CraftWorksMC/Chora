@@ -3,7 +3,6 @@ package com.craftworks.music.providers.navidrome
 import android.net.Uri
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Playlist
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.selectedNavidromeServerIndex

@@ -1,12 +1,9 @@
 package com.craftworks.music.providers.navidrome
 
 import android.content.Context
-import android.provider.MediaStore.Audio.Media
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
-import com.craftworks.music.data.Album
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.localProviderList
@@ -14,9 +11,7 @@ import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -43,7 +38,7 @@ data class SubsonicResponse(
 
     // Albums
     val albumList: albumList? = null,
-    val album: Album? = null
+    val album: MediaData.Album? = null
 )
 
 suspend fun sendNavidromeGETRequest(
@@ -99,7 +94,7 @@ suspend fun sendNavidromeGETRequest(
                         endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSongJSON    (it.readLine(), baseUrl, username, password))
 
                         // Albums
-                        endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumListJSON(it.readLine(), baseUrl, username, password)
+                        endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(it.readLine(), baseUrl, username, password))
                         endpoint.startsWith("getAlbum.")    -> parseNavidromeAlbumSongsJSON(it.readLine(), baseUrl, username, password)
 
 
@@ -148,7 +143,7 @@ suspend fun reloadNavidrome(context: Context){
         getSongsOnDevice(context)
 
     songsList.addAll(getNavidromeSongs())
-    getNavidromeAlbums()
+    albumList.addAll(getNavidromeAlbums())
     getNavidromeArtists()
     getNavidromePlaylists()
     getNavidromeRadios()

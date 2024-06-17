@@ -1,28 +1,15 @@
 package com.craftworks.music.providers.navidrome
 
-import android.graphics.Color
-import android.net.Uri
 import android.util.Log
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
-import com.craftworks.music.repeatSong
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
-import com.gitlab.mvysny.konsumexml.getValueIntOrNull
-import com.gitlab.mvysny.konsumexml.konsumeXml
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.internal.synchronized
-import kotlinx.coroutines.launch
-import kotlinx.serialization.*
-import kotlinx.serialization.builtins.IntArraySerializer
-import kotlinx.serialization.json.*
-import kotlinx.serialization.encoding.*
-import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
 
 @Serializable
 data class SearchResult3(val song: List<MediaData.Song>? = listOf())
