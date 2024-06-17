@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +48,7 @@ import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.modifyNavidromeRadio
 import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
+import kotlinx.coroutines.launch
 
 //region PREVIEWS
 @Preview(showBackground = true)
@@ -65,6 +67,7 @@ fun PreviewModifyRadioDialog(){
 @Composable
 fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     var radioName by remember { mutableStateOf("") }
     var radioUrl by remember { mutableStateOf("") }
@@ -137,11 +140,13 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                                 if (radioName.isBlank() && radioUrl.isBlank()) return@Button
 
                                 if (useNavidromeServer.value){
-                                    createNavidromeRadio(
-                                        radioName,
-                                        radioUrl,
-                                        radioPage)
-                                    getNavidromeRadios()
+                                    coroutineScope.launch {
+                                        createNavidromeRadio(
+                                            radioName,
+                                            radioUrl,
+                                            radioPage)
+                                        getNavidromeRadios()
+                                    }
                                 } else {
                                     radioList.add(
                                         Radio(
@@ -180,6 +185,7 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
 @Composable
 fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     var radioName by remember { mutableStateOf(radio.name) }
     var radioUrl by remember { mutableStateOf(radio.media.toString()) }
@@ -252,9 +258,10 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                                 setShowDialog(false)
                                 radioList.remove(radio)
                                 if (useNavidromeServer.value) radio.navidromeID?.let {
-                                    deleteNavidromeRadio(
-                                        it
-                                    )
+                                    coroutineScope.launch {
+                                        deleteNavidromeRadio(it)
+                                    }
+
                                 }
                                 saveManager(context).saveLocalRadios()
                             },
@@ -275,12 +282,14 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                             onClick = {
                                 if (radioName.isBlank() && radioUrl.isBlank()) return@Button
                                 if (useNavidromeServer.value) radio.navidromeID?.let {
-                                    modifyNavidromeRadio(
-                                        it,
-                                        radioName,
-                                        radioUrl,
-                                        radioPage
-                                    )
+                                    coroutineScope.launch {
+                                        modifyNavidromeRadio(
+                                            it,
+                                            radioName,
+                                            radioUrl,
+                                            radioPage
+                                        )
+                                    }
                                 }
                                 setShowDialog(false)
                                 if (useNavidromeServer.value) {

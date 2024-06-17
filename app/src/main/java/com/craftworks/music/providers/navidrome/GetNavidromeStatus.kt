@@ -6,7 +6,7 @@ import com.gitlab.mvysny.konsumexml.konsumeXml
 
 var navidromeStatus = mutableStateOf("")
 
-fun getNavidromeStatus(url: String, username: String, password: String){
+suspend fun getNavidromeStatus(url: String, username: String, password: String){
     sendNavidromeGETRequest(url, username, password, "ping.view?")
 }
 

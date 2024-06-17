@@ -7,7 +7,7 @@ import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.sliderPos
 
-fun markNavidromeSongAsPlayed(song: Song){
+suspend fun markNavidromeSongAsPlayed(song: Song){
     if (SongHelper.currentSong.isRadio == true || !useNavidromeServer.value) return
 
     println("Scrobble Percentage: ${(sliderPos.intValue.toFloat() / SongHelper.currentSong.duration.toFloat()) * 100f}, with sliderPos = ${sliderPos.intValue} | songDuration = ${SongHelper.currentSong.duration} | minPercentage = ${SongHelper.minPercentageScrobble}")

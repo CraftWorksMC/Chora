@@ -98,9 +98,16 @@ fun getSongsOnDevice(context: Context){
                 // Add songs to album
                 val album = Album(
                     name = thisAlbum,
+                    album = thisAlbum,
+                    title = thisAlbum,
                     artist = thisArtist,
-                    year = thisYear.toString(),
-                    coverArt = Uri.parse(imageUri)
+                    year = thisYear,
+                    coverArt = imageUri,
+                    songCount = 0,
+                    duration = 0,
+                    artistId = "",
+                    navidromeID = "Local",
+                    parent = "None"
                 )
                 synchronized(albumList){
                     if (!albumList.contains(albumList.firstOrNull { it.name == album.name && it.artist == album.artist })){

@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,10 +47,13 @@ import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.reloadNavidrome
+import kotlinx.coroutines.launch
 
 @Preview
 @Composable
 fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), context: Context = LocalContext.current){
+
+    val coroutineScope = rememberCoroutineScope()
 
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
@@ -125,7 +129,7 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
                         selectedNavidromeServerIndex.intValue >= 0 &&
                         navidromeServersList.isNotEmpty()){
 
-                        reloadNavidrome(context)
+                        coroutineScope.launch { reloadNavidrome(context) }
                     }
                 }
             }
@@ -136,6 +140,9 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
 @Preview
 @Composable
 fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("https://demo.navidrome.org", "CraftWorks", "demo", true), context: Context = LocalContext.current){
+
+    val coroutineScope = rememberCoroutineScope()
+
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
         .height(64.dp)
@@ -199,7 +206,7 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("https:/
                 if (it){
                     selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
 
-                    reloadNavidrome(context)
+                    coroutineScope.launch { reloadNavidrome(context) }
 
                     // Make very sure that the selectedLocalProvider actually exists
                     if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)

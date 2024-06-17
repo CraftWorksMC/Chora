@@ -12,6 +12,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -24,6 +25,7 @@ import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.ui.elements.bounceClick
+import kotlinx.coroutines.launch
 
 //region PREVIEWS
 @Preview(showBackground = true)
@@ -47,6 +49,8 @@ var transcodingBitrate = mutableStateOf(transcodingBitrateList[6])
 
 @Composable
 fun TranscodingDialog(setShowDialog: (Boolean) -> Unit) {
+    val coroutineScope = rememberCoroutineScope()
+
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(24.dp),
@@ -71,7 +75,9 @@ fun TranscodingDialog(setShowDialog: (Boolean) -> Unit) {
                                 selected = bitrate == transcodingBitrate.value,
                                 onClick = {
                                     transcodingBitrate.value = bitrate
-                                    getNavidromeSongs()
+                                    coroutineScope.launch {
+                                        getNavidromeSongs()
+                                    }
                                     setShowDialog(false)
                                 },
                                 modifier = Modifier

@@ -154,7 +154,7 @@ fun AlbumScreen(
             }
 
             if (searchFilter.isNotBlank()){
-                sortedAlbumList = sortedAlbumList.filter { it.name.contains(searchFilter, true) ||
+                sortedAlbumList = sortedAlbumList.filter { it.name!!.contains(searchFilter, true)  ||
                         it.artist.contains(searchFilter, true) }.toMutableList()
             }
 

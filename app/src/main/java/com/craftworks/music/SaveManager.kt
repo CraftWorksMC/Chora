@@ -133,10 +133,10 @@ class saveManager(private val context: Context){
                     navidromeServersList[selectedNavidromeServerIndex.intValue].password,
                 ) }
                 launch { getNavidromeSongs() }
-                //launch { getNavidromeAlbums() }
-                //launch { getNavidromePlaylists() }
-                //launch { getNavidromeRadios() }
-                //launch { getNavidromeArtists() }
+                launch { getNavidromeAlbums() }
+                launch { getNavidromePlaylists() }
+                launch { getNavidromeRadios() }
+                launch { getNavidromeArtists() }
             }
 
             if (localProviderList.isNotEmpty()) {
@@ -269,7 +269,8 @@ class saveManager(private val context: Context){
         }
 
         if (useNavidromeServer.value)
-            getNavidromeRadios()
+            scope.launch { getNavidromeRadios() }
+
     }
     fun loadPlaylists(){
         Log.d("LOAD", "Loading Offline Playlists")
@@ -340,7 +341,7 @@ class saveManager(private val context: Context){
         }
 
         if (useNavidromeServer.value){
-            getNavidromePlaylists()
+            scope.launch { getNavidromePlaylists() }
         }
     }
 

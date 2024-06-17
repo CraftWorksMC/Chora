@@ -30,11 +30,15 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -434,46 +438,48 @@ fun NowPlayingContent(
 @Composable
 fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) {
 
-    // Update synced lyrics each second.
-    Timer().schedule(object : TimerTask() {
-        private val handler = Handler(Looper.getMainLooper())
-        override fun run() {
-            handler.post {
-                try {
-                    /* SYNCED LYRICS */
-                    if (SyncedLyric.size < 1) return@post
+    println("Recomposing LyricsView")
+    LaunchedEffect(key1 = Unit) {
+        while (true) {
+            try {
+                val currentPosition = sliderPos.intValue.toLong() + 500 // Assuming sliderPos is in milliseconds
+                val currentIndex = SyncedLyric.indexOfFirst { it.timestamp > currentPosition } - 1
+                val previousIndex = SyncedLyric.indexOfFirst { it.isCurrentLyric }
 
-                    for (a in 0 until SyncedLyric.size - 1) { //Added 750ms offset
-                        if (SyncedLyric[a].timestamp <= sliderPos.intValue + 750 &&
-                            SyncedLyric[a + 1].timestamp >= sliderPos.intValue + 750) {
-
-                            SyncedLyric[a] = SyncedLyric[a].copy(isCurrentLyric = true)
-                            SyncedLyric.forEachIndexed { index, syncedLyric ->
-                                if (index != a) {
-                                    SyncedLyric[index] = syncedLyric.copy(isCurrentLyric = false)
-                                }
-                            }
+                if (currentIndex in 0 until SyncedLyric.size) {
+                    if (currentIndex != previousIndex) {
+                        if (previousIndex != -1) {
+                            SyncedLyric[previousIndex] = SyncedLyric[previousIndex].copy(isCurrentLyric = false)
                         }
+                        SyncedLyric[currentIndex] = SyncedLyric[currentIndex].copy(isCurrentLyric = true)
                     }
-                }catch (_: Exception){
-
                 }
+
+                // Calculate the delay until the next lyric change
+                val nextLyricIndex = SyncedLyric.indexOfFirst { it.timestamp > currentPosition }
+                val delayMillis = if (nextLyricIndex in 0 until SyncedLyric.size) {
+                    (SyncedLyric[nextLyricIndex].timestamp - currentPosition).coerceAtLeast(0)
+                } else {
+                    1000L
+                }
+                delay(delayMillis)
             }
+            catch (_: Exception) { }
         }
-    }, 0, 1000)
-
-    val topBottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.15f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
-    val state = rememberScrollState()
-    var currentLyricIndex by remember { mutableIntStateOf(0) }
-
-    /* SCROLL VARS */
-    val dpToSp = 32 * LocalContext.current.resources.displayMetrics.density
-    val pxValue = with(LocalDensity.current) { dpToSp.dp.toPx() }
-
-    LaunchedEffect(currentLyricIndex) {
-        state.animateScrollTo((pxValue * currentLyricIndex - if (isLandscape) 96 else pxValue.toInt()).toInt())
     }
 
+    val topBottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.15f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
+    //val state = rememberScrollState()
+    val state = rememberLazyListState()
+    var currentLyricIndex by remember { mutableIntStateOf(0) }
+
+    //val dpToSp = 32 * LocalContext.current.resources.displayMetrics.density
+
+    LaunchedEffect(currentLyricIndex) {
+        state.animateScrollToItem(currentLyricIndex)
+    }
+
+    /*
     Column(
         modifier =
         if (isLandscape) {
@@ -571,6 +577,111 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
             }
         }
     }
+    */
+
+    LazyColumn(
+        modifier = if (isLandscape) {
+            Modifier
+                .width(256.dp)
+                .fillMaxHeight()
+                .padding(horizontal = 12.dp)
+        } else {
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp)
+        }
+            .fadingEdge(topBottomFade),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        state = state
+    ) {
+        item { // For the spacing + loading indicator
+            Box(modifier = Modifier.height(if (isLandscape) 32.dp else 60.dp)) {
+                if (PlainLyrics == "Getting Lyrics..." && SyncedLyric.size == 0) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .size(32.dp),
+                        strokeCap = StrokeCap.Round
+                    )
+                }
+            }
+        }
+        // For displaying Synced Lyrics
+        if (SyncedLyric.size >= 1) {
+            itemsIndexed(SyncedLyric) { index, lyric ->
+                val lyricAlpha: Float by animateFloatAsState(
+                    if (lyric.isCurrentLyric) 1f else 0.5f,
+                    label = "Current Lyric Alpha"
+                )
+                if (lyric.isCurrentLyric) currentLyricIndex = index
+
+                Box(
+                    modifier = Modifier
+                        //.height((dpToSp).dp)
+                        .padding(vertical = 12.dp)
+                        .heightIn(min = 48.dp)
+                        .clickable {
+                            mediaController?.seekTo(lyric.timestamp.toLong())
+                            currentLyricIndex = index
+                            lyric.isCurrentLyric = false
+                        }
+                        .graphicsLayer(
+                            scaleX = if (lyric.isCurrentLyric) 1f else 0.9f,
+                            scaleY = if (lyric.isCurrentLyric) 1f else 0.9f
+                        )
+                        .animateContentSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (lyric.content == "") "• • •" else lyric.content,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground.copy(lyricAlpha),
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 32.sp
+                    )
+                }
+            }
+        } else if (PlainLyrics == "No Lyrics / Instrumental") {
+            item { // For the "Retry" section
+                Box(
+                    modifier = Modifier
+                        //.height((dpToSp).dp)
+                        .height(64.dp)
+                        .clickable {
+                            getLyrics()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Retry",
+                        style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 32.sp
+                    )
+                }
+            }
+        } else {
+            item { // For displaying plain lyrics
+                Text(
+                    text = PlainLyrics,
+                    style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    lineHeight = MaterialTheme.typography.titleLarge.lineHeight.times(1.2f)
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -608,7 +719,7 @@ fun SliderUpdating(isLandscape: Boolean? = false, mediaController: MediaControll
         onValueChangeFinished = {
             SongHelper.isSeeking = false
             mediaController?.seekTo(sliderPos.intValue.toLong()) },
-        valueRange = 0f..(SongHelper.currentSong.duration.toFloat()),
+        valueRange = 0f..(SongHelper.currentSong.duration.toFloat() * 1000),
         colors = SliderDefaults.colors(
             activeTrackColor = MaterialTheme.colorScheme.onBackground,
             inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
@@ -619,7 +730,7 @@ fun SliderUpdating(isLandscape: Boolean? = false, mediaController: MediaControll
         .fillMaxWidth()
         .padding(horizontal = 32.dp)) {
         Text(
-            text = formatMilliseconds(sliderPos.intValue * 1000),
+            text = formatMilliseconds(sliderPos.intValue / 1000),
             fontWeight = FontWeight.Light,
             textAlign = TextAlign.Start,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),

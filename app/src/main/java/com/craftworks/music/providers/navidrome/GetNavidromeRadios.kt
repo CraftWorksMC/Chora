@@ -8,7 +8,7 @@ import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.gitlab.mvysny.konsumexml.konsumeXml
 
-fun getNavidromeRadios(){
+suspend fun getNavidromeRadios(){
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
@@ -17,7 +17,7 @@ fun getNavidromeRadios(){
     )
 }
 
-fun deleteNavidromeRadio(id:String){
+suspend fun deleteNavidromeRadio(id:String){
 //    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
 //        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
 //        navidromeStatus.value != "ok") return
@@ -45,7 +45,7 @@ fun deleteNavidromeRadio(id:String){
     )
 }
 
-fun modifyNavidromeRadio(id:String, name:String, url:String, homePage:String){
+suspend fun modifyNavidromeRadio(id:String, name:String, url:String, homePage:String){
 //    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
 //        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
 //        navidromeStatus.value != "ok") return
@@ -78,7 +78,7 @@ fun modifyNavidromeRadio(id:String, name:String, url:String, homePage:String){
     )
 }
 
-fun createNavidromeRadio(name:String, url:String, homePage:String){
+suspend fun createNavidromeRadio(name:String, url:String, homePage:String){
 //    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
 //        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
 //        navidromeStatus.value != "ok") return

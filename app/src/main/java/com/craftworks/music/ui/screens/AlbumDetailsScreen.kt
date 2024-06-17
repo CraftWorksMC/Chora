@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
@@ -30,9 +31,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -47,7 +52,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,24 +62,25 @@ import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Screen
+import com.craftworks.music.data.Song
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
-import com.craftworks.music.data.songsList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.navidrome.getNavidromeAlbumSongs
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalSongCard
-import com.craftworks.music.ui.elements.SongsRow
+import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
+import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-var selectedAlbum by mutableStateOf<Album?>(
-    Album(
-        name = "My Album",
-        artist = "My Favourite Artist",
-        year = "2023",
-        Uri.EMPTY)
-)
+var selectedAlbum by mutableStateOf<Album?>(Album(navidromeID = "", parent = "", album = "", title = "", name = "", songCount = 0, duration = 0, artistId = "", artist = "", coverArt = ""))
+
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -87,10 +92,17 @@ fun AlbumDetails(
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
-    val albumSongs = songsList.filter { it.album == selectedAlbum?.name }.sortedBy { it.trackIndex }
+    var albumSongs by remember { mutableStateOf<List<Song>>(emptyList()) }
 
-    val otherSongsFromSameArtist = songsList.filter { it.artist == selectedAlbum?.artist }.toMutableList()
-    otherSongsFromSameArtist.removeAll(albumSongs)
+    LaunchedEffect(selectedAlbum?.songs) {
+        albumSongs = selectedAlbum?.songs!!
+        if (selectedAlbum?.songs?.isNotEmpty() == true) return@LaunchedEffect
+        selectedAlbum?.navidromeID?.let { albumId ->
+            withContext(Dispatchers.IO){ getNavidromeAlbumSongs(albumId) } }
+    }
+
+//    val otherSongsFromSameArtist = songsList.filter { it.artist == selectedAlbum?.artist }.toMutableList()
+//    otherSongsFromSameArtist.removeAll(albumSongs)
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -128,7 +140,7 @@ fun AlbumDetails(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     tint = MaterialTheme.colorScheme.onBackground,
                     contentDescription = "Settings",
                     modifier = Modifier
@@ -198,7 +210,9 @@ fun AlbumDetails(
                     contentColor = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier.width(128.dp)
             ) {
-                Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(24.dp)) {
+                Row (verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.height(24.dp)
+                ) {
                     Icon(Icons.Rounded.PlayArrow, "Play Album")
                     Text(stringResource(R.string.Action_Play))
                 }
@@ -250,6 +264,7 @@ fun AlbumDetails(
             }
         }
 
+        /*
         // More songs from Artist
         if (otherSongsFromSameArtist.isNotEmpty()){
             Box(
@@ -274,6 +289,10 @@ fun AlbumDetails(
                 })
             }
         }
+        */
+
+        if(showAddSongToPlaylistDialog.value)
+            AddSongToPlaylist(setShowDialog =  { showAddSongToPlaylistDialog.value = it } )
 
         BottomSpacer()
     }

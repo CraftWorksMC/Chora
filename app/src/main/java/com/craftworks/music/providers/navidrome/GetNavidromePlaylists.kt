@@ -10,7 +10,7 @@ import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.screens.selectedPlaylist
 import com.gitlab.mvysny.konsumexml.konsumeXml
 
-fun getNavidromePlaylists(){
+suspend fun getNavidromePlaylists(){
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
@@ -18,7 +18,7 @@ fun getNavidromePlaylists(){
         "getPlaylists.view?"
     )
 }
-fun getNavidromePlaylistDetails(){
+suspend fun getNavidromePlaylistDetails(){
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
@@ -27,7 +27,7 @@ fun getNavidromePlaylistDetails(){
     )
 }
 
-fun createNavidromePlaylist(playlistName: String){
+suspend fun createNavidromePlaylist(playlistName: String){
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
@@ -35,7 +35,7 @@ fun createNavidromePlaylist(playlistName: String){
         "createPlaylist.view?name=$playlistName"
     )
 }
-fun deleteNavidromePlaylist(playlistID: String){
+suspend fun deleteNavidromePlaylist(playlistID: String){
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
@@ -43,7 +43,7 @@ fun deleteNavidromePlaylist(playlistID: String){
         "deletePlaylist.view?id=$playlistID"
     )
 }
-fun addSongToNavidromePlaylist(playlistID: String, songID: String){
+suspend fun addSongToNavidromePlaylist(playlistID: String, songID: String){
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,

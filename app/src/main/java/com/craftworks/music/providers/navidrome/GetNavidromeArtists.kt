@@ -10,16 +10,16 @@ import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.gitlab.mvysny.konsumexml.konsumeXml
 
-fun getNavidromeArtists(){
+suspend fun getNavidromeArtists(){
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
         navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "getArtists.view?"
+        "getArtists.view?size=500"
     )
 }
 
-fun getNavidromeArtistDetails(id: String){
+suspend fun getNavidromeArtistDetails(id: String){
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
@@ -28,7 +28,7 @@ fun getNavidromeArtistDetails(id: String){
     )
 }
 
-fun parseNavidromeArtistsXML(
+suspend fun parseNavidromeArtistsXML(
     response: String,
     navidromeUrl: String,
     navidromeUsername: String,
@@ -67,23 +67,24 @@ fun parseNavidromeArtistsXML(
                         skipContents()
                         finish()
                     }
-                }.apply {
-                    // Get artists 100 at a time.
-                    if (size == 100){
-                        val artistOffset = (artistList.size + 1)
-                        sendNavidromeGETRequest(
-                            navidromeUrl,
-                            navidromeUsername,
-                            navidromePassword,
-                            "getAlbumList.view?type=newest&size=100&offset=$artistOffset"
-                        )
-                    }
                 }
             }
         }
     }
 
-    Log.d("NAVIDROME", "Added albums! Total: ${albumList.size}")
+    if (artistList.size % 500 == 0){
+        val artistOffset = (artistList.size + 1)
+
+        sendNavidromeGETRequest(
+            navidromeUrl,
+            navidromeUsername,
+            navidromePassword,
+            "getArtists.view?size=500&offset=$artistOffset"
+        )
+    }
+
+
+    Log.d("NAVIDROME", "Added artists! Total: ${artistList.size}")
 }
 
 fun parseNavidromeArtistXML(

@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,6 +56,7 @@ import com.craftworks.music.ui.elements.RadiosGrid
 import com.craftworks.music.ui.elements.dialogs.AddRadioDialog
 import com.craftworks.music.ui.elements.dialogs.ModifyRadioDialog
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 var showRadioAddDialog = mutableStateOf(false)
 var showRadioModifyDialog = mutableStateOf(false)
@@ -67,7 +69,12 @@ fun RadioScreen(
     mediaController: MediaController? = null
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-    if (radioList.isEmpty() && useNavidromeServer.value) getNavidromeRadios()
+
+    LaunchedEffect(radioList) {
+        if (radioList.isEmpty() && useNavidromeServer.value) {
+            getNavidromeRadios()
+        }
+    }
 
     val context = LocalContext.current
 
@@ -83,7 +90,9 @@ fun RadioScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().nestedScroll(state.nestedScrollConnection)){
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .nestedScroll(state.nestedScrollConnection)){
         /* RADIO ICON + TEXT */
         Column(modifier = Modifier
             .fillMaxWidth()

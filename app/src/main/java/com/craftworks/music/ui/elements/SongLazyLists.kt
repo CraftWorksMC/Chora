@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -47,6 +48,7 @@ import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.sliderPos
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
 //region Songs
 @Composable
@@ -102,10 +104,14 @@ fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
 fun SongsHorizontalColumn(songList: List<Song>, onSongSelected: (song: Song) -> Unit, isSearch: Boolean? = false){
     var isSongSelected by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     // Load more songs at scroll
     if (useNavidromeServer.value && isSearch == false){
         LaunchedEffect(listState) {
+
+            if (songsList.size % 100 != 0) return@LaunchedEffect
+
             snapshotFlow {
                 val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
                 val totalItemsCount = listState.layoutInfo.totalItemsCount
@@ -113,16 +119,17 @@ fun SongsHorizontalColumn(songList: List<Song>, onSongSelected: (song: Song) -> 
                 lastVisibleItemIndex != null && totalItemsCount > 0 &&
                         (totalItemsCount - lastVisibleItemIndex) <= 10
             }
-                .distinctUntilChanged()
                 .filter { it }
                 .collect {
-                    val songOffset = songsList.size
-                    sendNavidromeGETRequest(
-                        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-                        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-                        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-                        "search3.view?query=''&songCount=100&songOffset=$songOffset&artistCount=0&albumCount=0&f=json"
-                    )
+                    coroutineScope.launch {
+                        val songOffset = songsList.size
+                        sendNavidromeGETRequest(
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+                            navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+                            "search3.view?query=''&songCount=100&songOffset=$songOffset&artistCount=0&albumCount=0&f=json"
+                        )
+                    }
                 }
         }
     }

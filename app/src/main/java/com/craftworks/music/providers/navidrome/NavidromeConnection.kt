@@ -3,7 +3,7 @@ package com.craftworks.music.providers.navidrome
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
-import com.craftworks.music.data.SearchResult3
+import com.craftworks.music.data.Album
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
@@ -14,7 +14,6 @@ import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -36,34 +35,44 @@ data class SubsonicResponse(
     val type: String,
     val serverVersion: String,
     val openSubsonic: Boolean,
-    val searchResult3: SearchResult3
+
+    // Songs
+    val searchResult3: SearchResult3? = null,
+
+    // Albums
+    val albumList: albumList? = null,
+    val album: Album? = null
 )
 
+suspend fun sendNavidromeGETRequest(
+    baseUrl: String,
+    username: String,
+    password: String,
+    endpoint: String) {
 
-fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String, endpoint: String) {
-    navidromeSyncInProgress.value = true
-    // Generate a random password salt and MD5 hash.
-    val passwordSalt = generateSalt(8)
-    val passwordHash = md5Hash(password + passwordSalt)
-    //Log.d("NAVIDROME", "baseUrl: $baseUrl, passwordSalt: $passwordSalt, endpoint: $endpoint")
+    withContext(Dispatchers.IO) {
+        navidromeSyncInProgress.value = true
 
-    // All get requests come from this file.
-    val url = URL("$baseUrl/rest/$endpoint&u=$username&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
+        // Generate a random password salt and MD5 hash.
+        val passwordSalt = generateSalt(8)
+        val passwordHash = md5Hash(password + passwordSalt)
+        //Log.d("NAVIDROME", "baseUrl: $baseUrl, passwordSalt: $passwordSalt, endpoint: $endpoint")
 
-    if (url.protocol.isEmpty() && url.host.isEmpty()){
-        navidromeStatus.value = "Invalid URL"
-        return
-    }
+        // All get requests come from this file.
+        val url = URL("$baseUrl/rest/$endpoint&u=$username&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
 
-    // Use HTTPS connection for allowing self-signed ssl certificates.
-    val connection = if (url.protocol == "https") {
-        url.openConnection() as HttpsURLConnection
-    } else {
-        url.openConnection() as HttpURLConnection
-    }
+        if (url.protocol.isEmpty() && url.host.isEmpty()){
+            navidromeStatus.value = "Invalid URL"
+            return@withContext
+        }
 
-    val coroutine = CoroutineScope(Dispatchers.Default)
-    coroutine.launch {
+        // Use HTTPS connection for allowing self-signed ssl certificates.
+        val connection = if (url.protocol == "https") {
+            url.openConnection() as HttpsURLConnection
+        } else {
+            url.openConnection() as HttpURLConnection
+        }
+
         try {
             with(connection) {
                 requestMethod = "GET"
@@ -75,14 +84,18 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
                     Log.d("NAVIDROME", responseCode.toString())
                     navidromeStatus.value = "HTTP Error $responseCode"
                     navidromeSyncInProgress.value = false
-                    return@launch
+                    return@withContext
                 }
 
                 inputStream.bufferedReader().use {
                     when {
                         endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (it.readLine())
-                        endpoint.startsWith("search3")      -> parseNavidromeSongJSON    (it.readLine(), baseUrl, username, password, endpoint)
-                        endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumXML    (it.readLine(), baseUrl, username, password)
+                        endpoint.startsWith("search3")      -> parseNavidromeSongJSON    (it.readLine(), baseUrl, username, password)
+
+                        // Albums
+                        endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumListJSON(it.readLine(), baseUrl, username, password)
+                        endpoint.startsWith("getAlbum.")    -> parseNavidromeAlbumSongsJSON(it.readLine(), baseUrl, username, password)
+
 
                         // Artists
                         endpoint.startsWith("getArtists")   -> parseNavidromeArtistsXML  (it.readLine(), baseUrl, username, password)
@@ -113,13 +126,10 @@ fun sendNavidromeGETRequest(baseUrl: String, username: String, password: String,
 
         navidromeSyncInProgress.value = false
     }
-//    val thread = Thread {
-//
-//    }
-//    thread.start()
 }
 
-fun reloadNavidrome(context: Context){
+
+suspend fun reloadNavidrome(context: Context){
     songsList.clear()
     albumList.clear()
     artistList.clear()
@@ -147,3 +157,4 @@ fun generateSalt(length: Int): String {
         .map { allowedChars.random() }
         .joinToString("")
 }
+

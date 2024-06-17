@@ -28,6 +28,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,13 +48,19 @@ import androidx.media3.session.MediaController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Album
+import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
+import com.craftworks.music.providers.navidrome.getNavidromeAlbumSongs
+import com.craftworks.music.ui.screens.selectedAlbum
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Preview
 @Composable
-fun AlbumCard(album: Album = Album("","","", Uri.EMPTY),
+fun AlbumCard(album: Album = Album(navidromeID = "", parent = "", album = "", title = "", name = "", songCount = 0, duration = 0, artistId = "", artist = "", coverArt = ""),
               mediaController: MediaController? = null,
               onClick: () -> Unit = {}){
     Card(
@@ -85,11 +97,38 @@ fun AlbumCard(album: Album = Album("","","", Uri.EMPTY),
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(12.dp))
                 )
+
+                val coroutineScope = rememberCoroutineScope()
+
                 Button(
-                    onClick = { // Play First Song in Album
-                        SongHelper.currentSong = songsList.filter { it.album == album.name }[0]
-                        SongHelper.currentList = songsList.filter { it.album == album.name }
-                        songsList.filter { it.album == album.name }[0].media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)} },
+                    onClick = {
+                        // Play First Song in Album
+                        coroutineScope.launch {
+                            selectedAlbum = album
+
+                            // Fetch songs if the list is empty
+                            if (selectedAlbum?.songs.isNullOrEmpty()) {
+                                selectedAlbum?.navidromeID?.let { albumId ->
+                                    // Use withContext to bridge non-suspending function to coroutine
+                                    withContext(Dispatchers.IO) {
+                                        getNavidromeAlbumSongs(albumId)
+                                    }
+                                }
+                            }
+
+                            // Now selectedAlbum?.songs is guaranteed to be updated (or still empty if fetch failed)
+                            selectedAlbum?.songs?.let { songs ->
+                                if (songs.isNotEmpty()) {
+                                    println(songs)
+                                    SongHelper.currentSong = songs[0]
+                                    SongHelper.currentList = songs
+                                    SongHelper.playStream(Uri.parse(songs[0].media ?: ""), false, mediaController)
+                                } else {
+                                    // Handle the case where no songs were loaded for the album
+                                }
+                            }
+                        }
+                    },
                     shape = CircleShape,
                     modifier = Modifier
                         .size(48.dp)
@@ -114,26 +153,28 @@ fun AlbumCard(album: Album = Album("","","", Uri.EMPTY),
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = album.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 1, overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
+            album.name?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center
+                )
+            }
 
 
             Text(
-                text = album.artist,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 1, overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
+                    text = album.artist,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center
+                )
         }
     }
 }

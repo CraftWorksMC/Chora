@@ -1,45 +1,36 @@
 package com.craftworks.music.data
 
-import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AlbumJson(
-    val id: String,
-    val parent: String,
+data class Album(
+    @SerialName("id")
+    val navidromeID : String,
+    val parent : String? = "",
 
-    val album: String,
-    val title: String,
-    val name: String,
+    val album : String? = "",
+    val title : String? = "",
+    val name : String? = "",
 
-    val isDir: Boolean,
-    val coverArt: String,
-    val songCount: Int,
+    val isDir : Boolean? = false,
+    var coverArt : String?,
+    val songCount : Int,
 
-    val created: String,
-    val duration: Int,
-    val playCount: Int,
+    val played : String? = "",
+    val created : String? = "",
+    val duration : Int,
+    val playCount : Int? = 0,
 
-    val artistId: String,
-    val artist: String,
-    val year: Int,
-    val genre: String,
-    val song: List<Song>
+    val artistId : String?,
+    val artist : String,
+    val year : Int? = 0,
+    val genre : String? = "",
+    val genres : List<Genre>? = listOf(),
+
+    @SerialName("song")
+    var songs: List<Song>? = listOf()
 )
-
-data class Album (
-    val name: String,
-    val artist: String,
-    val year: String,
-    val coverArt: Uri,
-    val songs: List<Song> = emptyList(),
-    val navidromeID: String? = "Local",
-    val dateAdded: String? = "",
-    val datePlayed: String? = "",
-    val timesPlayed: Int? = 0
-)
-
-
 
 var albumList:MutableList<Album> = mutableStateListOf()

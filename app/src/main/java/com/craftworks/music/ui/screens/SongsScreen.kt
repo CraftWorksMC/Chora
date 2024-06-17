@@ -2,7 +2,6 @@ package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
 import android.net.Uri
-import android.view.KeyEvent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -34,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +41,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -52,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.search3SongList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.player.SongHelper
@@ -62,6 +60,7 @@ import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
+import kotlinx.coroutines.launch
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -73,6 +72,8 @@ fun SongsScreen(
 
     var searchFilter by remember { mutableStateOf("") }
     var selectedSortOption by remember { mutableStateOf("Name (A-Z)") }
+
+    val coroutineScope = rememberCoroutineScope()
 
     /* SONGS ICON + TEXT */
     Column(modifier = Modifier
@@ -168,21 +169,25 @@ fun SongsScreen(
                     onValueChange = {
                         searchFilter = it
                         if (it.isBlank()){
-                            getNavidromeSongs()
-                            isSearchFieldOpen = false
+                            coroutineScope.launch {
+                                getNavidromeSongs()
+                                isSearchFieldOpen = false
+                            }
                         } },
                     label = { Text(stringResource(R.string.Action_Search)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(
                         onSearch = {
-                            sendNavidromeGETRequest(
-                                navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-                                navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-                                navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-                                "search3.view?query=${searchFilter}&songCount=500&artistCount=0&albumCount=0&f=json"
-                            )
-                            isSearchFieldOpen = false
+                            coroutineScope.launch {
+                                sendNavidromeGETRequest(
+                                    navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+                                    navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+                                    navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+                                    "search3.view?query=${searchFilter}&songCount=500&artistCount=0&albumCount=0&f=json"
+                                )
+                                isSearchFieldOpen = false
+                            }
                         }
                     ),
                     modifier = Modifier

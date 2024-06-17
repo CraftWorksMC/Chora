@@ -22,6 +22,7 @@ import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.lyrics.getLyrics
+import com.craftworks.music.lyrics.requestLyrics
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
 import com.craftworks.music.saveManager
 import com.google.common.collect.ImmutableList
@@ -125,7 +126,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 //                }
 
                 if (useNavidromeServer.value)
-                    markNavidromeSongAsPlayed(SongHelper.currentSong)
+                    serviceMainScope.launch { markNavidromeSongAsPlayed(SongHelper.currentSong) }
 
                 serviceIOScope.launch {
                     val song = Song(
@@ -158,10 +159,10 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                         type = "song"
                     )
                     SongHelper.currentSong = song
-                }
 
-                if (SongHelper.currentSong.isRadio == false)
-                    getLyrics()
+                    if (SongHelper.currentSong.isRadio == false)
+                        requestLyrics()
+                }
             }
 
             override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {

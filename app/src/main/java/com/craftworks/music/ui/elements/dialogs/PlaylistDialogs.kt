@@ -94,6 +94,7 @@ var playlistToDelete = mutableStateOf(Playlist("", Uri.EMPTY))
 @Composable
 fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
@@ -166,10 +167,10 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                     if (playlist.songs.contains(songToAddToPlaylist.value)) return@clickable
 
                                     if (useNavidromeServer.value)
-                                        addSongToNavidromePlaylist(
+                                        coroutineScope.launch { addSongToNavidromePlaylist(
                                             playlist.navidromeID.toString(),
                                             songToAddToPlaylist.value.navidromeID.toString()
-                                        )
+                                        ) }
                                     else {
                                         playlist.songs += songToAddToPlaylist.value
                                         saveManager(context).saveLocalPlaylists()
@@ -273,7 +274,7 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
                                     if (playlistList.firstOrNull { it.name == name } != null) return@Button
 
                                     if (useNavidromeServer.value)
-                                        createNavidromePlaylist(name)
+                                        coroutineScope.launch { createNavidromePlaylist(name) }
                                     else {
                                         var playlistImage = Uri.EMPTY
                                         coroutineScope.launch {
@@ -327,6 +328,7 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
 @Composable
 fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
@@ -358,7 +360,7 @@ fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
                                 try {
                                     if (useNavidromeServer.value)
                                         playlistToDelete.value.navidromeID?.let {
-                                            deleteNavidromePlaylist(it)
+                                            coroutineScope.launch { deleteNavidromePlaylist(it) }
                                         }
                                     else {
                                         playlistList.remove(playlistToDelete.value)

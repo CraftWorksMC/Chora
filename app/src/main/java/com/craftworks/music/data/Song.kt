@@ -1,16 +1,10 @@
 package com.craftworks.music.data
 
-import android.net.Uri
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.util.LinkedList
 
-@Serializable
-data class SearchResult3(val song: List<Song>? = listOf())
+var songsList: MutableList<Song> = mutableStateListOf()
 
 @Serializable
 data class Song(
@@ -26,7 +20,7 @@ data class Song(
     val genre: String? = "",
     @SerialName("coverArt")
     var imageUrl: String,
-    val size: Int,
+    val size: Int? = 0,
     val contentType: String? = "music",
     @SerialName("suffix")
     val format: String,
@@ -69,4 +63,3 @@ data class ReplayGain(
     val trackPeak: Float? = 0f,
     val albumPeak: Float? = 0f)
 
-var songsList: MutableList<Song> = mutableStateListOf()

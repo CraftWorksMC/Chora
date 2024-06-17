@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +57,7 @@ import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.providers.navidrome.reloadNavidrome
 import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
+import kotlinx.coroutines.launch
 
 //region PREVIEWS
 @Preview(showBackground = true)
@@ -78,6 +80,8 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
     var password: String by remember { mutableStateOf("") }
 
     var dir: String by remember { mutableStateOf("/Music/") }
+
+    val coroutineScope = rememberCoroutineScope()
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
@@ -254,7 +258,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                         username = username.trim()
                                         password = password.trim()
                                         url = url.removeSuffix("/").trim()
-                                        getNavidromeStatus(url, username, password)
+                                        coroutineScope.launch { getNavidromeStatus(url, username, password) }
                                     },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -288,7 +292,10 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                             navidromeServersList.indexOf(server)
 
                                         saveManager(context).saveSettings()
-                                        reloadNavidrome(context)
+
+                                        coroutineScope.launch {
+                                            reloadNavidrome(context)
+                                        }
 
                                         navidromeStatus.value = ""
                                         setShowDialog(false)

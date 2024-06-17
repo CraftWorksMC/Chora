@@ -29,10 +29,13 @@ import com.craftworks.music.providers.navidrome.navidromeSyncInProgress
 @Preview
 fun HorizontalLineWithNavidromeCheck(){
     val showError = remember { mutableStateOf(false) }
+    val showSync = remember { mutableStateOf(false) }
     val errorStatus = remember { mutableStateOf("") }
-    LaunchedEffect(key1 = navidromeStatus) {
+
+    LaunchedEffect(navidromeStatus, useNavidromeServer, navidromeSyncInProgress) {
         showError.value = useNavidromeServer.value && (navidromeStatus.value != "ok" && navidromeStatus.value != "")
         errorStatus.value =  navidromeStatus.value
+        showSync.value = navidromeSyncInProgress.value
     }
 
     HorizontalDivider(
