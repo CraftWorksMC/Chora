@@ -50,6 +50,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.artistList
@@ -212,7 +213,7 @@ fun NowPlayingPortraitCover (
 fun NowPlayingLandscape(
     collapsed: Boolean? = false,
     isPlaying: Boolean? = false,
-    song: Song = SongHelper.currentSong,
+    song: MediaData.Song = SongHelper.currentSong,
     snackbarHostState: SnackbarHostState? = SnackbarHostState(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     mediaController: MediaController?

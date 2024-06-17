@@ -8,6 +8,6 @@ var playlistList:MutableList<Playlist> = mutableStateListOf()
 data class Playlist (
     val name: String,
     var coverArt: Uri,
-    var songs: List<Song> = emptyList(),
+    var songs: List<MediaData.Song> = emptyList(),
     val navidromeID: String? = ""
 )

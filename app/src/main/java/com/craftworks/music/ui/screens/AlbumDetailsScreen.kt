@@ -61,6 +61,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Album
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.artistList
@@ -92,7 +93,7 @@ fun AlbumDetails(
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
-    var albumSongs by remember { mutableStateOf<List<Song>>(emptyList()) }
+    var albumSongs by remember { mutableStateOf<List<MediaData.Song>>(emptyList()) }
 
     LaunchedEffect(selectedAlbum?.songs) {
         albumSongs = selectedAlbum?.songs!!

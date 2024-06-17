@@ -1,6 +1,7 @@
 package com.craftworks.music.providers.navidrome
 
 import android.net.Uri
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.navidromeServersList
@@ -97,7 +98,7 @@ fun parseNavidromePlaylistXML(response: String){
     newResponse.konsumeXml().apply {
         child("subsonic-response") {
             child("playlist") {
-                val playlistSongs = mutableListOf<Song>()
+                val playlistSongs = mutableListOf<MediaData.Song>()
                 children("entry"){
                     val songID = attributes.getValue("id")
                     playlistSongs.add(songsList.first { it.navidromeID == songID })

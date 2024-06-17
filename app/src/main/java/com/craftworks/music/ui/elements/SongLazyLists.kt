@@ -36,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Artist
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
@@ -52,7 +53,7 @@ import kotlinx.coroutines.launch
 
 //region Songs
 @Composable
-fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
+fun SongsRow(songsList: List<MediaData.Song>, onSongSelected: (song: MediaData.Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
     LazyRow(
         modifier = Modifier.fillMaxSize(),
@@ -101,7 +102,7 @@ fun SongsRow(songsList: List<Song>, onSongSelected: (song: Song) -> Unit){
     }
 }
 @Composable
-fun SongsHorizontalColumn(songList: List<Song>, onSongSelected: (song: Song) -> Unit, isSearch: Boolean? = false){
+fun SongsHorizontalColumn(songList: List<MediaData.Song>, onSongSelected: (song: MediaData.Song) -> Unit, isSearch: Boolean? = false){
     var isSongSelected by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -226,7 +227,7 @@ fun ArtistsGrid(artists: List<Artist>,
 //region Radios
 @ExperimentalFoundationApi
 @Composable
-fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
+fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: MediaData.Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
@@ -238,7 +239,7 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: Song) -> Unit){
         )
     ) {
         items(radioList) {radio ->
-            val song = Song(
+            val song = MediaData.Song(
                 title = radio.name,
                 imageUrl = "android.resource://com.craftworks.music/" + R.drawable.radioplaceholder,
                 artist = radio.name,

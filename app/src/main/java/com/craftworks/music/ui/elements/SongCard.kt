@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import coil.compose.AsyncImage
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.radioList
 import com.craftworks.music.formatMilliseconds
@@ -129,7 +130,7 @@ fun SongsCard(song: MediaItem, onClick: () -> Unit){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HorizontalSongCard(song: Song, onClick: () -> Unit) {
+fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
     Card(
         onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
         shape = RoundedCornerShape(12.dp),

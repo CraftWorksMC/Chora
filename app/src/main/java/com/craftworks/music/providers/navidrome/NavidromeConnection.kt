@@ -1,9 +1,11 @@
 package com.craftworks.music.providers.navidrome
 
 import android.content.Context
+import android.provider.MediaStore.Audio.Media
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import com.craftworks.music.data.Album
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
@@ -48,10 +50,14 @@ suspend fun sendNavidromeGETRequest(
     baseUrl: String,
     username: String,
     password: String,
-    endpoint: String) {
+    endpoint: String) : List<MediaData> {
+
+    val parsedData = mutableListOf<MediaData>()
 
     withContext(Dispatchers.IO) {
         navidromeSyncInProgress.value = true
+
+
 
         // Generate a random password salt and MD5 hash.
         val passwordSalt = generateSalt(8)
@@ -90,7 +96,7 @@ suspend fun sendNavidromeGETRequest(
                 inputStream.bufferedReader().use {
                     when {
                         endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (it.readLine())
-                        endpoint.startsWith("search3")      -> parseNavidromeSongJSON    (it.readLine(), baseUrl, username, password)
+                        endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSongJSON    (it.readLine(), baseUrl, username, password))
 
                         // Albums
                         endpoint.startsWith("getAlbumList") -> parseNavidromeAlbumListJSON(it.readLine(), baseUrl, username, password)
@@ -110,6 +116,7 @@ suspend fun sendNavidromeGETRequest(
 
                         // Radios
                         endpoint.startsWith("getInternetRadioStations") -> parseNavidromeRadioXML (it.readLine())
+                        else -> { null }
                     }
                 }
                 inputStream.close()
@@ -123,9 +130,10 @@ suspend fun sendNavidromeGETRequest(
             navidromeStatus.value = "Invalid URL"
             Log.d("NAVIDROME", "Malformed URL.")
         }
-
         navidromeSyncInProgress.value = false
     }
+
+    return parsedData
 }
 
 
@@ -139,7 +147,7 @@ suspend fun reloadNavidrome(context: Context){
     if (localProviderList.isNotEmpty())
         getSongsOnDevice(context)
 
-    getNavidromeSongs()
+    songsList.addAll(getNavidromeSongs())
     getNavidromeAlbums()
     getNavidromeArtists()
     getNavidromePlaylists()

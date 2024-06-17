@@ -35,73 +35,6 @@ suspend fun getNavidromeAlbumSongs(albumId: String){
     )
 }
 
-/*
-fun parseNavidromeAlbumXML(
-    response: String,
-    navidromeUrl: String,
-    navidromeUsername: String,
-    navidromePassword: String) {
-
-    // Avoid crashing by removing some useless tags.
-    val newResponse = response
-        .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
-
-    newResponse.konsumeXml().apply {
-        child("subsonic-response"){
-            child("albumList"){
-                children("album"){
-                    val albumTitle = attributes.getValue("title")
-                    val albumArtist = attributes.getValue("artist")
-                    val albumYear = attributes.getValueOrNull("year") ?: "0"
-                    val albumID = attributes.getValue("id")
-                    val albumDateAdded = attributes.getValueOrNull("created") ?: "0"
-                    val albumDatePlayed = attributes.getValueOrNull("played") ?: "0"
-                    val albumPlayCount = attributes.getValueIntOrNull("playCount") ?: 0
-
-                    val passwordSalt = generateSalt(8)
-                    val passwordHash = md5Hash(navidromePassword + passwordSalt)
-
-                    val albumArtUri =
-                        Uri.parse("$navidromeUrl/rest/getCoverArt.view?&id=$albumID&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
-
-                    val album = Album(
-                        name = albumTitle,
-                        artist = albumArtist,
-                        year = albumYear,
-                        coverArt = albumArtUri,
-                        navidromeID = albumID,
-                        dateAdded = albumDateAdded,
-                        datePlayed = albumDatePlayed,
-                        timesPlayed = albumPlayCount
-                    )
-                    synchronized(albumList){
-                        if (albumList.none { it.name == albumTitle })
-                            albumList.add(album)
-                    }
-
-                    skipContents()
-                    finish()
-                }.apply {
-                    // Get albums 100 at a time.
-//                    if (size == 500){
-//                        val albumOffset = (albumList.size + 1)
-//                        sendNavidromeGETRequest(
-//                            navidromeUrl,
-//                            navidromeUsername,
-//                            navidromePassword,
-//                            "getAlbumList.view?type=newest&size=500&offset=$albumOffset"
-//                        )
-//                        navidromeSyncInProgress.value = true
-//                    }
-                }
-            }
-        }
-    }
-
-    Log.d("NAVIDROME", "Added albums! Total: ${albumList.size}")
-}
-*/
-
 suspend fun parseNavidromeAlbumListJSON(
     response: String,
     navidromeUrl: String,
@@ -165,5 +98,3 @@ fun parseNavidromeAlbumSongsJSON(
 
     Log.d("NAVIDROME", "Got Album Songs: ${subsonicResponse.album?.songs?.get(0)?.title}")
 }
-
-

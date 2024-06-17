@@ -108,6 +108,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.SyncedLyric
@@ -144,7 +145,7 @@ var lyricsOpen by mutableStateOf(false)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NowPlayingContent(
-    song: Song = Song(
+    song: MediaData.Song = MediaData.Song(
         title = "Song Title",
         artist = "Song Artist",
         duration = 69420,

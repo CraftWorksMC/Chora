@@ -11,6 +11,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.sliderPos
@@ -20,7 +21,7 @@ class SongHelper {
         var isSeeking = false
 
         var currentSong by mutableStateOf(
-            Song(
+            MediaData.Song(
                 "id",
                 "parent",
                 false,
@@ -59,7 +60,7 @@ class SongHelper {
             )
         )
 
-        var currentList:List<Song> = emptyList()
+        var currentList:List<MediaData.Song> = emptyList()
         var currentTracklist = mutableListOf<MediaItem>()
 
         var minPercentageScrobble = mutableIntStateOf(75)

@@ -9,6 +9,7 @@ import com.craftworks.music.data.Artist
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.Genre
 import com.craftworks.music.data.LocalProvider
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
@@ -21,6 +22,7 @@ import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
@@ -132,7 +134,7 @@ class saveManager(private val context: Context){
                     navidromeServersList[selectedNavidromeServerIndex.intValue].username,
                     navidromeServersList[selectedNavidromeServerIndex.intValue].password,
                 ) }
-                launch { getNavidromeSongs() }
+                launch { songsList.addAll(getNavidromeSongs()) }
                 launch { getNavidromeAlbums() }
                 launch { getNavidromePlaylists() }
                 launch { getNavidromeRadios() }
@@ -286,7 +288,7 @@ class saveManager(private val context: Context){
 
                 val songs = songMatches.map { matchResult ->
                     val groups = matchResult.groupValues
-                    Song(
+                    MediaData.Song(
                         groups[1],
                         groups[2],
                         groups[3].toBoolean(),

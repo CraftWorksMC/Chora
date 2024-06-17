@@ -170,7 +170,7 @@ fun SongsScreen(
                         searchFilter = it
                         if (it.isBlank()){
                             coroutineScope.launch {
-                                getNavidromeSongs()
+                                songsList.addAll(getNavidromeSongs())
                                 isSearchFieldOpen = false
                             }
                         } },

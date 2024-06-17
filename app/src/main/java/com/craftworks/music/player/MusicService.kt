@@ -18,6 +18,7 @@ import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
@@ -129,7 +130,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     serviceMainScope.launch { markNavidromeSongAsPlayed(SongHelper.currentSong) }
 
                 serviceIOScope.launch {
-                    val song = Song(
+                    val song = MediaData.Song(
                         title = mediaItem?.mediaMetadata?.title.toString(),
                         artist = mediaItem?.mediaMetadata?.artist.toString(),
                         duration = mediaItem?.mediaMetadata?.extras?.getInt("duration") ?: 0,

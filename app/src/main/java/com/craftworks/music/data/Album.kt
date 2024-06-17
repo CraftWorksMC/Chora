@@ -30,7 +30,7 @@ data class Album(
     val genres : List<Genre>? = listOf(),
 
     @SerialName("song")
-    var songs: List<Song>? = listOf()
+    var songs: List<MediaData.Song>? = listOf()
 )
 
 var albumList:MutableList<Album> = mutableStateListOf()

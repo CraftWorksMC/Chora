@@ -69,6 +69,7 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
@@ -122,7 +123,7 @@ fun HomeScreen(
             delay(100) //Avoids Crashes
 
             if (useNavidromeServer.value){
-                getNavidromeSongs()
+                songsList.addAll(getNavidromeSongs())
                 getNavidromeAlbums()
             }
 
@@ -246,7 +247,7 @@ fun HomeScreen(
                 }
                 else {
                     /* SONGS ROW */
-                    val recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(20)
+                    val recentlyPlayedSongsList = songsList.sortedByDescending { song: MediaData.Song -> song.lastPlayed }.take(20)
                     SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
                         //SongHelper.currentSong = song
                         SongHelper.currentList = recentlyPlayedSongsList
@@ -281,7 +282,7 @@ fun HomeScreen(
                 }
                 else {
                     /* SONGS ROW */
-                    val recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }.take(20)
+                    val recentSongsList = songsList.sortedByDescending { song: MediaData.Song -> song.dateAdded }.take(20)
                     SongsRow(songsList = recentSongsList, onSongSelected = { song ->
                         //SongHelper.currentSong = song
                         SongHelper.currentList = recentSongsList
@@ -316,7 +317,7 @@ fun HomeScreen(
                 }
                 else{
                     /* SONGS ROW */
-                    val mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }.take(20)
+                    val mostPlayedList = songsList.sortedByDescending { song: MediaData.Song -> song.timesPlayed }.take(20)
                     SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
                         //SongHelper.currentSong = song
                         SongHelper.currentList = mostPlayedList

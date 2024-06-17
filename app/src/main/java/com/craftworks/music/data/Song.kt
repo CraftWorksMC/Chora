@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-var songsList: MutableList<Song> = mutableStateListOf()
+var songsList: MutableList<MediaData.Song> = mutableStateListOf()
 
 @Serializable
 data class Song(

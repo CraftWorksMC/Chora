@@ -11,6 +11,7 @@ import android.provider.MediaStore
 import android.util.Log
 import com.craftworks.music.data.Album
 import com.craftworks.music.data.Artist
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Song
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
@@ -71,7 +72,7 @@ fun getSongsOnDevice(context: Context){
 
 
                 // Add Song
-                val song = Song(
+                val song = MediaData.Song(
                     title = thisTitle,
                     artist = thisArtist.split("~")[0],
                     album = thisAlbum,
