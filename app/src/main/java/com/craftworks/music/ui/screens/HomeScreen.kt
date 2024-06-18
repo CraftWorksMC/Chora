@@ -109,10 +109,6 @@ fun HomeScreen(
 
     val state = rememberPullToRefreshState()
 
-    LaunchedEffect(selectedNavidromeServerIndex) {
-        state.startRefresh()
-    }
-
     if (state.isRefreshing) {
         LaunchedEffect(true) {
             songsList.clear()
@@ -384,6 +380,10 @@ class HomeScreenViewModel : ViewModel() {
 
     private val _shuffledAlbums = MutableStateFlow<List<MediaData.Album>>(emptyList())
     val shuffledAlbums: StateFlow<List<MediaData.Album>> = _shuffledAlbums.asStateFlow()
+
+    init {
+        fetchAlbums()
+    }
 
     fun fetchAlbums() {
         if (!useNavidromeServer.value) return
