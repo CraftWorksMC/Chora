@@ -605,7 +605,6 @@ fun SliderUpdating(isLandscape: Boolean? = false, mediaController: MediaControll
     val sliderHeight = if (isLandscape == true) 24.dp else 12.dp
 
 
-
     Slider(
         enabled = (transcodingBitrate.value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
         modifier = Modifier

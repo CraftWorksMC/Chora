@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -72,15 +73,21 @@ fun ArtistsScreen(navHostController: NavHostController = rememberNavController()
     val context = LocalContext.current
     val state = rememberPullToRefreshState()
 
+//    if (artistList.isEmpty())
+//        state.startRefresh()
+
     if (state.isRefreshing) {
         LaunchedEffect(true) {
+
             artistList.clear()
+
             if (useNavidromeServer.value){
-                getNavidromeArtists()
+                artistList.addAll(getNavidromeArtists())
             }
             else{
                 getSongsOnDevice(context)
             }
+
             delay(500)
             state.endRefresh()
         }
@@ -154,7 +161,7 @@ fun ArtistsScreen(navHostController: NavHostController = rememberNavController()
                 sortedArtistList = sortedArtistList.filter { it.name.contains(searchFilter, true) }.toMutableList()
             }
 
-            ArtistsGrid(sortedArtistList, onArtistSelected = { artist ->
+            ArtistsGrid(artistList, onArtistSelected = { artist ->
                 selectedArtist = artist
                 navHostController.navigate(Screen.AristDetails.route) {
                     launchSingleTop = true

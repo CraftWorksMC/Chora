@@ -164,7 +164,7 @@ fun AlbumDetails(
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.clickable {
-                                selectedArtist = artistList.firstOrNull() { it.name == artistName }!!
+                                selectedArtist = artistList.firstOrNull() { it.name == artistName } ?: return@clickable
                                 navHostController.navigate(Screen.AristDetails.route) {
                                     launchSingleTop = true
                                 }

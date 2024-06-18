@@ -29,9 +29,10 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Artist
+import com.craftworks.music.data.MediaData
 
 @Composable
-fun ArtistCard(artist: Artist, onClick: () -> Unit){
+fun ArtistCard(artist: MediaData.Artist, onClick: () -> Unit){
     Card(
         onClick = { onClick() },
         modifier = Modifier.padding(12.dp)
@@ -52,7 +53,7 @@ fun ArtistCard(artist: Artist, onClick: () -> Unit){
         ) {
             Box (modifier = Modifier.aspectRatio(1f).weight(1f)){
                 AsyncImage(
-                    model = if (artist.imageUri != Uri.EMPTY) artist.imageUri else null,
+                    model = if (Uri.parse(artist.coverArt) != Uri.EMPTY) Uri.parse(artist.coverArt)  else null,
                     placeholder = painterResource(R.drawable.rounded_artist_24),
                     fallback = painterResource(R.drawable.rounded_artist_24),
                     contentScale = ContentScale.Crop,

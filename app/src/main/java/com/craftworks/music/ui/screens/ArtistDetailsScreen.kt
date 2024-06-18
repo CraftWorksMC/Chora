@@ -108,7 +108,7 @@ fun ArtistDetails(
             .fillMaxWidth()) {
             //Image and Name
             AsyncImage(
-                model = selectedArtist.imageUri,
+                model = selectedArtist.coverArt,
                 placeholder = painterResource(R.drawable.s_a_username),
                 fallback = painterResource(R.drawable.s_a_username),
                 contentScale = ContentScale.FillWidth,

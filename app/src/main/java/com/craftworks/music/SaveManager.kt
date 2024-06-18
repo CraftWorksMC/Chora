@@ -67,7 +67,7 @@ class saveManager(private val context: Context){
 
         // Save Artists List
         val artistsListString = artistList.joinToString(";") {
-            "${it.name}|${it.imageUri}|${it.navidromeID}|${it.description}" }
+            "${it.name}|${it.coverArt}|${it.navidromeID}" }
         sharedPreferences.edit().putString("artistsList", artistsListString).apply()
 
         saveLocalRadios()
@@ -120,7 +120,7 @@ class saveManager(private val context: Context){
 
         coroutineScope {
 
-            loadArtists()
+            //loadArtists()
             loadRadios()
             loadPlaylists()
 
@@ -134,7 +134,7 @@ class saveManager(private val context: Context){
                 //launch { albumList.addAll(getNavidromeAlbums()) }
                 launch { getNavidromePlaylists() }
                 launch { getNavidromeRadios() }
-                launch { getNavidromeArtists() }
+                launch { artistList.addAll(getNavidromeArtists()) }
             }
 
             if (localProviderList.isNotEmpty()) {
@@ -223,11 +223,10 @@ class saveManager(private val context: Context){
             val parts = localString.split("|")
             if (parts.size > 1) {
                 try {
-                    val artist = Artist(
+                    val artist = MediaData.Artist(
                         parts[0],
-                        Uri.parse(parts[1]),
+                        parts[1],
                         parts[2],
-                        parts[3]
                     )
                     if (artistList.contains(artistList.firstOrNull { it.name == artist.name && it.navidromeID == "Local"})){
                         artistList[artistList.indexOfFirst { it.name == artist.name && it.navidromeID == "Local" }].apply {

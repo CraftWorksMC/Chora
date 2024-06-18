@@ -235,9 +235,9 @@ fun AlbumRow(albums: List<MediaData.Album>, mediaController: MediaController?, o
 //region Artists
 @ExperimentalFoundationApi
 @Composable
-fun ArtistsGrid(artists: List<Artist>,
+fun ArtistsGrid(artists: List<MediaData.Artist>,
                 navHostController: NavHostController = rememberNavController(),
-                onArtistSelected: (artist: Artist) -> Unit){
+                onArtistSelected: (artist: MediaData.Artist) -> Unit){
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = Modifier

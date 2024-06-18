@@ -115,12 +115,10 @@ fun getSongsOnDevice(context: Context){
                 }
 
                 // Add artists to ArtistList
-                val artist = Artist(
+                val artist = MediaData.Artist(
                     name = thisArtist,
-                    imageUri = Uri.EMPTY,
-                    navidromeID = "Local",
-                    description = "",
-                    similarArtistsID = ""
+                    coverArt = "",
+                    navidromeID = "Local"
                 )
                 synchronized(artistList){
                     if (!artistList.contains(artistList.firstOrNull { it.name == artist.name })){

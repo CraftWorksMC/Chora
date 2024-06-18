@@ -111,14 +111,14 @@ fun HomeScreen(
 
     if (state.isRefreshing) {
         LaunchedEffect(true) {
-            songsList.clear()
+            //songsList.clear()
 
             getSongsOnDevice(context)
 
             //delay(100) //Avoids Crashes
 
             if (useNavidromeServer.value){
-                songsList.addAll(getNavidromeSongs())
+                //songsList.addAll(getNavidromeSongs())
                 viewModel.fetchAlbums()
             }
 

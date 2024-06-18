@@ -79,4 +79,18 @@ sealed class MediaData {
         @SerialName("song")
         var songs: List<Song>? = listOf()
     ) : MediaData()
+
+    @Serializable
+    data class Artist(
+        @SerialName("id")
+        var navidromeID : String,
+        val name : String,
+        val coverArt : String? = "",
+//        val artistImageUrl : String? = "",
+        val albumCount : Int? = 0,
+        var description : String = ""
+//        val starred : String? = "",
+//        val musicBrainzId: String? = "",
+//        val sortName: String? = "",
+    ) : MediaData()
 }

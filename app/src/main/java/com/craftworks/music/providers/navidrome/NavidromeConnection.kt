@@ -40,7 +40,10 @@ data class SubsonicResponse(
 
     // Albums
     val albumList: albumList? = null,
-    val album: MediaData.Album? = null
+    val album: MediaData.Album? = null,
+
+    // Artists
+    val artists: Artists? = null,
 )
 
 suspend fun sendNavidromeGETRequest(
@@ -99,7 +102,7 @@ suspend fun sendNavidromeGETRequest(
 
 
                         // Artists
-                        endpoint.startsWith("getArtists")   -> parseNavidromeArtistsXML  (it.readLine(), baseUrl, username, password)
+                        endpoint.startsWith("getArtists")   -> parseNavidromeArtistsJSON  (it.readLine())
                         endpoint.startsWith("getArtistInfo")-> parseNavidromeArtistXML   (it.readLine())
 
                         // Playlists
@@ -119,7 +122,7 @@ suspend fun sendNavidromeGETRequest(
         }
         catch (e: Exception){
             navidromeStatus.value = "Invalid URL"
-            Log.d("NAVIDROME", "Unknown Host.")
+            Log.d("NAVIDROME", "Exception: $e")
         }
         navidromeSyncInProgress.set(false)
     }
