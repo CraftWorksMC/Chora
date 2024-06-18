@@ -71,6 +71,7 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
@@ -94,10 +95,9 @@ import kotlinx.coroutines.launch
 @Preview(showBackground = true, showSystemUi = true)
 fun HomeScreen(
     navHostController: NavHostController = rememberNavController(),
-    mediaController: MediaController? = null
+    mediaController: MediaController? = null,
+    viewModel: HomeScreenViewModel = viewModel()
 ) {
-    val viewModel = remember { HomeScreenViewModel() }
-
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     val context = LocalContext.current
@@ -108,6 +108,10 @@ fun HomeScreen(
     val shuffledAlbums by viewModel.shuffledAlbums.collectAsState()
 
     val state = rememberPullToRefreshState()
+
+    LaunchedEffect(selectedNavidromeServerIndex) {
+        state.startRefresh()
+    }
 
     if (state.isRefreshing) {
         LaunchedEffect(true) {
@@ -125,7 +129,6 @@ fun HomeScreen(
             state.endRefresh()
         }
     }
-
 
     Box(
         Modifier
@@ -381,11 +384,6 @@ class HomeScreenViewModel : ViewModel() {
 
     private val _shuffledAlbums = MutableStateFlow<List<MediaData.Album>>(emptyList())
     val shuffledAlbums: StateFlow<List<MediaData.Album>> = _shuffledAlbums.asStateFlow()
-
-
-    init {
-        fetchAlbums()
-    }
 
     fun fetchAlbums() {
         if (!useNavidromeServer.value) return

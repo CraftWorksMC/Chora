@@ -116,14 +116,13 @@ class MainActivity : ComponentActivity() {
                 var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
 
                 val coroutineScope = rememberCoroutineScope()
+
                 val yTrans by animateIntAsState(
                     targetValue =
                     if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded)
                         dpToPx(-80 - WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding().value.toInt())
                     else 0,
                     label = "Fullscreen Translation")
-
-
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -135,9 +134,11 @@ class MainActivity : ComponentActivity() {
                             val backStackEntry = navController.currentBackStackEntryAsState()
                             if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
                                 NavigationBar (modifier = Modifier
-                                    .offset{ IntOffset(x=0, y= -yTrans) }) {
+                                    .offset { IntOffset(x=0, y= -yTrans) }
+                                ) {
                                     bottomNavigationItems.forEachIndexed { index, item ->
                                         if (!item.enabled) return@forEachIndexed
+
                                         NavigationBarItem(
                                             selected = item.screenRoute == backStackEntry.value?.destination?.route,
                                             modifier = Modifier.bounceClick(),
@@ -185,9 +186,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         paddingValues -> SetupNavGraph(navController = navController, paddingValues, mediaController.value)
                         BottomSheetScaffold(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .requiredWidth(LocalConfiguration.current.screenWidthDp.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             sheetContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
                             sheetPeekHeight =
                             if (SongHelper.currentSong.title == "" &&

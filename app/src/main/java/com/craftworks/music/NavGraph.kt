@@ -11,7 +11,9 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.media3.session.MediaController
@@ -41,6 +43,8 @@ fun SetupNavGraph(
     paddingValues: PaddingValues,
     mediaController: MediaController?
 ){
+    val homeViewModel = remember { HomeScreenViewModel() }
+
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
         modifier = Modifier.padding(bottom = (/* Stupid PaddingValues Error. */ paddingValues.calculateBottomPadding() * 0) ),
@@ -57,7 +61,7 @@ fun SetupNavGraph(
     )
     {
         composable(route = Screen.Home.route) {
-            HomeScreen(navController, mediaController)
+            HomeScreen(navController, mediaController, homeViewModel)
         }
         composable(route = Screen.Song.route) {
             SongsScreen(mediaController)

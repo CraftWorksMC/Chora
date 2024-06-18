@@ -138,8 +138,8 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
         }
 
         Box(modifier = Modifier
-            .padding(bottom = bottomSpacerHeightDp() + 12.dp)
             .padding(12.dp)
+            .padding(bottom = bottomSpacerHeightDp())
             .align(Alignment.BottomEnd)
         ){
             FloatingActionButton(

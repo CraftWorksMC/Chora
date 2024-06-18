@@ -300,12 +300,20 @@ fun NowPlayingContent(
         //endregion
 
         // MINI-PLAYER
-        val offsetY by animateFloatAsState(targetValue =
-            if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded)
-                dpToPx(72).toFloat()
-            else
-                0f,
-            label = "Animated Top Offset")
+        val bottomSheetOffset by remember {
+            derivedStateOf {
+                if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
+                    72
+                } else {
+                    0
+                }
+            }
+        }
+
+        val offsetY by animateFloatAsState(
+            targetValue = dpToPx(bottomSheetOffset).toFloat(),
+            label = "Animated Top Offset"
+        )
 
         Box(modifier = Modifier
             .graphicsLayer { translationY = -offsetY }

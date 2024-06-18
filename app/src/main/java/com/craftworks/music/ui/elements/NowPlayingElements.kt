@@ -346,7 +346,6 @@ fun NowPlayingMiniPlayer(
     isPlaying: Boolean = true,
     mediaController: MediaController?
 ) {
-
     val coroutineScope = rememberCoroutineScope()
     Box (modifier = Modifier
         .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp))
