@@ -16,13 +16,13 @@ import kotlinx.serialization.json.jsonObject
 data class albumList(val album: List<MediaData.Album>? = listOf())
 
 
-suspend fun getNavidromeAlbums(sort: String? = "newest", size: Int? = 500) : List<MediaData.Album>{
+suspend fun getNavidromeAlbums(sort: String? = "alphabeticalByName", size: Int? = 100, offset: Int? = 0) : List<MediaData.Album>{
     if (navidromeServersList.isEmpty()) return emptyList()
     return sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
         navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "getAlbumList.view?type=$sort&size=$size&offset=0&f=json"
+        "getAlbumList.view?type=$sort&size=$size&offset=$offset&f=json"
     ).filterIsInstance<MediaData.Album>()
 }
 
@@ -35,7 +35,7 @@ suspend fun getNavidromeAlbumSongs(albumId: String){
     )
 }
 
-suspend fun parseNavidromeAlbumListJSON(
+fun parseNavidromeAlbumListJSON(
     response: String,
     navidromeUrl: String,
     navidromeUsername: String,
@@ -46,11 +46,11 @@ suspend fun parseNavidromeAlbumListJSON(
         jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
     )
 
-    subsonicResponse.albumList?.album?.map {
-        // Generate password salt and hash for coverArt
-        val passwordSaltArt = generateSalt(8)
-        val passwordHashArt = md5Hash(navidromePassword + passwordSaltArt)
+    // Generate password salt and hash for coverArt
+    val passwordSaltArt = generateSalt(8)
+    val passwordHashArt = md5Hash(navidromePassword + passwordSaltArt)
 
+    subsonicResponse.albumList?.album?.map {
         it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashArt&s=$passwordSaltArt&v=1.16.1&c=Chora"
     }
 
@@ -62,16 +62,7 @@ suspend fun parseNavidromeAlbumListJSON(
         }
     }?.let { mediaDataAlbums = it }
 
-//    if (subsonicResponse.albumList?.album?.size == 500) {
-//        sendNavidromeGETRequest(
-//            navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-//            navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-//            navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-//            "getAlbumList.view?type=newest&size=500&offset=${albumList.size}&f=json"
-//        )
-//    }
-
-    Log.d("NAVIDROME", "Added albums. Total: ${albumList.size}")
+    Log.d("NAVIDROME", "Added albums. Total: ${mediaDataAlbums.size}")
 
     return mediaDataAlbums
 }

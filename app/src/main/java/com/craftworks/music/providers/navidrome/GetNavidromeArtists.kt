@@ -44,7 +44,6 @@ suspend fun parseNavidromeArtistsXML(
                 children("index"){
                     children("artist"){
 
-                        navidromeSyncInProgress.value = true
                         val artistName = attributes.getValue("name")
                         val artistImage = attributes.getValue("artistImageUrl")
                         val artistID = attributes.getValue("id")

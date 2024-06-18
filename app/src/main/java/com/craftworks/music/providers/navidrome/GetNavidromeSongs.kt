@@ -61,7 +61,7 @@ fun parseNavidromeSongJSON(
         }
 
     //songsList.addAll(subsonicResponse.searchResult3.song)
-    Log.d("NAVIDROME", "Added songs. Total: ${songsList.size}")
+    Log.d("NAVIDROME", "Added songs. Total: ${mediaDataSongs.size}")
 
     return mediaDataSongs
 }

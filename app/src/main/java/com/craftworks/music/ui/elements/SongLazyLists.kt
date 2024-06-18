@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -39,10 +40,13 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
+import com.craftworks.music.data.albumList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
+import com.craftworks.music.providers.navidrome.albumList
+import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.sliderPos
 import kotlinx.coroutines.flow.filter
@@ -155,7 +159,37 @@ fun SongsHorizontalColumn(songList: List<MediaData.Song>, onSongSelected: (song:
 //region Albums
 @ExperimentalFoundationApi
 @Composable
-fun AlbumGrid(albums: List<MediaData.Album>, mediaController: MediaController?, onAlbumSelected: (album: MediaData.Album) -> Unit){
+fun AlbumGrid(
+    albums: List<MediaData.Album>,
+    mediaController: MediaController?,
+    onAlbumSelected: (album: MediaData.Album) -> Unit,
+    isSearch: Boolean? = false,
+    sort: String? = "alphabeticalByName"){
+
+    val gridState = rememberLazyGridState()
+    val coroutineScope = rememberCoroutineScope()
+
+    if (useNavidromeServer.value && isSearch == false) {
+        LaunchedEffect(gridState) {
+            if (albumList.size % 100 != 0) return@LaunchedEffect
+
+            snapshotFlow {
+                val lastVisibleItemIndex = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                val totalItemsCount = gridState.layoutInfo.totalItemsCount
+
+                lastVisibleItemIndex != null && totalItemsCount > 0 &&
+                        (totalItemsCount - lastVisibleItemIndex) <= 10
+            }
+                .filter { it }
+                .collect {
+                    coroutineScope.launch {
+                        val albumOffset = albumList.size
+                        albumList.addAll(getNavidromeAlbums(sort, 100, albumOffset))
+                    }
+                }
+        }
+    }
+
     LazyVerticalGrid(
         columns = GridCells.Adaptive(128.dp),
         modifier = Modifier
@@ -164,7 +198,8 @@ fun AlbumGrid(albums: List<MediaData.Album>, mediaController: MediaController?, 
             .padding(end = 12.dp),
         contentPadding = PaddingValues(
             bottom = bottomSpacerHeightDp()
-        )
+        ),
+        state = gridState
     ) {
         items(albums) {album ->
             AlbumCard(album = album,

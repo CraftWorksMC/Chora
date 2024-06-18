@@ -98,7 +98,6 @@ class SongHelper {
 
             if (isRadio == false){
                 val currentTrackIndex = currentTracklist.indexOfFirst { it.mediaId == url.toString() }
-                currentSong = songsList.sortedBy { it.title }[currentTrackIndex]
 
                 mediaController?.setMediaItems(currentTracklist, currentTrackIndex, 0)
                 mediaController?.seekToDefaultPosition(currentTrackIndex)
@@ -106,8 +105,6 @@ class SongHelper {
                 mediaController?.play()
 
                 println("Index: ${currentTrackIndex}, playlist size: ${mediaController?.mediaItemCount}")
-
-                //getLyrics()
             }
             else {
                 val radioMetadata = MediaMetadata.Builder()

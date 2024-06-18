@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -441,19 +442,16 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
     LaunchedEffect(SyncedLyric, sliderPos) {
         snapshotFlow { sliderPos.intValue.toLong() + 750 }
             .collect { currentPosition ->
-                val newIndex = (SyncedLyric.indexOfFirst { it.timestamp > currentPosition } - 1).coerceAtLeast(0)
+                currentLyricIndex = ((SyncedLyric.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 } ?: SyncedLyric.size) - 1).coerceAtLeast(0)
 
-                println(newIndex)
-
-                if (newIndex in 0..SyncedLyric.size) {
-                    currentLyricIndex = newIndex
+                if (currentLyricIndex in 0..SyncedLyric.size) {
                     SyncedLyric = SyncedLyric.mapIndexed { index, lyric ->
-                        lyric.copy(isCurrentLyric = index == newIndex)
+                        lyric.copy(isCurrentLyric = index == currentLyricIndex)
                     }.toMutableStateList()
                 }
 
-                // Calculate the delay between lyrics.
-                val nextLyricIndex = SyncedLyric.indexOfFirst { it.timestamp > currentPosition }
+                // Calculate the delay between lyrics. If the nextLyricIndex is -1 then it means we've reached the end of the lyrics.
+                val nextLyricIndex = SyncedLyric.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 } ?: SyncedLyric.size
                 val delayMillis = if (nextLyricIndex in 0 until SyncedLyric.size) {
                     (SyncedLyric[nextLyricIndex].timestamp - currentPosition).coerceAtLeast(0)
                 } else {
@@ -468,6 +466,7 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
 
 
     LaunchedEffect(currentLyricIndex) {
+        delay(100)
         state.animateScrollToItem(currentLyricIndex)
     }
 
@@ -485,7 +484,7 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
             .fadingEdge(topBottomFade),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
-        state = state
+        state = state,
     ) {
         item { // For the spacing + loading indicator
             Box(modifier = Modifier.height(if (isLandscape) 32.dp else 60.dp)) {
@@ -504,10 +503,14 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
             itemsIndexed(SyncedLyric) { index, lyric ->
                 val lyricAlpha: Float by animateFloatAsState(
                     if (lyric.isCurrentLyric) 1f else 0.5f,
-                    label = "Current Lyric Alpha"
+                    label = "Current Lyric Alpha",
+                    animationSpec = tween(1000, 0, FastOutSlowInEasing)
                 )
-                //if (lyric.isCurrentLyric) currentLyricIndex = index
-
+                val scale by animateFloatAsState(
+                    targetValue = if (currentLyricIndex == index) 1f else 0.9f,
+                    label = "Lyric Scale Animation",
+                    animationSpec = tween(1000, 0, FastOutSlowInEasing)
+                )
                 Box(
                     modifier = Modifier
                         //.height((dpToSp).dp)
@@ -518,9 +521,8 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
                             currentLyricIndex = index
                         }
                         .graphicsLayer {
-                            val isCurrent = currentLyricIndex == index
-                            scaleX = if (isCurrent) 1f else 0.9f
-                            scaleY = if (isCurrent) 1f else 0.9f
+                            scaleX = scale
+                            scaleY = scale
                         }
                         .animateContentSize(),
                     contentAlignment = Alignment.Center

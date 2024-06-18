@@ -20,9 +20,10 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.net.UnknownHostException
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.net.ssl.HttpsURLConnection
 
-var navidromeSyncInProgress = mutableStateOf(false)
+var navidromeSyncInProgress = AtomicBoolean(false)
 
 @Serializable
 @SerialName("subsonic-response")
@@ -50,9 +51,7 @@ suspend fun sendNavidromeGETRequest(
     val parsedData = mutableListOf<MediaData>()
 
     withContext(Dispatchers.IO) {
-        navidromeSyncInProgress.value = true
-
-
+        navidromeSyncInProgress.set(true)
 
         // Generate a random password salt and MD5 hash.
         val passwordSalt = generateSalt(8)
@@ -84,7 +83,7 @@ suspend fun sendNavidromeGETRequest(
                 if (responseCode != 200){
                     Log.d("NAVIDROME", responseCode.toString())
                     navidromeStatus.value = "HTTP Error $responseCode"
-                    navidromeSyncInProgress.value = false
+                    navidromeSyncInProgress.set(false)
                     return@withContext
                 }
 
@@ -117,15 +116,11 @@ suspend fun sendNavidromeGETRequest(
                 inputStream.close()
             }
         }
-        catch (e: UnknownHostException){
+        catch (e: Exception){
             navidromeStatus.value = "Invalid URL"
             Log.d("NAVIDROME", "Unknown Host.")
         }
-        catch (e: MalformedURLException){
-            navidromeStatus.value = "Invalid URL"
-            Log.d("NAVIDROME", "Malformed URL.")
-        }
-        navidromeSyncInProgress.value = false
+        navidromeSyncInProgress.set(false)
     }
 
     return parsedData

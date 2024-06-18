@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -34,12 +35,14 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +60,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -78,8 +84,10 @@ import com.craftworks.music.ui.elements.SongsRow
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -88,71 +96,41 @@ fun HomeScreen(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null
 ) {
+    val viewModel = remember { HomeScreenViewModel() }
+
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     val context = LocalContext.current
 
-    var recentlyPlayedAlbums by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
-    var recentAlbums by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
-    var mostPlayedAlbums by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
-    var shuffledAlbums by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
-
-    LaunchedEffect(Unit) {
-        println("Getting Home Screen Albums")
-
-        coroutineScope {
-            val recentlyPlayedDeferred  = async { getNavidromeAlbums("recent", 20) }
-            val recentDeferred          = async { getNavidromeAlbums("newest", 20) }
-            val mostPlayedDeferred      = async { getNavidromeAlbums("frequent", 20) }
-            val shuffledDeferred        = async { getNavidromeAlbums("random", 20) }
-
-            // Handle results and potential errors
-            recentlyPlayedAlbums = recentlyPlayedDeferred.await()
-            recentAlbums = recentDeferred.await()
-            mostPlayedAlbums = mostPlayedDeferred.await()
-            shuffledAlbums = shuffledDeferred.await()
-        }
-    }
+    val recentlyPlayedAlbums by viewModel.recentlyPlayedAlbums.collectAsState()
+    val recentAlbums by viewModel.recentAlbums.collectAsState()
+    val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsState()
+    val shuffledAlbums by viewModel.shuffledAlbums.collectAsState()
 
     val state = rememberPullToRefreshState()
+
     if (state.isRefreshing) {
         LaunchedEffect(true) {
             songsList.clear()
-            albumList.clear()
 
             getSongsOnDevice(context)
 
-            delay(100) //Avoids Crashes
+            //delay(100) //Avoids Crashes
 
             if (useNavidromeServer.value){
                 songsList.addAll(getNavidromeSongs())
-                coroutineScope {
-                    val recentlyPlayedDeferred  = async { getNavidromeAlbums("recent", 20) }
-                    val recentDeferred          = async { getNavidromeAlbums("newest", 20) }
-                    val mostPlayedDeferred      = async { getNavidromeAlbums("frequent", 20) }
-                    val shuffledDeferred        = async { getNavidromeAlbums("random", 20) }
-
-                    // Handle results and potential errors
-                    recentlyPlayedAlbums = recentlyPlayedDeferred.await()
-                    recentAlbums = recentDeferred.await()
-                    mostPlayedAlbums = mostPlayedDeferred.await()
-                    shuffledAlbums = shuffledDeferred.await()
-                }
+                viewModel.fetchAlbums()
             }
-
-            //delay(1500)
-
-//            recentlyPlayedSongsList = songsList.sortedByDescending { song: Song -> song.lastPlayed }.take(10)
-//            recentSongsList = songsList.sortedByDescending { song: Song -> song.dateAdded }
-//            mostPlayedList = songsList.sortedByDescending { song: Song -> song.timesPlayed }
-//            shuffledSongsList = songsList.take(10).shuffled()
 
             state.endRefresh()
         }
     }
 
 
-    Box(Modifier.nestedScroll(state.nestedScrollConnection)) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .nestedScroll(state.nestedScrollConnection)) {
         Column(modifier = Modifier
             .padding(start = leftPadding)
             .fillMaxWidth()
@@ -391,3 +369,40 @@ fun HomeScreen(
 }
 
 
+class HomeScreenViewModel : ViewModel() {
+    private val _recentlyPlayedAlbums = MutableStateFlow<List<MediaData.Album>>(emptyList())
+    val recentlyPlayedAlbums: StateFlow<List<MediaData.Album>> = _recentlyPlayedAlbums.asStateFlow()
+
+    private val _recentAlbums = MutableStateFlow<List<MediaData.Album>>(emptyList())
+    val recentAlbums: StateFlow<List<MediaData.Album>> = _recentAlbums.asStateFlow()
+
+    private val _mostPlayedAlbums = MutableStateFlow<List<MediaData.Album>>(emptyList())
+    val mostPlayedAlbums: StateFlow<List<MediaData.Album>> = _mostPlayedAlbums.asStateFlow()
+
+    private val _shuffledAlbums = MutableStateFlow<List<MediaData.Album>>(emptyList())
+    val shuffledAlbums: StateFlow<List<MediaData.Album>> = _shuffledAlbums.asStateFlow()
+
+
+    init {
+        fetchAlbums()
+    }
+
+    fun fetchAlbums() {
+        if (!useNavidromeServer.value) return
+
+        viewModelScope.launch {
+            coroutineScope {
+                val recentlyPlayedDeferred  = async { getNavidromeAlbums("recent", 20) }
+                val recentDeferred          = async { getNavidromeAlbums("newest", 20) }
+                val mostPlayedDeferred      = async { getNavidromeAlbums("frequent", 20) }
+                val shuffledDeferred        = async { getNavidromeAlbums("random", 20) }
+
+                // Handle results and potential errors
+                _recentlyPlayedAlbums.value = recentlyPlayedDeferred.await()
+                _recentAlbums.value = recentDeferred.await()
+                _mostPlayedAlbums.value = mostPlayedDeferred.await()
+                _shuffledAlbums.value = shuffledDeferred.await()
+            }
+        }
+    }
+}

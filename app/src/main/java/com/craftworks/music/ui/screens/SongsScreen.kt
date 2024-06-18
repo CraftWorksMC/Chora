@@ -76,8 +76,15 @@ fun SongsScreen(
 
     var allSongsList by remember { mutableStateOf<List<MediaData.Song>>(emptyList()) }
 
-    if (allSongsList.isEmpty())
+    if (songsList.isEmpty()){
+        LaunchedEffect(Unit) {
+            songsList.addAll(getNavidromeSongs())
+            allSongsList = songsList
+        }
+    }
+    else {
         allSongsList = songsList
+    }
 
     val coroutineScope = rememberCoroutineScope()
 

@@ -32,10 +32,10 @@ fun HorizontalLineWithNavidromeCheck(){
     val showSync = remember { mutableStateOf(false) }
     val errorStatus = remember { mutableStateOf("") }
 
-    LaunchedEffect(navidromeStatus, useNavidromeServer, navidromeSyncInProgress) {
+    LaunchedEffect(navidromeStatus.value, useNavidromeServer.value, navidromeSyncInProgress.get()) {
         showError.value = useNavidromeServer.value && (navidromeStatus.value != "ok" && navidromeStatus.value != "")
         errorStatus.value =  navidromeStatus.value
-        showSync.value = navidromeSyncInProgress.value
+        showSync.value = navidromeSyncInProgress.get()
     }
 
     HorizontalDivider(
@@ -79,7 +79,7 @@ fun HorizontalLineWithNavidromeCheck(){
         .background(MaterialTheme.colorScheme.primaryContainer) // Catppuccin Macchiato Yellow.
         .heightIn(
             max =
-            if (navidromeSyncInProgress.value)
+            if (navidromeSyncInProgress.get())
                 128.dp
             else
                 0.dp

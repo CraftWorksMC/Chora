@@ -57,6 +57,8 @@ import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,26 +69,32 @@ fun AlbumScreen(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null
 ) {
-
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val context = LocalContext.current
 
     var isSearchFieldOpen by remember { mutableStateOf(false) }
     var searchFilter by remember { mutableStateOf("") }
 
-    var sortedAlbumList = albumList.sortedBy { it.name }.toMutableList()
+    var sortedAlbumList = albumList
 
     val state = rememberPullToRefreshState()
+
+    if (albumList.isEmpty())
+        state.startRefresh()
+
     if (state.isRefreshing) {
         LaunchedEffect(true) {
             albumList.clear()
+
             if (useNavidromeServer.value){
-                albumList.addAll(getNavidromeAlbums())
+                coroutineScope {
+                    val albumListDeferred = async { getNavidromeAlbums() }
+                    albumList = albumListDeferred.await().toMutableList()
+                }
             }
             else{
                 getSongsOnDevice(context)
             }
-            delay(1500)
             state.endRefresh()
         }
     }
@@ -153,10 +161,10 @@ fun AlbumScreen(
                 }
             }
 
-            if (searchFilter.isNotBlank()){
-                sortedAlbumList = sortedAlbumList.filter { it.name!!.contains(searchFilter, true)  ||
-                        it.artist.contains(searchFilter, true) }.toMutableList()
-            }
+//            if (searchFilter.isNotBlank()){
+//                sortedAlbumList = sortedAlbumList.filter { it.name!!.contains(searchFilter, true)  ||
+//                        it.artist.contains(searchFilter, true) }.toMutableList()
+//            }
 
             AlbumGrid(sortedAlbumList, mediaController, onAlbumSelected = { album ->
                 navHostController.navigate(Screen.AlbumDetails.route) {

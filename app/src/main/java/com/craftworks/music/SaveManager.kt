@@ -130,8 +130,8 @@ class saveManager(private val context: Context){
                     navidromeServersList[selectedNavidromeServerIndex.intValue].username,
                     navidromeServersList[selectedNavidromeServerIndex.intValue].password,
                 ) }
-                launch { songsList.addAll(getNavidromeSongs()) }
-                launch { albumList.addAll(getNavidromeAlbums()) }
+                //launch { songsList.addAll(getNavidromeSongs()) }
+                //launch { albumList.addAll(getNavidromeAlbums()) }
                 launch { getNavidromePlaylists() }
                 launch { getNavidromeRadios() }
                 launch { getNavidromeArtists() }
