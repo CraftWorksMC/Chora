@@ -1,10 +1,7 @@
 package com.craftworks.music.providers.navidrome
 
-import android.net.Uri
 import android.util.Log
-import com.craftworks.music.data.Artist
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedArtist
@@ -33,15 +30,25 @@ suspend fun getNavidromeArtists() : List<MediaData.Artist>{
     ).filterIsInstance<MediaData.Artist>()
 }
 
-suspend fun getNavidromeArtistDetails(id: String){
-    sendNavidromeGETRequest(
+suspend fun getNavidromeArtistDetails(id: String): MediaData.Artist {
+    return sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,
         navidromeServersList[selectedNavidromeServerIndex.intValue].username,
         navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "getArtistInfo.view?id=$id"
-    )
+        "getArtist.view?id=$id&f=json"
+    ).filterIsInstance<MediaData.Artist>()[0] //Use index 0 because sendNavidromeGETRequest only returns a list.
 }
 
+suspend fun getNavidromeArtistBiography(id: String): MediaData.Artist {
+    return sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "getArtistInfo.view?id=$id&f=json"
+    ).filterIsInstance<MediaData.Artist>()[0] //Use index 0 because sendNavidromeGETRequest only returns a list.
+}
+
+/*
 suspend fun parseNavidromeArtistsXML(
     response: String,
     navidromeUrl: String,
@@ -99,6 +106,7 @@ suspend fun parseNavidromeArtistsXML(
 
     Log.d("NAVIDROME", "Added artists! Total: ${artistList.size}")
 }
+*/
 
 fun parseNavidromeArtistsJSON(
     response: String
@@ -112,7 +120,7 @@ fun parseNavidromeArtistsJSON(
 
     subsonicResponse.artists?.index?.forEach { index ->
         index.artist?.filterNot { newArtist ->
-            println(newArtist)
+            //println(newArtist)
             artistList.any { existingArtist ->
                 existingArtist.navidromeID == newArtist.navidromeID
             }
@@ -145,4 +153,52 @@ fun parseNavidromeArtistXML(
             }
         }
     }
+}
+
+fun parseNavidromeArtistAlbumsJSON(
+    response: String,
+    navidromeUrl: String,
+    navidromeUsername: String,
+    navidromePassword: String
+) : MediaData.Artist {
+    val jsonParser = Json { ignoreUnknownKeys = true }
+    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
+        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
+    )
+
+    val mediaDataArtist = selectedArtist
+
+    // Generate password salt and hash for album coverArt
+    val passwordSaltArt = generateSalt(8)
+    val passwordHashArt = md5Hash(navidromePassword + passwordSaltArt)
+
+    subsonicResponse.artist?.album?.map {
+        it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashArt&s=$passwordSaltArt&v=1.16.1&c=Chora"
+    }
+
+    mediaDataArtist.starred = subsonicResponse.artist?.starred
+    mediaDataArtist.album = subsonicResponse.artist?.album
+
+    Log.d("NAVIDROME", "Added Metadata to ${mediaDataArtist.name}")
+
+    return mediaDataArtist
+}
+
+fun parseNavidromeArtistBiographyJSON(
+    response: String
+) : MediaData.Artist {
+    val jsonParser = Json { ignoreUnknownKeys = true }
+    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
+        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
+    )
+
+    val mediaDataArtist = selectedArtist
+
+    mediaDataArtist.description = subsonicResponse.artistInfo?.biography.toString()
+    mediaDataArtist.musicBrainzId = subsonicResponse.artistInfo?.musicBrainzId
+    mediaDataArtist.similarArtist = subsonicResponse.artistInfo?.similarArtist
+
+    Log.d("NAVIDROME", "Added Metadata to ${mediaDataArtist.name}")
+
+    return mediaDataArtist
 }

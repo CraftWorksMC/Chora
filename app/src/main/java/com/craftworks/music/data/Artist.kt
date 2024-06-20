@@ -15,12 +15,12 @@ data class Artist (
     val similarArtistsID: String = ""
 )
 
-var artistList = mutableStateListOf<MediaData.Artist>()
+var artistList: MutableList<MediaData.Artist> = mutableStateListOf()
 
 var selectedArtist by mutableStateOf<MediaData.Artist>(
     MediaData.Artist(
         name = "My Favourite Artist",
-        coverArt = "",
+        artistImageUrl = "",
         navidromeID = "Local"
     )
 )

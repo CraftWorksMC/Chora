@@ -53,7 +53,7 @@ fun ArtistCard(artist: MediaData.Artist, onClick: () -> Unit){
         ) {
             Box (modifier = Modifier.aspectRatio(1f).weight(1f)){
                 AsyncImage(
-                    model = if (Uri.parse(artist.coverArt) != Uri.EMPTY) Uri.parse(artist.coverArt)  else null,
+                    model = if (artist.artistImageUrl != "") Uri.parse(artist.artistImageUrl)  else null,
                     placeholder = painterResource(R.drawable.rounded_artist_24),
                     fallback = painterResource(R.drawable.rounded_artist_24),
                     contentScale = ContentScale.Crop,

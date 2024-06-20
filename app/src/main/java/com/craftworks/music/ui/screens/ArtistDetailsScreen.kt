@@ -56,16 +56,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.songsList
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.navidrome.getNavidromeArtistBiography
 import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.AlbumRow
@@ -77,19 +80,21 @@ import com.craftworks.music.ui.elements.HorizontalSongCard
 @Composable
 fun ArtistDetails(
     navHostController: NavHostController = rememberNavController(),
-    mediaController: MediaController? = null
+    mediaController: MediaController? = null,
+    viewModel: ArtistsScreenViewModel = viewModel()
 ) {
-
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
-    LaunchedEffect(selectedArtist) {
-        getNavidromeArtistDetails(selectedArtist.navidromeID)
+    LaunchedEffect(viewModel.selectedArtist) {
+        viewModel.fetchArtistDetails(selectedArtist.navidromeID)
     }
 
     val artistSongs = songsList.filter { it.artist.contains(selectedArtist.name) }
-    val artistAlbums = albumList.filter { it.artist.contains(selectedArtist.name) }
-        .sortedByDescending { album -> album.year }
+//    val artistAlbums = albumList.filter { it.artist.contains(selectedArtist.name) }
+//        .sortedByDescending { album -> album.year }
+
+    val artistAlbums = viewModel.selectedArtist.value?.album ?: emptyList()
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -108,7 +113,7 @@ fun ArtistDetails(
             .fillMaxWidth()) {
             //Image and Name
             AsyncImage(
-                model = selectedArtist.coverArt,
+                model = selectedArtist.artistImageUrl,
                 placeholder = painterResource(R.drawable.s_a_username),
                 fallback = painterResource(R.drawable.s_a_username),
                 contentScale = ContentScale.FillWidth,
@@ -116,10 +121,12 @@ fun ArtistDetails(
                 modifier = Modifier
                     .fillMaxWidth()
                     //.fadingEdge(imageFadingEdge)
-                    .clip(if (selectedArtist.description != "")
+                    .clip(
+                        if (selectedArtist.description != "")
                             RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp)
                         else
-                            RoundedCornerShape(12.dp))
+                            RoundedCornerShape(12.dp)
+                    )
                     .blur(12.dp)
             )
             Button(
@@ -146,7 +153,7 @@ fun ArtistDetails(
             // Album Name and Artist
             Column(modifier = Modifier.align(Alignment.BottomCenter)){
                 Text(
-                    text = selectedArtist.name,
+                    text = viewModel.selectedArtist.value?.name.toString(),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
@@ -162,7 +169,7 @@ fun ArtistDetails(
         Box(modifier = Modifier
             .padding(horizontal = 12.dp)
             .fillMaxWidth()
-            .heightIn(min = if (selectedArtist.description.isBlank()) 0.dp else 32.dp)
+            .heightIn(min = if (viewModel.selectedArtist.value?.description.isNullOrBlank()) 0.dp else 32.dp)
             .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .animateContentSize()
@@ -171,7 +178,7 @@ fun ArtistDetails(
             }){
             if (selectedArtist.description.isNotBlank()){
                 Text(
-                    text = selectedArtist.description,
+                    text = viewModel.selectedArtist.value?.description.toString(),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Light,
                     fontSize = MaterialTheme.typography.bodyLarge.fontSize,

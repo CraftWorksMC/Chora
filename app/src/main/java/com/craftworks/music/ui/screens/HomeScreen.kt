@@ -75,6 +75,7 @@ import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
@@ -108,6 +109,8 @@ fun HomeScreen(
     val shuffledAlbums by viewModel.shuffledAlbums.collectAsState()
 
     val state = rememberPullToRefreshState()
+
+    println("Recomposing Whole HomeScreen.")
 
     if (state.isRefreshing) {
         LaunchedEffect(true) {
@@ -148,42 +151,8 @@ fun HomeScreen(
             ) {
                 /* GREETING */
                 Box(Modifier.weight(1f)) {
-                    if (useNavidromeServer.value && showNavidromeLogo.value){
-                        var rotation by remember { mutableFloatStateOf(-10f) }
-                        val animatedRotation by animateFloatAsState(
-                            targetValue = rotation,
-                            animationSpec = tween(durationMillis = 1000),
-                            label = "Navidrome Logo Rotate"
-                        )
-
-                        Image(
-                            painter = painterResource(R.drawable.s_m_navidrome),
-                            contentDescription = "Navidrome Icon",
-                            modifier = Modifier
-                                .size(72.dp)
-                                .offset(x = (-36).dp, y = 0.dp)
-                                .shadow(24.dp, CircleShape)
-                                .graphicsLayer(
-                                    rotationZ = animatedRotation
-                                )
-                                .clickable {
-                                    rotation += 360f
-                                }
-                        )
-                    }
-                    Text(
-                        text = "${stringResource(R.string.welcome_text)},\n${username.value}",
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                        modifier = Modifier
-                            .padding(start =
-                            if (useNavidromeServer.value && showNavidromeLogo.value)
-                                42.dp
-                            else
-                                12.dp),
-                        lineHeight = 32.sp
-                    )
+                    NavidromeLogo()
+                    WelcomeText()
                 }
                 Box(Modifier.padding(end = 12.dp)) {
                     Button(
@@ -211,151 +180,14 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            /* RECENTLY PLAYED */
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(256.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.recently_played) + ":",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
 
-                if (homeScreenUseAlbums.value){
-                    /* ALBUMS ROW */
-                    //val recentlyPlayedAlbums = albumList.sortedByDescending { it.played }.take(20)
-
-                    AlbumRow(albums = recentlyPlayedAlbums, mediaController = mediaController) { album ->
-                        navHostController.navigate(Screen.AlbumDetails.route) {
-                            launchSingleTop = true
-                        }
-                        selectedAlbum = album
-                    }
-                }
-                else {
-                    /* SONGS ROW */
-                    val recentlyPlayedSongsList = songsList.sortedByDescending { song: MediaData.Song -> song.lastPlayed }.take(20)
-                    SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
-                        //SongHelper.currentSong = song
-                        SongHelper.currentList = recentlyPlayedSongsList
-                        song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
-                    })
-                }
-            }
-
-            /* RECENTLY ADDED SONGS */
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(256.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.recently_added) + ":",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
-
-                if (homeScreenUseAlbums.value){
-                    /* ALBUMS ROW */
-                    //val recentlyAddedAlbums = albumList.sortedByDescending { it.created }.take(20)
-                    AlbumRow(albums = recentAlbums, mediaController = mediaController) { album ->
-                        navHostController.navigate(Screen.AlbumDetails.route) {
-                            launchSingleTop = true
-                        }
-                        selectedAlbum = album
-                    }
-                }
-                else {
-                    /* SONGS ROW */
-                    val recentSongsList = songsList.sortedByDescending { song: MediaData.Song -> song.dateAdded }.take(20)
-                    SongsRow(songsList = recentSongsList, onSongSelected = { song ->
-                        //SongHelper.currentSong = song
-                        SongHelper.currentList = recentSongsList
-                        //songState = true
-                        song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
-                    })
-                }
-            }
-
-            /* MOST PLAYED SONGS */
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(256.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.most_played) + ":",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
-                if (homeScreenUseAlbums.value){
-                    /* ALBUMS ROW */
-                    //val mostPlayedAlbums = albumList.sortedByDescending { it.playCount }.take(20)
-                    AlbumRow(albums = mostPlayedAlbums, mediaController = mediaController) { album ->
-                        navHostController.navigate(Screen.AlbumDetails.route) {
-                            launchSingleTop = true
-                        }
-                        selectedAlbum = album
-                    }
-                }
-                else{
-                    /* SONGS ROW */
-                    val mostPlayedList = songsList.sortedByDescending { song: MediaData.Song -> song.timesPlayed }.take(20)
-                    SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
-                        //SongHelper.currentSong = song
-                        SongHelper.currentList = mostPlayedList
-                        song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
-                    })
-                }
-
-            }
+            RecentlyPlayed(mediaController, navHostController, viewModel)
+            RecentlyAdded(mediaController, navHostController, viewModel)
+            MostPlayed(mediaController, navHostController, viewModel)
+            Shuffled(mediaController, navHostController, viewModel)
 
             /* EXPLORE FROM YOUR LIBRARY */
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(256.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.random_songs) + ":",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
-                if (homeScreenUseAlbums.value){
-                    /* ALBUMS ROW */
-//                    val shuffledAlbumsList = remember {
-//                        derivedStateOf { albumList.shuffled().take(20) }
-//                    }
-                    AlbumRow(albums = shuffledAlbums, mediaController = mediaController) { album ->
-                        navHostController.navigate(Screen.AlbumDetails.route) {
-                            launchSingleTop = true
-                        }
-                        selectedAlbum = album
-                    }
-                }
-                else{
-                    /* SONGS ROW */
-                    val shuffledSongsList = remember {
-                        derivedStateOf { songsList.shuffled().take(20) }
-                    }
-                    SongsRow(songsList = shuffledSongsList.value, onSongSelected = { song ->
-                        //SongHelper.currentSong = song
-                        SongHelper.currentList = shuffledSongsList.value
-                        //songState = true
-                        song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
-                    })
-                }
-            }
+
 
             BottomSpacer()
         }
@@ -365,6 +197,218 @@ fun HomeScreen(
         )
     }
 
+}
+
+@Composable fun NavidromeLogo(){
+    if (useNavidromeServer.value && showNavidromeLogo.value){
+        var rotation by remember { mutableFloatStateOf(-10f) }
+        val animatedRotation by animateFloatAsState(
+            targetValue = rotation,
+            animationSpec = tween(durationMillis = 1000),
+            label = "Navidrome Logo Rotate"
+        )
+
+        Image(
+            painter = painterResource(R.drawable.s_m_navidrome),
+            contentDescription = "Navidrome Icon",
+            modifier = Modifier
+                .size(72.dp)
+                .offset(x = (-36).dp, y = 0.dp)
+                .shadow(24.dp, CircleShape)
+                .graphicsLayer(
+                    rotationZ = animatedRotation
+                )
+                .clickable {
+                    rotation += 360f
+                }
+        )
+    }
+}
+
+@Composable fun WelcomeText(){
+    Text(
+        text = "${stringResource(R.string.welcome_text)},\n${username.value}",
+        color = MaterialTheme.colorScheme.onBackground,
+        fontWeight = FontWeight.Bold,
+        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+        modifier = Modifier
+            .padding(start =
+            if (useNavidromeServer.value && showNavidromeLogo.value)
+                42.dp
+            else
+                12.dp),
+        lineHeight = 32.sp
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable fun RecentlyPlayed(
+    mediaController: MediaController?,
+    navHostController: NavHostController,
+    viewModel: HomeScreenViewModel
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(256.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.recently_played) + ":",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+            modifier = Modifier.padding(start = 12.dp)
+        )
+
+        if (homeScreenUseAlbums.value){
+            /* ALBUMS ROW */
+            //val recentlyPlayedAlbums = albumList.sortedByDescending { it.played }.take(20)
+
+            AlbumRow(albums = viewModel.recentlyPlayedAlbums.collectAsState().value, mediaController = mediaController) { album ->
+                navHostController.navigate(Screen.AlbumDetails.route) {
+                    launchSingleTop = true
+                }
+                selectedAlbum = album
+            }
+        }
+        else {
+            /* SONGS ROW */
+            val recentlyPlayedSongsList = songsList.sortedByDescending { song: MediaData.Song -> song.lastPlayed }.take(20)
+            SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
+                //SongHelper.currentSong = song
+                SongHelper.currentList = recentlyPlayedSongsList
+                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
+            })
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable fun RecentlyAdded(
+    mediaController: MediaController?,
+    navHostController: NavHostController,
+    viewModel: HomeScreenViewModel
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(256.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.recently_added) + ":",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+            modifier = Modifier.padding(start = 12.dp)
+        )
+
+        if (homeScreenUseAlbums.value){
+            /* ALBUMS ROW */
+            //val recentlyAddedAlbums = albumList.sortedByDescending { it.created }.take(20)
+            AlbumRow(albums = viewModel.recentAlbums.collectAsState().value, mediaController = mediaController) { album ->
+                navHostController.navigate(Screen.AlbumDetails.route) {
+                    launchSingleTop = true
+                }
+                selectedAlbum = album
+            }
+        }
+        else {
+            /* SONGS ROW */
+            val recentSongsList = songsList.sortedByDescending { song: MediaData.Song -> song.dateAdded }.take(20)
+            SongsRow(songsList = recentSongsList, onSongSelected = { song ->
+                //SongHelper.currentSong = song
+                SongHelper.currentList = recentSongsList
+                //songState = true
+                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
+            })
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable fun MostPlayed(
+    mediaController: MediaController?,
+    navHostController: NavHostController,
+    viewModel: HomeScreenViewModel
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(256.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.most_played) + ":",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+            modifier = Modifier.padding(start = 12.dp)
+        )
+        if (homeScreenUseAlbums.value){
+            /* ALBUMS ROW */
+            //val mostPlayedAlbums = albumList.sortedByDescending { it.playCount }.take(20)
+            AlbumRow(albums = viewModel.mostPlayedAlbums.collectAsState().value, mediaController = mediaController) { album ->
+                navHostController.navigate(Screen.AlbumDetails.route) {
+                    launchSingleTop = true
+                }
+                selectedAlbum = album
+            }
+        }
+        else{
+            /* SONGS ROW */
+            val mostPlayedList = songsList.sortedByDescending { song: MediaData.Song -> song.timesPlayed }.take(20)
+            SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
+                //SongHelper.currentSong = song
+                SongHelper.currentList = mostPlayedList
+                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
+            })
+        }
+
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable fun Shuffled(
+    mediaController: MediaController?,
+    navHostController: NavHostController,
+    viewModel: HomeScreenViewModel
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(256.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.random_songs) + ":",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+            modifier = Modifier.padding(start = 12.dp)
+        )
+        if (homeScreenUseAlbums.value){
+            /* ALBUMS ROW */
+//                    val shuffledAlbumsList = remember {
+//                        derivedStateOf { albumList.shuffled().take(20) }
+//                    }
+            AlbumRow(albums = viewModel.shuffledAlbums.collectAsState().value, mediaController = mediaController) { album ->
+                navHostController.navigate(Screen.AlbumDetails.route) {
+                    launchSingleTop = true
+                }
+                selectedAlbum = album
+            }
+        }
+        else{
+            /* SONGS ROW */
+            val shuffledSongsList = remember {
+                derivedStateOf { songsList.shuffled().take(20) }
+            }
+            SongsRow(songsList = shuffledSongsList.value, onSongSelected = { song ->
+                //SongHelper.currentSong = song
+                SongHelper.currentList = shuffledSongsList.value
+                //songState = true
+                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
+            })
+        }
+    }
 }
 
 

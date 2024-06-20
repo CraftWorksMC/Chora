@@ -60,7 +60,7 @@ fun SongsRow(songsList: List<MediaData.Song>, onSongSelected: (song: MediaData.S
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(end = 12.dp)
     ) {
-        items(songsList) {song ->
+        items(songsList, key = { it.navidromeID }) {song ->
             //region Make mediaItem from Song
             val mediaMetadata = MediaMetadata.Builder()
                 .setIsPlayable(true)
@@ -239,7 +239,7 @@ fun ArtistsGrid(artists: List<MediaData.Artist>,
                 navHostController: NavHostController = rememberNavController(),
                 onArtistSelected: (artist: MediaData.Artist) -> Unit){
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+        columns = GridCells.Adaptive(128.dp),
         modifier = Modifier
             .wrapContentWidth()
             .fillMaxHeight(),

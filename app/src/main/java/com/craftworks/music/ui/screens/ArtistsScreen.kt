@@ -29,6 +29,8 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,24 +49,40 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.getNavidromeAlbums
+import com.craftworks.music.providers.navidrome.getNavidromeArtistBiography
+import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromeArtists
 import com.craftworks.music.ui.elements.ArtistsGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = false)
 @Composable
-fun ArtistsScreen(navHostController: NavHostController = rememberNavController()) {
+fun ArtistsScreen(
+    navHostController: NavHostController = rememberNavController(),
+    viewModel: ArtistsScreenViewModel = viewModel()
+) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     var isSearchFieldOpen by remember { mutableStateOf(false) }
@@ -73,8 +91,7 @@ fun ArtistsScreen(navHostController: NavHostController = rememberNavController()
     val context = LocalContext.current
     val state = rememberPullToRefreshState()
 
-//    if (artistList.isEmpty())
-//        state.startRefresh()
+    val allArtistList by viewModel.allArtists.collectAsState()
 
     if (state.isRefreshing) {
         LaunchedEffect(true) {
@@ -82,7 +99,7 @@ fun ArtistsScreen(navHostController: NavHostController = rememberNavController()
             artistList.clear()
 
             if (useNavidromeServer.value){
-                artistList.addAll(getNavidromeArtists())
+                viewModel.fetchArtists()
             }
             else{
                 getSongsOnDevice(context)
@@ -155,13 +172,13 @@ fun ArtistsScreen(navHostController: NavHostController = rememberNavController()
                 }
             }
 
-            var sortedArtistList = artistList.sortedBy { it.name }.toMutableList()
+            var sortedArtistList = allArtistList.sortedBy { it.name }.toMutableList()
 
-            if (searchFilter.isNotBlank()){
-                sortedArtistList = sortedArtistList.filter { it.name.contains(searchFilter, true) }.toMutableList()
-            }
+//            if (searchFilter.isNotBlank()){
+//                sortedArtistList = sortedArtistList.filter { it.name.contains(searchFilter, true) }.toMutableList()
+//            }
 
-            ArtistsGrid(artistList, onArtistSelected = { artist ->
+            ArtistsGrid(sortedArtistList, onArtistSelected = { artist ->
                 selectedArtist = artist
                 navHostController.navigate(Screen.AristDetails.route) {
                     launchSingleTop = true
@@ -173,5 +190,42 @@ fun ArtistsScreen(navHostController: NavHostController = rememberNavController()
             modifier = Modifier.align(Alignment.TopCenter),
             state = state,
         )
+    }
+}
+
+class ArtistsScreenViewModel : ViewModel() {
+    private val _allArtists = MutableStateFlow<List<MediaData.Artist>>(emptyList())
+    val allArtists: StateFlow<List<MediaData.Artist>> = _allArtists.asStateFlow()
+
+    private val _selectedArtist = mutableStateOf<MediaData.Artist?>(null)
+    val selectedArtist: State<MediaData.Artist?> = _selectedArtist
+
+    init {
+        fetchArtists()
+    }
+
+    fun fetchArtists() {
+        if (!useNavidromeServer.value) return
+
+        viewModelScope.launch {
+            coroutineScope {
+                val allArtistsDeferred  = async { getNavidromeArtists() }
+
+                _allArtists.value = allArtistsDeferred.await()
+            }
+        }
+    }
+
+    fun fetchArtistDetails(artistId : String){
+        viewModelScope.launch {
+            _selectedArtist.value = getNavidromeArtistDetails(artistId)
+            val biography = getNavidromeArtistBiography(artistId)
+            _selectedArtist.value = _selectedArtist.value?.copy(
+                description = biography.description,
+                similarArtist = biography.similarArtist
+            )
+
+            com.craftworks.music.data.selectedArtist = _selectedArtist.value!!
+        }
     }
 }

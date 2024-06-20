@@ -85,12 +85,22 @@ sealed class MediaData {
         @SerialName("id")
         var navidromeID : String,
         val name : String,
-        val coverArt : String? = "",
-//        val artistImageUrl : String? = "",
+        //val coverArt : String? = "",
+        val artistImageUrl : String? = "",
         val albumCount : Int? = 0,
-        var description : String = ""
-//        val starred : String? = "",
-//        val musicBrainzId: String? = "",
+        var description : String = "",
+        var starred : String? = "",
+        var musicBrainzId : String? = "",
 //        val sortName: String? = "",
+        var similarArtist : List<Artist>? = null,
+        var album : List<Album>? = null
     ) : MediaData()
+
+    @Serializable
+    data class ArtistInfo(
+        val biography : String? = "",
+        val musicBrainzId : String? = "",
+        val lastFmUrl : String? = "",
+        val similarArtist : List<Artist>? = null
+    )
 }

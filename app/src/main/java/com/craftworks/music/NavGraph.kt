@@ -25,6 +25,7 @@ import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
 import com.craftworks.music.ui.screens.ArtistDetails
 import com.craftworks.music.ui.screens.ArtistsScreen
+import com.craftworks.music.ui.screens.ArtistsScreenViewModel
 import com.craftworks.music.ui.screens.HomeScreen
 import com.craftworks.music.ui.screens.HomeScreenViewModel
 import com.craftworks.music.ui.screens.PlaylistDetails
@@ -44,6 +45,8 @@ fun SetupNavGraph(
     mediaController: MediaController?
 ){
     val homeViewModel = remember { HomeScreenViewModel() }
+
+    val artistsViewModel = remember { ArtistsScreenViewModel() }
 
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
@@ -79,10 +82,10 @@ fun SetupNavGraph(
         }
         //Artist
         composable(route = Screen.Artists.route) {
-            ArtistsScreen(navController)
+            ArtistsScreen(navController, artistsViewModel)
         }
         composable(route = Screen.AristDetails.route) {
-            ArtistDetails(navController, mediaController)
+            ArtistDetails(navController, mediaController, artistsViewModel)
         }
 
         //Playlists

@@ -13,7 +13,6 @@ import com.craftworks.music.providers.navidrome.navidromeSyncInProgress
 import com.craftworks.music.providers.navidrome.parseNavidromeAlbumListJSON
 import com.craftworks.music.providers.navidrome.parseNavidromeAlbumSongsJSON
 import com.craftworks.music.providers.navidrome.parseNavidromeArtistXML
-import com.craftworks.music.providers.navidrome.parseNavidromeArtistsXML
 import com.craftworks.music.providers.navidrome.parseNavidromePlaylistXML
 import com.craftworks.music.providers.navidrome.parseNavidromePlaylistsXML
 import com.craftworks.music.providers.navidrome.parseNavidromeRadioXML

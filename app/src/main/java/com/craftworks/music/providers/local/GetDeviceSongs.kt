@@ -117,7 +117,7 @@ fun getSongsOnDevice(context: Context){
                 // Add artists to ArtistList
                 val artist = MediaData.Artist(
                     name = thisArtist,
-                    coverArt = "",
+                    artistImageUrl = "",
                     navidromeID = "Local"
                 )
                 synchronized(artistList){

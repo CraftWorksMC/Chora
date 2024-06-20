@@ -67,7 +67,7 @@ class saveManager(private val context: Context){
 
         // Save Artists List
         val artistsListString = artistList.joinToString(";") {
-            "${it.name}|${it.coverArt}|${it.navidromeID}" }
+            "${it.name}|${it.artistImageUrl}|${it.navidromeID}" }
         sharedPreferences.edit().putString("artistsList", artistsListString).apply()
 
         saveLocalRadios()
@@ -134,7 +134,7 @@ class saveManager(private val context: Context){
                 //launch { albumList.addAll(getNavidromeAlbums()) }
                 launch { getNavidromePlaylists() }
                 launch { getNavidromeRadios() }
-                launch { artistList.addAll(getNavidromeArtists()) }
+                //launch { artistList.addAll(getNavidromeArtists()) }
             }
 
             if (localProviderList.isNotEmpty()) {
