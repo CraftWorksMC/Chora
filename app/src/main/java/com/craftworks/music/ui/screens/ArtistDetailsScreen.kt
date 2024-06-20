@@ -290,7 +290,7 @@ fun ArtistDetails(
     }
 
     // Show loading indicator while loading
-    AnimatedVisibility(artist != selectedArtist, exit = fadeOut()) {
+    AnimatedVisibility(artist?.name != selectedArtist.name, exit = fadeOut()) {
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
                 modifier = Modifier

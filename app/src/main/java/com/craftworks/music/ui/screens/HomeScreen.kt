@@ -1,11 +1,11 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,18 +31,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +43,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -58,6 +50,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -69,23 +62,13 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.albumList
-import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
-import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
-import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
-import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.ui.dpToPx
 import com.craftworks.music.ui.elements.AlbumRow
-import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
-import com.craftworks.music.ui.elements.SongsRow
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -108,31 +91,31 @@ fun HomeScreen(
     val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsState()
     val shuffledAlbums by viewModel.shuffledAlbums.collectAsState()
 
-    val state = rememberPullToRefreshState()
+    //val state = rememberPullToRefreshState()
 
-    println("Recomposing Whole HomeScreen.")
-
-    if (state.isRefreshing) {
-        LaunchedEffect(true) {
-            //songsList.clear()
-
-            getSongsOnDevice(context)
-
-            //delay(100) //Avoids Crashes
-
-            if (useNavidromeServer.value){
-                //songsList.addAll(getNavidromeSongs())
-                viewModel.fetchAlbums()
-            }
-
-            state.endRefresh()
-        }
-    }
+//    if (state.isRefreshing) {
+//        LaunchedEffect(true) {
+//            //songsList.clear()
+//
+//            getSongsOnDevice(context)
+//
+//            //delay(100) //Avoids Crashes
+//
+//            if (useNavidromeServer.value){
+//                //songsList.addAll(getNavidromeSongs())
+//                viewModel.fetchAlbums()
+//            }
+//
+//            state.endRefresh()
+//        }
+//    }
 
     Box(
         Modifier
             .fillMaxSize()
-            .nestedScroll(state.nestedScrollConnection)) {
+            .background(MaterialTheme.colorScheme.background)
+            //.nestedScroll(state.nestedScrollConnection)
+    ) {
         Column(modifier = Modifier
             .padding(start = leftPadding)
             .fillMaxWidth()
@@ -181,20 +164,20 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
 
-            RecentlyPlayed(mediaController, navHostController, viewModel)
-            RecentlyAdded(mediaController, navHostController, viewModel)
-            MostPlayed(mediaController, navHostController, viewModel)
-            Shuffled(mediaController, navHostController, viewModel)
+            RecentlyPlayed(mediaController, navHostController, recentlyPlayedAlbums)
+            RecentlyAdded(mediaController, navHostController, recentAlbums)
+            MostPlayed(mediaController, navHostController, mostPlayedAlbums)
+            Shuffled(mediaController, navHostController, shuffledAlbums)
 
             /* EXPLORE FROM YOUR LIBRARY */
 
 
-            BottomSpacer()
+            //BottomSpacer()
         }
-        PullToRefreshContainer(
-            modifier = Modifier.align(Alignment.TopCenter),
-            state = state,
-        )
+//        PullToRefreshContainer(
+//            modifier = Modifier.align(Alignment.TopCenter),
+//            state = state,
+//        )
     }
 
 }
@@ -207,17 +190,18 @@ fun HomeScreen(
             animationSpec = tween(durationMillis = 1000),
             label = "Navidrome Logo Rotate"
         )
+        val offsetX = dpToPx(-36)
 
         Image(
             painter = painterResource(R.drawable.s_m_navidrome),
             contentDescription = "Navidrome Icon",
             modifier = Modifier
                 .size(72.dp)
-                .offset(x = (-36).dp, y = 0.dp)
+                .offset { IntOffset(offsetX, 0) }
                 .shadow(24.dp, CircleShape)
-                .graphicsLayer(
+                .graphicsLayer {
                     rotationZ = animatedRotation
-                )
+                }
                 .clickable {
                     rotation += 360f
                 }
@@ -245,7 +229,7 @@ fun HomeScreen(
 @Composable fun RecentlyPlayed(
     mediaController: MediaController?,
     navHostController: NavHostController,
-    viewModel: HomeScreenViewModel
+    albums: List<MediaData.Album>
 ) {
     Box(
         modifier = Modifier
@@ -260,6 +244,14 @@ fun HomeScreen(
             modifier = Modifier.padding(start = 12.dp)
         )
 
+        AlbumRow(albums = albums, mediaController = mediaController) { album ->
+            navHostController.navigate(Screen.AlbumDetails.route) {
+                launchSingleTop = true
+            }
+            selectedAlbum = album
+        }
+
+        /*
         if (homeScreenUseAlbums.value){
             /* ALBUMS ROW */
             //val recentlyPlayedAlbums = albumList.sortedByDescending { it.played }.take(20)
@@ -280,6 +272,7 @@ fun HomeScreen(
                 song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
             })
         }
+        */
     }
 }
 
@@ -287,7 +280,7 @@ fun HomeScreen(
 @Composable fun RecentlyAdded(
     mediaController: MediaController?,
     navHostController: NavHostController,
-    viewModel: HomeScreenViewModel
+    albums: List<MediaData.Album>
 ) {
     Box(
         modifier = Modifier
@@ -302,6 +295,14 @@ fun HomeScreen(
             modifier = Modifier.padding(start = 12.dp)
         )
 
+        AlbumRow(albums = albums, mediaController = mediaController) { album ->
+            navHostController.navigate(Screen.AlbumDetails.route) {
+                launchSingleTop = true
+            }
+            selectedAlbum = album
+        }
+
+        /*
         if (homeScreenUseAlbums.value){
             /* ALBUMS ROW */
             //val recentlyAddedAlbums = albumList.sortedByDescending { it.created }.take(20)
@@ -322,6 +323,7 @@ fun HomeScreen(
                 song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
             })
         }
+        */
     }
 }
 
@@ -329,7 +331,7 @@ fun HomeScreen(
 @Composable fun MostPlayed(
     mediaController: MediaController?,
     navHostController: NavHostController,
-    viewModel: HomeScreenViewModel
+    albums: List<MediaData.Album>
 ) {
     Box(
         modifier = Modifier
@@ -343,6 +345,15 @@ fun HomeScreen(
             fontSize = MaterialTheme.typography.headlineMedium.fontSize,
             modifier = Modifier.padding(start = 12.dp)
         )
+
+        AlbumRow(albums = albums, mediaController = mediaController) { album ->
+            navHostController.navigate(Screen.AlbumDetails.route) {
+                launchSingleTop = true
+            }
+            selectedAlbum = album
+        }
+
+        /*
         if (homeScreenUseAlbums.value){
             /* ALBUMS ROW */
             //val mostPlayedAlbums = albumList.sortedByDescending { it.playCount }.take(20)
@@ -362,7 +373,7 @@ fun HomeScreen(
                 song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
             })
         }
-
+        */
     }
 }
 
@@ -370,7 +381,7 @@ fun HomeScreen(
 @Composable fun Shuffled(
     mediaController: MediaController?,
     navHostController: NavHostController,
-    viewModel: HomeScreenViewModel
+    albums: List<MediaData.Album>
 ) {
     Box(
         modifier = Modifier
@@ -384,6 +395,15 @@ fun HomeScreen(
             fontSize = MaterialTheme.typography.headlineMedium.fontSize,
             modifier = Modifier.padding(start = 12.dp)
         )
+
+        AlbumRow(albums = albums, mediaController = mediaController) { album ->
+            navHostController.navigate(Screen.AlbumDetails.route) {
+                launchSingleTop = true
+            }
+            selectedAlbum = album
+        }
+
+        /*
         if (homeScreenUseAlbums.value){
             /* ALBUMS ROW */
 //                    val shuffledAlbumsList = remember {
@@ -408,6 +428,7 @@ fun HomeScreen(
                 song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
             })
         }
+        */
     }
 }
 

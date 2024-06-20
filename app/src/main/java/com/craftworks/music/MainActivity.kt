@@ -37,6 +37,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -52,10 +54,13 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -92,8 +97,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        saveManager(this).loadNavidromeProviders()
-        saveManager(this).loadLocalProviders()
+//        saveManager(this).loadNavidromeProviders()
+//        saveManager(this).loadLocalProviders()
 
         val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
         this@MainActivity.startService(serviceIntent)
@@ -114,94 +119,33 @@ class MainActivity : ComponentActivity() {
             MusicPlayerTheme {
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
                 navController = rememberNavController()
-
                 val mediaController = rememberManagedMediaController()
-                var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
-
-                val coroutineScope = rememberCoroutineScope()
-
-                val yTrans by animateIntAsState(
-                    targetValue =
-                    if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded)
-                        dpToPx(-80 - WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding().value.toInt())
-                    else 0,
-                    label = "Fullscreen Translation")
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    println("Recomposing EVERYTHING!!!!! VERY BAD")
                     Scaffold(
                         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                         bottomBar = {
-                            val backStackEntry = navController.currentBackStackEntryAsState()
-                            if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
-                                NavigationBar (modifier = Modifier
-                                    .offset { IntOffset(x=0, y= -yTrans) }
-                                ) {
-                                    bottomNavigationItems.forEachIndexed { index, item ->
-                                        if (!item.enabled) return@forEachIndexed
-
-                                        NavigationBarItem(
-                                            selected = item.screenRoute == backStackEntry.value?.destination?.route,
-                                            modifier = Modifier.bounceClick(),
-                                            onClick = {
-                                                selectedItemIndex = index
-                                                navController.navigate(item.screenRoute) {
-                                                    launchSingleTop = true
-                                                }
-                                                coroutineScope.launch {
-                                                    scaffoldState.bottomSheetState.partialExpand()
-                                                } },
-                                            label = { Text(text = item.title) },
-                                            alwaysShowLabel = false,
-                                            icon = {
-                                                Icon(ImageVector.vectorResource(item.icon),contentDescription = item.title)
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                            else{
-                                NavigationRail {
-                                    bottomNavigationItems.forEachIndexed { index, item ->
-                                        if (!item.enabled) return@forEachIndexed
-                                        NavigationRailItem(
-                                            selected = item.screenRoute == backStackEntry.value?.destination?.route,
-                                            onClick = {
-                                                selectedItemIndex = index
-                                                navController.navigate(item.screenRoute) {
-                                                    launchSingleTop = true
-                                                }
-                                                coroutineScope.launch {
-                                                    scaffoldState.bottomSheetState.partialExpand()
-                                                } },
-                                            label = { Text(text = item.title) },
-                                            alwaysShowLabel = false,
-                                            icon = {
-                                                Icon(ImageVector.vectorResource(item.icon),contentDescription = item.title)
-                                            },
-                                        )
-                                    }
-                                }
-                            }
+                            AnimatedBottomNavBar(navController, scaffoldState)
                         }
                     ) {
-                        paddingValues -> SetupNavGraph(navController = navController, paddingValues, mediaController.value)
+                        paddingValues -> SetupNavGraph(navController, paddingValues, mediaController.value)
+
                         BottomSheetScaffold(
                             modifier = Modifier.fillMaxWidth(),
                             sheetContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
                             sheetPeekHeight =
-                            if (SongHelper.currentSong.title == "" &&
-                                SongHelper.currentSong.duration == 0 &&
-                                SongHelper.currentSong.imageUrl == "")
-                                0.dp // Hide Mini-player if empty
-                            else if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
-                                72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-                            }
-                            else {
-                                72.dp
-                            },
+                                if (SongHelper.currentSong.title == "" &&
+                                    SongHelper.currentSong.duration == 0 &&
+                                    SongHelper.currentSong.imageUrl == "")
+                                    0.dp // Hide Mini-player if empty
+                                else if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
+                                    72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                                }
+                                else 72.dp,
                             sheetShadowElevation = 4.dp,
                             sheetShape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
                             sheetDragHandle = { },
@@ -272,6 +216,91 @@ class MainActivity : ComponentActivity() {
             }
         })
 
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AnimatedBottomNavBar(
+    navController: NavHostController,
+    scaffoldState : BottomSheetScaffoldState
+){
+    val backStackEntry = navController.currentBackStackEntryAsState()
+    val coroutineScope = rememberCoroutineScope()
+
+    var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
+
+    val yTrans by animateIntAsState(
+        targetValue =
+            if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded)
+                dpToPx(-80 - WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding().value.toInt())
+            else 0,
+        label = "Fullscreen Translation")
+
+    if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
+        NavigationBar (modifier = Modifier
+            .offset { IntOffset(x=0, y= -yTrans.toInt()) }
+        ) {
+            bottomNavigationItems.forEachIndexed { index, item ->
+                if (!item.enabled) return@forEachIndexed
+                NavigationBarItem(
+                    selected = item.screenRoute == backStackEntry.value?.destination?.route,
+                    modifier = Modifier.bounceClick(),
+                    onClick = {
+                        if (selectedItemIndex == index) return@NavigationBarItem
+
+                        println("Navigate to index!")
+                        selectedItemIndex = index
+                        navController.navigate(item.screenRoute) {
+                            // Save state + only add screen once to graph
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                        coroutineScope.launch {
+                            if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded)
+                                scaffoldState.bottomSheetState.partialExpand()
+                        } },
+                    label = { Text(text = item.title) },
+                    alwaysShowLabel = false,
+                    icon = {
+                        Icon(ImageVector.vectorResource(item.icon),contentDescription = item.title)
+                    }
+                )
+            }
+        }
+    }
+    else{
+        NavigationRail {
+            bottomNavigationItems.forEachIndexed { index, item ->
+                if (!item.enabled) return@forEachIndexed
+                NavigationRailItem(
+                    selected = item.screenRoute == backStackEntry.value?.destination?.route,
+                    onClick = {
+                        selectedItemIndex = index
+                        navController.navigate(item.screenRoute) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                        coroutineScope.launch {
+                            if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded)
+                                scaffoldState.bottomSheetState.partialExpand()
+                        } },
+                    label = { Text(text = item.title) },
+                    alwaysShowLabel = false,
+                    icon = {
+                        Icon(ImageVector.vectorResource(item.icon),contentDescription = item.title)
+                    },
+                )
+            }
+        }
     }
 }
 

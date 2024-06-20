@@ -13,9 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -45,12 +42,11 @@ fun SetupNavGraph(
     mediaController: MediaController?
 ){
     val homeViewModel = remember { HomeScreenViewModel() }
-
     val artistsViewModel = remember { ArtistsScreenViewModel() }
 
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
-        modifier = Modifier.padding(bottom = (/* Stupid PaddingValues Error. */ paddingValues.calculateBottomPadding() * 0) ),
+        modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding()),
         enterTransition = {
             slideInVertically(animationSpec = tween(durationMillis = 200)) { fullHeight ->
                 -fullHeight / 4
@@ -63,10 +59,13 @@ fun SetupNavGraph(
         }
     )
     {
+        println("Recomposing NavHost!")
         composable(route = Screen.Home.route) {
+            println("Recomposing Home Route!")
             HomeScreen(navController, mediaController, homeViewModel)
         }
         composable(route = Screen.Song.route) {
+            println("Recomposing Songs Route!")
             SongsScreen(mediaController)
         }
         composable(route = Screen.Radio.route) {
@@ -98,6 +97,7 @@ fun SetupNavGraph(
 
         //Settings
         composable(route = Screen.Setting.route) {
+            println("Recomposing Settings!")
             SettingScreen(navController)
         }
         composable(route = Screen.S_Appearance.route,

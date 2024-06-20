@@ -28,7 +28,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.data.Artist
 import com.craftworks.music.data.MediaData
 
 @Composable

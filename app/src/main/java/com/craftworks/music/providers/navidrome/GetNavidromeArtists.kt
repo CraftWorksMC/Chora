@@ -6,7 +6,6 @@ import com.craftworks.music.data.artistList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.gitlab.mvysny.konsumexml.konsumeXml
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

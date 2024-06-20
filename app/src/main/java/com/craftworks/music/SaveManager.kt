@@ -3,7 +3,6 @@ package com.craftworks.music
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import com.craftworks.music.data.Artist
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.MediaData
@@ -120,7 +119,9 @@ class saveManager(private val context: Context){
 
         coroutineScope {
 
-            //loadArtists()
+            loadNavidromeProviders()
+            loadLocalProviders()
+
             loadRadios()
             loadPlaylists()
 

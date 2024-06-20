@@ -35,7 +35,6 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.Artist
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.Playlist
