@@ -48,66 +48,6 @@ suspend fun getNavidromeArtistBiography(id: String): MediaData.Artist {
     ).filterIsInstance<MediaData.Artist>()[0] //Use index 0 because sendNavidromeGETRequest only returns a list.
 }
 
-/*
-suspend fun parseNavidromeArtistsXML(
-    response: String,
-    navidromeUrl: String,
-    navidromeUsername: String,
-    navidromePassword: String) {
-
-    // Avoid crashing by removing some useless tags.
-    val newResponse = response
-        .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
-
-    newResponse.konsumeXml().apply {
-        child("subsonic-response"){
-            child("artists"){
-                children("index"){
-                    children("artist"){
-
-                        val artistName = attributes.getValue("name")
-                        val artistImage = attributes.getValue("artistImageUrl")
-                        val artistID = attributes.getValue("id")
-
-                        //val passwordSalt = generateSalt(8)
-                        //val passwordHash = md5Hash(navidromePassword + passwordSalt)
-
-                        //val albumArtUri = Uri.parse("$navidromeUrl/rest/getCoverArt.view?&id=$artistID&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
-
-                        val artist = MediaData.Artist(
-                            name = artistName,
-                            coverArt = artistImage,
-                            navidromeID = artistID
-                        )
-                        synchronized(artistList){
-                            if (artistList.none { it.navidromeID == artistID || it.name == artistID })
-                                artistList.add(artist)
-                        }
-
-                        skipContents()
-                        finish()
-                    }
-                }
-            }
-        }
-    }
-
-    if (artistList.size % 500 == 0){
-        val artistOffset = (artistList.size + 1)
-
-        sendNavidromeGETRequest(
-            navidromeUrl,
-            navidromeUsername,
-            navidromePassword,
-            "getArtists.view?size=500&offset=$artistOffset"
-        )
-    }
-
-
-    Log.d("NAVIDROME", "Added artists! Total: ${artistList.size}")
-}
-*/
-
 fun parseNavidromeArtistsJSON(
     response: String
 ) : List<MediaData.Artist> {
@@ -132,27 +72,6 @@ fun parseNavidromeArtistsJSON(
     Log.d("NAVIDROME", "Added artists. Total: ${mediaDataArtists.size}")
 
     return mediaDataArtists
-}
-
-fun parseNavidromeArtistXML(
-    response: String) {
-
-    // Avoid crashing by removing some useless tags.
-    val newResponse = response
-        .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
-
-    newResponse.konsumeXml().apply {
-        child("subsonic-response"){
-            child("artistInfo"){
-                val artistBiography = childTextOrNull("biography")?.replace(Regex("<a[^>]*>.*?</a>"), "") ?: ""
-
-                //selectedArtist = selectedArtist.copy(description = artistBiography)
-
-                skipContents()
-                finish()
-            }
-        }
-    }
 }
 
 fun parseNavidromeArtistAlbumsJSON(
@@ -194,7 +113,7 @@ fun parseNavidromeArtistBiographyJSON(
 
     val mediaDataArtist = selectedArtist
 
-    mediaDataArtist.description = subsonicResponse.artistInfo?.biography.toString()
+    mediaDataArtist.description = subsonicResponse.artistInfo?.biography.toString().replace(Regex("<a[^>]*>.*?</a>"), "")
     mediaDataArtist.musicBrainzId = subsonicResponse.artistInfo?.musicBrainzId
     mediaDataArtist.similarArtist = subsonicResponse.artistInfo?.similarArtist
 

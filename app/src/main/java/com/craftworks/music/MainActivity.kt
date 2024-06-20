@@ -95,6 +95,9 @@ class MainActivity : ComponentActivity() {
         saveManager(this).loadNavidromeProviders()
         saveManager(this).loadLocalProviders()
 
+        val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
+        this@MainActivity.startService(serviceIntent)
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val scaffoldState = BottomSheetScaffoldState(
@@ -242,8 +245,6 @@ class MainActivity : ComponentActivity() {
         // SAVE SETTINGS ON APP EXIT
         registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
-                this@MainActivity.startService(serviceIntent)
             }
 
             override fun onActivityStarted(activity: Activity) {

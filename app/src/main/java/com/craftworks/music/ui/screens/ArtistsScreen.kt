@@ -197,8 +197,8 @@ class ArtistsScreenViewModel : ViewModel() {
     private val _allArtists = MutableStateFlow<List<MediaData.Artist>>(emptyList())
     val allArtists: StateFlow<List<MediaData.Artist>> = _allArtists.asStateFlow()
 
-    private val _selectedArtist = mutableStateOf<MediaData.Artist?>(null)
-    val selectedArtist: State<MediaData.Artist?> = _selectedArtist
+    private val _selectedArtist = MutableStateFlow<MediaData.Artist?>(null)
+    val selectedArtist: StateFlow<MediaData.Artist?> = _selectedArtist
 
     init {
         fetchArtists()
@@ -218,12 +218,21 @@ class ArtistsScreenViewModel : ViewModel() {
 
     fun fetchArtistDetails(artistId : String){
         viewModelScope.launch {
-            _selectedArtist.value = getNavidromeArtistDetails(artistId)
-            val biography = getNavidromeArtistBiography(artistId)
-            _selectedArtist.value = _selectedArtist.value?.copy(
+            // Fetch artist details and biography concurrently
+            val detailsDeferred = async { getNavidromeArtistDetails(artistId) }
+            val biographyDeferred = async { getNavidromeArtistBiography(artistId) }
+
+            // Wait for both to complete
+            val details = detailsDeferred.await()
+            val biography = biographyDeferred.await()
+
+            // Update the state with the combined data
+            _selectedArtist.value = details.copy(
                 description = biography.description,
                 similarArtist = biography.similarArtist
             )
+
+            println(_selectedArtist.value)
 
             com.craftworks.music.data.selectedArtist = _selectedArtist.value!!
         }

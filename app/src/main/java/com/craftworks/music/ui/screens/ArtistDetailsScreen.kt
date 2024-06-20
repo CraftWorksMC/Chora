@@ -2,7 +2,9 @@ package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -29,11 +32,13 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,8 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -62,14 +66,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.albumList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.songsList
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.navidrome.getNavidromeArtistBiography
-import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.BottomSpacer
@@ -84,17 +84,15 @@ fun ArtistDetails(
     viewModel: ArtistsScreenViewModel = viewModel()
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-    val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
+    val artist by viewModel.selectedArtist.collectAsState()
 
-    LaunchedEffect(viewModel.selectedArtist) {
+    LaunchedEffect(selectedArtist.name) {
         viewModel.fetchArtistDetails(selectedArtist.navidromeID)
     }
 
     val artistSongs = songsList.filter { it.artist.contains(selectedArtist.name) }
-//    val artistAlbums = albumList.filter { it.artist.contains(selectedArtist.name) }
-//        .sortedByDescending { album -> album.year }
 
-    val artistAlbums = viewModel.selectedArtist.value?.album ?: emptyList()
+    //val artistAlbums = viewModel.selectedArtist.value?.album ?: emptyList()
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -113,7 +111,7 @@ fun ArtistDetails(
             .fillMaxWidth()) {
             //Image and Name
             AsyncImage(
-                model = selectedArtist.artistImageUrl,
+                model = artist?.artistImageUrl,
                 placeholder = painterResource(R.drawable.s_a_username),
                 fallback = painterResource(R.drawable.s_a_username),
                 contentScale = ContentScale.FillWidth,
@@ -122,7 +120,7 @@ fun ArtistDetails(
                     .fillMaxWidth()
                     //.fadingEdge(imageFadingEdge)
                     .clip(
-                        if (selectedArtist.description != "")
+                        if (artist?.description != "")
                             RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp)
                         else
                             RoundedCornerShape(12.dp)
@@ -153,7 +151,7 @@ fun ArtistDetails(
             // Album Name and Artist
             Column(modifier = Modifier.align(Alignment.BottomCenter)){
                 Text(
-                    text = viewModel.selectedArtist.value?.name.toString(),
+                    text = artist?.name.toString(),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
@@ -169,24 +167,26 @@ fun ArtistDetails(
         Box(modifier = Modifier
             .padding(horizontal = 12.dp)
             .fillMaxWidth()
-            .heightIn(min = if (viewModel.selectedArtist.value?.description.isNullOrBlank()) 0.dp else 32.dp)
+            .heightIn(min = if (artist?.description.isNullOrBlank()) 0.dp else 32.dp)
             .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .animateContentSize()
             .clickable {
                 expanded = !expanded
             }){
-            if (selectedArtist.description.isNotBlank()){
-                Text(
-                    text = viewModel.selectedArtist.value?.description.toString(),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Light,
-                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                    textAlign = TextAlign.Start,
-                    maxLines = if (expanded) 100 else 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(if (selectedArtist.description.isBlank()) 0.dp else 6.dp)
-                )
+            artist?.description?.let { description -> // Use let for null safety
+                if (description.isNotBlank()) {
+                    Text(
+                        text = description,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Light,
+                        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                        textAlign = TextAlign.Start,
+                        maxLines = if (expanded) 100 else 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(6.dp)
+                    )
+                }
             }
         }
 
@@ -251,7 +251,7 @@ fun ArtistDetails(
             )
 
             /* SONGS ROW */
-            AlbumRow(albums = artistAlbums, mediaController, onAlbumSelected = { album ->
+            AlbumRow(albums = artist?.album.orEmpty(), mediaController, onAlbumSelected = { album ->
                 navHostController.navigate(Screen.AlbumDetails.route) {
                     launchSingleTop = true
                 }
@@ -287,5 +287,18 @@ fun ArtistDetails(
         }
 
         BottomSpacer()
+    }
+
+    // Show loading indicator while loading
+    AnimatedVisibility(artist != selectedArtist, exit = fadeOut()) {
+        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .size(48.dp),
+                strokeCap = StrokeCap.Round,
+                strokeWidth = 4.dp
+            )
+        }
     }
 }
