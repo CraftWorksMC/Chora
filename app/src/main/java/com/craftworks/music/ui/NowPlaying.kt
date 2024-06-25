@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
+import android.graphics.RenderEffect
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -36,6 +37,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -79,6 +81,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.LinearGradientShader
@@ -133,6 +136,7 @@ import com.craftworks.music.ui.elements.moveClick
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
 
 
 var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
@@ -506,6 +510,7 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
                 }
             }
         }
+
         // For displaying Synced Lyrics
         if (SyncedLyric.isNotEmpty()) {
             itemsIndexed(SyncedLyric) { index, lyric ->
@@ -521,7 +526,6 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
                 )
                 Box(
                     modifier = Modifier
-                        //.height((dpToSp).dp)
                         .padding(vertical = 12.dp)
                         .heightIn(min = 48.dp)
                         .clickable {
@@ -928,3 +932,12 @@ fun animateBrushRotation(
 fun dpToPx(dp: Int): Int {
     return with(LocalDensity.current) { dp.dp.toPx() }.toInt()
 }
+// Returns the normalized center item offset (-1,1)
+fun LazyListLayoutInfo.normalizedItemPosition(key: Any) : Float =
+    visibleItemsInfo
+        .firstOrNull { it.index == key }
+        ?.let {
+            val center = (viewportEndOffset + viewportStartOffset - it.size) / 2F
+            (it.offset.toFloat() - center) / center
+        }
+        ?: 0F

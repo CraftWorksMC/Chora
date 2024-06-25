@@ -133,7 +133,7 @@ class saveManager(private val context: Context){
                 ) }
                 //launch { songsList.addAll(getNavidromeSongs()) }
                 //launch { albumList.addAll(getNavidromeAlbums()) }
-                launch { getNavidromePlaylists() }
+                //launch { getNavidromePlaylists() }
                 launch { getNavidromeRadios() }
                 //launch { artistList.addAll(getNavidromeArtists()) }
             }
@@ -325,12 +325,15 @@ class saveManager(private val context: Context){
                 }
 
                 scope.launch {
-                    val coverArt = localPlaylistImageGenerator(songs.toList(), context) ?: Uri.EMPTY
-                    val playlist = Playlist(
+                    val coverArt = localPlaylistImageGenerator(songs.toList(), context) ?: ""
+                    val playlist = MediaData.Playlist(
                         name = parts[0],
-                        coverArt = coverArt,
+                        coverArt = coverArt.toString(),
                         navidromeID = parts[2],
-                        songs = songs.toList()
+                        songs = songs.toList(),
+                        changed = "", created = "",
+                        songCount = songs.count(),
+                        duration = songs.sumOf { it.duration }
                     )
                     if (playlistList.firstOrNull { it.name == parts[0] && it.songs == songs.toList() } == null)
                         playlistList.add(playlist)
@@ -338,9 +341,9 @@ class saveManager(private val context: Context){
             }
         }
 
-        if (useNavidromeServer.value){
-            scope.launch { getNavidromePlaylists() }
-        }
+//        if (useNavidromeServer.value){
+//            scope.launch { getNavidromePlaylists() }
+//        }
     }
 
     //endregion

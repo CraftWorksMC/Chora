@@ -27,6 +27,7 @@ import com.craftworks.music.ui.screens.HomeScreen
 import com.craftworks.music.ui.screens.HomeScreenViewModel
 import com.craftworks.music.ui.screens.PlaylistDetails
 import com.craftworks.music.ui.screens.PlaylistScreen
+import com.craftworks.music.ui.screens.PlaylistScreenViewModel
 import com.craftworks.music.ui.screens.RadioScreen
 import com.craftworks.music.ui.screens.SettingScreen
 import com.craftworks.music.ui.screens.SongsScreen
@@ -43,6 +44,7 @@ fun SetupNavGraph(
 ){
     val homeViewModel = remember { HomeScreenViewModel() }
     val artistsViewModel = remember { ArtistsScreenViewModel() }
+    val playlistViewModel = remember { PlaylistScreenViewModel() }
 
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
@@ -61,11 +63,9 @@ fun SetupNavGraph(
     {
         println("Recomposing NavHost!")
         composable(route = Screen.Home.route) {
-            println("Recomposing Home Route!")
             HomeScreen(navController, mediaController, homeViewModel)
         }
         composable(route = Screen.Song.route) {
-            println("Recomposing Songs Route!")
             SongsScreen(mediaController)
         }
         composable(route = Screen.Radio.route) {
@@ -89,7 +89,7 @@ fun SetupNavGraph(
 
         //Playlists
         composable(route = Screen.Playlists.route) {
-            PlaylistScreen(navController)
+            PlaylistScreen(navController, playlistViewModel)
         }
         composable(route = Screen.PlaylistDetails.route) {
             PlaylistDetails(navController, mediaController)
@@ -97,7 +97,6 @@ fun SetupNavGraph(
 
         //Settings
         composable(route = Screen.Setting.route) {
-            println("Recomposing Settings!")
             SettingScreen(navController)
         }
         composable(route = Screen.S_Appearance.route,

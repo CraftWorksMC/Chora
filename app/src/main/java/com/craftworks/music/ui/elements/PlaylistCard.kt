@@ -26,13 +26,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.ui.elements.dialogs.playlistToDelete
 import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PlaylistCard(playlist: Playlist, onClick: () -> Unit){
+fun PlaylistCard(playlist: MediaData.Playlist, onClick: () -> Unit){
     Card(
         //onClick = { onClick() },
         modifier = Modifier.padding(12.dp)

@@ -35,10 +35,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastFilter
 import androidx.media3.session.MediaController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.songsList
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.getNavidromeAlbumSongs
 import com.craftworks.music.ui.screens.selectedAlbum
@@ -96,24 +99,25 @@ fun AlbumCard(album: MediaData.Album = MediaData.Album(navidromeID = "", parent 
 
                             // Fetch songs if the list is empty
                             if (selectedAlbum?.songs.isNullOrEmpty()) {
-                                selectedAlbum?.navidromeID?.let { albumId ->
-                                    // Use withContext to bridge non-suspending function to coroutine
-                                    withContext(Dispatchers.IO) {
-                                        getNavidromeAlbumSongs(albumId)
+                                if (useNavidromeServer.value){
+                                    selectedAlbum?.navidromeID?.let { albumId ->
+                                        withContext(Dispatchers.IO) {
+                                            getNavidromeAlbumSongs(albumId)
+                                        }
                                     }
+                                }
+                                else {
+                                    selectedAlbum?.songs = songsList.fastFilter { it.album == selectedAlbum?.name }
                                 }
                             }
 
-                            // Now selectedAlbum?.songs is guaranteed to be updated (or still empty if fetch failed)
+                            // Try to play song
                             selectedAlbum?.songs?.let { songs ->
-                                if (songs.isNotEmpty()) {
-                                    println(songs)
-                                    SongHelper.currentSong = songs[0]
-                                    SongHelper.currentList = songs
-                                    SongHelper.playStream(Uri.parse(songs[0].media ?: ""), false, mediaController)
-                                } else {
-                                    // Handle the case where no songs were loaded for the album
-                                }
+                                if (songs.isEmpty()) return@launch
+
+                                SongHelper.currentSong = songs[0]
+                                SongHelper.currentList = songs
+                                SongHelper.playStream(Uri.parse(songs[0].media ?: ""), false, mediaController)
                             }
                         }
                     },

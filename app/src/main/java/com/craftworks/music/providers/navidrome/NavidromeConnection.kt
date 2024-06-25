@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
 import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
+import java.net.NoRouteToHostException
 import java.net.ProtocolException
 import java.net.SocketTimeoutException
 import java.net.URL
@@ -48,7 +49,11 @@ data class SubsonicResponse(
     // Artists
     val artists: Artists? = null,
     val artist: MediaData.Artist? = null,
-    val artistInfo: MediaData.ArtistInfo? = null
+    val artistInfo: MediaData.ArtistInfo? = null,
+
+    // Playlists
+    val playlist: MediaData.Playlist? = null,
+    val playlists: PlaylistContainer? = null
 )
 
 suspend fun sendNavidromeGETRequest(
@@ -115,8 +120,8 @@ suspend fun sendNavidromeGETRequest(
                         endpoint.startsWith("getArtistInfo")   -> parsedData.addAll(listOf(parseNavidromeArtistBiographyJSON(responseContent)))
 
                         // Playlists
-                        endpoint.startsWith("getPlaylists") -> parseNavidromePlaylistsXML(responseContent, baseUrl, username, password)
-                        endpoint.startsWith("getPlaylist.") -> parseNavidromePlaylistXML (responseContent)
+                        endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, baseUrl, username, password))
+                        endpoint.startsWith("getPlaylist.") -> parsedData.addAll(listOf(parseNavidromePlaylistJSON(responseContent, baseUrl, username, password)))
                         endpoint.startsWith("updatePlaylist") -> getNavidromePlaylists()
                         endpoint.startsWith("createPlaylist") -> getNavidromePlaylists()
                         endpoint.startsWith("deletePlaylist") -> getNavidromePlaylists()
@@ -134,6 +139,9 @@ suspend fun sendNavidromeGETRequest(
             Log.d("NAVIDROME", "Exception: $e")
         } catch (e: SocketTimeoutException) {
             navidromeStatus.value = "Timed out"
+            Log.d("NAVIDROME", "Exception: $e")
+        } catch (e: NoRouteToHostException) {
+            navidromeStatus.value = "Host Unreachable"
             Log.d("NAVIDROME", "Exception: $e")
         } catch (e: UnknownHostException) {
             navidromeStatus.value = "Unknown Host"
@@ -165,7 +173,7 @@ suspend fun reloadNavidrome(context: Context){
     //songsList.addAll(getNavidromeSongs())
     //albumList.addAll(getNavidromeAlbums())
     //getNavidromeArtists()
-    getNavidromePlaylists()
+    //getNavidromePlaylists()
     getNavidromeRadios()
 }
 

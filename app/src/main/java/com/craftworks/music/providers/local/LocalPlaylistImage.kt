@@ -22,13 +22,13 @@ suspend fun localPlaylistImageGenerator(songs:List<MediaData.Song>, context:Cont
         val source = ImageDecoder.createSource(context.contentResolver, Uri.parse(uri.imageUrl))
         val bitmap = ImageDecoder.decodeBitmap(source)
         bitmap.width
-    } ?: 0
+    } ?: 128
 
     val maxHeight = songs.take(4).maxOfOrNull { uri ->
         val source = ImageDecoder.createSource(context.contentResolver, Uri.parse(uri.imageUrl))
         val bitmap = ImageDecoder.decodeBitmap(source)
         bitmap.height
-    } ?: 0
+    } ?: 128
 
     // Create a new Bitmap to hold the combined images
     val combinedBitmap = Bitmap.createBitmap(maxWidth * 2, maxHeight * 2, Bitmap.Config.ARGB_8888).copy(Bitmap.Config.RGBA_F16, true)

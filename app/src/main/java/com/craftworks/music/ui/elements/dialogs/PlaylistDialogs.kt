@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.useNavidromeServer
@@ -88,7 +89,7 @@ var showAddSongToPlaylistDialog = mutableStateOf(false)
 var showNewPlaylistDialog = mutableStateOf(false)
 var songToAddToPlaylist = mutableStateOf(SongHelper.currentSong)
 var showDeletePlaylistDialog = mutableStateOf(false)
-var playlistToDelete = mutableStateOf(Playlist("", Uri.EMPTY))
+var playlistToDelete = mutableStateOf(MediaData.Playlist("", "","","", true, "", "", 0, 0, ""))
 
 @Composable
 fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
@@ -163,7 +164,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 .clip(RoundedCornerShape(12.dp))
                                 //.background(MaterialTheme.colorScheme.surfaceVariant)
                                 .clickable {
-                                    if (playlist.songs.contains(songToAddToPlaylist.value)) return@clickable
+                                    if (playlist.songs?.contains(songToAddToPlaylist.value) == true) return@clickable
 
                                     if (useNavidromeServer.value)
                                         coroutineScope.launch { addSongToNavidromePlaylist(
@@ -171,7 +172,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                             songToAddToPlaylist.value.navidromeID.toString()
                                         ) }
                                     else {
-                                        playlist.songs += songToAddToPlaylist.value
+                                        playlist.songs = playlist.songs?.plus(songToAddToPlaylist.value)
                                         saveManager(context).saveLocalPlaylists()
                                     }
                                     setShowDialog(false)
@@ -282,11 +283,12 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
                                             ) ?: Uri.EMPTY
                                         }
                                         playlistList.add(
-                                            Playlist(
+                                            MediaData.Playlist(
+                                                "Local",
                                                 name,
-                                                playlistImage,
-                                                listOf(songToAddToPlaylist.value),
-                                                navidromeID = "Local"
+                                                playlistImage.toString(),
+                                                changed = "", created = "", duration = 0, songCount = 0,
+                                                songs = listOf(songToAddToPlaylist.value)
                                             )
                                         )
                                         println("Added Playlist: $name")

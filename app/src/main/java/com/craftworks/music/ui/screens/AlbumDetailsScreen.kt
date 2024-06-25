@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastFilter
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -61,6 +62,8 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
+import com.craftworks.music.data.songsList
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
@@ -91,8 +94,13 @@ fun AlbumDetails(
     LaunchedEffect(selectedAlbum?.songs) {
         albumSongs = selectedAlbum?.songs!!
         if (selectedAlbum?.songs?.isNotEmpty() == true) return@LaunchedEffect
-        selectedAlbum?.navidromeID?.let { albumId ->
-            withContext(Dispatchers.IO){ getNavidromeAlbumSongs(albumId) } }
+        if (useNavidromeServer.value) {
+            selectedAlbum?.navidromeID?.let { albumId ->
+                withContext(Dispatchers.IO){ getNavidromeAlbumSongs(albumId) } }
+        }
+        else {
+            selectedAlbum?.songs = songsList.fastFilter { it.album == selectedAlbum?.album }
+        }
     }
 
 //    val otherSongsFromSameArtist = songsList.filter { it.artist == selectedAlbum?.artist }.toMutableList()

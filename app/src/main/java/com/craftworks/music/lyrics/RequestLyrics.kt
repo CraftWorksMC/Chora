@@ -8,6 +8,7 @@ import com.craftworks.music.player.SongHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.FileNotFoundException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.UnknownHostException
@@ -156,6 +157,9 @@ suspend fun requestLyrics() {
         }
         catch (e: UnknownHostException){
             PlainLyrics = "Cannot contact LRCLIB. \n Please check your connection."
+        }
+        catch (e: FileNotFoundException){
+            PlainLyrics = "No Lyrics Found."
         }
         finally {
             Log.d("LYRICS", "Reset isGetLyricsRunning")

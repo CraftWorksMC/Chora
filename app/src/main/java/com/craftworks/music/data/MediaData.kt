@@ -103,4 +103,21 @@ sealed class MediaData {
         val lastFmUrl : String? = "",
         val similarArtist : List<Artist>? = null
     )
+
+    @Serializable
+    data class Playlist(
+        @SerialName("id")
+        val navidromeID: String,
+        val name: String,
+        val comment: String? = "",
+        val owner: String? = "",
+        val public: Boolean? = true,
+        val created: String,
+        val changed: String,
+        val songCount: Int,
+        val duration: Int,
+        var coverArt: String? = "",
+        @SerialName("entry")
+        var songs: List<Song>? = listOf()
+    ) : MediaData()
 }

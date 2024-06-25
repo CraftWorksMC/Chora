@@ -61,9 +61,9 @@ fun PlaylistDetails(
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red, Color.Transparent))
 
-    LaunchedEffect(selectedPlaylist?.navidromeID) {
-        if (useNavidromeServer.value && selectedPlaylist?.songs?.isEmpty() == true){
-            getNavidromePlaylistDetails()
+    LaunchedEffect(selectedPlaylist.navidromeID) {
+        if (useNavidromeServer.value && selectedPlaylist.songs?.isEmpty() == true){
+            getNavidromePlaylistDetails(selectedPlaylist.navidromeID)
         }
     }
 
@@ -80,7 +80,7 @@ fun PlaylistDetails(
             .height(128.dp)
             .fillMaxWidth()) {
             AsyncImage(
-                model = selectedPlaylist?.coverArt,
+                model = selectedPlaylist.coverArt,
                 placeholder = painterResource(R.drawable.placeholder),
                 fallback = painterResource(R.drawable.placeholder),
                 contentScale = ContentScale.FillWidth,
@@ -92,16 +92,14 @@ fun PlaylistDetails(
                     .blur(8.dp)
                     .alpha(0.75f)
             )
-            selectedPlaylist?.name?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
+            Text(
+                text = selectedPlaylist.name,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.align(Alignment.Center)
+            )
             Button(
                 onClick = { navHostController.navigate(Screen.Playlists.route) {
                     launchSingleTop = true
@@ -130,10 +128,10 @@ fun PlaylistDetails(
         )
 
         Column(modifier = Modifier.padding(12.dp, top = 0.dp)) {
-            selectedPlaylist?.songs?.let {
+            selectedPlaylist.songs?.let {
                 SongsHorizontalColumn(it, onSongSelected = { song ->
                     SongHelper.currentSong = song
-                    SongHelper.currentList = selectedPlaylist!!.songs
+                    SongHelper.currentList = selectedPlaylist.songs.orEmpty()
                     song.media?.let { songUri -> SongHelper.playStream(Uri.parse(songUri), false, mediaController) }
                 })
             }

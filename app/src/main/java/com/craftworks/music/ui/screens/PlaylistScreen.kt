@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +21,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -36,31 +36,55 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.Playlist
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
+import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
+import com.craftworks.music.providers.navidrome.getNavidromePlaylistDetails
+import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.PlaylistGrid
 import com.craftworks.music.ui.elements.dialogs.DeletePlaylist
 import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-var selectedPlaylist by mutableStateOf<Playlist?>(Playlist("My Very Awesome Playlist With A Long Name", Uri.EMPTY))
+var selectedPlaylist by mutableStateOf(
+    MediaData.Playlist(
+        navidromeID = "Local",
+        name = "Awesome Playlist",
+        coverArt = "",
+        created = "", changed = "",
+        duration = 42, songCount = 5
+    )
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = false)
 @Composable
-fun PlaylistScreen(navHostController: NavHostController = rememberNavController()) {
+fun PlaylistScreen(
+    navHostController: NavHostController = rememberNavController(),
+    viewModel: PlaylistScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     val state = rememberPullToRefreshState()
-
     val context = LocalContext.current
+
+    val playlists by viewModel.allPlaylists.collectAsState()
 
     if (state.isRefreshing) {
         LaunchedEffect(true) {
@@ -73,14 +97,13 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
             delay(500)
             for (playlist in playlistList){
                 if (playlist.navidromeID == "Local"){
-                    val playlistImage = localPlaylistImageGenerator(playlist.songs, context) ?: Uri.EMPTY
-                    playlist.coverArt = playlistImage
+                    val playlistImage = playlist.songs?.let { localPlaylistImageGenerator(it, context) } ?: ""
+                    playlist.coverArt = playlistImage.toString()
                 }
             }
             state.endRefresh()
         }
     }
-
 
 
     /* RADIO ICON + TEXT */
@@ -113,11 +136,12 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
 
             HorizontalLineWithNavidromeCheck()
 
-            PlaylistGrid(playlistList , onPlaylistSelected = { playlist ->
+            PlaylistGrid(playlists, onPlaylistSelected = { playlist ->
                 navHostController.navigate(Screen.PlaylistDetails.route) {
                     launchSingleTop = true
                 }
-                selectedPlaylist = playlist})
+                selectedPlaylist = playlist
+            })
 
             if(showDeletePlaylistDialog.value)
                 DeletePlaylist(setShowDialog =  { showDeletePlaylistDialog.value = it } )
@@ -126,5 +150,52 @@ fun PlaylistScreen(navHostController: NavHostController = rememberNavController(
             modifier = Modifier.align(Alignment.TopCenter),
             state = state,
         )
+    }
+}
+
+class PlaylistScreenViewModel : ViewModel() {
+    private val _allPlaylists = MutableStateFlow<List<MediaData.Playlist>>(emptyList())
+    val allPlaylists: StateFlow<List<MediaData.Playlist>> = _allPlaylists.asStateFlow()
+
+    private var _selectedPlaylist = MutableStateFlow<MediaData.Playlist?>(null)
+    var selectedPlaylist: StateFlow<MediaData.Playlist?> = _selectedPlaylist
+
+    init {
+        fetchPlaylists()
+    }
+
+    fun setCurrentPlaylist(playlist: MediaData.Playlist){
+        _selectedPlaylist.value = playlist
+    }
+
+    private fun fetchPlaylists() {
+        if (!useNavidromeServer.value) return
+
+        viewModelScope.launch {
+            coroutineScope {
+                if (useNavidromeServer.value){
+                    val allPlaylistsDeferred  = async { getNavidromePlaylists() }
+
+                    _allPlaylists.value = allPlaylistsDeferred.await()
+                }
+                else {
+                    _allPlaylists.value = playlistList
+                }
+            }
+        }
+    }
+
+    fun fetchPlaylistDetails(playlistId: String) {
+        if (!useNavidromeServer.value) return
+
+        viewModelScope.launch {
+            coroutineScope {
+                val selectedPlaylistDeferred  = async { getNavidromePlaylistDetails(playlistId) }
+
+                _selectedPlaylist.value = selectedPlaylistDeferred.await()[0]
+
+                com.craftworks.music.ui.screens.selectedPlaylist = _selectedPlaylist.value!!
+            }
+        }
     }
 }

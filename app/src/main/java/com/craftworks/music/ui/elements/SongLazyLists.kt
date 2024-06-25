@@ -297,7 +297,7 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: MediaData.Song) ->
 //region Playlists
 @ExperimentalFoundationApi
 @Composable
-fun PlaylistGrid(playlists: List<Playlist>, onPlaylistSelected: (playlist: Playlist) -> Unit){
+fun PlaylistGrid(playlists: List<MediaData.Playlist>, onPlaylistSelected: (playlist: MediaData.Playlist) -> Unit){
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier

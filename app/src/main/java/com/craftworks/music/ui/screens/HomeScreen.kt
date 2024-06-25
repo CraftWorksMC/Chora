@@ -31,7 +31,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -43,6 +46,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -62,7 +66,9 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
+import com.craftworks.music.data.albumList
 import com.craftworks.music.data.useNavidromeServer
+import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.ui.dpToPx
 import com.craftworks.music.ui.elements.AlbumRow
@@ -91,30 +97,24 @@ fun HomeScreen(
     val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsState()
     val shuffledAlbums by viewModel.shuffledAlbums.collectAsState()
 
-    //val state = rememberPullToRefreshState()
+    val state = rememberPullToRefreshState()
 
-//    if (state.isRefreshing) {
-//        LaunchedEffect(true) {
-//            //songsList.clear()
-//
-//            getSongsOnDevice(context)
-//
-//            //delay(100) //Avoids Crashes
-//
-//            if (useNavidromeServer.value){
-//                //songsList.addAll(getNavidromeSongs())
-//                viewModel.fetchAlbums()
-//            }
-//
-//            state.endRefresh()
-//        }
-//    }
+    if (state.isRefreshing) {
+        LaunchedEffect(true) {
+
+            getSongsOnDevice(context)
+
+            viewModel.fetchAlbums()
+
+            state.endRefresh()
+        }
+    }
 
     Box(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            //.nestedScroll(state.nestedScrollConnection)
+            .nestedScroll(state.nestedScrollConnection)
     ) {
         Column(modifier = Modifier
             .padding(start = leftPadding)
@@ -174,10 +174,10 @@ fun HomeScreen(
 
             //BottomSpacer()
         }
-//        PullToRefreshContainer(
-//            modifier = Modifier.align(Alignment.TopCenter),
-//            state = state,
-//        )
+        PullToRefreshContainer(
+            modifier = Modifier.align(Alignment.TopCenter),
+            state = state,
+        )
     }
 
 }
@@ -451,20 +451,25 @@ class HomeScreenViewModel : ViewModel() {
     }
 
     fun fetchAlbums() {
-        if (!useNavidromeServer.value) return
-
         viewModelScope.launch {
             coroutineScope {
-                val recentlyPlayedDeferred  = async { getNavidromeAlbums("recent", 20) }
-                val recentDeferred          = async { getNavidromeAlbums("newest", 20) }
-                val mostPlayedDeferred      = async { getNavidromeAlbums("frequent", 20) }
-                val shuffledDeferred        = async { getNavidromeAlbums("random", 20) }
+                if (useNavidromeServer.value) {
+                    val recentlyPlayedDeferred  = async { getNavidromeAlbums("recent", 20) }
+                    val recentDeferred          = async { getNavidromeAlbums("newest", 20) }
+                    val mostPlayedDeferred      = async { getNavidromeAlbums("frequent", 20) }
+                    val shuffledDeferred        = async { getNavidromeAlbums("random", 20) }
 
-                // Handle results and potential errors
-                _recentlyPlayedAlbums.value = recentlyPlayedDeferred.await()
-                _recentAlbums.value = recentDeferred.await()
-                _mostPlayedAlbums.value = mostPlayedDeferred.await()
-                _shuffledAlbums.value = shuffledDeferred.await()
+                    _recentlyPlayedAlbums.value = recentlyPlayedDeferred.await()
+                    _recentAlbums.value = recentDeferred.await()
+                    _mostPlayedAlbums.value = mostPlayedDeferred.await()
+                    _shuffledAlbums.value = shuffledDeferred.await()
+                }
+                else {
+                    _recentlyPlayedAlbums.value = albumList.sortedBy { it.played }.take(20)
+                    _recentAlbums.value = albumList.sortedBy { it.created }.take(20)
+                    _mostPlayedAlbums.value = albumList.sortedBy { it.playCount }.take(20)
+                    _shuffledAlbums.value = albumList.shuffled().take(20)
+                }
             }
         }
     }
