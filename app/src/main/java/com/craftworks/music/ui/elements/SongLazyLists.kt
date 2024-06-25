@@ -139,9 +139,6 @@ fun SongsHorizontalColumn(songList: List<MediaData.Song>, onSongSelected: (song:
         modifier = Modifier
             .wrapContentHeight()
             .fillMaxWidth(),
-        contentPadding = PaddingValues(
-            bottom = bottomSpacerHeightDp()
-        ),
         state = listState
     ) {
         items(songList) { song ->
@@ -195,9 +192,6 @@ fun AlbumGrid(
             .wrapContentWidth()
             .fillMaxHeight()
             .padding(end = 12.dp),
-        contentPadding = PaddingValues(
-            bottom = bottomSpacerHeightDp()
-        ),
         state = gridState
     ) {
         items(albums) {album ->
@@ -242,9 +236,6 @@ fun ArtistsGrid(artists: List<MediaData.Artist>,
         modifier = Modifier
             .wrapContentWidth()
             .fillMaxHeight(),
-        contentPadding = PaddingValues(
-            bottom = bottomSpacerHeightDp()
-        )
     ) {
         items(artists) {artist ->
             ArtistCard(artist = artist, onClick = {
@@ -261,13 +252,10 @@ fun ArtistsGrid(artists: List<MediaData.Artist>,
 fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: MediaData.Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+        columns = GridCells.Adaptive(128.dp),
         modifier = Modifier
             .wrapContentWidth()
             .fillMaxHeight(),
-        contentPadding = PaddingValues(
-            bottom = bottomSpacerHeightDp()
-        )
     ) {
         items(radioList) {radio ->
             val song = MediaData.Song(
@@ -299,11 +287,10 @@ fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: MediaData.Song) ->
 @Composable
 fun PlaylistGrid(playlists: List<MediaData.Playlist>, onPlaylistSelected: (playlist: MediaData.Playlist) -> Unit){
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+        columns = GridCells.Adaptive(128.dp),
         modifier = Modifier
             .wrapContentWidth()
-            .fillMaxHeight(),
-        contentPadding = PaddingValues(bottom = bottomSpacerHeightDp())
+            .fillMaxHeight()
     ) {
         items(playlists) {playlist ->
             PlaylistCard(playlist = playlist,

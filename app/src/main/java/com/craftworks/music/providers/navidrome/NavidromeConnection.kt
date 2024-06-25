@@ -116,8 +116,8 @@ suspend fun sendNavidromeGETRequest(
 
                         // Artists
                         endpoint.startsWith("getArtists")   -> parsedData.addAll(parseNavidromeArtistsJSON(responseContent))
-                        endpoint.startsWith("getArtist.")-> parsedData.addAll(listOf(parseNavidromeArtistAlbumsJSON(responseContent, baseUrl, username, password)))
-                        endpoint.startsWith("getArtistInfo")   -> parsedData.addAll(listOf(parseNavidromeArtistBiographyJSON(responseContent)))
+                        endpoint.startsWith("getArtist.")   -> parsedData.addAll(listOf(parseNavidromeArtistAlbumsJSON(responseContent, baseUrl, username, password)))
+                        endpoint.startsWith("getArtistInfo")-> parsedData.addAll(listOf(parseNavidromeArtistBiographyJSON(responseContent)))
 
                         // Playlists
                         endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, baseUrl, username, password))
@@ -128,7 +128,7 @@ suspend fun sendNavidromeGETRequest(
 
                         // Radios
                         endpoint.startsWith("getInternetRadioStations") -> parseNavidromeRadioXML (responseContent)
-                        else -> { null }
+                        else -> { navidromeSyncInProgress.set(false) }
                     }
                 }
                 inputStream.close()

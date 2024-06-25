@@ -82,7 +82,9 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true, showSystemUi = true,
+    device = "spec:parent=pixel_5"
+)
 fun HomeScreen(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,

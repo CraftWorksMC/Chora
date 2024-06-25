@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -249,7 +250,6 @@ fun AnimatedBottomNavBar(
                     onClick = {
                         if (selectedItemIndex == index) return@NavigationBarItem
 
-                        println("Navigate to index!")
                         selectedItemIndex = index
                         navController.navigate(item.screenRoute) {
                             // Save state + only add screen once to graph

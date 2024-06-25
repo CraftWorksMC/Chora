@@ -86,12 +86,14 @@ fun AlbumScreen(
     var isSearchFieldOpen by remember { mutableStateOf(false) }
     var searchFilter by remember { mutableStateOf("") }
 
-    var sortedAlbumList by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
+    var sortedAlbumList by remember { mutableStateOf<List<MediaData.Album>>(listOf()) }
 
     val state = rememberPullToRefreshState()
 
-    if (sortedAlbumList.isEmpty() && searchFilter.isBlank())
+    if (albumList.isEmpty() && searchFilter.isBlank())
         state.startRefresh()
+    else
+        sortedAlbumList = albumList
 
     if (state.isRefreshing) {
         LaunchedEffect(true) {

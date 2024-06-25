@@ -1,5 +1,6 @@
 package com.craftworks.music
 
+import android.content.res.Configuration
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -8,16 +9,22 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.craftworks.music.data.Screen
+import com.craftworks.music.ui.elements.bottomSpacerHeightDp
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
 import com.craftworks.music.ui.screens.ArtistDetails
@@ -42,13 +49,17 @@ fun SetupNavGraph(
     paddingValues: PaddingValues,
     mediaController: MediaController?
 ){
+    val bottomPadding: Dp =
+        if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT)
+            paddingValues.calculateBottomPadding() else 0.dp
+
     val homeViewModel = remember { HomeScreenViewModel() }
     val artistsViewModel = remember { ArtistsScreenViewModel() }
     val playlistViewModel = remember { PlaylistScreenViewModel() }
 
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
-        modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding()),
+        modifier = Modifier.padding(bottom = bottomPadding + bottomSpacerHeightDp()),
         enterTransition = {
             slideInVertically(animationSpec = tween(durationMillis = 200)) { fullHeight ->
                 -fullHeight / 4

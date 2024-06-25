@@ -43,10 +43,7 @@ class saveManager(private val context: Context){
         // sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()
 
         // Check if there are any enabled navidrome servers and save if there are any.
-        var useNavidrome = false
-        for (server in navidromeServersList){
-            useNavidrome = server.enabled == true
-        }
+        val useNavidrome = navidromeServersList.any { it.enabled == true }
         sharedPreferences.edit().putBoolean("useNavidrome", useNavidrome).apply()
 
         //region Save Lists
@@ -59,10 +56,11 @@ class saveManager(private val context: Context){
             "${it.directory},${it.enabled}" }
         sharedPreferences.edit().putString("localProviderList", localListString).apply()
 
-        // Save Artists List
+        /* Save Artists List
         val artistsListString = artistList.joinToString(";") {
             "${it.name}|${it.artistImageUrl}|${it.navidromeID}" }
         sharedPreferences.edit().putString("artistsList", artistsListString).apply()
+        */
 
         saveLocalRadios()
 
@@ -99,13 +97,6 @@ class saveManager(private val context: Context){
         sharedPreferences.edit().putString("radioList", radiosListString).apply()
     }
     fun saveLocalPlaylists(){
-//        val localPlaylistString = playlistList.joinToString(";") {
-//            if (it.navidromeID == "Local")
-//                "${it.name}|${it.coverArt}|${it.navidromeID}|${it.songs}"
-//            else
-//                "" }
-//        sharedPreferences.edit().putString("localPlaylistList", localPlaylistString).apply()
-
         val playlistJson = Json.encodeToString(playlistList)
         sharedPreferences.edit().putString("playlistList", playlistJson).apply()
     }
@@ -213,6 +204,8 @@ class saveManager(private val context: Context){
         }
         selectedLocalProvider.intValue = sharedPreferences.getInt("activeLocalProvider", 0)
     }
+
+    /*
     private fun loadArtists(){
         Log.d("LOAD", "Loading Cached Artists")
 
@@ -243,7 +236,8 @@ class saveManager(private val context: Context){
 
             }
         }
-    }
+    } */
+
     fun loadRadios(){
         Log.d("LOAD", "Loading Radios")
 

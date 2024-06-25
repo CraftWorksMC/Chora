@@ -177,6 +177,8 @@ class PlaylistScreenViewModel : ViewModel() {
                     val allPlaylistsDeferred  = async { getNavidromePlaylists() }
 
                     _allPlaylists.value = allPlaylistsDeferred.await()
+
+                    _allPlaylists.value += playlistList
                 }
                 else {
                     _allPlaylists.value = playlistList
