@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name" translatable="false">Chora</string>
+    <!-- Navigation -->
+    <string name="songs">Titres</string>
+    <string name="Albums">Albums</string>
+    <string name="Artists">Artistes</string>
+    <string name="settings">Paramètres</string>
+    <string name="radios">Radio Internet</string>
+    <string name="playlists">Playlists</string>
+</resources>
