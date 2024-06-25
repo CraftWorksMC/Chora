@@ -37,6 +37,6 @@
 
     <!-- Connection Errors -->
     <string name="Navidrome_Error">Navidrome server unreachable.</string>
-    <string name="Navidrome_Sync">Navidrome sync in progress...</string>
+    <string name="Navidrome_Sync">Navidrome sync in progress…</string>
 
 </resources>

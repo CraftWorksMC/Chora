@@ -7,9 +7,7 @@ import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.data.Playlist
 import com.craftworks.music.data.Radio
-import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.data.localProviderList
@@ -18,15 +16,10 @@ import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
-import com.craftworks.music.providers.navidrome.getNavidromeAlbums
-import com.craftworks.music.providers.navidrome.getNavidromeArtists
-import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
-import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.ui.elements.dialogs.backgroundType
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
@@ -37,6 +30,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class saveManager(private val context: Context){
     private val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
@@ -104,12 +99,15 @@ class saveManager(private val context: Context){
         sharedPreferences.edit().putString("radioList", radiosListString).apply()
     }
     fun saveLocalPlaylists(){
-        val localPlaylistString = playlistList.joinToString(";") {
-            if (it.navidromeID == "Local")
-                "${it.name}|${it.coverArt}|${it.navidromeID}|${it.songs}"
-            else
-                "" }
-        sharedPreferences.edit().putString("localPlaylistList", localPlaylistString).apply()
+//        val localPlaylistString = playlistList.joinToString(";") {
+//            if (it.navidromeID == "Local")
+//                "${it.name}|${it.coverArt}|${it.navidromeID}|${it.songs}"
+//            else
+//                "" }
+//        sharedPreferences.edit().putString("localPlaylistList", localPlaylistString).apply()
+
+        val playlistJson = Json.encodeToString(playlistList)
+        sharedPreferences.edit().putString("playlistList", playlistJson).apply()
     }
 
     //endregion
@@ -274,80 +272,14 @@ class saveManager(private val context: Context){
         Log.d("LOAD", "Loading Offline Playlists")
 
         // Get Local Playlists
-        val localPlaylistStrings = (sharedPreferences.getString("localPlaylistList", "") ?: "").split(";")
-        localPlaylistStrings.forEach { localString ->
-            val parts = localString.split("|")
-            if (parts.size > 1) {
-                println(parts)
-                // Worst way of doing this. I'm sorry.
-                val songInfoRegex =Regex("Song\\(navidromeID=(.*?), parent=(.*?), isDir=(.*?), title=(.*?), album=(.*?), artist=(.*?), track=(.*?),year=(.*?), genre=(.*?), imageUrl=(.*?), size=(.*?), contentType=(.*?), format=(.*?), duration=(.*?), bitrate=(.*?), path=(.*?), timesPlayed=(.*?), discNumber=(.*?), dateAdded=(.*?), albumId=(.*?), artistId=(.*?), type=(.*?), isVideo=(.*?), lastPlayed=(.*?), bpm=(.*?), comment=(.*?), sortName=(.*?), mediaType=(.*?), musicBrainzId=(.*?), genres=\\[(.*?)\\], replayGain=(.*?), channelCount=(.*?), samplingRate=(.*?), isRadio=(.*?),media=(.*?), trackIndex=(.*?)\\)")
+        scope.launch {
+            val savedPlaylistJson = sharedPreferences.getString("playlistList", null)
+            playlistList = savedPlaylistJson?.let { Json.decodeFromString<List<MediaData.Playlist>>(it) }?.toMutableList() ?: mutableListOf()
 
-                val songMatches = songInfoRegex.findAll(parts[3])
-                println(songMatches)
-
-                val songs = songMatches.map { matchResult ->
-                    val groups = matchResult.groupValues
-                    MediaData.Song(
-                        groups[1],
-                        groups[2],
-                        groups[3].toBoolean(),
-                        groups[4],
-                        groups[5],
-                        groups[6],
-                        groups[7].toInt(),
-                        groups[8].toInt(),
-                        groups[9],
-                        groups[10],
-                        groups[11].toInt(),
-                        groups[12],
-                        groups[13],
-                        groups[14].toInt(),
-                        groups[15].toInt(),
-                        groups[16],
-                        groups[17].toInt(),
-                        groups[18].toInt(),
-                        groups[19],
-                        groups[20],
-                        groups[21],
-                        groups[22],
-                        groups[23].toBoolean(),
-                        groups[24],
-                        groups[25].toInt(),
-                        groups[26],
-                        groups[27],
-                        groups[28],
-                        groups[29],
-                        listOf(),
-                        null,
-                        groups[32].toInt(),
-                        groups[33].toInt(),
-                        groups[34].toBoolean(),
-                        groups[35],
-                        groups[36].toInt(),
-                    )
-                }
-                println(songs)
-
-                scope.launch {
-                    val coverArt = localPlaylistImageGenerator(songs.toList(), context) ?: ""
-                    val playlist = MediaData.Playlist(
-                        name = parts[0],
-                        coverArt = coverArt.toString(),
-                        navidromeID = parts[2],
-                        songs = songs.toList(),
-                        changed = "", created = "",
-                        songCount = songs.count(),
-                        duration = songs.sumOf { it.duration }
-                    )
-                    if (playlistList.firstOrNull { it.name == parts[0] && it.songs == songs.toList() } == null)
-                        playlistList.add(playlist)
-                }
+            playlistList.forEach { playlist ->
+                playlist.coverArt = localPlaylistImageGenerator(playlist.songs ?: emptyList(), context).toString()
             }
         }
-
-//        if (useNavidromeServer.value){
-//            scope.launch { getNavidromePlaylists() }
-//        }
     }
 
     //endregion
