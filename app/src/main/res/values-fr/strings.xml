@@ -37,7 +37,7 @@
     <string name="Dialog_Modify_Radio">Modifier </string>
     <string name="Label_Radio_Name">Nom de la radio:</string>
     <string name="Label_Radio_URL">URL de la radio:</string>
-    <string name="Label_Radio_Homepage">URL de la page d'accueil de la radio:</string>
+    <string name="Label_Radio_Homepage">URL de la page d\'accueil de la radio:</string>
         <!-- Playlists -->
     <string name="Dialog_New_Playlist">Nouvelle playlist</string>
     <string name="Dialog_Delete_Playlist">Supprimer playlist</string>
@@ -52,7 +52,7 @@
     <string name="Label_Sorting">Trier par</string>
         <!-- Connection Errors -->
     <string name="Navidrome_Error">Serveur Navidrome indisponible.</string>
-    <string name="Navidrome_Sync">Synchronisation de Navidrome en cours...</string>
+    <string name="Navidrome_Sync">Synchronisation de Navidrome en cours…</string>
         <!-- Home -->
     <string name="welcome_text">Bienvenue</string>
     <string name="recently_added">Récemment ajoutés</string>
@@ -67,7 +67,7 @@
     <string name="Settings_Header_Media">Fournisseurs de médias</string>
     <string name="Setting_Background">Types de fonds</string>
     <string name="Setting_Navbar_Items">Éléments de la barre de navigation</string>
-    <string name="Setting_MoreInfo">Afficher plus d'informations</string>
+    <string name="Setting_MoreInfo">Afficher plus d\'informations</string>
     <string name="Setting_NavidromeLogo">Afficher le logo de Navidrome</string>
     <string name="Settings_Header_Playback">Playback</string>
     <string name="Setting_Transcoding">Max Bitrate</string>
