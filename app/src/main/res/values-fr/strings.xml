@@ -1,10 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Chora</string>
-    <!-- Navigation -->
+        <!-- Navigation -->
     <string name="songs">Titres</string>
     <string name="Albums">Albums</string>
     <string name="Artists">Artistes</string>
     <string name="settings">Paramètres</string>
     <string name="radios">Radio Internet</string>
     <string name="playlists">Playlists</string>
+        <!-- Common -->
+    <string name="Action_Done">Fait</string>
+    <string name="Action_Remove">Supprimer</string>
+    <string name="Action_Reset">Réinitialiser</string>
+    <string name="Action_Search">Rechercher</string>
+    <string name="Action_Play">Jouer</string>
+    <string name="Action_Shuffle">Mélanger</string>
+        <!-- Navidrome Provider -->
+    <string name="Action_Add">Ajouter</string>
+    <string name="Action_Success">Succès</string>
+    <string name="Action_Login">Se connecter</string>
+    <string name="Action_Go">C\'est parti !</string>
+        <!-- Playlists -->
+    <string name="Action_CreatePlaylist">Créer une playlist</string>
+        <!-- Provider Dialog -->
+    <string name="Dialog_Media_Source">Source de médias</string>
+    <string name="No_Providers_Splash">Aucune source de médias pour le moment. Pour commencer la lecture, ajoutez-en une !</string>
+    <string name="Source_Navidrome" translatable="false">Navidrome</string>
+    <string name="Source_Local">Fichiers locaux</string>
+        <!-- Local -->
+    <string name="Label_Local_Directory">Dossier:</string>
+        <!-- Navidrome -->
+    <string name="Label_Navidrome_URL">URL de Navidrome:</string>
+    <string name="Label_Navidrome_Username">Nom d\'utilisateur:</string>
+    <string name="Label_Navidrome_Password">Mot de passe:</string>
+        <!-- Radios -->
+    <string name="Dialog_Add_Radio">Ajouter une radio internet</string>
+    <string name="Dialog_Modify_Radio">Modifier </string>
+    <string name="Label_Radio_Name">Nom de la radio:</string>
+    <string name="Label_Radio_URL">URL de la radio:</string>
+    <string name="Label_Radio_Homepage">URL de la page d'accueil de la radio:</string>
+        <!-- Playlists -->
+    <string name="Dialog_New_Playlist">Nouvelle playlist</string>
+    <string name="Dialog_Delete_Playlist">Supprimer playlist</string>
+    <string name="Label_Confirm_Delete_Playlist">Êtes-vous sûr de vouloir supprimer cette playlist?</string>
+    <string name="Dialog_Add_To_Playlist">Ajouter / à la playlist</string>
+    <string name="Label_Playlist_Name">Nom de la playlist:</string>
+        <!-- Albums -->
+    <string name="Label_MoreSongsFrom">Plus de titres de</string>
+        <!-- Artists -->
+    <string name="Label_NoDescription">Aucune description disponible.</string>
+        <!-- Sorting -->
+    <string name="Label_Sorting">Trier par</string>
+        <!-- Connection Errors -->
+    <string name="Navidrome_Error">Serveur Navidrome indisponible.</string>
+    <string name="Navidrome_Sync">Synchronisation de Navidrome en cours...</string>
 </resources>
