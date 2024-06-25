@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,6 +48,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -55,6 +57,7 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
+import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.useNavidromeServer
@@ -108,9 +111,8 @@ fun ArtistsScreen(
     }
 
     Box(modifier = Modifier.nestedScroll(state.nestedScrollConnection)){
-
         Column(modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(
                 start = leftPadding,
                 top = WindowInsets.statusBars
@@ -202,36 +204,45 @@ class ArtistsScreenViewModel : ViewModel() {
     }
 
     fun fetchArtists() {
-        if (!useNavidromeServer.value) return
-
         viewModelScope.launch {
             coroutineScope {
-                val allArtistsDeferred  = async { getNavidromeArtists() }
+                if (useNavidromeServer.value){
+                    val allArtistsDeferred  = async { getNavidromeArtists() }
 
-                _allArtists.value = allArtistsDeferred.await()
+                    _allArtists.value = allArtistsDeferred.await()
+                }
+                else{
+                    _allArtists.value = artistList
+                }
             }
         }
     }
 
     fun fetchArtistDetails(artistId : String){
         viewModelScope.launch {
-            // Fetch artist details and biography concurrently
-            val detailsDeferred = async { getNavidromeArtistDetails(artistId) }
-            val biographyDeferred = async { getNavidromeArtistBiography(artistId) }
+            if (useNavidromeServer.value){
+                // Fetch artist details and biography concurrently
+                val detailsDeferred = async { getNavidromeArtistDetails(artistId) }
+                val biographyDeferred = async { getNavidromeArtistBiography(artistId) }
 
-            // Wait for both to complete
-            val details = detailsDeferred.await()
-            val biography = biographyDeferred.await()
+                // Wait for both to complete
+                val details = detailsDeferred.await()
+                val biography = biographyDeferred.await()
 
-            // Update the state with the combined data
-            _selectedArtist.value = details.copy(
-                description = biography.description,
-                similarArtist = biography.similarArtist
-            )
+                // Update the state with the combined data
+                _selectedArtist.value = details.copy(
+                    description = biography.description,
+                    similarArtist = biography.similarArtist
+                )
+            }
+            else{
+                _selectedArtist.value = com.craftworks.music.data.selectedArtist.copy(
+                    album = albumList.fastFilter { it.artist == com.craftworks.music.data.selectedArtist.name }
+                )
+            }
+            println("${_selectedArtist.value} + ${com.craftworks.music.data.selectedArtist}")
 
-            println(_selectedArtist.value)
-
-            com.craftworks.music.data.selectedArtist = _selectedArtist.value!!
+            //com.craftworks.music.data.selectedArtist = _selectedArtist.value ?: com.craftworks.music.data.selectedArtist
         }
     }
 }

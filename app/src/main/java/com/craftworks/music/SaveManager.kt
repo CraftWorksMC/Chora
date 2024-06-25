@@ -278,9 +278,12 @@ class saveManager(private val context: Context){
         localPlaylistStrings.forEach { localString ->
             val parts = localString.split("|")
             if (parts.size > 1) {
-                val songInfoRegex = Regex("Song\\(imageUrl=(.*?), title=(.*?), artist=(.*?), album=(.*?), duration=(.*?), isRadio=(.*?), media=(.*?), timesPlayed=(.*?), dateAdded=(.*?), year=(.*?), format=(.*?), bitrate=(.*?), navidromeID=(.*?), lastPlayed=(.*?)\\)")
+                println(parts)
+                // Worst way of doing this. I'm sorry.
+                val songInfoRegex =Regex("Song\\(navidromeID=(.*?), parent=(.*?), isDir=(.*?), title=(.*?), album=(.*?), artist=(.*?), track=(.*?),year=(.*?), genre=(.*?), imageUrl=(.*?), size=(.*?), contentType=(.*?), format=(.*?), duration=(.*?), bitrate=(.*?), path=(.*?), timesPlayed=(.*?), discNumber=(.*?), dateAdded=(.*?), albumId=(.*?), artistId=(.*?), type=(.*?), isVideo=(.*?), lastPlayed=(.*?), bpm=(.*?), comment=(.*?), sortName=(.*?), mediaType=(.*?), musicBrainzId=(.*?), genres=\\[(.*?)\\], replayGain=(.*?), channelCount=(.*?), samplingRate=(.*?), isRadio=(.*?),media=(.*?), trackIndex=(.*?)\\)")
 
                 val songMatches = songInfoRegex.findAll(parts[3])
+                println(songMatches)
 
                 val songs = songMatches.map { matchResult ->
                     val groups = matchResult.groupValues
@@ -323,6 +326,7 @@ class saveManager(private val context: Context){
                         groups[36].toInt(),
                     )
                 }
+                println(songs)
 
                 scope.launch {
                     val coverArt = localPlaylistImageGenerator(songs.toList(), context) ?: ""

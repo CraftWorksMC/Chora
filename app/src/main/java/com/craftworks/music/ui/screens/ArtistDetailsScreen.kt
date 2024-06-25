@@ -236,7 +236,7 @@ fun ArtistDetails(
             }
         }
 
-        /* RECENTLY ADDED SONGS */
+        /* RECENTLY ADDED ALBUMS */
         Box(
             modifier = Modifier
                 .fillMaxWidth()

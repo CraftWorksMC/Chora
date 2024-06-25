@@ -94,6 +94,8 @@ fun PlaylistScreen(
 
             saveManager(context).loadPlaylists()
 
+            viewModel.fetchPlaylists()
+
             delay(500)
             for (playlist in playlistList){
                 if (playlist.navidromeID == "Local"){
@@ -168,9 +170,7 @@ class PlaylistScreenViewModel : ViewModel() {
         _selectedPlaylist.value = playlist
     }
 
-    private fun fetchPlaylists() {
-        if (!useNavidromeServer.value) return
-
+    fun fetchPlaylists() {
         viewModelScope.launch {
             coroutineScope {
                 if (useNavidromeServer.value){
