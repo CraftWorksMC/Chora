@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,22 +47,30 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastFilter
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
+import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
+import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
@@ -75,11 +86,11 @@ fun AlbumScreen(
     var isSearchFieldOpen by remember { mutableStateOf(false) }
     var searchFilter by remember { mutableStateOf("") }
 
-    var sortedAlbumList = albumList
+    var sortedAlbumList by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
 
     val state = rememberPullToRefreshState()
 
-    if (albumList.isEmpty())
+    if (sortedAlbumList.isEmpty() && searchFilter.isBlank())
         state.startRefresh()
 
     if (state.isRefreshing) {
@@ -95,6 +106,7 @@ fun AlbumScreen(
             else{
                 getSongsOnDevice(context)
             }
+            sortedAlbumList = albumList
             state.endRefresh()
         }
     }
@@ -107,7 +119,8 @@ fun AlbumScreen(
                 start = leftPadding,
                 top = WindowInsets.statusBars
                     .asPaddingValues()
-                    .calculateTopPadding())) {
+                    .calculateTopPadding()
+            )) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.placeholder),
@@ -123,54 +136,72 @@ fun AlbumScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                IconButton(onClick = { isSearchFieldOpen = !isSearchFieldOpen },
-                    modifier = Modifier
-                        .size(48.dp)) {
-                    Icon(Icons.Rounded.Search, contentDescription = "Search all songs")
+                if (!useNavidromeServer.value){
+                    IconButton(onClick = { isSearchFieldOpen = !isSearchFieldOpen },
+                        modifier = Modifier
+                            .size(48.dp)) {
+                        Icon(Icons.Rounded.Search, contentDescription = "Search all songs")
+                    }
                 }
             }
 
             HorizontalLineWithNavidromeCheck()
 
-            AnimatedVisibility(
-                visible = isSearchFieldOpen,
-                enter = expandVertically(),
-                exit = shrinkVertically()
-            ) {
-                Box(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
+            if (!useNavidromeServer.value){
+                val coroutineScope = rememberCoroutineScope()
+                AnimatedVisibility(
+                    visible = isSearchFieldOpen,
+                    enter = expandVertically(),
+                    exit = shrinkVertically()
                 ) {
-                    val focusRequester = remember { FocusRequester() }
-                    TextField(
-                        value = searchFilter,
-                        onValueChange = { searchFilter = it },
-                        label = { Text(stringResource(R.string.Action_Search)) },
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
-                            .focusRequester(focusRequester))
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                    ) {
+                        val focusRequester = remember { FocusRequester() }
+                        TextField(
+                            value = searchFilter,
+                            onValueChange = {
+                                searchFilter = it
+                                if (it.isBlank()){
+                                    getSongsOnDevice(context)
+                                    sortedAlbumList = albumList
+                                } },
+                            label = { Text(stringResource(R.string.Action_Search)) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions(
+                                onSearch = {
+                                    coroutineScope.launch {
+                                        sortedAlbumList = albumList.fastFilter {
+                                            it.title?.lowercase()?.contains(searchFilter.lowercase()) == true ||
+                                                    it.artist.lowercase().contains(searchFilter.lowercase())
+                                        }.toMutableList()
 
-                    LaunchedEffect(isSearchFieldOpen) {
-                        if (isSearchFieldOpen)
-                            focusRequester.requestFocus()
-                        else
-                            focusRequester.freeFocus()
+                                        isSearchFieldOpen = false
+                                    }
+                                }
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
+                                .focusRequester(focusRequester))
+
+                        LaunchedEffect(isSearchFieldOpen) {
+                            if (isSearchFieldOpen)
+                                focusRequester.requestFocus()
+                            else
+                                focusRequester.freeFocus()
+                        }
                     }
                 }
             }
-
-//            if (searchFilter.isNotBlank()){
-//                sortedAlbumList = sortedAlbumList.filter { it.name!!.contains(searchFilter, true)  ||
-//                        it.artist.contains(searchFilter, true) }.toMutableList()
-//            }
 
             AlbumGrid(sortedAlbumList, mediaController, onAlbumSelected = { album ->
                 navHostController.navigate(Screen.AlbumDetails.route) {
                     launchSingleTop = true
                 }
-                selectedAlbum = album})
+                selectedAlbum = album })
         }
 
         PullToRefreshContainer(
