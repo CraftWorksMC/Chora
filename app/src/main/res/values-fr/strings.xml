@@ -55,7 +55,7 @@
     <string name="Navidrome_Sync">Synchronisation de Navidrome en cours...</string>
         <!-- Home -->
     <string name="welcome_text">Bienvenue</string>
-    <string name="recently_added">Récemment ajouté</string>
+    <string name="recently_added">Récemment ajoutés</string>
     <string name="most_played">Plus joués</string>
     <string name="recently_played">Joués récemment</string>
     <string name="random_songs">Explorer votre médiathèque</string>
@@ -68,7 +68,7 @@
     <string name="Setting_Background">Types de fonds</string>
     <string name="Setting_Navbar_Items">Éléments de la barre de navigation</string>
     <string name="Setting_MoreInfo">Afficher plus d'informations</string>
-    <string name="Setting_NavidromeLogo">Afficher la logo de Navidrome</string>
+    <string name="Setting_NavidromeLogo">Afficher le logo de Navidrome</string>
     <string name="Settings_Header_Playback">Playback</string>
     <string name="Setting_Transcoding">Max Bitrate</string>
     <string name="Setting_Scrobble_Percent">Min. Scrobble Percentage</string>
