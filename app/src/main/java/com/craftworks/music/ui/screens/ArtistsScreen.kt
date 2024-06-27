@@ -117,8 +117,7 @@ fun ArtistsScreen(
                 start = leftPadding,
                 top = WindowInsets.statusBars
                     .asPaddingValues()
-                    .calculateTopPadding(),
-                bottom = 12.dp
+                    .calculateTopPadding()
             )) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
                 Icon(
