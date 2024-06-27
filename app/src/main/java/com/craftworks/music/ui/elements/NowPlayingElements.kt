@@ -75,7 +75,6 @@ fun NowPlayingPortraitCover (
     scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     mediaController: MediaController?
 ){
-    println("Recomposing whole NowPlayingPortraitCover")
     val textFadingEdge = Brush.horizontalGradient(0.85f to Color.Red, 1f to Color.Transparent)
 
     Column(modifier = Modifier.heightIn(min=420.dp)) {

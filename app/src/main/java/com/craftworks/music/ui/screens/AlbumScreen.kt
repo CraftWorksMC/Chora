@@ -64,6 +64,8 @@ import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
+import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.providers.navidrome.searchNavidromeAlbums
 import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
@@ -86,29 +88,29 @@ fun AlbumScreen(
     var isSearchFieldOpen by remember { mutableStateOf(false) }
     var searchFilter by remember { mutableStateOf("") }
 
-    var sortedAlbumList by remember { mutableStateOf<List<MediaData.Album>>(listOf()) }
-
     val state = rememberPullToRefreshState()
 
-    if (albumList.isEmpty() && searchFilter.isBlank())
+    var allAlbumsList by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
+
+    if (albumList.isEmpty() && searchFilter.isEmpty())
         state.startRefresh()
     else
-        sortedAlbumList = albumList
+        allAlbumsList = albumList
+
 
     if (state.isRefreshing) {
         LaunchedEffect(true) {
+
+            println("Refreshing AlbumList!!!")
             albumList.clear()
 
-            if (useNavidromeServer.value){
-                coroutineScope {
-                    val albumListDeferred = async { getNavidromeAlbums() }
-                    albumList = albumListDeferred.await().toMutableList()
-                }
-            }
-            else{
+            if (useNavidromeServer.value)
+                albumList.addAll(getNavidromeAlbums())
+            else
                 getSongsOnDevice(context)
-            }
-            sortedAlbumList = albumList
+
+            allAlbumsList = albumList
+
             state.endRefresh()
         }
     }
@@ -138,72 +140,84 @@ fun AlbumScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                if (!useNavidromeServer.value){
-                    IconButton(onClick = { isSearchFieldOpen = !isSearchFieldOpen },
-                        modifier = Modifier
-                            .size(48.dp)) {
-                        Icon(Icons.Rounded.Search, contentDescription = "Search all songs")
-                    }
+                IconButton(onClick = { isSearchFieldOpen = !isSearchFieldOpen },
+                    modifier = Modifier
+                        .size(48.dp)) {
+                    Icon(Icons.Rounded.Search, contentDescription = "Search all songs")
                 }
             }
 
             HorizontalLineWithNavidromeCheck()
 
-            if (!useNavidromeServer.value){
-                val coroutineScope = rememberCoroutineScope()
-                AnimatedVisibility(
-                    visible = isSearchFieldOpen,
-                    enter = expandVertically(),
-                    exit = shrinkVertically()
+            val coroutineScope = rememberCoroutineScope()
+            AnimatedVisibility(
+                visible = isSearchFieldOpen,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
                 ) {
-                    Box(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp)
-                    ) {
-                        val focusRequester = remember { FocusRequester() }
-                        TextField(
-                            value = searchFilter,
-                            onValueChange = {
-                                searchFilter = it
-                                if (it.isBlank()){
-                                    getSongsOnDevice(context)
-                                    sortedAlbumList = albumList
-                                } },
-                            label = { Text(stringResource(R.string.Action_Search)) },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                            keyboardActions = KeyboardActions(
-                                onSearch = {
-                                    coroutineScope.launch {
-                                        sortedAlbumList = albumList.fastFilter {
+                    val focusRequester = remember { FocusRequester() }
+                    TextField(
+                        value = searchFilter,
+                        onValueChange = {
+                            searchFilter = it
+                            if (it.isBlank()){
+                                coroutineScope.launch {
+                                    if (useNavidromeServer.value)
+                                        albumList.addAll(getNavidromeAlbums())
+                                    else
+                                        getSongsOnDevice(context)
+                                }
+                            } },
+                        label = { Text(stringResource(R.string.Action_Search)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(
+                            onSearch = {
+                                coroutineScope.launch {
+                                    if (useNavidromeServer.value){
+                                        albumList.addAll(searchNavidromeAlbums(searchFilter))
+                                    }
+                                    else {
+                                        albumList = albumList.fastFilter {
                                             it.title?.lowercase()?.contains(searchFilter.lowercase()) == true ||
                                                     it.artist.lowercase().contains(searchFilter.lowercase())
                                         }.toMutableList()
-
-                                        isSearchFieldOpen = false
                                     }
-                                }
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
-                                .focusRequester(focusRequester))
 
-                        LaunchedEffect(isSearchFieldOpen) {
-                            if (isSearchFieldOpen)
-                                focusRequester.requestFocus()
-                            else
-                                focusRequester.freeFocus()
-                        }
+                                    isSearchFieldOpen = false
+                                }
+                            }
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
+                            .focusRequester(focusRequester))
+
+                    LaunchedEffect(isSearchFieldOpen) {
+                        if (isSearchFieldOpen)
+                            focusRequester.requestFocus()
+                        else
+                            focusRequester.freeFocus()
                     }
                 }
             }
 
-            AlbumGrid(sortedAlbumList, mediaController, onAlbumSelected = { album ->
+            LaunchedEffect(searchFilter) {
+                if (searchFilter.isNotBlank() && useNavidromeServer.value){
+                    albumList.clear()
+                }
+            }
+
+            AlbumGrid(allAlbumsList, mediaController, onAlbumSelected = { album ->
                 navHostController.navigate(Screen.AlbumDetails.route) {
                     launchSingleTop = true
                 }
-                selectedAlbum = album })
+                selectedAlbum = album },
+                searchFilter.isNotBlank())
         }
 
         PullToRefreshContainer(

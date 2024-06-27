@@ -26,6 +26,16 @@ suspend fun getNavidromeAlbums(sort: String? = "alphabeticalByName", size: Int? 
     ).filterIsInstance<MediaData.Album>()
 }
 
+suspend fun searchNavidromeAlbums(query: String? = "") : List<MediaData.Album>{
+    if (navidromeServersList.isEmpty()) return emptyList()
+    return sendNavidromeGETRequest(
+        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+        "search3.view?query=$query&songCount=0&songOffset=0&artistCount=0&albumCount=100&f=json"
+    ).filterIsInstance<MediaData.Album>()
+}
+
 suspend fun getNavidromeAlbumSongs(albumId: String){
     sendNavidromeGETRequest(
         navidromeServersList[selectedNavidromeServerIndex.intValue].url,

@@ -12,6 +12,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -28,15 +30,9 @@ import com.craftworks.music.providers.navidrome.navidromeSyncInProgress
 @Composable
 @Preview
 fun HorizontalLineWithNavidromeCheck(){
-    val showError = remember { mutableStateOf(false) }
-    val showSync = remember { mutableStateOf(false) }
-    val errorStatus = remember { mutableStateOf("") }
-
-    LaunchedEffect(navidromeStatus.value, useNavidromeServer.value, navidromeSyncInProgress.get()) {
-        showError.value = useNavidromeServer.value && (navidromeStatus.value != "ok" && navidromeStatus.value != "")
-        errorStatus.value =  navidromeStatus.value
-        showSync.value = navidromeSyncInProgress.get()
-    }
+    val showError by remember { derivedStateOf { useNavidromeServer.value && (navidromeStatus.value != "ok" && navidromeStatus.value != "") } }
+    val errorStatus by remember { derivedStateOf { navidromeStatus.value } }
+    val showSync by remember { derivedStateOf { navidromeSyncInProgress.get() } }
 
     HorizontalDivider(
         modifier = Modifier
@@ -55,14 +51,14 @@ fun HorizontalLineWithNavidromeCheck(){
         .background(MaterialTheme.colorScheme.errorContainer)
         .heightIn(
             max =
-            if (showError.value)
+            if (showError)
                 128.dp
             else
                 0.dp
         )
     ) {
         Text(
-            text = stringResource(R.string.Navidrome_Error) + " Status: " + errorStatus.value,
+            text = stringResource(R.string.Navidrome_Error) + " Status: " + errorStatus,
             //color = Color(0xFF181926),
             color = MaterialTheme.colorScheme.onErrorContainer,
             fontWeight = FontWeight.SemiBold,
@@ -79,7 +75,7 @@ fun HorizontalLineWithNavidromeCheck(){
         .background(MaterialTheme.colorScheme.primaryContainer) // Catppuccin Macchiato Yellow.
         .heightIn(
             max =
-            if (navidromeSyncInProgress.get())
+            if (showSync)
                 128.dp
             else
                 0.dp

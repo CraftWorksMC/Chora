@@ -448,7 +448,6 @@ fun NowPlayingContent(
 @Composable
 fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) {
 
-    println("Recomposing LyricsView")
     var currentLyricIndex by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(SyncedLyric, sliderPos) {

@@ -2,6 +2,7 @@ package com.craftworks.music.providers.navidrome
 
 import android.util.Log
 import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.albumList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.songsList
@@ -12,7 +13,10 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 
 @Serializable
-data class SearchResult3(val song: List<MediaData.Song>? = listOf())
+data class SearchResult3(
+    val song: List<MediaData.Song>? = listOf(),
+    val album: List<MediaData.Album>? = listOf()
+)
 
 
 suspend fun getNavidromeSongs() : List<MediaData.Song> {
@@ -24,12 +28,13 @@ suspend fun getNavidromeSongs() : List<MediaData.Song> {
     ).filterIsInstance<MediaData.Song>()
 }
 
-fun parseNavidromeSongJSON(
+fun parseNavidromeSearch3JSON(
     response: String,
     navidromeUrl: String,
     navidromeUsername: String,
     navidromePassword: String
-) : List<MediaData.Song> {
+) : List<MediaData> {
+
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
         jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
@@ -48,21 +53,30 @@ fun parseNavidromeSongJSON(
         it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora"
     }
 
+    subsonicResponse.searchResult3?.album?.map {
+        it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora"
+    }
+
     //Check if query is empty for allSongsList
 
     var mediaDataSongs = emptyList<MediaData.Song>()
+    var mediaDataAlbums = emptyList<MediaData.Album>()
 
     subsonicResponse.searchResult3?.song?.filterNot { newSong ->
         songsList.any { existingSong ->
             existingSong.navidromeID == newSong.navidromeID
         }
-    }?.let { // songsList.addAll(it)
-        mediaDataSongs = it
-        }
+    }?.let { mediaDataSongs = it }
 
-    //songsList.addAll(subsonicResponse.searchResult3.song)
+    subsonicResponse.searchResult3?.album?.filterNot { newAlbum ->
+        albumList.any { existingAlbum ->
+            existingAlbum.navidromeID == newAlbum.navidromeID
+        }
+    }?.let { mediaDataAlbums = it }
+
     Log.d("NAVIDROME", "Added songs. Total: ${mediaDataSongs.size}")
 
-    return mediaDataSongs
+    // Return mediaDataAlbums if mediaDataSongs is empty.
+    return mediaDataSongs.ifEmpty { mediaDataAlbums }
 }
 

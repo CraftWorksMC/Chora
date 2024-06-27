@@ -160,7 +160,7 @@ fun AlbumGrid(
     mediaController: MediaController?,
     onAlbumSelected: (album: MediaData.Album) -> Unit,
     isSearch: Boolean? = false,
-    sort: String? = "alphabeticalByName"){
+    sort: String? = "alphabeticalByName",){
 
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()

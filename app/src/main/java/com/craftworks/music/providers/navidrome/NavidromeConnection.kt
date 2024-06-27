@@ -2,7 +2,6 @@ package com.craftworks.music.providers.navidrome
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
@@ -11,7 +10,6 @@ import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.ui.screens.HomeScreenViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -107,7 +105,7 @@ suspend fun sendNavidromeGETRequest(
                     val responseContent = it.readText()
                     when {
                         endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (responseContent)
-                        endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSongJSON    (responseContent, baseUrl, username, password))
+                        endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON    (responseContent, baseUrl, username, password))
 
                         // Albums
                         endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, baseUrl, username, password))

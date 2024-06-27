@@ -249,14 +249,12 @@ fun AnimatedBottomNavBar(
                     modifier = Modifier.bounceClick(),
                     onClick = {
                         if (selectedItemIndex == index) return@NavigationBarItem
-
                         selectedItemIndex = index
                         navController.navigate(item.screenRoute) {
                             // Save state + only add screen once to graph
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
-
                             launchSingleTop = true
                             restoreState = true
                         }
