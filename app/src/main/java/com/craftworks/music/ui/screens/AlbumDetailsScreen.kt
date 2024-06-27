@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -79,7 +79,7 @@ import kotlinx.coroutines.withContext
 var selectedAlbum by mutableStateOf<MediaData.Album?>(MediaData.Album(navidromeID = "", parent = "", album = "", title = "", name = "", songCount = 0, duration = 0, artistId = "", artist = "", coverArt = ""))
 
 @ExperimentalFoundationApi
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true, showSystemUi = true, locale = "it")
 @Composable
 fun AlbumDetails(
     navHostController: NavHostController = rememberNavController(),
@@ -160,7 +160,7 @@ fun AlbumDetails(
                         fontSize = MaterialTheme.typography.headlineLarge.fontSize,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
-                        lineHeight = 32.sp
+                        lineHeight = 32.sp,
                     )
                 }
                 Row (modifier = Modifier.fillMaxWidth() ,horizontalArrangement = Arrangement.Center) {
@@ -172,7 +172,7 @@ fun AlbumDetails(
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.clickable {
-                                selectedArtist = artistList.firstOrNull() { it.name == artistName } ?: return@clickable
+                                selectedArtist = artistList.firstOrNull { it.name == artistName } ?: return@clickable
                                 navHostController.navigate(Screen.AristDetails.route) {
                                     launchSingleTop = true
                                 }
@@ -210,13 +210,13 @@ fun AlbumDetails(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier.width(128.dp)
+                modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
             ) {
                 Row (verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.height(24.dp)
                 ) {
                     Icon(Icons.Rounded.PlayArrow, "Play Album")
-                    Text(stringResource(R.string.Action_Play))
+                    Text(stringResource(R.string.Action_Play), maxLines = 1)
                 }
             }
             Button(
@@ -232,11 +232,11 @@ fun AlbumDetails(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier.width(128.dp)
+                modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(24.dp)) {
                     Icon(ImageVector.vectorResource(R.drawable.round_shuffle_28), "Shuffle Album")
-                    Text(stringResource(R.string.Action_Shuffle))
+                    Text(stringResource(R.string.Action_Shuffle), maxLines = 1)
                 }
             }
         }

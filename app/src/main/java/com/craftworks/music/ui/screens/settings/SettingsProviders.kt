@@ -83,7 +83,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 modifier = Modifier.padding(horizontal = 12.dp)
             ) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
+                    imageVector = ImageVector.vectorResource(R.drawable.s_m_media_providers),
                     contentDescription = "Media Providers Icon",
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(48.dp)
