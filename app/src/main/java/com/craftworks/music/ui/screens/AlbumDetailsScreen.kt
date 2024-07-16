@@ -39,6 +39,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -90,6 +92,12 @@ fun AlbumDetails(
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
     var albumSongs by remember { mutableStateOf<List<MediaData.Song>>(emptyList()) }
+
+    val requester = FocusRequester()
+
+    LaunchedEffect(Unit) {
+        requester.requestFocus();
+    }
 
     LaunchedEffect(selectedAlbum?.songs) {
         albumSongs = selectedAlbum?.songs!!
@@ -211,6 +219,7 @@ fun AlbumDetails(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
+                    .focusRequester(requester)
             ) {
                 Row (verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.height(24.dp)

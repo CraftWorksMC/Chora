@@ -20,6 +20,11 @@ To help keep this project free and open source to everyone, consider donating, t
 - Navidrome and Local playlists.
 - Android Auto.
 
+## W.I.P
+
+- Better Android TV Support.
+- Better Android Auto Support.
+
 ## Known Issues
 
 - Could crash when connecting to a Navidrome server on a particularly slow connection.
@@ -27,6 +32,7 @@ To help keep this project free and open source to everyone, consider donating, t
 ## Roadmap
 
 - Jellyfin (Music) Support.
+- **MAYBE** LG WebOS Support.
 
 
 ## Screenshots

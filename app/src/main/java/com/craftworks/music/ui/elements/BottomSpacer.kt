@@ -43,7 +43,8 @@ fun BottomSpacer(){
 fun bottomSpacerHeightDp(): Dp {
     return if (SongHelper.currentSong.title == "" &&
         SongHelper.currentSong.duration == 0 &&
-        SongHelper.currentSong.imageUrl == "") {
+        SongHelper.currentSong.imageUrl == "" ||
+        LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) {
             0.dp
     }
     else {
