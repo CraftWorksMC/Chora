@@ -24,6 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -96,21 +97,14 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                     modifier = Modifier.weight(1f)
                 )
                 Box {
-                    Button(
-                        onClick = { navHostController.navigate(Screen.Setting.route) },
-                        shape = CircleShape,
-                        modifier = Modifier.size(32.dp),
-                        contentPadding = PaddingValues(2.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            contentDescription = "Return To Settings",
-                            modifier = Modifier
-                                .height(32.dp)
-                                .size(32.dp)
-                        )
+                    IconButton(onClick = { navHostController.navigate(Screen.Setting.route) {
+                        launchSingleTop = true
+                    } },
+                        modifier = Modifier
+                            .size(48.dp)) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "Back To Settings",
+                            modifier = Modifier.size(32.dp))
                     }
                 }
             }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.io.IOException
 import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
@@ -150,7 +151,11 @@ suspend fun sendNavidromeGETRequest(
         } catch (e: MalformedURLException) {
             navidromeStatus.value = "Invalid URL"
             Log.d("NAVIDROME", "Exception: $e")
+        } catch (e: IOException) {
+            navidromeStatus.value = "Unknown Error"
+            Log.d("NAVIDROME", "Exception: $e")
         }
+
         navidromeSyncInProgress.set(false)
     }
 

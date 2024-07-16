@@ -18,11 +18,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -93,21 +95,14 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 modifier = Modifier.weight(1f)
             )
             Box {
-                Button(
-                    onClick = { navHostController.navigate(Screen.Setting.route) },
-                    shape = CircleShape,
-                    modifier = Modifier.size(32.dp),
-                    contentPadding = PaddingValues(2.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.ArrowBack,
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "Return To Settings",
-                        modifier = Modifier
-                            .height(32.dp)
-                            .size(32.dp)
-                    )
+                IconButton(onClick = { navHostController.navigate(Screen.Setting.route) {
+                    launchSingleTop = true
+                } },
+                    modifier = Modifier
+                        .size(48.dp)) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = "Back To Settings",
+                        modifier = Modifier.size(32.dp))
                 }
             }
         }

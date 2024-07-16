@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,11 +24,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
@@ -92,25 +96,14 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                 fontSize = MaterialTheme.typography.headlineLarge.fontSize,
                 modifier = Modifier.weight(1f)
             )
-            Box {
-                Button(
-                    onClick = { navHostController.navigate(Screen.Home.route) {
-                        launchSingleTop = true
-                    } },
-                    shape = CircleShape,
-                    modifier = Modifier.size(32.dp),
-                    contentPadding = PaddingValues(2.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.ArrowBack,
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "Settings",
-                        modifier = Modifier
-                            .height(32.dp)
-                            .size(32.dp)
-                    )
-                }
+            IconButton(onClick = { navHostController.navigate(Screen.Home.route) {
+                launchSingleTop = true
+            } },
+                modifier = Modifier
+                    .size(48.dp)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = "Back To Home",
+                    modifier = Modifier.size(32.dp))
             }
         }
 
@@ -126,7 +119,6 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                 //region Appearance
                 Row (modifier = Modifier
                     .height(76.dp)
-                    .fillMaxWidth()
                     .padding(vertical = 6.dp)
                     .bounceClick()
                     .clip(RoundedCornerShape(12.dp))
@@ -135,7 +127,8 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         navHostController.navigate(Screen.S_Appearance.route) {
                             launchSingleTop = true
                         }
-                    },
+                    }
+                    .focusable(true).focusTarget(),
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     Icon(

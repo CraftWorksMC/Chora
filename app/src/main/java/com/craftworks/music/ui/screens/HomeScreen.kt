@@ -25,10 +25,13 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
@@ -140,23 +143,14 @@ fun HomeScreen(
                     WelcomeText()
                 }
                 Box(Modifier.padding(end = 12.dp)) {
-                    Button(
-                        onClick = { navHostController.navigate(Screen.Setting.route) {
-                            launchSingleTop = true
-                        } },
-                        shape = CircleShape,
-                        modifier = Modifier.size(32.dp),
-                        contentPadding = PaddingValues(2.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                    ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.rounded_settings_24),
-                            tint = MaterialTheme.colorScheme.onBackground,
+                    IconButton(onClick = { navHostController.navigate(Screen.Setting.route) {
+                        launchSingleTop = true
+                    } },
+                        modifier = Modifier
+                            .size(48.dp)) {
+                        Icon(ImageVector.vectorResource(R.drawable.rounded_settings_24),
                             contentDescription = "Settings",
-                            modifier = Modifier
-                                .height(32.dp)
-                                .size(32.dp)
-                        )
+                            modifier = Modifier.size(32.dp))
                     }
                 }
             }
@@ -194,6 +188,12 @@ fun HomeScreen(
         )
         val offsetX = dpToPx(-36)
 
+        val isClickable =
+            if (LocalConfiguration.current.uiMode == Configuration.UI_MODE_TYPE_TELEVISION)
+                Modifier.clickable { rotation += 360f }
+            else
+                Modifier
+
         Image(
             painter = painterResource(R.drawable.s_m_navidrome),
             contentDescription = "Navidrome Icon",
@@ -204,9 +204,7 @@ fun HomeScreen(
                 .graphicsLayer {
                     rotationZ = animatedRotation
                 }
-                .clickable {
-                    rotation += 360f
-                }
+                .then(isClickable)
         )
     }
 }

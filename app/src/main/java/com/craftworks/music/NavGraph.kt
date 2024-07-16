@@ -134,5 +134,9 @@ fun SetupNavGraph(
         ) {
             S_PlaybackScreen(navController)
         }
+
+        composable(route = Screen.NowPlaying_TV.route){
+
+        }
     }
 }

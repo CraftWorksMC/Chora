@@ -65,6 +65,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
@@ -127,6 +128,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     println("Recomposing EVERYTHING!!!!! VERY BAD")
+
                     Scaffold(
                         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                         bottomBar = {
@@ -135,10 +137,12 @@ class MainActivity : ComponentActivity() {
                     ) {
                         paddingValues -> SetupNavGraph(navController, paddingValues, mediaController.value)
 
-                        BottomSheetScaffold(
-                            modifier = Modifier.fillMaxWidth(),
-                            sheetContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
-                            sheetPeekHeight =
+                        // No BottomSheetScaffold for Android TV
+                        if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION){
+                            BottomSheetScaffold(
+                                modifier = Modifier.fillMaxWidth(),
+                                sheetContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                                sheetPeekHeight =
                                 if (SongHelper.currentSong.title == "" &&
                                     SongHelper.currentSong.duration == 0 &&
                                     SongHelper.currentSong.imageUrl == "")
@@ -147,19 +151,20 @@ class MainActivity : ComponentActivity() {
                                     72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
                                 }
                                 else 72.dp,
-                            sheetShadowElevation = 4.dp,
-                            sheetShape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
-                            sheetDragHandle = { },
-                            scaffoldState = scaffoldState,
-                            sheetContent = {
-                                NowPlayingContent(
-                                    context = this@MainActivity,
-                                    scaffoldState = scaffoldState,
-                                    snackbarHostState = snackbarHostState,
-                                    navHostController = navController,
-                                    mediaController = mediaController.value
-                                )
-                            }) {
+                                sheetShadowElevation = 4.dp,
+                                sheetShape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
+                                sheetDragHandle = { },
+                                scaffoldState = scaffoldState,
+                                sheetContent = {
+                                    NowPlayingContent(
+                                        context = this@MainActivity,
+                                        scaffoldState = scaffoldState,
+                                        snackbarHostState = snackbarHostState,
+                                        navHostController = navController,
+                                        mediaController = mediaController.value
+                                    )
+                                }) {
+                            }
                         }
                     }
                 }
@@ -226,19 +231,20 @@ fun AnimatedBottomNavBar(
     navController: NavHostController,
     scaffoldState : BottomSheetScaffoldState
 ){
+    println(scaffoldState)
     val backStackEntry = navController.currentBackStackEntryAsState()
     val coroutineScope = rememberCoroutineScope()
 
     var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
 
-    val yTrans by animateIntAsState(
-        targetValue =
+    if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
+        val yTrans by animateIntAsState(
+            targetValue =
             if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded)
                 dpToPx(-80 - WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding().value.toInt())
             else 0,
-        label = "Fullscreen Translation")
+            label = "Fullscreen Translation")
 
-    if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
         NavigationBar (modifier = Modifier
             .offset { IntOffset(x=0, y= -yTrans.toInt()) }
         ) {
@@ -251,10 +257,6 @@ fun AnimatedBottomNavBar(
                         if (selectedItemIndex == index) return@NavigationBarItem
                         selectedItemIndex = index
                         navController.navigate(item.screenRoute) {
-                            // Save state + only add screen once to graph
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -273,6 +275,16 @@ fun AnimatedBottomNavBar(
     }
     else{
         NavigationRail {
+            if (bottomNavigationItems.firstOrNull { it.screenRoute == "playing_tv_screen" } == null &&
+                LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) {
+                bottomNavigationItems.add(
+                    BottomNavItem(
+                        "Playing",
+                        R.drawable.s_m_playback,
+                        "playing_tv_screen"
+                    )
+                )
+            }
             bottomNavigationItems.forEachIndexed { index, item ->
                 if (!item.enabled) return@forEachIndexed
                 NavigationRailItem(
@@ -280,10 +292,6 @@ fun AnimatedBottomNavBar(
                     onClick = {
                         selectedItemIndex = index
                         navController.navigate(item.screenRoute) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-
                             launchSingleTop = true
                             restoreState = true
                         }
