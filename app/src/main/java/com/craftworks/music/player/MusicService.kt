@@ -213,7 +213,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     .setIsBrowsable(false)
                     .setIsPlayable(true)
                     .setExtras(Bundle().apply {
-                        putString("Format", song.format)
+                        putString("Format", song.contentType)
                         song.bitrate?.let { putInt("Bitrate", it) }
                         putString("navidromeID", song.navidromeID)
                         putInt("Duration", song.duration)

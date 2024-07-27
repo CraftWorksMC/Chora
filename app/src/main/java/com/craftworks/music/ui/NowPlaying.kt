@@ -23,6 +23,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.FocusInteraction
+import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +41,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListLayoutInfo
@@ -76,12 +80,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -100,6 +108,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -470,6 +479,7 @@ fun NowPlayingContent(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun NowPlaying_TV(
     collapsed: Boolean? = false,
@@ -502,7 +512,9 @@ fun NowPlaying_TV(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top
             ) {
-                Column(modifier = Modifier.height(72.dp).padding(start = 24.dp)){
+                Column(modifier = Modifier
+                    .height(72.dp)
+                    .padding(start = 24.dp)){
                     SongHelper.currentSong.title.let {
                         Text(
                             text = // Limit Song Title Length (if not collapsed).
@@ -531,16 +543,19 @@ fun NowPlaying_TV(
                         )
                     }
                     if (showMoreInfo.value) {
-                        SongHelper.currentSong.format.let { format ->
-                            Text(
-                                text = format.toString(),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Light,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                                maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                textAlign = TextAlign.Start
-                            )
-                        }
+                        Text(
+                            text = "${SongHelper.currentSong.format} • ${SongHelper.currentSong.bitrate} • ${
+                                if (SongHelper.currentSong.navidromeID == "Local")
+                                    stringResource(R.string.Source_Local)
+                                else
+                                    stringResource(R.string.Source_Navidrome)
+                            } ",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Light,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                            maxLines = 1,
+                            textAlign = TextAlign.Start
+                        )
                     }
                 }
 
@@ -554,13 +569,19 @@ fun NowPlaying_TV(
 
                 //region BUTTONS
                 Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
+                    val (prev, play, next, shuffle, replay) = remember { FocusRequester.createRefs() }
+
+                    LaunchedEffect(Unit) {
+                        play.requestFocus()
+                    }
+
                     /* MAIN ACTIONS */
                     Row(modifier = Modifier
                         .height(96.dp)
                         .padding(horizontal = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically) {
-                        MainButtons(mediaController, isPlaying)
+                        MainButtons(mediaController, isPlaying, prev, play, next, shuffle)
                     }
                     // BUTTONS
                     Row(modifier = Modifier
@@ -569,9 +590,9 @@ fun NowPlaying_TV(
                         .padding(horizontal = 24.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically) {
-                        ShuffleButton(48.dp, mediaController)
+                        ShuffleButton(48.dp, mediaController, play, shuffle)
 
-                        RepeatButton(48.dp, mediaController)
+                        RepeatButton(48.dp, mediaController, play, replay)
 
                         //DownloadButton(snackbarHostState, coroutineScope, 48.dp)
                     }
@@ -597,8 +618,11 @@ fun NowPlaying_TV(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) {
+fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?,
+               retryLyricsFocus: FocusRequester = FocusRequester(),
+               playFocus: FocusRequester = FocusRequester()) {
 
     var currentLyricIndex by remember { mutableIntStateOf(0) }
 
@@ -636,7 +660,7 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
     LazyColumn(
         modifier = if (isLandscape) {
             Modifier
-                .width(256.dp)
+                .widthIn(min = 256.dp)
                 .fillMaxHeight()
                 .padding(horizontal = 12.dp)
         } else {
@@ -683,6 +707,7 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
                             mediaController?.seekTo(lyric.timestamp.toLong())
                             currentLyricIndex = index
                         }
+                        .focusable(false)
                         .graphicsLayer {
                             scaleX = scale
                             scaleY = scale
@@ -710,6 +735,13 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?) 
                         .height(64.dp)
                         .clickable {
                             getLyrics()
+                        }
+                        .focusRequester(retryLyricsFocus)
+                        .focusProperties {
+                            down = playFocus
+                            right = FocusRequester.Cancel
+                            left = FocusRequester.Cancel
+                            up = FocusRequester.Cancel
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -767,7 +799,8 @@ fun SliderUpdating(isLandscape: Boolean? = false, mediaController: MediaControll
             .padding(horizontal = 24.dp)
             .height(sliderHeight)
             .scale(scaleX = 1f, scaleY = 1.25f)
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(RoundedCornerShape(12.dp))
+            .focusable(false),
         value = animatedSliderValue,
         onValueChange = {
             SongHelper.isSeeking = true
@@ -811,8 +844,14 @@ fun SliderUpdating(isLandscape: Boolean? = false, mediaController: MediaControll
 
 //region Reusable buttons
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable // Previous Song, Play/Pause, Next Song
-fun MainButtons(mediaController: MediaController?, isPlaying: Boolean ? = false){
+fun MainButtons(mediaController: MediaController?, isPlaying: Boolean ? = false,
+                prev: FocusRequester = FocusRequester(),
+                play: FocusRequester = FocusRequester(),
+                next: FocusRequester = FocusRequester(),
+                shuffle: FocusRequester = FocusRequester()){
+
     // Previous Song
     Box(modifier = Modifier
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
@@ -828,7 +867,13 @@ fun MainButtons(mediaController: MediaController?, isPlaying: Boolean ? = false)
             modifier = Modifier
                 .size(72.dp)
                 .bounceClick()
-                .moveClick(false),
+                .moveClick(false)
+                .focusRequester(prev)
+                .focusProperties {
+                    right = play
+                    down = shuffle
+                    up = FocusRequester.Cancel
+                },
             contentPadding = PaddingValues(2.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
@@ -854,7 +899,14 @@ fun MainButtons(mediaController: MediaController?, isPlaying: Boolean ? = false)
             shape = CircleShape,
             modifier = Modifier
                 .size(92.dp)
-                .bounceClick(),
+                .bounceClick()
+                .focusRequester(play)
+                .focusProperties {
+                    left = prev
+                    right = next
+                    down = shuffle
+                    up = FocusRequester.Cancel
+                },
             contentPadding = PaddingValues(2.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent
@@ -888,7 +940,13 @@ fun MainButtons(mediaController: MediaController?, isPlaying: Boolean ? = false)
             modifier = Modifier
                 .size(72.dp)
                 .bounceClick()
-                .moveClick(true),
+                .moveClick(true)
+                .focusRequester(next)
+                .focusProperties {
+                    left = play
+                    down = shuffle
+                    up = FocusRequester.Cancel
+                },
             contentPadding = PaddingValues(2.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
@@ -990,8 +1048,11 @@ fun DownloadButton(snackbarHostState: SnackbarHostState?,
         }
     }
 }
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ShuffleButton(size: Dp, mediaController: MediaController?){
+fun ShuffleButton(size: Dp, mediaController: MediaController?,
+                  play: FocusRequester = FocusRequester(),
+                  shuffle: FocusRequester = FocusRequester()){
     Box(modifier = Modifier
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
     {
@@ -1001,7 +1062,13 @@ fun ShuffleButton(size: Dp, mediaController: MediaController?){
                 mediaController?.shuffleModeEnabled = shuffleSongs.value
             },
             shape = CircleShape,
-            modifier = Modifier.size(size),
+            modifier = Modifier
+                .size(size)
+                .focusRequester(shuffle)
+                .focusProperties {
+                    up = play
+                    down = FocusRequester.Cancel
+                },
             contentPadding = PaddingValues(2.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
@@ -1017,8 +1084,11 @@ fun ShuffleButton(size: Dp, mediaController: MediaController?){
         }
     }
 }
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun RepeatButton(size: Dp, mediaController: MediaController?){
+fun RepeatButton(size: Dp, mediaController: MediaController?,
+                 play: FocusRequester = FocusRequester(),
+                 replay: FocusRequester = FocusRequester()){
     Box(modifier = Modifier
         .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center)
     {
@@ -1032,7 +1102,14 @@ fun RepeatButton(size: Dp, mediaController: MediaController?){
                         Player.REPEAT_MODE_OFF
                       },
             shape = CircleShape,
-            modifier = Modifier.size(size),
+            modifier = Modifier
+                .size(size)
+                .focusRequester(replay)
+                .focusProperties {
+                    up = play
+                    down = FocusRequester.Cancel
+                    right = FocusRequester.Cancel
+                },
             contentPadding = PaddingValues(2.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {

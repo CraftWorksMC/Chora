@@ -19,10 +19,11 @@ sealed class MediaData {
         @SerialName("coverArt")
         var imageUrl: String,
         val size: Int? = 0,
-        val contentType: String? = "music",
+        val contentType: String? = "audio/flac",
         @SerialName("suffix")
         val format: String,
         val duration: Int = 0,
+        @SerialName("bitRate")
         val bitrate: Int? = 0,
         val path: String,
         @SerialName("playCount")
