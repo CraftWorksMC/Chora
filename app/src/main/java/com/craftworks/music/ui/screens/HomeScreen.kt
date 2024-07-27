@@ -145,6 +145,7 @@ fun HomeScreen(
                 Box(Modifier.padding(end = 12.dp)) {
                     IconButton(onClick = { navHostController.navigate(Screen.Setting.route) {
                         launchSingleTop = true
+                        restoreState = true
                     } },
                         modifier = Modifier
                             .size(48.dp)) {

@@ -9,6 +9,7 @@ import android.graphics.RenderEffect
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -20,12 +21,14 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -78,6 +81,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -95,11 +99,13 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -133,6 +139,7 @@ import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.backgroundType
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.elements.moveClick
+import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -144,6 +151,10 @@ var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
 var lyricsOpen by mutableStateOf(false)
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_TELEVISION,
+    device = "id:tv_1080p"
+)
 @Composable
 fun NowPlayingContent(
     song: MediaData.Song = MediaData.Song(
@@ -304,25 +315,27 @@ fun NowPlayingContent(
         //endregion
 
         // MINI-PLAYER
-        val bottomSheetOffset by remember {
-            derivedStateOf {
-                if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
-                    72
-                } else {
-                    0
+        if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION){
+            val bottomSheetOffset by remember {
+                derivedStateOf {
+                    if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
+                        72
+                    } else {
+                        0
+                    }
                 }
             }
-        }
 
-        val offsetY by animateFloatAsState(
-            targetValue = dpToPx(bottomSheetOffset).toFloat(),
-            label = "Animated Top Offset"
-        )
+            val offsetY by animateFloatAsState(
+                targetValue = dpToPx(bottomSheetOffset).toFloat(),
+                label = "Animated Top Offset"
+            )
 
-        Box(modifier = Modifier
-            .graphicsLayer { translationY = -offsetY }
-            .zIndex(1f)) {
-            NowPlayingMiniPlayer(scaffoldState, playing, mediaController)
+            Box(modifier = Modifier
+                .graphicsLayer { translationY = -offsetY }
+                .zIndex(1f)) {
+                NowPlayingMiniPlayer(scaffoldState, playing, mediaController)
+            }
         }
 
         // MAIN UI
@@ -398,50 +411,189 @@ fun NowPlayingContent(
             }
             else {
 
-                //region LANDSCAPE TV-TABLET UI
-                Box(
-                    modifier = Modifier
-                        .width(640.dp)
-                        .fillMaxHeight()
-                        .padding(0.dp, 48.dp, 0.dp, 0.dp),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    // Click to close
-                    TextButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
-                                    scaffoldState.bottomSheetState.partialExpand()
-                                }
-                            }
-                        },
-                        modifier = Modifier.offset(y = -(48).dp),
-                        enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
+                //region LANDSCAPE TABLET UI
+                if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION){
+                    Box(
+                        modifier = Modifier
+                            .width(640.dp)
+                            .fillMaxHeight()
+                            .padding(0.dp, 48.dp, 0.dp, 0.dp),
+                        contentAlignment = Alignment.TopCenter
                     ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            contentDescription = "Previous Song",
-                            modifier = Modifier
-                                .height(32.dp)
-                                .size(32.dp)
+                        // Click to close
+                        TextButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
+                                        scaffoldState.bottomSheetState.partialExpand()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.offset(y = -(48).dp),
+                            enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
+                        ) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
+                                tint = MaterialTheme.colorScheme.onBackground,
+                                contentDescription = "Previous Song",
+                                modifier = Modifier
+                                    .height(32.dp)
+                                    .size(32.dp)
+                            )
+                        }
+
+                        NowPlayingLandscape(
+                            lyricsOpen || scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
+                            playing,
+                            song,
+                            snackbarHostState,
+                            coroutineScope,
+                            mediaController
                         )
                     }
+                }
+                //endregion
 
-                    NowPlayingLandscape(
-                        lyricsOpen || scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
+                //region TV UI
+                else {
+                    NowPlaying_TV(
+                        lyricsOpen,
                         playing,
                         song,
                         snackbarHostState,
                         coroutineScope,
-                        mediaController
-                    )
+                        mediaController)
                 }
-
                 //endregion
-
             }
         }
+    }
+}
+
+@Composable
+fun NowPlaying_TV(
+    collapsed: Boolean? = false,
+    isPlaying: Boolean? = false,
+    song: MediaData.Song = SongHelper.currentSong,
+    snackbarHostState: SnackbarHostState? = SnackbarHostState(),
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    mediaController: MediaController?
+) {
+    Row(){
+        Column(modifier = Modifier
+            .width(512.dp)
+            .padding(start = 80.dp + 6.dp),
+            horizontalAlignment = Alignment.Start) {
+
+            /* Album Cover */
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .height(256.dp),
+                contentAlignment = Alignment.Center){
+                LyricsView(true, mediaController)
+            }
+
+            /* Song Title + Artist*/
+            Column(
+                modifier = Modifier
+                    .width(512.dp)
+                    .fillMaxHeight()
+                    .padding(top = 4.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Top
+            ) {
+                Column(modifier = Modifier.height(72.dp).padding(start = 24.dp)){
+                    SongHelper.currentSong.title.let {
+                        Text(
+                            text = // Limit Song Title Length (if not collapsed).
+                            if (it.length > 24 && collapsed == false) it.substring(0, 21) + "..."
+                            else it,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Start
+                        )
+                    }
+                    SongHelper.currentSong.artist.let {
+                        Text(
+                            text = //Limit the artist name length (if not collapsed).
+                            if (it.length > 20 && collapsed == false)
+                                it.substring(0, 17) + "..." + " • " + SongHelper.currentSong.year
+                            else
+                                it + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year
+                                else "",
+                            fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Start
+                        )
+                    }
+                    if (showMoreInfo.value) {
+                        SongHelper.currentSong.format.let { format ->
+                            Text(
+                                text = format.toString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Light,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Start
+                            )
+                        }
+                    }
+                }
+
+                /* Progress Bar */
+                Column(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 12.dp)
+                    .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    SliderUpdating(true, mediaController)
+                }
+
+                //region BUTTONS
+                Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
+                    /* MAIN ACTIONS */
+                    Row(modifier = Modifier
+                        .height(96.dp)
+                        .padding(horizontal = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically) {
+                        MainButtons(mediaController, isPlaying)
+                    }
+                    // BUTTONS
+                    Row(modifier = Modifier
+                        .height(64.dp)
+                        //.width(256.dp)
+                        .padding(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically) {
+                        ShuffleButton(48.dp, mediaController)
+
+                        RepeatButton(48.dp, mediaController)
+
+                        //DownloadButton(snackbarHostState, coroutineScope, 48.dp)
+                    }
+                }
+                //endregion
+            }
+        }
+
+        AsyncImage(
+            model = SongHelper.currentSong.imageUrl,
+            contentDescription = "Album Cover",
+            placeholder = painterResource(R.drawable.placeholder),
+            fallback = painterResource(R.drawable.placeholder),
+            contentScale = ContentScale.FillHeight,
+            alignment = Alignment.Center,
+            modifier = Modifier
+                .padding(32.dp)
+                .weight(1f)
+                .aspectRatio(1f)
+                .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        )
     }
 }
 

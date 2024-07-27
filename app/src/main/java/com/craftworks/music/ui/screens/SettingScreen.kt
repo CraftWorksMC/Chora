@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,17 +35,21 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
@@ -59,7 +64,6 @@ import com.craftworks.music.ui.elements.bounceClick
 var username = mutableStateOf("Username")
 var showMoreInfo = mutableStateOf(true)
 var showNavidromeLogo = mutableStateOf(true)
-var homeScreenUseAlbums = mutableStateOf(true)
 
 @Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
@@ -69,18 +73,21 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
     //val context = LocalContext.current.applicationContext
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
-    // handle back presses
-    BackHandler(true) {
-        navHostController.navigate(Screen.Home.route) {
-            launchSingleTop = true
-        }
-        return@BackHandler
+    val requester = FocusRequester()
+
+    LaunchedEffect(Unit) {
+        requester.requestFocus()
     }
 
     Column(modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState())
-        .padding(start = leftPadding, top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())) {
+        .padding(
+            start = leftPadding,
+            top = WindowInsets.statusBars
+                .asPaddingValues()
+                .calculateTopPadding()
+        )) {
 
         /* HEADER */
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
@@ -123,19 +130,20 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     .bounceClick()
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable{
+                    .clickable(role = Role.Button) {
                         navHostController.navigate(Screen.S_Appearance.route) {
                             launchSingleTop = true
                         }
-                    }
-                    .focusable(true).focusTarget(),
+                    },
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
                         contentDescription = stringResource(R.string.Settings_Header_Appearance),
                         tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.size(48.dp).padding(start = 12.dp))
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(start = 12.dp))
                     Text(
                         text = stringResource(R.string.Settings_Header_Appearance),
                         color = MaterialTheme.colorScheme.onBackground,
@@ -143,12 +151,18 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         modifier = Modifier.padding(start = 12.dp)
                     )
-                    Spacer(Modifier.weight(1f).fillMaxHeight())
+                    Spacer(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight())
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
                         contentDescription = stringResource(R.string.Settings_Header_Appearance),
                         tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.size(48.dp).padding(end = 12.dp).rotate(-90f))
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(end = 12.dp)
+                            .rotate(-90f))
                 }
                 //endregion
 
@@ -160,18 +174,21 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     .bounceClick()
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable{
+                    .clickable {
                         navHostController.navigate(Screen.S_Providers.route) {
                             launchSingleTop = true
                         }
-                    },
+                    }
+                    .focusable(true),
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.s_m_media_providers),
                         contentDescription = stringResource(R.string.Settings_Header_Media),
                         tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.size(48.dp).padding(start = 12.dp))
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(start = 12.dp))
                     Text(
                         text = stringResource(R.string.Settings_Header_Media),
                         color = MaterialTheme.colorScheme.onBackground,
@@ -179,12 +196,18 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         modifier = Modifier.padding(start = 12.dp)
                     )
-                    Spacer(Modifier.weight(1f).fillMaxHeight())
+                    Spacer(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight())
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
                         contentDescription = stringResource(R.string.Settings_Header_Media),
                         tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.size(48.dp).padding(end = 12.dp).rotate(-90f))
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(end = 12.dp)
+                            .rotate(-90f))
                 }
                 //endregion
 
@@ -196,18 +219,21 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     .bounceClick()
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable{
+                    .clickable {
                         navHostController.navigate(Screen.S_Playback.route) {
                             launchSingleTop = true
                         }
-                    },
+                    }
+                    .focusable(true),
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.s_m_playback),
                         contentDescription = stringResource(R.string.Settings_Header_Playback),
                         tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.size(48.dp).padding(start = 12.dp))
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(start = 12.dp))
                     Text(
                         text = stringResource(R.string.Settings_Header_Playback),
                         color = MaterialTheme.colorScheme.onBackground,
@@ -215,12 +241,18 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         modifier = Modifier.padding(start = 12.dp)
                     )
-                    Spacer(Modifier.weight(1f).fillMaxHeight())
+                    Spacer(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight())
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
                         contentDescription = stringResource(R.string.Settings_Header_Playback),
                         tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.size(48.dp).padding(end = 12.dp).rotate(-90f))
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(end = 12.dp)
+                            .rotate(-90f))
                 }
                 //endregion
             }

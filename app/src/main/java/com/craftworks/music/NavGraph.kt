@@ -10,21 +10,38 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.craftworks.music.data.Screen
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.ui.NowPlayingContent
+import com.craftworks.music.ui.elements.BottomSpacer
+import com.craftworks.music.ui.elements.NowPlayingLandscape
 import com.craftworks.music.ui.elements.bottomSpacerHeightDp
+import com.craftworks.music.ui.lyricsOpen
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
 import com.craftworks.music.ui.screens.ArtistDetails
@@ -42,7 +59,7 @@ import com.craftworks.music.ui.screens.settings.S_AppearanceScreen
 import com.craftworks.music.ui.screens.settings.S_PlaybackScreen
 import com.craftworks.music.ui.screens.settings.S_ProviderScreen
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SetupNavGraph(
     navController: NavHostController,
@@ -136,7 +153,14 @@ fun SetupNavGraph(
         }
 
         composable(route = Screen.NowPlaying_TV.route){
-
+            NowPlayingContent(
+                SongHelper.currentSong,
+                LocalContext.current,
+                rememberBottomSheetScaffoldState(),
+                snackbarHostState = null,
+                navController,
+                mediaController
+            )
         }
     }
 }
