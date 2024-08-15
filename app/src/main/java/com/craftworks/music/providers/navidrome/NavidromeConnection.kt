@@ -3,6 +3,7 @@ package com.craftworks.music.providers.navidrome
 import android.content.Context
 import android.util.Log
 import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.localProviderList
@@ -26,6 +27,11 @@ import java.net.UnknownHostException
 import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.net.ssl.HttpsURLConnection
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
+import javax.net.ssl.HostnameVerifier
 
 var navidromeSyncInProgress = AtomicBoolean(false)
 
@@ -55,11 +61,58 @@ data class SubsonicResponse(
     val playlists: PlaylistContainer? = null
 )
 
+
+object NavidromeManager {
+    private val servers = mutableMapOf<String, NavidromeProvider>()
+    private var currentServerId: String? = null
+
+    fun addServer(server: NavidromeProvider) {
+        servers[server.id] = server
+        if (currentServerId == null) {
+            currentServerId = server.id
+        }
+    }
+
+    fun getServer(id: String): NavidromeProvider? = servers[id]
+
+    fun removeServer(id: String) {
+        servers.remove(id)
+        if (currentServerId == id) {
+            currentServerId = servers.keys.firstOrNull()
+        }
+    }
+
+    fun getAllServers(): List<NavidromeProvider> = servers.values.toList()
+
+    fun setCurrentServer(id: String) {
+        if (id in servers) {
+            currentServerId = id
+        } else {
+            throw IllegalArgumentException("Server with id $id not found")
+        }
+    }
+
+    fun getCurrentServerId(): String? = currentServerId
+    fun getCurrentServer(): NavidromeProvider? = currentServerId?.let { servers[it] }
+
+    suspend fun sendNavidromeGETRequestNew(endpoint: String): List<MediaData> {
+        val server = getCurrentServer() ?: throw IllegalStateException("No current server set")
+        return sendNavidromeGETRequest(
+            baseUrl = server.url,
+            username = server.username,
+            password = server.password,
+            endpoint = endpoint,
+            allowSelfSignedCert = server.allowSelfSignedCert
+        )
+    }
+}
+
 suspend fun sendNavidromeGETRequest(
     baseUrl: String,
     username: String,
     password: String,
-    endpoint: String) : List<MediaData> {
+    endpoint: String,
+    allowSelfSignedCert: Boolean? = false) : List<MediaData> {
 
     val parsedData = mutableListOf<MediaData>()
 
@@ -67,11 +120,11 @@ suspend fun sendNavidromeGETRequest(
         navidromeSyncInProgress.set(true)
 
         // Generate a random password salt and MD5 hash.
+        // This is kinda slow, but needed.
         val passwordSalt = generateSalt(8)
         val passwordHash = md5Hash(password + passwordSalt)
-        //Log.d("NAVIDROME", "baseUrl: $baseUrl, passwordSalt: $passwordSalt, endpoint: $endpoint")
 
-        // All get requests come from this file.
+        // All get requests come from this file. Use Subsonic link template.
         val url = URL("$baseUrl/rest/$endpoint&u=$username&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
 
         if (url.protocol.isEmpty() && url.host.isEmpty()){
@@ -79,9 +132,32 @@ suspend fun sendNavidromeGETRequest(
             return@withContext
         }
 
-        // Use HTTPS connection for allowing self-signed ssl certificates.
+//        // Use HTTPS connection for allowing self-signed ssl certificates.
+//        val connection = if (url.protocol == "https") {
+//            url.openConnection() as HttpsURLConnection
+//        } else {
+//            url.openConnection() as HttpURLConnection
+//        }
+
         val connection = if (url.protocol == "https") {
-            url.openConnection() as HttpsURLConnection
+            (url.openConnection() as HttpsURLConnection).apply {
+                if (allowSelfSignedCert == true) {
+                    // Allow every single cert. Not the best way to do this but eh
+                    val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+                        override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                        override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+                    })
+
+                    val sslContext = SSLContext.getInstance("SSL")
+                    sslContext.init(null, trustAllCerts, java.security.SecureRandom())
+                    val allHostsValid = HostnameVerifier { _, _ -> true }
+
+                    // Apply cert authenticity changes.
+                    sslSocketFactory = sslContext.socketFactory
+                    hostnameVerifier = allHostsValid
+                }
+            }
         } else {
             url.openConnection() as HttpURLConnection
         }
@@ -99,8 +175,6 @@ suspend fun sendNavidromeGETRequest(
                     navidromeSyncInProgress.set(false)
                     return@withContext
                 }
-
-
 
                 inputStream.bufferedReader().use {
                     val responseContent = it.readText()
@@ -132,7 +206,7 @@ suspend fun sendNavidromeGETRequest(
                 }
                 inputStream.close()
             }
-        }
+        } // Peak code right here, try catch EVERYTHING.
         catch (e: ConnectException) {
             navidromeStatus.value = "Network Unreachable"
             Log.d("NAVIDROME", "Exception: $e")
@@ -154,6 +228,9 @@ suspend fun sendNavidromeGETRequest(
         } catch (e: IOException) {
             navidromeStatus.value = "Unknown Error"
             Log.d("NAVIDROME", "Exception: $e")
+        } catch (e: Exception) {
+            navidromeStatus.value = "Fatal Error"
+            Log.d("NAVIDROME", "Exception: $e")
         }
 
         navidromeSyncInProgress.set(false)
@@ -161,7 +238,6 @@ suspend fun sendNavidromeGETRequest(
 
     return parsedData
 }
-
 
 suspend fun reloadNavidrome(context: Context){
     songsList.clear()
@@ -177,7 +253,7 @@ suspend fun reloadNavidrome(context: Context){
     //albumList.addAll(getNavidromeAlbums())
     //getNavidromeArtists()
     //getNavidromePlaylists()
-    getNavidromeRadios()
+    //getNavidromeRadios()
 }
 
 fun md5Hash(input: String): String {

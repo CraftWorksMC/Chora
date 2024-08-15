@@ -70,7 +70,7 @@ fun RadioScreen(
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
-    LaunchedEffect(radioList) {
+    LaunchedEffect(Unit) {
         if (radioList.isEmpty() && useNavidromeServer.value) {
             getNavidromeRadios()
         }

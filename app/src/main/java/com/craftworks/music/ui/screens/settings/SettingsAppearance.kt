@@ -30,12 +30,18 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusProperties
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
@@ -59,6 +65,7 @@ import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.showNavidromeLogo
 import com.craftworks.music.ui.screens.username
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 @Preview(showSystemUi = false, showBackground = true)
 fun S_AppearanceScreen(navHostController: NavHostController = rememberNavController()) {
@@ -68,11 +75,20 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
     var showBackgroundDialog by remember { mutableStateOf(false) }
     var showNavbarItemsDialog by remember { mutableStateOf(false) }
 
+    val focusRequester = FocusRequester()
+    LaunchedEffect (Unit) {
+        focusRequester.requestFocus()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = leftPadding, top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
+            .padding(start = leftPadding,
+                top = WindowInsets.statusBars
+                    .asPaddingValues()
+                    .calculateTopPadding()
+            )
             .background(MaterialTheme.colorScheme.background)
     ) {
 
@@ -99,7 +115,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     launchSingleTop = true
                 } },
                     modifier = Modifier
-                        .size(48.dp)) {
+                        .size(48.dp)
+                        .focusRequester(focusRequester)
+                        .focusProperties { left = FocusRequester.Cancel }) {
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack,
                         contentDescription = "Back To Settings",
                         modifier = Modifier.size(32.dp))
@@ -118,7 +136,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             //Username
             Row (verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(vertical = 6.dp)) {
+                    .padding(vertical = 6.dp)
+                    .focusRequester(focusRequester)
+                    .focusProperties { left = FocusRequester.Cancel }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_a_username),
                     contentDescription = "Settings Icon",
@@ -143,7 +163,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     .padding(vertical = 6.dp)
                     .clickable {
                         showBackgroundDialog = true
-                    }) {
+                    }
+                    .focusRequester(focusRequester)
+                    .focusProperties { left = FocusRequester.Cancel }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
                     contentDescription = "Background Style Icon",
@@ -180,7 +202,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     .padding(vertical = 6.dp)
                     .clickable {
                         showNavbarItemsDialog = true
-                    }) {
+                    }
+                    .focusRequester(focusRequester)
+                    .focusProperties { left = FocusRequester.Cancel }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_a_navbar_items),
                     contentDescription = "Navbar Menus Icon",
@@ -217,7 +241,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             //More Song Info
             Row (verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(vertical = 6.dp)) {
+                    .padding(vertical = 6.dp)
+                    .focusRequester(focusRequester)
+                    .focusProperties { left = FocusRequester.Cancel }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
                     contentDescription = "Settings Icon",
@@ -240,7 +266,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             //Show Navidrome Logo
             Row (verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(vertical = 6.dp)) {
+                    .padding(vertical = 6.dp)
+                    .focusRequester(focusRequester)
+                    .focusProperties { left = FocusRequester.Cancel }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
                     contentDescription = "Settings Icon",

@@ -123,7 +123,7 @@ class saveManager(private val context: Context){
                 //launch { songsList.addAll(getNavidromeSongs()) }
                 //launch { albumList.addAll(getNavidromeAlbums()) }
                 //launch { getNavidromePlaylists() }
-                launch { getNavidromeRadios() }
+                //launch { getNavidromeRadios() }
                 //launch { artistList.addAll(getNavidromeArtists()) }
             }
 
@@ -257,10 +257,11 @@ class saveManager(private val context: Context){
                 radioList.add(radio)
             }
         }
-
-        if (useNavidromeServer.value)
-            scope.launch { getNavidromeRadios() }
-
+        if (useNavidromeServer.value){
+            scope.launch {
+                getNavidromeRadios()
+            }
+        }
     }
     fun loadPlaylists(){
         Log.d("LOAD", "Loading Offline Playlists")
