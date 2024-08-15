@@ -2,12 +2,16 @@ package com.craftworks.music.providers.navidrome
 
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import com.craftworks.music.data.NavidromeProvider
 import com.gitlab.mvysny.konsumexml.konsumeXml
 
 var navidromeStatus = mutableStateOf("")
 
-suspend fun getNavidromeStatus(url: String, username: String, password: String){
-    sendNavidromeGETRequest(url, username, password, "ping.view?")
+suspend fun getNavidromeStatus(server: NavidromeProvider){
+    NavidromeManager.addServer(server)
+    sendNavidromeGETRequest("ping.view?")
+    if (navidromeStatus.value != "ok")
+        NavidromeManager.removeServer(server.id)
 }
 
 fun parseNavidromeStatusXML(response: String){

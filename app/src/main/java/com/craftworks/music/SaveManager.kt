@@ -19,8 +19,7 @@ import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
-import com.craftworks.music.providers.navidrome.getNavidromeRadios
-import com.craftworks.music.providers.navidrome.getNavidromeStatus
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.ui.elements.dialogs.backgroundType
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.screens.showMoreInfo
@@ -48,7 +47,7 @@ class saveManager(private val context: Context){
 
         //region Save Lists
         // Save Navidrome Server List
-        val serverListString = navidromeServersList.joinToString(";") { "${it.url},${it.username},${it.password}" }
+        val serverListString = navidromeServersList.joinToString(";") { "${it.id},${it.url},${it.username},${it.password},${it.enabled},${it.allowSelfSignedCert}" }
         sharedPreferences.edit().putString("navidromeServerList", serverListString).apply()
 
         // Save Local Provider List
@@ -115,16 +114,17 @@ class saveManager(private val context: Context){
             loadPlaylists()
 
             if (useNavidromeServer.value) {
-                launch { getNavidromeStatus(
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-                ) }
-                //launch { songsList.addAll(getNavidromeSongs()) }
-                //launch { albumList.addAll(getNavidromeAlbums()) }
-                //launch { getNavidromePlaylists() }
-                //launch { getNavidromeRadios() }
-                //launch { artistList.addAll(getNavidromeArtists()) }
+//                launch { getNavidromeStatus(
+//                    navidromeServersList[selectedNavidromeServerIndex.intValue].url,
+//                    navidromeServersList[selectedNavidromeServerIndex.intValue].username,
+//                    navidromeServersList[selectedNavidromeServerIndex.intValue].password,
+//                ) }
+
+//                getNavidromeStatus(
+//                    "url",
+//                    "username",
+//                    "password",
+//                )
             }
 
             if (localProviderList.isNotEmpty()) {
@@ -181,10 +181,12 @@ class saveManager(private val context: Context){
         val navidromeStrings = (sharedPreferences.getString("navidromeServerList", "") ?: "").split(";")
         navidromeStrings.forEach { navidromeString ->
             val parts = navidromeString.split(",")
-            if (parts.size == 3) {
-                val navidromeProvider = NavidromeProvider(parts[0], parts[1], parts[2])
+            if (parts.size == 6) {
+                val navidromeProvider = NavidromeProvider(parts[0], parts[1], parts[2], parts[3], parts[4].toBoolean(), parts[5].toBoolean())
                 if (navidromeServersList.contains(navidromeProvider)) return
                 navidromeServersList.add(navidromeProvider)
+                println(navidromeProvider)
+                NavidromeManager.addServer(navidromeProvider)
             }
         }
         selectedNavidromeServerIndex.intValue = sharedPreferences.getInt("activeNavidromeServer", 0)
@@ -257,11 +259,11 @@ class saveManager(private val context: Context){
                 radioList.add(radio)
             }
         }
-        if (useNavidromeServer.value){
-            scope.launch {
-                getNavidromeRadios()
-            }
-        }
+//        if (useNavidromeServer.value){
+//            scope.launch {
+//                getNavidromeRadios()
+//            }
+//        }
     }
     fun loadPlaylists(){
         Log.d("LOAD", "Loading Offline Playlists")

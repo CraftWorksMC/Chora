@@ -24,7 +24,6 @@
         <!-- Provider Dialog -->
     <string name="Dialog_Media_Source">Source de médias</string>
     <string name="No_Providers_Splash">Aucune source de médias pour le moment. Pour commencer la lecture, ajoutez-en une !</string>
-    <string name="Source_Navidrome" translatable="false">Navidrome</string>
     <string name="Source_Local">Fichiers locaux</string>
         <!-- Local -->
     <string name="Label_Local_Directory">Dossier:</string>
@@ -33,6 +32,7 @@
     <string name="Label_Navidrome_Username">Nom d\'utilisateur:</string>
     <string name="Label_Navidrome_Password">Mot de passe:</string>
         <!-- Radios -->
+    <string name="Label_Allow_Self_Signed_Certs">Autoriser les certificats auto-signés</string>
     <string name="Dialog_Add_Radio">Ajouter une radio internet</string>
     <string name="Dialog_Modify_Radio">Modifier </string>
     <string name="Label_Radio_Name">Nom de la radio:</string>

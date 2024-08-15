@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -22,11 +23,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -39,6 +42,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -52,11 +57,13 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.providers.navidrome.reloadNavidrome
 import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
+import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.launch
 
 //region PREVIEWS
@@ -78,6 +85,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
     var url: String by remember { mutableStateOf("") }
     var username: String by remember { mutableStateOf("") }
     var password: String by remember { mutableStateOf("") }
+    var allowCerts: Boolean by remember { mutableStateOf(false) }
 
     var dir: String by remember { mutableStateOf("/Music/") }
 
@@ -232,6 +240,29 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                 },
                                 isError = navidromeStatus.value == "Wrong username or password"
                             )
+                            /* Allow Self Signed Certs */
+                            Row (verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .padding(vertical = 6.dp)) {
+//                                Icon(
+//                                    imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
+//                                    contentDescription = "Settings Icon",
+//                                    tint = MaterialTheme.colorScheme.onBackground,
+//                                    modifier = Modifier
+//                                        .padding(horizontal = 12.dp)
+//                                        .size(24.dp)
+//                                )
+                                Text(
+                                    text = stringResource(R.string.Label_Allow_Self_Signed_Certs),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier.weight(1f),
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Start
+                                )
+                                Switch(checked = allowCerts, onCheckedChange = { allowCerts = it })
+                            }
 
                             if (navidromeStatus.value != "") {
                                 Column(
@@ -255,10 +286,15 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                 .padding(top = 24.dp),horizontalArrangement = Arrangement.SpaceEvenly){
                                 Button(
                                     onClick = {
-                                        username = username.trim()
-                                        password = password.trim()
-                                        url = url.removeSuffix("/").trim()
-                                        coroutineScope.launch { getNavidromeStatus(url, username, password) }
+                                        val server = NavidromeProvider(
+                                            (NavidromeManager.getAllServers().count() + 1).toString(), //Set numerical ID.
+                                            url,
+                                            username,
+                                            password,
+                                            true,
+                                            allowCerts
+                                        )
+                                        coroutineScope.launch { getNavidromeStatus(server) }
                                     },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -280,10 +316,14 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                 Button(
                                     onClick = {
                                         val server = NavidromeProvider(
+                                            (NavidromeManager.getAllServers().count() + 1).toString(), //Set numerical ID.
                                             url,
                                             username,
-                                            password
+                                            password,
+                                            true,
+                                            allowCerts
                                         )
+                                        NavidromeManager.addServer(server)
 
                                         if (!navidromeServersList.contains(server)) {
                                             navidromeServersList.add(server)

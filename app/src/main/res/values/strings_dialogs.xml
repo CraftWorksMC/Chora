@@ -11,6 +11,7 @@
             <string name="Label_Navidrome_URL">Navidrome URL:</string>
             <string name="Label_Navidrome_Username">Username:</string>
             <string name="Label_Navidrome_Password">Password:</string>
+            <string name="Label_Allow_Self_Signed_Certs">Allow self-signed certs</string>
 
     <!-- Radios -->
     <string name="Dialog_Add_Radio">Add Internet Radio</string>

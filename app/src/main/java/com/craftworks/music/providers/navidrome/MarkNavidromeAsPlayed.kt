@@ -13,10 +13,5 @@ suspend fun markNavidromeSongAsPlayed(song: MediaData.Song){
     println("Scrobble Percentage: ${(sliderPos.intValue.toFloat() / SongHelper.currentSong.duration.toFloat()) * 100f}, with sliderPos = ${sliderPos.intValue} | songDuration = ${SongHelper.currentSong.duration} | minPercentage = ${SongHelper.minPercentageScrobble}")
     if ((sliderPos.intValue.toFloat() / SongHelper.currentSong.duration.toFloat()) * 100f < SongHelper.minPercentageScrobble.intValue) return
 
-    sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "scrobble.view?id=${song.navidromeID}&submission=true"
-    )
+    sendNavidromeGETRequest("scrobble.view?id=${song.navidromeID}&submission=true")
 }

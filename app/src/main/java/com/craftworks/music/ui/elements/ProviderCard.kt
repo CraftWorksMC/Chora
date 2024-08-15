@@ -139,7 +139,7 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
 
 @Preview
 @Composable
-fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("https://demo.navidrome.org", "CraftWorks", "demo", true), context: Context = LocalContext.current){
+fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","https://demo.navidrome.org", "CraftWorks", "demo", true, true), context: Context = LocalContext.current){
 
     val coroutineScope = rememberCoroutineScope()
 

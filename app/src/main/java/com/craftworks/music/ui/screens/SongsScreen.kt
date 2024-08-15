@@ -217,12 +217,7 @@ fun SongsScreen(
                         onSearch = {
                             coroutineScope.launch {
                                 if (useNavidromeServer.value){
-                                    songsList.addAll(sendNavidromeGETRequest(
-                                        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-                                        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-                                        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-                                        "search3.view?query=${searchFilter}&songCount=500&artistCount=0&albumCount=0&f=json"
-                                    ).filterIsInstance<MediaData.Song>())
+                                    songsList.addAll(sendNavidromeGETRequest("search3.view?query=${searchFilter}&songCount=500&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaData.Song>())
                                 } else{
                                     songsList = songsList.fastFilter {
                                                 it.title.lowercase().contains(searchFilter.lowercase()) ||

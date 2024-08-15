@@ -9,12 +9,7 @@ import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.gitlab.mvysny.konsumexml.konsumeXml
 
 suspend fun getNavidromeRadios(){
-    sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "getInternetRadioStations.view?"
-    )
+    sendNavidromeGETRequest("getInternetRadioStations.view?")
 }
 
 suspend fun deleteNavidromeRadio(id:String){
@@ -37,12 +32,7 @@ suspend fun deleteNavidromeRadio(id:String){
 //    }
 //    thread.start()
 
-    sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "deleteInternetRadioStation.view?id=$id"
-    )
+    sendNavidromeGETRequest("deleteInternetRadioStation.view?id=$id")
 }
 
 suspend fun modifyNavidromeRadio(id:String, name:String, url:String, homePage:String){
@@ -70,12 +60,7 @@ suspend fun modifyNavidromeRadio(id:String, name:String, url:String, homePage:St
 //    }
 //    thread.start()
 
-    sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&id=$id"
-    )
+    sendNavidromeGETRequest("updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&id=$id")
 }
 
 suspend fun createNavidromeRadio(name:String, url:String, homePage:String){
@@ -100,12 +85,7 @@ suspend fun createNavidromeRadio(name:String, url:String, homePage:String){
 //    }
 //    thread.start()
 
-    sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage"
-    )
+    sendNavidromeGETRequest("createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage")
 }
 
 fun parseNavidromeRadioXML(response: String){

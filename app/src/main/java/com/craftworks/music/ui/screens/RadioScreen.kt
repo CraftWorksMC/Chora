@@ -81,11 +81,11 @@ fun RadioScreen(
     val state = rememberPullToRefreshState()
     if (state.isRefreshing) {
         LaunchedEffect(true) {
-            saveManager(context).saveSettings()
-            delay(500)
-            radioList.clear()
-            saveManager(context).loadRadios()
-            delay(500)
+            //saveManager(context).saveSettings()
+            //delay(500)
+            //radioList.clear()
+            //saveManager(context).loadRadios()
+            //delay(500)
             state.endRefresh()
         }
     }

@@ -11,6 +11,7 @@ import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.NavidromeManager.getCurrentServer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -67,19 +68,23 @@ object NavidromeManager {
     private var currentServerId: String? = null
 
     fun addServer(server: NavidromeProvider) {
+        Log.d("NAVIDROME", "Added server $server")
         servers[server.id] = server
+        // Set newly added server as current
         if (currentServerId == null) {
             currentServerId = server.id
         }
     }
 
-    fun getServer(id: String): NavidromeProvider? = servers[id]
+    fun getServerFromId(id: String): NavidromeProvider? = servers[id]
 
     fun removeServer(id: String) {
-        servers.remove(id)
+        // If we remove the current server, set the active one to be the first or null.
         if (currentServerId == id) {
             currentServerId = servers.keys.firstOrNull()
         }
+
+        servers.remove(id)
     }
 
     fun getAllServers(): List<NavidromeProvider> = servers.values.toList()
@@ -92,29 +97,30 @@ object NavidromeManager {
         }
     }
 
-    fun getCurrentServerId(): String? = currentServerId
     fun getCurrentServer(): NavidromeProvider? = currentServerId?.let { servers[it] }
-
-    suspend fun sendNavidromeGETRequestNew(endpoint: String): List<MediaData> {
-        val server = getCurrentServer() ?: throw IllegalStateException("No current server set")
-        return sendNavidromeGETRequest(
-            baseUrl = server.url,
-            username = server.username,
-            password = server.password,
-            endpoint = endpoint,
-            allowSelfSignedCert = server.allowSelfSignedCert
-        )
-    }
 }
 
 suspend fun sendNavidromeGETRequest(
-    baseUrl: String,
-    username: String,
-    password: String,
-    endpoint: String,
-    allowSelfSignedCert: Boolean? = false) : List<MediaData> {
+//    baseUrl: String? = "",
+//    username: String? = "",
+//    password: String? = "",
+    endpoint: String) : List<MediaData> {
 
     val parsedData = mutableListOf<MediaData>()
+
+    // If null then use failsafe.
+    val server = getCurrentServer() ?: throw IllegalArgumentException("Could not get current server.")
+//    if (server == null &&
+//        baseUrl != null && username != null && password != null){
+//        server = NavidromeProvider(
+//            (NavidromeManager.getAllServers().count() + 1).toString(), //Set numerical ID.
+//            baseUrl,
+//            username,
+//            password,
+//            true,
+//            false
+//        )
+//    }
 
     withContext(Dispatchers.IO) {
         navidromeSyncInProgress.set(true)
@@ -122,10 +128,10 @@ suspend fun sendNavidromeGETRequest(
         // Generate a random password salt and MD5 hash.
         // This is kinda slow, but needed.
         val passwordSalt = generateSalt(8)
-        val passwordHash = md5Hash(password + passwordSalt)
+        val passwordHash = md5Hash(server.password + passwordSalt)
 
         // All get requests come from this file. Use Subsonic link template.
-        val url = URL("$baseUrl/rest/$endpoint&u=$username&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
+        val url = URL("${server.url}/rest/$endpoint&u=${server.username}&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
 
         if (url.protocol.isEmpty() && url.host.isEmpty()){
             navidromeStatus.value = "Invalid URL"
@@ -141,7 +147,7 @@ suspend fun sendNavidromeGETRequest(
 
         val connection = if (url.protocol == "https") {
             (url.openConnection() as HttpsURLConnection).apply {
-                if (allowSelfSignedCert == true) {
+                if (server.allowSelfSignedCert == true) {
                     // Allow every single cert. Not the best way to do this but eh
                     val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
                         override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
@@ -180,21 +186,21 @@ suspend fun sendNavidromeGETRequest(
                     val responseContent = it.readText()
                     when {
                         endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (responseContent)
-                        endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON    (responseContent, baseUrl, username, password))
+                        endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON    (responseContent, server.url, server.username, server.password))
 
                         // Albums
-                        endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, baseUrl, username, password))
-                        endpoint.startsWith("getAlbum.")    -> parseNavidromeAlbumSongsJSON(responseContent, baseUrl, username, password)
+                        endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))
+                        endpoint.startsWith("getAlbum.")    -> parseNavidromeAlbumSongsJSON(responseContent, server.url, server.username, server.password)
 
 
                         // Artists
                         endpoint.startsWith("getArtists")   -> parsedData.addAll(parseNavidromeArtistsJSON(responseContent))
-                        endpoint.startsWith("getArtist.")   -> parsedData.addAll(listOf(parseNavidromeArtistAlbumsJSON(responseContent, baseUrl, username, password)))
+                        endpoint.startsWith("getArtist.")   -> parsedData.addAll(listOf(parseNavidromeArtistAlbumsJSON(responseContent, server.url, server.username, server.password)))
                         endpoint.startsWith("getArtistInfo")-> parsedData.addAll(listOf(parseNavidromeArtistBiographyJSON(responseContent)))
 
                         // Playlists
-                        endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, baseUrl, username, password))
-                        endpoint.startsWith("getPlaylist.") -> parsedData.addAll(listOf(parseNavidromePlaylistJSON(responseContent, baseUrl, username, password)))
+                        endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
+                        endpoint.startsWith("getPlaylist.") -> parsedData.addAll(listOf(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password)))
                         endpoint.startsWith("updatePlaylist") -> getNavidromePlaylists()
                         endpoint.startsWith("createPlaylist") -> getNavidromePlaylists()
                         endpoint.startsWith("deletePlaylist") -> getNavidromePlaylists()

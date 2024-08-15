@@ -187,7 +187,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
 
                 //region Media Providers
                 Button(
-                    onClick = { navHostController.navigate(Screen.S_Appearance.route) {
+                    onClick = { navHostController.navigate(Screen.S_Providers.route) {
                         launchSingleTop = true } },
                     modifier = Modifier
                         .height(76.dp)
@@ -237,7 +237,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
 
                 //region Playback
                 Button(
-                    onClick = { navHostController.navigate(Screen.S_Appearance.route) {
+                    onClick = { navHostController.navigate(Screen.S_Playback.route) {
                         launchSingleTop = true } },
                     modifier = Modifier
                         .height(76.dp)

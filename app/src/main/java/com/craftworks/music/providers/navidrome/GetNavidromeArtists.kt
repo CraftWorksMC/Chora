@@ -22,27 +22,18 @@ data class index(val artist: List<MediaData.Artist>? = listOf())
 
 suspend fun getNavidromeArtists() : List<MediaData.Artist>{
     return sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
         "getArtists.view?size=100&f=json"
     ).filterIsInstance<MediaData.Artist>()
 }
 
 suspend fun getNavidromeArtistDetails(id: String): MediaData.Artist {
     return sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
         "getArtist.view?id=$id&f=json"
     ).filterIsInstance<MediaData.Artist>()[0] //Use index 0 because sendNavidromeGETRequest only returns a list.
 }
 
 suspend fun getNavidromeArtistBiography(id: String): MediaData.Artist {
     return sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
         "getArtistInfo.view?id=$id&f=json"
     ).filterIsInstance<MediaData.Artist>()[0] //Use index 0 because sendNavidromeGETRequest only returns a list.
 }

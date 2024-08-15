@@ -19,30 +19,19 @@ data class albumList(val album: List<MediaData.Album>? = listOf())
 suspend fun getNavidromeAlbums(sort: String? = "alphabeticalByName", size: Int? = 100, offset: Int? = 0) : List<MediaData.Album>{
     if (navidromeServersList.isEmpty()) return emptyList()
     return sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
         "getAlbumList.view?type=$sort&size=$size&offset=$offset&f=json"
     ).filterIsInstance<MediaData.Album>()
 }
 
-suspend fun searchNavidromeAlbums(query: String? = "") : List<MediaData.Album>{
+suspend fun searchNavidromeAlbums(query: String? = ""): List<MediaData.Album> {
     if (navidromeServersList.isEmpty()) return emptyList()
     return sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
         "search3.view?query=$query&songCount=0&songOffset=0&artistCount=0&albumCount=100&f=json"
     ).filterIsInstance<MediaData.Album>()
 }
 
-suspend fun getNavidromeAlbumSongs(albumId: String){
-    sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
-        "getAlbum.view?id=$albumId&f=json"
-    )
+suspend fun getNavidromeAlbumSongs(albumId: String) {
+    sendNavidromeGETRequest("getAlbum.view?id=$albumId&f=json")
 }
 
 fun parseNavidromeAlbumListJSON(

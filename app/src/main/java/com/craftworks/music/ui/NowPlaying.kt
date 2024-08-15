@@ -136,6 +136,7 @@ import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
 import com.craftworks.music.repeatSong

@@ -21,9 +21,6 @@ data class SearchResult3(
 
 suspend fun getNavidromeSongs() : List<MediaData.Song> {
     return sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
         "search3.view?query=''&songCount=100&songOffset=0&artistCount=0&albumCount=0&f=json"
     ).filterIsInstance<MediaData.Song>()
 }

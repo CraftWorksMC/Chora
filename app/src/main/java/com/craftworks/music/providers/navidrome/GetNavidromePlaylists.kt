@@ -18,42 +18,27 @@ data class PlaylistContainer(val playlist: List<MediaData.Playlist>? = listOf())
 
 suspend fun getNavidromePlaylists() : List<MediaData.Playlist> {
     return sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
         "getPlaylists.view?f=json"
     ).filterIsInstance<MediaData.Playlist>()
 }
 suspend fun getNavidromePlaylistDetails(id: String) : List<MediaData.Playlist> {
     return sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
         "getPlaylist.view?id=$id&f=json"
     ).filterIsInstance<MediaData.Playlist>()
 }
 
 suspend fun createNavidromePlaylist(playlistName: String){
     sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
         "createPlaylist.view?name=$playlistName"
     )
 }
 suspend fun deleteNavidromePlaylist(playlistID: String){
     sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
         "deletePlaylist.view?id=$playlistID"
     )
 }
 suspend fun addSongToNavidromePlaylist(playlistID: String, songID: String){
     sendNavidromeGETRequest(
-        navidromeServersList[selectedNavidromeServerIndex.intValue].url,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].username,
-        navidromeServersList[selectedNavidromeServerIndex.intValue].password,
         "updatePlaylist.view?playlistId=$playlistID&songIdToAdd=$songID"
     )
 }
