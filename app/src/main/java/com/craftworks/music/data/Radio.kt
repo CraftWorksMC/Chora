@@ -11,4 +11,4 @@ data class Radio (
     val navidromeID: String? = "",
 )
 
-var radioList:MutableList<Radio> = mutableStateListOf()
+var radioList:MutableList<MediaData.Radio> = mutableStateListOf()

@@ -60,7 +60,6 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeArtistBiography
@@ -99,7 +98,7 @@ fun ArtistsScreen(
 
             artistList.clear()
 
-            if (useNavidromeServer.value){
+            if (NavidromeManager.checkActiveServers()){
                 viewModel.reloadData()
             }
             else{
@@ -203,7 +202,7 @@ class ArtistsScreenViewModel : ViewModel(), ReloadableViewModel {
     override fun reloadData() {
         viewModelScope.launch {
             coroutineScope {
-                if (useNavidromeServer.value){
+                if (NavidromeManager.checkActiveServers()){
                     val allArtistsDeferred  = async { getNavidromeArtists() }
 
                     _allArtists.value = allArtistsDeferred.await()

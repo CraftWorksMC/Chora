@@ -64,7 +64,6 @@ import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
@@ -175,7 +174,7 @@ fun HomeScreen(
 }
 
 @Composable fun NavidromeLogo(){
-    if (useNavidromeServer.value && showNavidromeLogo.value){
+    if (NavidromeManager.checkActiveServers() && showNavidromeLogo.value){
         var rotation by remember { mutableFloatStateOf(-10f) }
         val animatedRotation by animateFloatAsState(
             targetValue = rotation,
@@ -213,7 +212,7 @@ fun HomeScreen(
         fontSize = MaterialTheme.typography.headlineLarge.fontSize,
         modifier = Modifier
             .padding(start =
-            if (useNavidromeServer.value && showNavidromeLogo.value)
+            if (NavidromeManager.checkActiveServers() && showNavidromeLogo.value)
                 42.dp
             else
                 12.dp),

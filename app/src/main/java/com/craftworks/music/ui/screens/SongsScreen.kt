@@ -53,13 +53,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.albumList
 import com.craftworks.music.data.songsList
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.NavidromeManager
-import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
@@ -145,7 +142,7 @@ fun SongsScreen(
                         searchFilter = it
                         if (it.isBlank()){
                             coroutineScope.launch {
-                                if (useNavidromeServer.value)
+                                if (NavidromeManager.checkActiveServers())
                                     songsList.addAll(getNavidromeSongs())
                                 else
                                     getSongsOnDevice(context)
@@ -157,7 +154,7 @@ fun SongsScreen(
                     keyboardActions = KeyboardActions(
                         onSearch = {
                             coroutineScope.launch {
-                                if (useNavidromeServer.value){
+                                if (NavidromeManager.checkActiveServers()){
                                     songsList.addAll(sendNavidromeGETRequest("search3.view?query=${searchFilter}&songCount=500&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaData.Song>())
                                 } else{
                                     songsList = songsList.fastFilter {
@@ -187,7 +184,7 @@ fun SongsScreen(
         Column(modifier = Modifier.padding(horizontal = 12.dp)) {
 
             LaunchedEffect(searchFilter) {
-                if (searchFilter.isNotBlank() && useNavidromeServer.value){
+                if (searchFilter.isNotBlank() && NavidromeManager.checkActiveServers()){
                     songsList.clear()
                 }
             }

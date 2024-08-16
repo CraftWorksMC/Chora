@@ -17,10 +17,11 @@ import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionError
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.songsList
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.lyrics.requestLyrics
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
 import com.craftworks.music.saveManager
 import com.google.common.collect.ImmutableList
@@ -97,7 +98,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         player = ExoPlayer.Builder(this)
             .setSeekParameters(SeekParameters.CLOSEST_SYNC)
             .setWakeMode(
-                if (useNavidromeServer.value)
+                if (NavidromeManager.checkActiveServers())
                     C.WAKE_MODE_NETWORK
                 else
                     C.WAKE_MODE_LOCAL)
@@ -120,7 +121,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 //                    }
 //                }
 
-                if (useNavidromeServer.value)
+                if (NavidromeManager.checkActiveServers())
                     serviceMainScope.launch { markNavidromeSongAsPlayed(SongHelper.currentSong) }
 
                 serviceIOScope.launch {
@@ -311,13 +312,14 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             )
         }
 
+        @OptIn(UnstableApi::class)
         override fun onGetItem(
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
             mediaId: String
         ): ListenableFuture<LibraryResult<MediaItem>> {
             val mediaItem = androidAutoAllSongsTracklist.find { it.mediaId == mediaId }
-                ?: return Futures.immediateFuture(LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE))
+                ?: return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
 
             return Futures.immediateFuture(LibraryResult.ofItem(mediaItem, LibraryParams.Builder().build()))
         }

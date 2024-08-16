@@ -37,10 +37,9 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.PlainLyrics
-import com.craftworks.music.data.Radio
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.songsList
-import com.craftworks.music.data.useNavidromeServer
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.sliderPos
@@ -104,7 +103,7 @@ fun SongsHorizontalColumn(songList: List<MediaData.Song>, onSongSelected: (song:
     val coroutineScope = rememberCoroutineScope()
 
     // Load more songs at scroll
-    if (useNavidromeServer.value && isSearch == false){
+    if (NavidromeManager.checkActiveServers() && isSearch == false){
         LaunchedEffect(listState) {
 
             if (songsList.size % 100 != 0) return@LaunchedEffect
@@ -156,7 +155,7 @@ fun AlbumGrid(
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
 
-    if (useNavidromeServer.value && isSearch == false) {
+    if (NavidromeManager.checkActiveServers() && isSearch == false) {
         LaunchedEffect(gridState) {
             if (albumList.size % 100 != 0) return@LaunchedEffect
 
@@ -240,7 +239,7 @@ fun ArtistsGrid(artists: List<MediaData.Artist>,
 //region Radios
 @ExperimentalFoundationApi
 @Composable
-fun RadiosGrid(radioList: List<Radio>, onSongSelected: (song: MediaData.Song) -> Unit){
+fun RadiosGrid(radioList: List<MediaData.Radio>, onSongSelected: (song: MediaData.Song) -> Unit){
     var isSongSelected by remember { mutableStateOf(false) }
     LazyVerticalGrid(
         columns = GridCells.Adaptive(128.dp),

@@ -44,8 +44,8 @@ import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromePlaylistDetails
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.saveManager
@@ -169,7 +169,7 @@ class PlaylistScreenViewModel : ViewModel(), ReloadableViewModel {
     override fun reloadData() {
         viewModelScope.launch {
             coroutineScope {
-                if (useNavidromeServer.value){
+                if (NavidromeManager.checkActiveServers()){
                     val allPlaylistsDeferred  = async { getNavidromePlaylists() }
 
                     _allPlaylists.value = allPlaylistsDeferred.await()
@@ -184,7 +184,7 @@ class PlaylistScreenViewModel : ViewModel(), ReloadableViewModel {
     }
 
     fun fetchPlaylistDetails(playlistId: String) {
-        if (!useNavidromeServer.value) return
+        if (!NavidromeManager.checkActiveServers()) return
 
         viewModelScope.launch {
             coroutineScope {

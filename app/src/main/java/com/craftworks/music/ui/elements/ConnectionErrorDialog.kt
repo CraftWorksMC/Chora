@@ -21,14 +21,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
-import com.craftworks.music.data.useNavidromeServer
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.providers.navidrome.navidromeSyncInProgress
 
 @Composable
 @Preview
 fun HorizontalLineWithNavidromeCheck(){
-    val showError by remember { derivedStateOf { useNavidromeServer.value && (navidromeStatus.value != "ok" && navidromeStatus.value != "") } }
+    val showError by remember { derivedStateOf { NavidromeManager.checkActiveServers() && (navidromeStatus.value != "ok" && navidromeStatus.value != "") } }
     val errorStatus by remember { derivedStateOf { navidromeStatus.value } }
     val showSync by remember { derivedStateOf { navidromeSyncInProgress.get() } }
 

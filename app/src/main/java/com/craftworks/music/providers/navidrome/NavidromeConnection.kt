@@ -13,7 +13,6 @@ import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.NavidromeManager.getCurrentServer
 import com.craftworks.music.ui.screens.GlobalViewModels
-import com.craftworks.music.ui.screens.ReloadableViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -59,6 +58,9 @@ data class SubsonicResponse(
     val artist: MediaData.Artist? = null,
     val artistInfo: MediaData.ArtistInfo? = null,
 
+    // Radios
+    val internetRadioStations: internetRadioStations? = null,
+
     // Playlists
     val playlist: MediaData.Playlist? = null,
     val playlists: PlaylistContainer? = null
@@ -84,6 +86,10 @@ object NavidromeManager {
         if (currentServerId == id) {
             currentServerId = servers.keys.firstOrNull()
         }
+    }
+
+    fun checkActiveServers() : Boolean {
+        return servers.keys.isNotEmpty() || currentServerId != null
     }
 
     fun setCurrentServer(id: String) {
@@ -204,7 +210,8 @@ suspend fun sendNavidromeGETRequest(
                         endpoint.startsWith("deletePlaylist") -> getNavidromePlaylists()
 
                         // Radios
-                        endpoint.startsWith("getInternetRadioStations") -> parseNavidromeRadioXML (responseContent)
+                        endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
+
                         else -> { navidromeSyncInProgress.set(false) }
                     }
                 }

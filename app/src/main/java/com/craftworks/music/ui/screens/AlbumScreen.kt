@@ -61,7 +61,6 @@ import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
@@ -155,7 +154,7 @@ fun AlbumScreen(
                             searchFilter = it
                             if (it.isBlank()){
                                 coroutineScope.launch {
-                                    if (useNavidromeServer.value)
+                                    if (NavidromeManager.checkActiveServers())
                                         albumList.addAll(getNavidromeAlbums())
                                     else
                                         getSongsOnDevice(context)
@@ -167,7 +166,7 @@ fun AlbumScreen(
                         keyboardActions = KeyboardActions(
                             onSearch = {
                                 coroutineScope.launch {
-                                    if (useNavidromeServer.value){
+                                    if (NavidromeManager.checkActiveServers()){
                                         albumList.addAll(searchNavidromeAlbums(searchFilter))
                                     }
                                     else {
@@ -196,7 +195,7 @@ fun AlbumScreen(
             }
 
             LaunchedEffect(searchFilter) {
-                if (searchFilter.isNotBlank() && useNavidromeServer.value){
+                if (searchFilter.isNotBlank() && NavidromeManager.checkActiveServers()){
                     albumList.clear()
                 }
             }

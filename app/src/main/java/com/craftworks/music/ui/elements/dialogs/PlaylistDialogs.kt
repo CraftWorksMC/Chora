@@ -53,10 +53,10 @@ import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.playlistList
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.addSongToNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromePlaylist
 import com.craftworks.music.providers.navidrome.deleteNavidromePlaylist
@@ -165,7 +165,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 .clickable {
                                     if (playlist.songs?.contains(songToAddToPlaylist.value) == true) return@clickable
 
-                                    if (useNavidromeServer.value)
+                                    if (NavidromeManager.checkActiveServers())
                                         coroutineScope.launch { addSongToNavidromePlaylist(
                                             playlist.navidromeID.toString(),
                                             songToAddToPlaylist.value.navidromeID.toString()
@@ -272,7 +272,7 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 try {
                                     if (playlistList.firstOrNull { it.name == name } != null) return@Button
 
-                                    if (useNavidromeServer.value)
+                                    if (NavidromeManager.checkActiveServers())
                                         coroutineScope.launch { createNavidromePlaylist(name) }
                                     else {
                                         var playlistImage = Uri.EMPTY
@@ -358,7 +358,7 @@ fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
                         Button(
                             onClick = {
                                 try {
-                                    if (useNavidromeServer.value)
+                                    if (NavidromeManager.checkActiveServers())
                                         playlistToDelete.value.navidromeID?.let {
                                             coroutineScope.launch { deleteNavidromePlaylist(it) }
                                         }

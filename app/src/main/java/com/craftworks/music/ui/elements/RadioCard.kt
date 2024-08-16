@@ -30,14 +30,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.data.Radio
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.radioList
 import com.craftworks.music.ui.screens.selectedRadioIndex
 import com.craftworks.music.ui.screens.showRadioModifyDialog
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun RadioCard(radio: Radio, onClick: () -> Unit){
+fun RadioCard(radio: MediaData.Radio, onClick: () -> Unit){
     Card(
         modifier = Modifier
             .padding(12.dp)
@@ -65,9 +65,9 @@ fun RadioCard(radio: Radio, onClick: () -> Unit){
                 //.height(172.dp)
             , horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             AsyncImage(
-                model = radio.imageUrl,
+                // Use generic radio image as we cannot get the radio's logo reliably.
+                model = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
                 placeholder = painterResource(R.drawable.placeholder),
                 fallback = painterResource(R.drawable.placeholder),
                 contentScale = ContentScale.FillWidth,
@@ -100,6 +100,5 @@ fun RadioCard(radio: Radio, onClick: () -> Unit){
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
 fun RadioCardPreview(){
-    RadioCard(Radio(imageUrl = Uri.EMPTY, name = "Truckers FM")){
-    }
+    RadioCard(MediaData.Radio("", "", "")){}
 }

@@ -125,11 +125,11 @@ import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.getLyrics
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
 import com.craftworks.music.repeatSong
@@ -1009,7 +1009,7 @@ fun DownloadButton(snackbarHostState: SnackbarHostState?,
     {
         Button(
             onClick = {
-                if (navidromeServersList.isEmpty() || !useNavidromeServer.value || SongHelper.currentSong.navidromeID == "Local") return@Button
+                if (navidromeServersList.isEmpty() || !NavidromeManager.checkActiveServers() || SongHelper.currentSong.navidromeID == "Local") return@Button
                 if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
                     navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@Button
 

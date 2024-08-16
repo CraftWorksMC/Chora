@@ -45,7 +45,6 @@ import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.reloadNavidrome
@@ -127,7 +126,7 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
                         getSongsOnDevice(context)
                 }
                 else {
-                    if (useNavidromeServer.value &&
+                    if (NavidromeManager.checkActiveServers() &&
                         selectedNavidromeServerIndex.intValue >= 0 &&
                         navidromeServersList.isNotEmpty()){
 

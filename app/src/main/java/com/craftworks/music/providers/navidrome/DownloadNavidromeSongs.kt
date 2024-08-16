@@ -2,7 +2,6 @@ package com.craftworks.music.providers.navidrome
 
 import android.os.Environment
 import androidx.compose.material3.SnackbarHostState
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -15,7 +14,7 @@ import java.net.URL
 fun downloadNavidromeSong(url: String, snackbarHostState: SnackbarHostState? = SnackbarHostState(), coroutineScope: CoroutineScope) {
     val thread = Thread {
         try {
-            if (SongHelper.currentSong.isRadio == true || !useNavidromeServer.value) return@Thread
+            if (SongHelper.currentSong.isRadio == true || !NavidromeManager.checkActiveServers()) return@Thread
 
             println("\nSent 'GET' request to URL : $url")
             val destinationFolder =

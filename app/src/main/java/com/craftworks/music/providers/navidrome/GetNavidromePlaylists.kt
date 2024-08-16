@@ -3,9 +3,7 @@ package com.craftworks.music.providers.navidrome
 import android.util.Log
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.playlistList
-import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.screens.selectedPlaylist
-import com.gitlab.mvysny.konsumexml.konsumeXml
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -29,27 +27,6 @@ suspend fun deleteNavidromePlaylist(playlistID: String){
 }
 suspend fun addSongToNavidromePlaylist(playlistID: String, songID: String){
     sendNavidromeGETRequest("updatePlaylist.view?playlistId=$playlistID&songIdToAdd=$songID")
-}
-
-fun parseNavidromePlaylistXML(response: String){
-    // Avoid crashing by removing some useless tags.
-    val newResponse = response
-        .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
-
-    newResponse.konsumeXml().apply {
-        child("subsonic-response") {
-            child("playlist") {
-                val playlistSongs = mutableListOf<MediaData.Song>()
-                children("entry"){
-                    val songID = attributes.getValue("id")
-                    playlistSongs.add(songsList.first { it.navidromeID == songID })
-
-                    skipContents()
-                }
-                selectedPlaylist = selectedPlaylist.copy(songs = playlistSongs)
-            }
-        }
-    }
 }
 
 fun parseNavidromePlaylistsJSON(

@@ -41,8 +41,8 @@ import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.songsList
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeAlbumSongs
 import com.craftworks.music.ui.screens.selectedAlbum
 import kotlinx.coroutines.Dispatchers
@@ -99,7 +99,7 @@ fun AlbumCard(album: MediaData.Album = MediaData.Album(navidromeID = "", parent 
 
                             // Fetch songs if the list is empty
                             if (selectedAlbum?.songs.isNullOrEmpty()) {
-                                if (useNavidromeServer.value){
+                                if (NavidromeManager.checkActiveServers()){
                                     selectedAlbum?.navidromeID?.let { albumId ->
                                         withContext(Dispatchers.IO) {
                                             getNavidromeAlbumSongs(albumId)

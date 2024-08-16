@@ -65,10 +65,10 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.songsList
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeAlbumSongs
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.BottomSpacer
@@ -102,7 +102,7 @@ fun AlbumDetails(
     LaunchedEffect(selectedAlbum?.songs) {
         albumSongs = selectedAlbum?.songs!!
         if (selectedAlbum?.songs?.isNotEmpty() == true) return@LaunchedEffect
-        if (useNavidromeServer.value) {
+        if (NavidromeManager.checkActiveServers()) {
             selectedAlbum?.navidromeID?.let { albumId ->
                 withContext(Dispatchers.IO){ getNavidromeAlbumSongs(albumId) } }
         }

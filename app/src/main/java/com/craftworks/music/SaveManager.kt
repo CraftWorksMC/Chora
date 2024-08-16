@@ -1,13 +1,11 @@
 package com.craftworks.music
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.data.Radio
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
@@ -15,7 +13,6 @@ import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.providers.navidrome.NavidromeManager
@@ -90,7 +87,7 @@ class saveManager(private val context: Context){
     fun saveLocalRadios(){
         val radiosListString = radioList.joinToString(";") {
             if (it.navidromeID == "Local")
-                "${it.name},${it.media},${it.homepageUrl},${it.imageUrl},${it.navidromeID}"
+                "${it.navidromeID},${it.name},${it.media},${it.homePageUrl}"
             else
                 ""}
         sharedPreferences.edit().putString("radioList", radiosListString).apply()
@@ -177,7 +174,7 @@ class saveManager(private val context: Context){
     fun loadNavidromeProviders(){
         Log.d("LOAD", "Loading Navidrome Providers")
 
-        useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
+        //useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
 
         val navidromeStrings = (sharedPreferences.getString("navidromeServerList", "") ?: "").split(";")
         navidromeStrings.forEach { navidromeString ->
@@ -249,12 +246,11 @@ class saveManager(private val context: Context){
         radioListStrings.forEach { localString ->
             val parts = localString.split(",")
             if (parts.size > 1) {
-                val radio = Radio(
+                val radio = MediaData.Radio(
                     parts[0],
-                    Uri.parse(parts[1]),
+                    parts[1],
                     parts[2],
-                    Uri.parse(parts[3]),
-                    parts[4]
+                    parts[3]
                 )
                 if (radioList.contains(radio)) return
                 radioList.add(radio)

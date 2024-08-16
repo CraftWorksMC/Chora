@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.elements.dialogs
 
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,9 +38,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
-import com.craftworks.music.data.Radio
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.radioList
-import com.craftworks.music.data.useNavidromeServer
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.createNavidromeRadio
 import com.craftworks.music.providers.navidrome.deleteNavidromeRadio
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
@@ -60,7 +59,7 @@ fun PreviewAddRadioDialog(){
 @Preview(showBackground = true)
 @Composable
 fun PreviewModifyRadioDialog(){
-    ModifyRadioDialog(setShowDialog = {}, radio = Radio("", Uri.EMPTY, "", Uri.EMPTY))
+    ModifyRadioDialog(setShowDialog = {}, radio = MediaData.Radio("", "", ""))
 }
 //endregion
 
@@ -139,7 +138,7 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                             onClick = {
                                 if (radioName.isBlank() && radioUrl.isBlank()) return@Button
 
-                                if (useNavidromeServer.value){
+                                if (NavidromeManager.checkActiveServers()){
                                     coroutineScope.launch {
                                         createNavidromeRadio(
                                             radioName,
@@ -149,12 +148,11 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                                     }
                                 } else {
                                     radioList.add(
-                                        Radio(
+                                        MediaData.Radio(
+                                            navidromeID = "Local",
                                             name = radioName,
-                                            media = Uri.parse(radioUrl),
-                                            homepageUrl = radioPage,
-                                            imageUrl = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
-                                            navidromeID = "Local"
+                                            media = radioUrl,
+                                            homePageUrl = radioPage,
                                         )
                                     )
                                     saveManager(context).saveLocalRadios()
@@ -183,13 +181,13 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
 }
 
 @Composable
-fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
+fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     var radioName by remember { mutableStateOf(radio.name) }
-    var radioUrl by remember { mutableStateOf(radio.media.toString()) }
-    var radioPage by remember { mutableStateOf(radio.homepageUrl) }
+    var radioUrl by remember { mutableStateOf(radio.media) }
+    var radioPage by remember { mutableStateOf(radio.homePageUrl ?: "") }
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
@@ -257,9 +255,9 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                             onClick = {
                                 setShowDialog(false)
                                 radioList.remove(radio)
-                                if (useNavidromeServer.value) radio.navidromeID?.let {
+                                if (NavidromeManager.checkActiveServers()) radio.navidromeID.let {
                                     coroutineScope.launch {
-                                        deleteNavidromeRadio(it)
+                                        deleteNavidromeRadio(it.toString())
                                     }
 
                                 }
@@ -281,30 +279,26 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: Radio) {
                         Button(
                             onClick = {
                                 if (radioName.isBlank() && radioUrl.isBlank()) return@Button
-                                if (useNavidromeServer.value) radio.navidromeID?.let {
+                                if (NavidromeManager.checkActiveServers())
                                     coroutineScope.launch {
                                         modifyNavidromeRadio(
-                                            it,
+                                            radio.navidromeID,
                                             radioName,
                                             radioUrl,
                                             radioPage
                                         )
                                     }
-                                }
-                                setShowDialog(false)
-                                if (useNavidromeServer.value) {
-                                    //radioList.clear()
-                                    //getNavidromeRadios()
-                                } else {
+                                else {
                                     radioList.remove(radio)
                                     radioList.add(
-                                        Radio(
+                                        MediaData.Radio(
+                                            navidromeID = "Local",
                                             name = radioName,
-                                            imageUrl = Uri.parse("$radioUrl/favicon.ico"),
-                                            media = Uri.parse(radioUrl)
+                                            media = radioUrl
                                         )
                                     )
                                 }
+                                setShowDialog(false)
                                 saveManager(context).saveLocalRadios()
                             },
                             shape = RoundedCornerShape(12.dp),

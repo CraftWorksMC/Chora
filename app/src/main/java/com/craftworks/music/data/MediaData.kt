@@ -106,6 +106,16 @@ sealed class MediaData {
     )
 
     @Serializable
+    data class Radio(
+        @SerialName("id")
+        val navidromeID: String,
+        val name: String,
+        @SerialName("streamUrl")
+        val media: String,
+        val homePageUrl: String? = "",
+    ) : MediaData()
+
+    @Serializable
     data class Playlist(
         @SerialName("id")
         val navidromeID: String,

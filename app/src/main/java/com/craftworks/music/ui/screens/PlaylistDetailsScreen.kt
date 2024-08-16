@@ -44,9 +44,9 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromePlaylistDetails
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
@@ -62,7 +62,7 @@ fun PlaylistDetails(
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red, Color.Transparent))
 
     LaunchedEffect(selectedPlaylist.navidromeID) {
-        if (useNavidromeServer.value && selectedPlaylist.songs?.isEmpty() == true){
+        if (NavidromeManager.checkActiveServers() && selectedPlaylist.songs?.isEmpty() == true){
             getNavidromePlaylistDetails(selectedPlaylist.navidromeID)
         }
     }

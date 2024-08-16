@@ -1,124 +1,53 @@
 package com.craftworks.music.providers.navidrome
 
-import android.net.Uri
-import com.craftworks.music.R
-import com.craftworks.music.data.Radio
+import android.util.Log
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.radioList
-import com.gitlab.mvysny.konsumexml.konsumeXml
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
+
+@Serializable
+@SerialName("artists")
+data class internetRadioStations(val internetRadioStation: List<MediaData.Radio>)
 
 suspend fun getNavidromeRadios(){
-    sendNavidromeGETRequest("getInternetRadioStations.view?")
+    radioList.addAll(sendNavidromeGETRequest("getInternetRadioStations.view?f=json").filterIsInstance<MediaData.Radio>())
 }
 
 suspend fun deleteNavidromeRadio(id:String){
-//    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-//        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
-//        navidromeStatus.value != "ok") return
-//
-//    val thread = Thread {
-//        try {
-//            val navidromeUrl =
-//                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/deleteInternetRadioStation.view?id=$id&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
-//
-//            with(navidromeUrl.openConnection() as HttpURLConnection) {
-//                requestMethod = "GET"  // optional default is GET
-//                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-//            }
-//        } catch (e: Exception) {
-//            Log.d("Exception", e.toString())
-//        }
-//    }
-//    thread.start()
-
     sendNavidromeGETRequest("deleteInternetRadioStation.view?id=$id")
 }
 
 suspend fun modifyNavidromeRadio(id:String, name:String, url:String, homePage:String){
-//    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-//        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
-//        navidromeStatus.value != "ok") return
-//
-//    val thread = Thread {
-//        try {
-//            val navidromeUrl =
-//                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&id=$id&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
-//
-//            with(navidromeUrl.openConnection() as HttpURLConnection) {
-//                requestMethod = "GET"  // optional default is GET
-//                Log.d(
-//                    "GET",
-//                    "\nSent 'GET' request to URL : $navidromeUrl; Response Code : $responseCode"
-//                )
-//            }
-//
-//            getNavidromeRadios()
-//        } catch (e: Exception) {
-//            Log.d("Exception", e.toString())
-//        }
-//    }
-//    thread.start()
-
     sendNavidromeGETRequest("updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&id=$id")
 }
 
 suspend fun createNavidromeRadio(name:String, url:String, homePage:String){
-//    if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-//        navidromeServersList[selectedNavidromeServerIndex.intValue].url == "" ||
-//        navidromeStatus.value != "ok") return
-//
-//    val thread = Thread {
-//        try {
-//            Log.d("useNavidromeServer", "URL: $url")
-//
-//            val navidromeUrl =
-//                URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora")
-//
-//            with(navidromeUrl.openConnection() as HttpURLConnection) {
-//                requestMethod = "GET"  // optional default is GET
-//                Log.d("GET", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-//            }
-//        } catch (e: Exception) {
-//            Log.d("Exception", e.toString())
-//        }
-//    }
-//    thread.start()
-
     sendNavidromeGETRequest("createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage")
 }
 
-fun parseNavidromeRadioXML(response: String){
+fun parseNavidromeRadioJSON(
+    response: String
+) : List<MediaData.Radio> {
+    val jsonParser = Json { ignoreUnknownKeys = true }
+    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
+        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
+    )
 
-    // Avoid crashing by removing some useless tags.
-    val newResponse = response
-        .replace("xmlns=\"http://subsonic.org/restapi\" ", "")
+    var mediaDataRadios = emptyList<MediaData.Radio>()
 
-    newResponse.konsumeXml().apply {
-        child("subsonic-response"){
-            child("internetRadioStations"){
-                children("internetRadioStation"){
-                    val radioName = attributes.getValue("name")
-                    val radioUrl = attributes.getValue("streamUrl")
-                    val radioHomepage = attributes.getValueOrNull("homePageUrl") ?: ""
-                    val radioID = attributes.getValue("id")
-
-                    val radio = Radio(
-                        name = radioName,
-                        imageUrl = Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder),
-                        homepageUrl = radioHomepage,
-                        media = Uri.parse(radioUrl),
-                        navidromeID = radioID
-                    )
-
-                    synchronized(radioList){
-                        if (radioList.none { it.media == radio.media }) {
-                            radioList.add(radio)
-                        }
-                    }
-
-                    skipContents()
-                    finish()
-                }
-            }
+    subsonicResponse.internetRadioStations?.internetRadioStation?.filterNot { newRadio ->
+        radioList.any { existingRadio ->
+            existingRadio.navidromeID == newRadio.navidromeID
         }
+    }?.let {
+        mediaDataRadios = it
     }
+
+    Log.d("NAVIDROME", "Added playlists. Total: ${mediaDataRadios.size}")
+
+    return mediaDataRadios
 }
