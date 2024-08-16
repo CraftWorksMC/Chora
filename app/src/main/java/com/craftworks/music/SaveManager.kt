@@ -113,7 +113,7 @@ class saveManager(private val context: Context){
             loadRadios()
             loadPlaylists()
 
-            if (useNavidromeServer.value) {
+//            if (useNavidromeServer.value) {
 //                launch { getNavidromeStatus(
 //                    navidromeServersList[selectedNavidromeServerIndex.intValue].url,
 //                    navidromeServersList[selectedNavidromeServerIndex.intValue].username,
@@ -125,14 +125,14 @@ class saveManager(private val context: Context){
 //                    "username",
 //                    "password",
 //                )
-            }
+//            }
 
             if (localProviderList.isNotEmpty()) {
                 if (localProviderList[selectedLocalProvider.intValue].enabled)
                     launch {getSongsOnDevice(context) }
             }
 
-            if (navidromeServersList.isEmpty() && localProviderList.isEmpty()) showNoProviderDialog.value = true
+            if (NavidromeManager.getAllServers().isEmpty() && localProviderList.isEmpty()) showNoProviderDialog.value = true
         }
 
         // Finished Loading Settings

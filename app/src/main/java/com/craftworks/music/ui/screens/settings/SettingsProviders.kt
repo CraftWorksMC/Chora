@@ -49,6 +49,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.ui.elements.dialogs.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.LocalProviderCard
@@ -123,7 +124,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 }
 
                 // Then Navidrome Providers
-                for (server in navidromeServersList){
+                for (server in NavidromeManager.getAllServers()){
                     NavidromeProviderCard(server, context)
                 }
             }

@@ -17,30 +17,20 @@ import kotlinx.serialization.json.jsonObject
 data class PlaylistContainer(val playlist: List<MediaData.Playlist>? = listOf())
 
 suspend fun getNavidromePlaylists() : List<MediaData.Playlist> {
-    return sendNavidromeGETRequest(
-        "getPlaylists.view?f=json"
-    ).filterIsInstance<MediaData.Playlist>()
+    return sendNavidromeGETRequest("getPlaylists.view?f=json").filterIsInstance<MediaData.Playlist>()
 }
 suspend fun getNavidromePlaylistDetails(id: String) : List<MediaData.Playlist> {
-    return sendNavidromeGETRequest(
-        "getPlaylist.view?id=$id&f=json"
-    ).filterIsInstance<MediaData.Playlist>()
+    return sendNavidromeGETRequest("getPlaylist.view?id=$id&f=json").filterIsInstance<MediaData.Playlist>()
 }
 
 suspend fun createNavidromePlaylist(playlistName: String){
-    sendNavidromeGETRequest(
-        "createPlaylist.view?name=$playlistName"
-    )
+    sendNavidromeGETRequest("createPlaylist.view?name=$playlistName")
 }
 suspend fun deleteNavidromePlaylist(playlistID: String){
-    sendNavidromeGETRequest(
-        "deletePlaylist.view?id=$playlistID"
-    )
+    sendNavidromeGETRequest("deletePlaylist.view?id=$playlistID")
 }
 suspend fun addSongToNavidromePlaylist(playlistID: String, songID: String){
-    sendNavidromeGETRequest(
-        "updatePlaylist.view?playlistId=$playlistID&songIdToAdd=$songID"
-    )
+    sendNavidromeGETRequest("updatePlaylist.view?playlistId=$playlistID&songIdToAdd=$songID")
 }
 
 fun parseNavidromePlaylistXML(response: String){

@@ -76,18 +76,13 @@ object NavidromeManager {
         }
     }
 
-    fun getServerFromId(id: String): NavidromeProvider? = servers[id]
-
     fun removeServer(id: String) {
+        servers.remove(id)
         // If we remove the current server, set the active one to be the first or null.
         if (currentServerId == id) {
             currentServerId = servers.keys.firstOrNull()
         }
-
-        servers.remove(id)
     }
-
-    fun getAllServers(): List<NavidromeProvider> = servers.values.toList()
 
     fun setCurrentServer(id: String) {
         if (id in servers) {
@@ -97,6 +92,7 @@ object NavidromeManager {
         }
     }
 
+    fun getAllServers(): List<NavidromeProvider> = servers.values.toList()
     fun getCurrentServer(): NavidromeProvider? = currentServerId?.let { servers[it] }
 }
 
@@ -235,7 +231,7 @@ suspend fun sendNavidromeGETRequest(
             navidromeStatus.value = "Unknown Error"
             Log.d("NAVIDROME", "Exception: $e")
         } catch (e: Exception) {
-            navidromeStatus.value = "Fatal Error"
+            navidromeStatus.value = "Fatal Error. Report immediately!"
             Log.d("NAVIDROME", "Exception: $e")
         }
 

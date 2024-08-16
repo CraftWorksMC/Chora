@@ -21,21 +21,15 @@ data class index(val artist: List<MediaData.Artist>? = listOf())
 
 
 suspend fun getNavidromeArtists() : List<MediaData.Artist>{
-    return sendNavidromeGETRequest(
-        "getArtists.view?size=100&f=json"
-    ).filterIsInstance<MediaData.Artist>()
+    return sendNavidromeGETRequest("getArtists.view?size=100&f=json").filterIsInstance<MediaData.Artist>()
 }
 
 suspend fun getNavidromeArtistDetails(id: String): MediaData.Artist {
-    return sendNavidromeGETRequest(
-        "getArtist.view?id=$id&f=json"
-    ).filterIsInstance<MediaData.Artist>()[0] //Use index 0 because sendNavidromeGETRequest only returns a list.
+    return sendNavidromeGETRequest("getArtist.view?id=$id&f=json").filterIsInstance<MediaData.Artist>()[0] //Use index 0 because sendNavidromeGETRequest only returns a list.
 }
 
 suspend fun getNavidromeArtistBiography(id: String): MediaData.Artist {
-    return sendNavidromeGETRequest(
-        "getArtistInfo.view?id=$id&f=json"
-    ).filterIsInstance<MediaData.Artist>()[0] //Use index 0 because sendNavidromeGETRequest only returns a list.
+    return sendNavidromeGETRequest("getArtistInfo.view?id=$id&f=json").filterIsInstance<MediaData.Artist>()[0] //Use index 0 because sendNavidromeGETRequest only returns a list.
 }
 
 fun parseNavidromeArtistsJSON(

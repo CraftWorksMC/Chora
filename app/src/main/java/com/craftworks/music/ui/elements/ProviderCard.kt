@@ -46,6 +46,7 @@ import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.reloadNavidrome
 import kotlinx.coroutines.launch
 
@@ -176,7 +177,7 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","htt
         }
         // Delete Button
         Button(
-            onClick = { navidromeServersList.remove(server) },
+            onClick = { NavidromeManager.removeServer(server.id) },
             shape = CircleShape,
             modifier = Modifier
                 .size(32.dp),
@@ -194,8 +195,7 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","htt
         }
 
         var checked by remember { mutableStateOf(false) }
-        if (useNavidromeServer.value)
-            checked = selectedNavidromeServerIndex.intValue == navidromeServersList.indexOf(server)
+        checked = server.id == NavidromeManager.getCurrentServer()?.id
 
         // Enabled Checkbox
         Checkbox(
@@ -204,20 +204,13 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","htt
                 useNavidromeServer.value = it
 
                 if (it){
-                    selectedNavidromeServerIndex.intValue = navidromeServersList.indexOf(server)
-
+                    NavidromeManager.setCurrentServer(server.id)
                     coroutineScope.launch { reloadNavidrome(context) }
-
-                    // Make very sure that the selectedLocalProvider actually exists
-                    if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
-                        if (localProviderList[selectedLocalProvider.intValue].enabled)
-                            getSongsOnDevice(context)
                 }
-                else{
-                    if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
-                        if (localProviderList[selectedLocalProvider.intValue].enabled)
-                            getSongsOnDevice(context)
-                }
+                // Get device songs when changing toggle.
+                if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
+                    if (localProviderList[selectedLocalProvider.intValue].enabled)
+                        getSongsOnDevice(context)
             }
         )
     }

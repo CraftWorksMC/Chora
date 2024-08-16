@@ -68,7 +68,8 @@ fun SetupNavGraph(
 ){
     val bottomPadding: Dp =
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT)
-            paddingValues.calculateBottomPadding() else 0.dp
+            paddingValues.calculateBottomPadding()
+        else 0.dp
 
     val homeViewModel = remember { HomeScreenViewModel() }
     val artistsViewModel = remember { ArtistsScreenViewModel() }
