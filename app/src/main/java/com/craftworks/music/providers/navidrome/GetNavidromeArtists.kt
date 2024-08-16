@@ -3,9 +3,7 @@ package com.craftworks.music.providers.navidrome
 import android.util.Log
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.artistList
-import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedArtist
-import com.craftworks.music.data.selectedNavidromeServerIndex
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

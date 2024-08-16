@@ -4,7 +4,6 @@ import android.util.Log
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.screens.selectedAlbum
 import kotlinx.serialization.Serializable

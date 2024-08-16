@@ -3,9 +3,7 @@ package com.craftworks.music.providers.navidrome
 import android.net.Uri
 import com.craftworks.music.R
 import com.craftworks.music.data.Radio
-import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.radioList
-import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.gitlab.mvysny.konsumexml.konsumeXml
 
 suspend fun getNavidromeRadios(){

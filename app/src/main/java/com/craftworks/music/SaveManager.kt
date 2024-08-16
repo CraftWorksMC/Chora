@@ -8,7 +8,6 @@ import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Radio
-import com.craftworks.music.data.artistList
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList

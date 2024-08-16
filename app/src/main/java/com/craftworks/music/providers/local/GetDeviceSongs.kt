@@ -9,9 +9,7 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.localProviderList
