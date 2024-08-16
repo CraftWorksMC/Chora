@@ -12,6 +12,8 @@ import com.craftworks.music.data.radioList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.NavidromeManager.getCurrentServer
+import com.craftworks.music.ui.screens.GlobalViewModels
+import com.craftworks.music.ui.screens.ReloadableViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -251,6 +253,7 @@ suspend fun reloadNavidrome(context: Context){
     if (localProviderList.isNotEmpty())
         getSongsOnDevice(context)
 
+    GlobalViewModels.refreshAll()
     //songsList.addAll(getNavidromeSongs())
     //albumList.addAll(getNavidromeAlbums())
     //getNavidromeArtists()

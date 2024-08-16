@@ -30,6 +30,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -60,10 +63,16 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.providers.navidrome.searchNavidromeAlbums
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,7 +81,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun AlbumScreen(
     navHostController: NavHostController = rememberNavController(),
-    mediaController: MediaController? = null
+    mediaController: MediaController? = null,
+    viewModel: AlbumScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val context = LocalContext.current
@@ -82,26 +92,13 @@ fun AlbumScreen(
 
     val state = rememberPullToRefreshState()
 
-    var allAlbumsList by remember { mutableStateOf<List<MediaData.Album>>(emptyList()) }
-
-    if (albumList.isEmpty() && searchFilter.isEmpty())
-        state.startRefresh()
-    else
-        allAlbumsList = albumList
-
+    val allAlbumsList by viewModel.allAlbums.collectAsState()
 
     if (state.isRefreshing) {
         LaunchedEffect(true) {
-
-            println("Refreshing AlbumList!!!")
             albumList.clear()
 
-            if (useNavidromeServer.value)
-                albumList.addAll(getNavidromeAlbums())
-            else
-                getSongsOnDevice(context)
-
-            allAlbumsList = albumList
+            viewModel.reloadData()
 
             state.endRefresh()
         }
@@ -216,5 +213,25 @@ fun AlbumScreen(
             modifier = Modifier.align(Alignment.TopCenter),
             state = state,
         )
+    }
+}
+
+class AlbumScreenViewModel : ViewModel(), ReloadableViewModel {
+    private val _allAlbums = MutableStateFlow<List<MediaData.Album>>(emptyList())
+    val allAlbums: StateFlow<List<MediaData.Album>> = _allAlbums.asStateFlow()
+
+    override fun reloadData() {
+        viewModelScope.launch {
+            coroutineScope {
+                if (NavidromeManager.getCurrentServer() != null) {
+                    val allAlbumsDeferred  = async { getNavidromeAlbums("recent", 20) }
+
+                    _allAlbums.value = allAlbumsDeferred.await()
+                }
+                else {
+                    _allAlbums.value = albumList.sortedBy { it.name }
+                }
+            }
+        }
     }
 }

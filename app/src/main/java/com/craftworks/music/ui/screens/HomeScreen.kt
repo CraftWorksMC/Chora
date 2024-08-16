@@ -66,6 +66,7 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.ui.dpToPx
 import com.craftworks.music.ui.elements.AlbumRow
@@ -103,7 +104,7 @@ fun HomeScreen(
 
             getSongsOnDevice(context)
 
-            viewModel.fetchAlbums()
+            viewModel.reloadData()
 
             state.endRefresh()
         }
@@ -428,7 +429,7 @@ fun HomeScreen(
 }
 
 
-class HomeScreenViewModel : ViewModel() {
+class HomeScreenViewModel : ViewModel(), ReloadableViewModel {
     private val _recentlyPlayedAlbums = MutableStateFlow<List<MediaData.Album>>(emptyList())
     val recentlyPlayedAlbums: StateFlow<List<MediaData.Album>> = _recentlyPlayedAlbums.asStateFlow()
 
@@ -441,14 +442,10 @@ class HomeScreenViewModel : ViewModel() {
     private val _shuffledAlbums = MutableStateFlow<List<MediaData.Album>>(emptyList())
     val shuffledAlbums: StateFlow<List<MediaData.Album>> = _shuffledAlbums.asStateFlow()
 
-    init {
-        fetchAlbums()
-    }
-
-    fun fetchAlbums() {
+    override fun reloadData() {
         viewModelScope.launch {
             coroutineScope {
-                if (useNavidromeServer.value) {
+                if (NavidromeManager.getCurrentServer() != null) {
                     val recentlyPlayedDeferred  = async { getNavidromeAlbums("recent", 20) }
                     val recentDeferred          = async { getNavidromeAlbums("newest", 20) }
                     val mostPlayedDeferred      = async { getNavidromeAlbums("frequent", 20) }

@@ -284,7 +284,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                 Button(
                                     onClick = {
                                         val server = NavidromeProvider(
-                                            (NavidromeManager.getAllServers().count() + 1).toString(), //Set numerical ID.
+                                            url, //Set numerical ID.
                                             url,
                                             username,
                                             password,
@@ -313,7 +313,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                 Button(
                                     onClick = {
                                         val server = NavidromeProvider(
-                                            (NavidromeManager.getAllServers().count() + 1).toString(), //Set numerical ID.
+                                            url, //Set numerical ID.
                                             url,
                                             username,
                                             password,

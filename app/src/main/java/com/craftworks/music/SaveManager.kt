@@ -21,6 +21,7 @@ import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.ui.elements.dialogs.backgroundType
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
+import com.craftworks.music.ui.screens.GlobalViewModels
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.craftworks.music.ui.screens.username
 import kotlinx.coroutines.CoroutineScope
@@ -130,6 +131,7 @@ class saveManager(private val context: Context){
                 if (localProviderList[selectedLocalProvider.intValue].enabled)
                     launch {getSongsOnDevice(context) }
             }
+            if (NavidromeManager.getAllServers().isNotEmpty()) GlobalViewModels.refreshAll()
 
             if (NavidromeManager.getAllServers().isEmpty() && localProviderList.isEmpty()) showNoProviderDialog.value = true
         }

@@ -30,9 +30,11 @@ import com.craftworks.music.ui.NowPlayingContent
 import com.craftworks.music.ui.elements.bottomSpacerHeightDp
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
+import com.craftworks.music.ui.screens.AlbumScreenViewModel
 import com.craftworks.music.ui.screens.ArtistDetails
 import com.craftworks.music.ui.screens.ArtistsScreen
 import com.craftworks.music.ui.screens.ArtistsScreenViewModel
+import com.craftworks.music.ui.screens.GlobalViewModels
 import com.craftworks.music.ui.screens.HomeScreen
 import com.craftworks.music.ui.screens.HomeScreenViewModel
 import com.craftworks.music.ui.screens.PlaylistDetails
@@ -41,6 +43,7 @@ import com.craftworks.music.ui.screens.PlaylistScreenViewModel
 import com.craftworks.music.ui.screens.RadioScreen
 import com.craftworks.music.ui.screens.SettingScreen
 import com.craftworks.music.ui.screens.SongsScreen
+import com.craftworks.music.ui.screens.SongsScreenViewModel
 import com.craftworks.music.ui.screens.settings.S_AppearanceScreen
 import com.craftworks.music.ui.screens.settings.S_PlaybackScreen
 import com.craftworks.music.ui.screens.settings.S_ProviderScreen
@@ -58,8 +61,17 @@ fun SetupNavGraph(
         else 0.dp
 
     val homeViewModel = remember { HomeScreenViewModel() }
+    val albumViewModel = remember { AlbumScreenViewModel() }
+    val songsViewModel = remember { SongsScreenViewModel() }
     val artistsViewModel = remember { ArtistsScreenViewModel() }
     val playlistViewModel = remember { PlaylistScreenViewModel() }
+
+    GlobalViewModels.registerViewModel(homeViewModel)
+    GlobalViewModels.registerViewModel(albumViewModel)
+    GlobalViewModels.registerViewModel(songsViewModel)
+    GlobalViewModels.registerViewModel(artistsViewModel)
+    GlobalViewModels.registerViewModel(playlistViewModel)
+
 
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
@@ -81,7 +93,7 @@ fun SetupNavGraph(
             HomeScreen(navController, mediaController, homeViewModel)
         }
         composable(route = Screen.Song.route) {
-            SongsScreen(mediaController)
+            SongsScreen(mediaController, songsViewModel)
         }
         composable(route = Screen.Radio.route) {
             RadioScreen(mediaController)
@@ -89,7 +101,7 @@ fun SetupNavGraph(
 
         //Albums
         composable(route = Screen.Albums.route) {
-            AlbumScreen(navController, mediaController)
+            AlbumScreen(navController, mediaController, albumViewModel)
         }
         composable(route = Screen.AlbumDetails.route) {
             AlbumDetails(navController, mediaController)

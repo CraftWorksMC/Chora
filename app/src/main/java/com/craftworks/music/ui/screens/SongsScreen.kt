@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,25 +48,36 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.albumList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.NavidromeManager
+import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.providers.navidrome.getNavidromeSongs
 import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SongsScreen(
-    mediaController: MediaController? = null
+    mediaController: MediaController? = null,
+    viewModel: SongsScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val context = LocalContext.current
@@ -74,23 +86,13 @@ fun SongsScreen(
     var searchFilter by remember { mutableStateOf("") }
     //var selectedSortOption by remember { mutableStateOf("Name (A-Z)") }
 
-    var allSongsList by remember { mutableStateOf<List<MediaData.Song>>(emptyList()) }
+    val allSongsList by viewModel.allSongs.collectAsState()
 
     if (songsList.isEmpty()){
         LaunchedEffect(Unit) {
             if (searchFilter.isNotEmpty()) return@LaunchedEffect
-
-            println("SongsList Empty! Getting Songs...")
-            if (useNavidromeServer.value)
-                songsList.addAll(getNavidromeSongs())
-            else
-                getSongsOnDevice(context)
-
-            allSongsList = songsList
+            viewModel.reloadData()
         }
-    }
-    else {
-        allSongsList = songsList
     }
 
     val coroutineScope = rememberCoroutineScope()
@@ -124,54 +126,6 @@ fun SongsScreen(
                     .size(48.dp)) {
                 Icon(Icons.Rounded.Search, contentDescription = "Search all songs")
             }
-
-            /* SORTING OPTIONS -- NOT WORKING
-            var expanded by remember { mutableStateOf(false) }
-            Box(
-                modifier = Modifier
-                    .padding(end = 12.dp)
-                    .size(48.dp)
-            ) {
-                IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Rounded.MoreVert, contentDescription = "Sort songs")
-                }
-
-                DropdownMenu(
-                    modifier = Modifier,
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Name (A-Z)") },
-                        onClick = {
-                            expanded = false
-                            selectedSortOption = "Name (A-Z)"
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Name (Z-A)") },
-                        onClick = {
-                            expanded = false
-                            selectedSortOption = "Name (Z-A)"
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Date Added") },
-                        onClick = {
-                            expanded = false
-                            selectedSortOption = "Date Added"
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Last Played") },
-                        onClick = {
-                            expanded = false
-                            selectedSortOption = "Last Played"
-                        }
-                    )
-                }
-            }
-            */
         }
 
         HorizontalLineWithNavidromeCheck()
@@ -248,4 +202,24 @@ fun SongsScreen(
 
     if(showAddSongToPlaylistDialog.value)
         AddSongToPlaylist(setShowDialog =  { showAddSongToPlaylistDialog.value = it } )
+}
+
+class SongsScreenViewModel : ViewModel(), ReloadableViewModel {
+    private val _allSongs = MutableStateFlow<List<MediaData.Song>>(emptyList())
+    val allSongs: StateFlow<List<MediaData.Song>> = _allSongs.asStateFlow()
+
+    override fun reloadData() {
+        viewModelScope.launch {
+            coroutineScope {
+                if (NavidromeManager.getCurrentServer() != null) {
+                    val allSongsDeferred  = async { getNavidromeSongs() }
+
+                    _allSongs.value = allSongsDeferred.await()
+                }
+                else {
+                    _allSongs.value = songsList.sortedBy { it.title }
+                }
+            }
+        }
+    }
 }

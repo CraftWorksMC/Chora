@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.elements
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -201,12 +202,13 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","htt
         Checkbox(
             checked = checked,
             onCheckedChange = { checked = it
-                useNavidromeServer.value = it
-
+                Log.d("NAVIDROME", "Navidrome Current Server: ${server.id}")
                 if (it){
                     NavidromeManager.setCurrentServer(server.id)
                     coroutineScope.launch { reloadNavidrome(context) }
                 }
+                // Update checked
+                checked = (server.id == NavidromeManager.getCurrentServer()?.id)
                 // Get device songs when changing toggle.
                 if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
                     if (localProviderList[selectedLocalProvider.intValue].enabled)

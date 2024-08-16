@@ -94,7 +94,7 @@ fun PlaylistScreen(
 
             saveManager(context).loadPlaylists()
 
-            viewModel.fetchPlaylists()
+            viewModel.reloadData()
 
             delay(500)
             for (playlist in playlistList){
@@ -155,22 +155,18 @@ fun PlaylistScreen(
     }
 }
 
-class PlaylistScreenViewModel : ViewModel() {
+class PlaylistScreenViewModel : ViewModel(), ReloadableViewModel {
     private val _allPlaylists = MutableStateFlow<List<MediaData.Playlist>>(emptyList())
     val allPlaylists: StateFlow<List<MediaData.Playlist>> = _allPlaylists.asStateFlow()
 
     private var _selectedPlaylist = MutableStateFlow<MediaData.Playlist?>(null)
     var selectedPlaylist: StateFlow<MediaData.Playlist?> = _selectedPlaylist
 
-    init {
-        fetchPlaylists()
-    }
-
     fun setCurrentPlaylist(playlist: MediaData.Playlist){
         _selectedPlaylist.value = playlist
     }
 
-    fun fetchPlaylists() {
+    override fun reloadData() {
         viewModelScope.launch {
             coroutineScope {
                 if (useNavidromeServer.value){

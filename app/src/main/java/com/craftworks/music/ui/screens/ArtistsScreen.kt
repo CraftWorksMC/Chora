@@ -62,6 +62,7 @@ import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.providers.local.getSongsOnDevice
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeArtistBiography
 import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromeArtists
@@ -99,7 +100,7 @@ fun ArtistsScreen(
             artistList.clear()
 
             if (useNavidromeServer.value){
-                viewModel.fetchArtists()
+                viewModel.reloadData()
             }
             else{
                 getSongsOnDevice(context)
@@ -192,18 +193,14 @@ fun ArtistsScreen(
     }
 }
 
-class ArtistsScreenViewModel : ViewModel() {
+class ArtistsScreenViewModel : ViewModel(), ReloadableViewModel {
     private val _allArtists = MutableStateFlow<List<MediaData.Artist>>(emptyList())
     val allArtists: StateFlow<List<MediaData.Artist>> = _allArtists.asStateFlow()
 
     private val _selectedArtist = MutableStateFlow<MediaData.Artist?>(null)
     val selectedArtist: StateFlow<MediaData.Artist?> = _selectedArtist
 
-    init {
-        fetchArtists()
-    }
-
-    fun fetchArtists() {
+    override fun reloadData() {
         viewModelScope.launch {
             coroutineScope {
                 if (useNavidromeServer.value){
@@ -220,7 +217,7 @@ class ArtistsScreenViewModel : ViewModel() {
 
     fun fetchArtistDetails(artistId : String){
         viewModelScope.launch {
-            if (useNavidromeServer.value){
+            if (NavidromeManager.getCurrentServer() != null){
                 // Fetch artist details and biography concurrently
                 val detailsDeferred = async { getNavidromeArtistDetails(artistId) }
                 val biographyDeferred = async { getNavidromeArtistBiography(artistId) }

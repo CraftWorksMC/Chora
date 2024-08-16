@@ -42,17 +42,29 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.albumList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.useNavidromeServer
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.getIcecastMetadata
+import com.craftworks.music.providers.navidrome.NavidromeManager
+import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.RadiosGrid
 import com.craftworks.music.ui.elements.dialogs.AddRadioDialog
 import com.craftworks.music.ui.elements.dialogs.ModifyRadioDialog
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 var showRadioAddDialog = mutableStateOf(false)
 var showRadioModifyDialog = mutableStateOf(false)
@@ -163,3 +175,27 @@ fun RadioScreen(
     if(showRadioModifyDialog.value)
         ModifyRadioDialog(setShowDialog = { showRadioModifyDialog.value = it }, radio = radioList[selectedRadioIndex.intValue])
 }
+//
+//class RadioScreenViewModel : ViewModel() {
+//    private val _allRadios = MutableStateFlow<List<MediaData.Song>>(emptyList())
+//    val allRadios: StateFlow<List<MediaData.Album>> = _allRadios.asStateFlow()
+//
+//    init {
+//        fetchRadios()
+//    }
+//
+//    fun fetchRadios() {
+//        viewModelScope.launch {
+//            coroutineScope {
+//                if (NavidromeManager.getCurrentServer() != null) {
+//                    val allRadiosDeferred  = async { getNavidromeAlbums("recent", 20) }
+//
+//                    _allRadios.value = allRadiosDeferred.await()
+//                }
+//                else {
+//                    _allRadios.value = radioList.sortedBy { it.name }
+//                }
+//            }
+//        }
+//    }
+//}
