@@ -482,6 +482,8 @@ fun NowPlaying_TV(
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     mediaController: MediaController?
 ) {
+    val (prev, play, next, shuffle, replay) = remember { FocusRequester.createRefs() }
+
     Row(){
         Column(modifier = Modifier
             .width(512.dp)
@@ -493,7 +495,19 @@ fun NowPlaying_TV(
                 .fillMaxWidth()
                 .height(256.dp),
                 contentAlignment = Alignment.Center){
-                LyricsView(true, mediaController)
+                AsyncImage(
+                    model = SongHelper.currentSong.imageUrl,
+                    contentDescription = "Album Cover",
+                    placeholder = painterResource(R.drawable.placeholder),
+                    fallback = painterResource(R.drawable.placeholder),
+                    contentScale = ContentScale.FillHeight,
+                    alignment = Alignment.Center,
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                )
+//                LyricsView(true, mediaController)
             }
 
             /* Song Title + Artist*/
@@ -562,7 +576,6 @@ fun NowPlaying_TV(
 
                 //region BUTTONS
                 Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
-                    val (prev, play, next, shuffle, replay) = remember { FocusRequester.createRefs() }
 
                     LaunchedEffect(Unit) {
                         play.requestFocus()
@@ -594,20 +607,21 @@ fun NowPlaying_TV(
             }
         }
 
-        AsyncImage(
-            model = SongHelper.currentSong.imageUrl,
-            contentDescription = "Album Cover",
-            placeholder = painterResource(R.drawable.placeholder),
-            fallback = painterResource(R.drawable.placeholder),
-            contentScale = ContentScale.FillHeight,
-            alignment = Alignment.Center,
-            modifier = Modifier
-                .padding(32.dp)
-                .weight(1f)
-                .aspectRatio(1f)
-                .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        )
+//        AsyncImage(
+//            model = SongHelper.currentSong.imageUrl,
+//            contentDescription = "Album Cover",
+//            placeholder = painterResource(R.drawable.placeholder),
+//            fallback = painterResource(R.drawable.placeholder),
+//            contentScale = ContentScale.FillHeight,
+//            alignment = Alignment.Center,
+//            modifier = Modifier
+//                .padding(32.dp)
+//                .weight(1f)
+//                .aspectRatio(1f)
+//                .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
+//                .background(MaterialTheme.colorScheme.surfaceVariant)
+//        )
+        LyricsView(true, mediaController)
     }
 }
 
