@@ -52,13 +52,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.albumList
 import com.craftworks.music.providers.local.getSongsOnDevice
@@ -67,11 +64,7 @@ import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.providers.navidrome.searchNavidromeAlbums
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -212,25 +205,5 @@ fun AlbumScreen(
             modifier = Modifier.align(Alignment.TopCenter),
             state = state,
         )
-    }
-}
-
-class AlbumScreenViewModel : ViewModel(), ReloadableViewModel {
-    private val _allAlbums = MutableStateFlow<List<MediaData.Album>>(emptyList())
-    val allAlbums: StateFlow<List<MediaData.Album>> = _allAlbums.asStateFlow()
-
-    override fun reloadData() {
-        viewModelScope.launch {
-            coroutineScope {
-                if (NavidromeManager.getCurrentServer() != null) {
-                    val allAlbumsDeferred  = async { getNavidromeAlbums("recent", 20) }
-
-                    _allAlbums.value = allAlbumsDeferred.await()
-                }
-                else {
-                    _allAlbums.value = albumList.sortedBy { it.name }
-                }
-            }
-        }
     }
 }

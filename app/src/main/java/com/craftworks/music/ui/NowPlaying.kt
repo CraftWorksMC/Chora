@@ -186,13 +186,13 @@ fun NowPlayingContent(
         // UI PLAYING STATE
         var playing by remember { mutableStateOf(false) }
 
-        mediaController?.addListener(object : Player.Listener {
-                override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                    super.onPlayWhenReadyChanged(playWhenReady, reason)
-                    playing = playWhenReady
-                }
-            }
-        )
+//        mediaController?.addListener(object : Player.Listener {
+//                override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+//                    super.onPlayWhenReadyChanged(playWhenReady, reason)
+//                    playing = playWhenReady
+//                }
+//            }
+//        )
 
         //region Update Content + Backgrounds
         // handle back presses
@@ -316,29 +316,29 @@ fun NowPlayingContent(
 
         //endregion
 
-        // MINI-PLAYER
-        if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION){
-            val bottomSheetOffset by remember {
-                derivedStateOf {
-                    if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
-                        72
-                    } else {
-                        0
-                    }
-                }
-            }
-
-            val offsetY by animateFloatAsState(
-                targetValue = dpToPx(bottomSheetOffset).toFloat(),
-                label = "Animated Top Offset"
-            )
-
-            Box(modifier = Modifier
-                .graphicsLayer { translationY = -offsetY }
-                .zIndex(1f)) {
-                NowPlayingMiniPlayer(scaffoldState, playing, mediaController)
-            }
-        }
+//        // MINI-PLAYER
+//        if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION){
+//            val bottomSheetOffset by remember {
+//                derivedStateOf {
+//                    if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
+//                        72
+//                    } else {
+//                        0
+//                    }
+//                }
+//            }
+//
+//            val offsetY by animateFloatAsState(
+//                targetValue = dpToPx(bottomSheetOffset).toFloat(),
+//                label = "Animated Top Offset"
+//            )
+//
+//            Box(modifier = Modifier
+//                .graphicsLayer { translationY = -offsetY }
+//                .zIndex(1f)) {
+//                NowPlayingMiniPlayer(scaffoldState, playing, mediaController)
+//            }
+//        }
 
         // MAIN UI
         Box(

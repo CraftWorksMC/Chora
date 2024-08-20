@@ -29,6 +29,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -342,10 +344,12 @@ fun NowPlayingLandscape(
 @Composable
 fun NowPlayingMiniPlayer(
     scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
-    isPlaying: Boolean = true,
     mediaController: MediaController?
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val isPlaying = remember { mutableStateOf(false) }
+
+
     Box (modifier = Modifier
         .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp))
         .height(72.dp)
@@ -420,7 +424,7 @@ fun NowPlayingMiniPlayer(
                 verticalArrangement = Arrangement.Center
             ) {
                 Icon(
-                    imageVector = if (isPlaying)
+                    imageVector = if (isPlaying.value)
                         ImageVector.vectorResource(R.drawable.media3_notification_pause)
                     else
                         Icons.Rounded.PlayArrow,

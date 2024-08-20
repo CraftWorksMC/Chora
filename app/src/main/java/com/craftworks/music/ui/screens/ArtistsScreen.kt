@@ -48,32 +48,19 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastFilter
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.NavidromeManager
-import com.craftworks.music.providers.navidrome.getNavidromeArtistBiography
-import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
-import com.craftworks.music.providers.navidrome.getNavidromeArtists
 import com.craftworks.music.ui.elements.ArtistsGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
@@ -189,56 +176,5 @@ fun ArtistsScreen(
             modifier = Modifier.align(Alignment.TopCenter),
             state = state,
         )
-    }
-}
-
-class ArtistsScreenViewModel : ViewModel(), ReloadableViewModel {
-    private val _allArtists = MutableStateFlow<List<MediaData.Artist>>(emptyList())
-    val allArtists: StateFlow<List<MediaData.Artist>> = _allArtists.asStateFlow()
-
-    private val _selectedArtist = MutableStateFlow<MediaData.Artist?>(null)
-    val selectedArtist: StateFlow<MediaData.Artist?> = _selectedArtist
-
-    override fun reloadData() {
-        viewModelScope.launch {
-            coroutineScope {
-                if (NavidromeManager.checkActiveServers()){
-                    val allArtistsDeferred  = async { getNavidromeArtists() }
-
-                    _allArtists.value = allArtistsDeferred.await()
-                }
-                else{
-                    _allArtists.value = artistList
-                }
-            }
-        }
-    }
-
-    fun fetchArtistDetails(artistId : String){
-        viewModelScope.launch {
-            if (NavidromeManager.getCurrentServer() != null){
-                // Fetch artist details and biography concurrently
-                val detailsDeferred = async { getNavidromeArtistDetails(artistId) }
-                val biographyDeferred = async { getNavidromeArtistBiography(artistId) }
-
-                // Wait for both to complete
-                val details = detailsDeferred.await()
-                val biography = biographyDeferred.await()
-
-                // Update the state with the combined data
-                _selectedArtist.value = details.copy(
-                    description = biography.description,
-                    similarArtist = biography.similarArtist
-                )
-            }
-            else{
-                _selectedArtist.value = com.craftworks.music.data.selectedArtist.copy(
-                    album = albumList.fastFilter { it.artist == com.craftworks.music.data.selectedArtist.name }
-                )
-            }
-            println("${_selectedArtist.value} + ${com.craftworks.music.data.selectedArtist}")
-
-            //com.craftworks.music.data.selectedArtist = _selectedArtist.value ?: com.craftworks.music.data.selectedArtist
-        }
     }
 }

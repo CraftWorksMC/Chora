@@ -74,6 +74,7 @@ import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalSongCard
+import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)

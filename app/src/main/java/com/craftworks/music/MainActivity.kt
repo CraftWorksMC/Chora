@@ -11,7 +11,9 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,12 +38,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -53,6 +60,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -64,6 +72,7 @@ import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.NowPlayingContent
 import com.craftworks.music.ui.dpToPx
+import com.craftworks.music.ui.elements.NowPlayingMiniPlayer
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
 import com.craftworks.music.ui.theme.MusicPlayerTheme
@@ -109,6 +118,7 @@ class MainActivity : ComponentActivity() {
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
                 navController = rememberNavController()
                 val mediaController = rememberManagedMediaController()
+                // TODO: global var that updates playing state
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -143,6 +153,29 @@ class MainActivity : ComponentActivity() {
                                 sheetDragHandle = { },
                                 scaffoldState = scaffoldState,
                                 sheetContent = {
+                                    // MINI-PLAYER
+                                    val (offset, setOffset) = remember { mutableFloatStateOf(0f) }
+
+                                    LaunchedEffect(scaffoldState.bottomSheetState.targetValue) {
+                                        setOffset(
+                                            if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) 72f else 0f
+                                        )
+                                    }
+
+                                    val animatedOffset by animateFloatAsState(
+                                        targetValue = offset,
+                                        label = "Animated Top Offset"
+                                    )
+
+                                    Box(
+                                        modifier = Modifier
+                                            .graphicsLayer {
+                                                translationY = -animatedOffset.dp.toPx()
+                                            }
+                                            .zIndex(1f)
+                                    ) {
+                                        NowPlayingMiniPlayer(scaffoldState, mediaController.value)
+                                    }
                                     NowPlayingContent(
                                         context = this@MainActivity,
                                         scaffoldState = scaffoldState,

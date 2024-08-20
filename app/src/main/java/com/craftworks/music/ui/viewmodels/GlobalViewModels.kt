@@ -1,4 +1,4 @@
-package com.craftworks.music.ui.screens
+package com.craftworks.music.ui.viewmodels
 
 import android.util.Log
 

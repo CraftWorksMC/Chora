@@ -163,27 +163,3 @@ fun RadioScreen(
     if(showRadioModifyDialog.value)
         ModifyRadioDialog(setShowDialog = { showRadioModifyDialog.value = it }, radio = radioList[selectedRadioIndex.intValue])
 }
-//
-//class RadioScreenViewModel : ViewModel() {
-//    private val _allRadios = MutableStateFlow<List<MediaData.Song>>(emptyList())
-//    val allRadios: StateFlow<List<MediaData.Album>> = _allRadios.asStateFlow()
-//
-//    init {
-//        fetchRadios()
-//    }
-//
-//    fun fetchRadios() {
-//        viewModelScope.launch {
-//            coroutineScope {
-//                if (NavidromeManager.getCurrentServer() != null) {
-//                    val allRadiosDeferred  = async { getNavidromeAlbums("recent", 20) }
-//
-//                    _allRadios.value = allRadiosDeferred.await()
-//                }
-//                else {
-//                    _allRadios.value = radioList.sortedBy { it.name }
-//                }
-//            }
-//        }
-//    }
-//}

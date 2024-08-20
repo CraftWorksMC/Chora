@@ -36,8 +36,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
@@ -45,21 +43,13 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
-import com.craftworks.music.providers.navidrome.NavidromeManager
-import com.craftworks.music.providers.navidrome.getNavidromePlaylistDetails
-import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.PlaylistGrid
 import com.craftworks.music.ui.elements.dialogs.DeletePlaylist
 import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 var selectedPlaylist by mutableStateOf(
     MediaData.Playlist(
@@ -152,48 +142,5 @@ fun PlaylistScreen(
             modifier = Modifier.align(Alignment.TopCenter),
             state = state,
         )
-    }
-}
-
-class PlaylistScreenViewModel : ViewModel(), ReloadableViewModel {
-    private val _allPlaylists = MutableStateFlow<List<MediaData.Playlist>>(emptyList())
-    val allPlaylists: StateFlow<List<MediaData.Playlist>> = _allPlaylists.asStateFlow()
-
-    private var _selectedPlaylist = MutableStateFlow<MediaData.Playlist?>(null)
-    var selectedPlaylist: StateFlow<MediaData.Playlist?> = _selectedPlaylist
-
-    fun setCurrentPlaylist(playlist: MediaData.Playlist){
-        _selectedPlaylist.value = playlist
-    }
-
-    override fun reloadData() {
-        viewModelScope.launch {
-            coroutineScope {
-                if (NavidromeManager.checkActiveServers()){
-                    val allPlaylistsDeferred  = async { getNavidromePlaylists() }
-
-                    _allPlaylists.value = allPlaylistsDeferred.await()
-
-                    _allPlaylists.value += playlistList
-                }
-                else {
-                    _allPlaylists.value = playlistList
-                }
-            }
-        }
-    }
-
-    fun fetchPlaylistDetails(playlistId: String) {
-        if (!NavidromeManager.checkActiveServers()) return
-
-        viewModelScope.launch {
-            coroutineScope {
-                val selectedPlaylistDeferred  = async { getNavidromePlaylistDetails(playlistId) }
-
-                _selectedPlaylist.value = selectedPlaylistDeferred.await()[0]
-
-                com.craftworks.music.ui.screens.selectedPlaylist = _selectedPlaylist.value!!
-            }
-        }
     }
 }
