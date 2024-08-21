@@ -48,6 +48,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -82,15 +83,7 @@ fun ArtistsScreen(
 
     if (state.isRefreshing) {
         LaunchedEffect(true) {
-
-            artistList.clear()
-
-            if (NavidromeManager.checkActiveServers()){
-                viewModel.reloadData()
-            }
-            else{
-                getSongsOnDevice(context)
-            }
+            viewModel.reloadData()
 
             delay(500)
             state.endRefresh()
@@ -160,9 +153,9 @@ fun ArtistsScreen(
 
             var sortedArtistList = allArtistList.sortedBy { it.name }.toMutableList()
 
-//            if (searchFilter.isNotBlank()){
-//                sortedArtistList = sortedArtistList.filter { it.name.contains(searchFilter, true) }.toMutableList()
-//            }
+            if (searchFilter.isNotBlank()){
+                sortedArtistList = sortedArtistList.fastFilter { it.name.contains(searchFilter, true) }.toMutableList()
+            }
 
             ArtistsGrid(sortedArtistList, onArtistSelected = { artist ->
                 selectedArtist = artist

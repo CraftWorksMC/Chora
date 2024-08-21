@@ -51,17 +51,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastFilter
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.albumList
-import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.NavidromeManager
-import com.craftworks.music.providers.navidrome.getNavidromeAlbums
-import com.craftworks.music.providers.navidrome.searchNavidromeAlbums
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
@@ -88,10 +82,7 @@ fun AlbumScreen(
 
     if (state.isRefreshing) {
         LaunchedEffect(true) {
-            albumList.clear()
-
             viewModel.reloadData()
-
             state.endRefresh()
         }
     }
@@ -146,12 +137,7 @@ fun AlbumScreen(
                         onValueChange = {
                             searchFilter = it
                             if (it.isBlank()){
-                                coroutineScope.launch {
-                                    if (NavidromeManager.checkActiveServers())
-                                        albumList.addAll(getNavidromeAlbums())
-                                    else
-                                        getSongsOnDevice(context)
-                                }
+                                viewModel.reloadData()
                             } },
                         label = { Text(stringResource(R.string.Action_Search)) },
                         singleLine = true,
@@ -159,16 +145,7 @@ fun AlbumScreen(
                         keyboardActions = KeyboardActions(
                             onSearch = {
                                 coroutineScope.launch {
-                                    if (NavidromeManager.checkActiveServers()){
-                                        albumList.addAll(searchNavidromeAlbums(searchFilter))
-                                    }
-                                    else {
-                                        albumList = albumList.fastFilter {
-                                            it.title?.lowercase()?.contains(searchFilter.lowercase()) == true ||
-                                                    it.artist.lowercase().contains(searchFilter.lowercase())
-                                        }.toMutableList()
-                                    }
-
+                                    viewModel.search(searchFilter)
                                     isSearchFieldOpen = false
                                 }
                             }
@@ -187,18 +164,22 @@ fun AlbumScreen(
                 }
             }
 
-            LaunchedEffect(searchFilter) {
-                if (searchFilter.isNotBlank() && NavidromeManager.checkActiveServers()){
-                    albumList.clear()
-                }
-            }
+//            LaunchedEffect(searchFilter) {
+//                if (searchFilter.isNotBlank() && NavidromeManager.checkActiveServers()){
+//                    albumList.clear()
+//                }
+//            }
 
-            AlbumGrid(allAlbumsList, mediaController, onAlbumSelected = { album ->
-                navHostController.navigate(Screen.AlbumDetails.route) {
-                    launchSingleTop = true
-                }
+            AlbumGrid(allAlbumsList,
+                mediaController,
+                onAlbumSelected = { album ->
+                        navHostController.navigate(Screen.AlbumDetails.route) {
+                            launchSingleTop = true
+                    }
                 selectedAlbum = album },
-                searchFilter.isNotBlank())
+                searchFilter.isNotBlank(),
+                "alphabeticalByName",
+                viewModel)
         }
 
         PullToRefreshContainer(

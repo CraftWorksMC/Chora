@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -45,7 +44,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
@@ -71,6 +69,7 @@ fun NowPlayingPortrait(
     scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     navHostController: NavHostController = rememberNavController()
 ){
+    Log.d("RECOMPOSITION", "NowPlayingPortrait")
     Column {
         // Top padding (for mini-player)
         Spacer(Modifier.height(48.dp))
@@ -79,6 +78,7 @@ fun NowPlayingPortrait(
         val textFadingEdge = Brush.horizontalGradient(0.85f to Color.Red, 1f to Color.Transparent)
 
         Column(modifier = Modifier.heightIn(min=420.dp)) {
+            Log.d("RECOMPOSITION", "Album cover or lyrics")
             /* Album Cover */
             Box(modifier = Modifier
                 .heightIn(min = 320.dp)
@@ -121,6 +121,7 @@ fun NowPlayingPortrait(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top
             ) {
+                Log.d("RECOMPOSITION", "Titles and artist")
                 SongHelper.currentSong.title.let {
                     Text(
                         text =
@@ -196,7 +197,7 @@ fun NowPlayingPortrait(
 
                 if (showMoreInfo.value) {
                     Text(
-                        text = "${SongHelper.currentSong.format} • ${SongHelper.currentSong.bitrate} • ${
+                        text = "${SongHelper.currentSong.format.uppercase()} • ${SongHelper.currentSong.bitrate} • ${
                             if (SongHelper.currentSong.navidromeID == "Local")
                                 stringResource(R.string.Source_Local)
                             else
@@ -220,6 +221,7 @@ fun NowPlayingPortrait(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Log.d("RECOMPOSITION", "SliderUpdating")
             SliderUpdating(false, mediaController)
         }
 

@@ -38,6 +38,10 @@ class ArtistsScreenViewModel : ViewModel(), ReloadableViewModel {
         }
     }
 
+    suspend fun search(query: String){
+
+    }
+
     fun fetchArtistDetails(artistId : String){
         viewModelScope.launch {
             if (NavidromeManager.getCurrentServer() != null){

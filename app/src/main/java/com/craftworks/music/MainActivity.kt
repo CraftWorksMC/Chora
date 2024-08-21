@@ -11,12 +11,18 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,10 +53,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -111,6 +119,7 @@ class MainActivity : ComponentActivity() {
         )
         val snackbarHostState = SnackbarHostState()
 
+
         setContent {
             MusicPlayerTheme {
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
@@ -151,52 +160,18 @@ class MainActivity : ComponentActivity() {
                                 scaffoldState = scaffoldState,
                                 sheetContent = {
                                     Log.d("RECOMPOSITION", "Bottom Scaffold Sheet Content")
-                                    //var isPlaying by remember { mutableStateOf(mediaController.value?.isPlaying) }
 
-                                    // Update isPlaying with mediaController
-//                                    DisposableEffect(mediaController) {
-//                                        val listener = object : Player.Listener {
-//                                            override fun onIsPlayingChanged(playing: Boolean) {
-//                                                isPlaying = playing
-//                                            }
-//                                        }
-//
-//                                        mediaController.value?.addListener(listener)
-//
-//                                        onDispose {
-//                                            mediaController.value?.removeListener(listener)
-//                                        }
-//                                    }
-                                    // MINI-PLAYER
-                                    val (offset, setOffset) = remember { mutableFloatStateOf(0f) }
+                                    Box {
+                                        NowPlayingMiniPlayer(scaffoldState, mediaController.value)
 
-                                    LaunchedEffect(scaffoldState.bottomSheetState.targetValue) {
-                                        setOffset(
-                                            if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) 72f else 0f
+                                        NowPlayingContent(
+                                            context = this@MainActivity,
+                                            scaffoldState = scaffoldState,
+                                            snackbarHostState = snackbarHostState,
+                                            navHostController = navController,
+                                            mediaController = mediaController.value
                                         )
                                     }
-
-                                    val animatedOffset by animateFloatAsState(
-                                        targetValue = offset,
-                                        label = "Animated Top Offset"
-                                    )
-
-                                    Box(
-                                        modifier = Modifier
-                                            .graphicsLayer {
-                                                translationY = -animatedOffset.dp.toPx()
-                                            }
-                                            .zIndex(1f)
-                                    ) {
-                                        NowPlayingMiniPlayer(scaffoldState, mediaController.value)
-                                    }
-                                    NowPlayingContent(
-                                        context = this@MainActivity,
-                                        scaffoldState = scaffoldState,
-                                        snackbarHostState = snackbarHostState,
-                                        navHostController = navController,
-                                        mediaController = mediaController.value
-                                    )
                                 }) {
                             }
                         }
@@ -265,7 +240,6 @@ fun AnimatedBottomNavBar(
     navController: NavHostController,
     scaffoldState : BottomSheetScaffoldState
 ){
-    println(scaffoldState)
     val backStackEntry = navController.currentBackStackEntryAsState()
     val coroutineScope = rememberCoroutineScope()
 

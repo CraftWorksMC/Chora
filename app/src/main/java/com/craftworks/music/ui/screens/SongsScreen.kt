@@ -47,16 +47,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastFilter
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.songsList
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.NavidromeManager
-import com.craftworks.music.providers.navidrome.getNavidromeSongs
-import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
@@ -68,7 +62,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SongsScreen(
     mediaController: MediaController? = null,
-    viewModel: SongsScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: SongsScreenViewModel = viewModel()
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val context = LocalContext.current
@@ -78,13 +72,6 @@ fun SongsScreen(
     //var selectedSortOption by remember { mutableStateOf("Name (A-Z)") }
 
     val allSongsList by viewModel.allSongs.collectAsState()
-
-    if (songsList.isEmpty()){
-        LaunchedEffect(Unit) {
-            if (searchFilter.isNotEmpty()) return@LaunchedEffect
-            viewModel.reloadData()
-        }
-    }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -136,10 +123,7 @@ fun SongsScreen(
                         searchFilter = it
                         if (it.isBlank()){
                             coroutineScope.launch {
-                                if (NavidromeManager.checkActiveServers())
-                                    songsList.addAll(getNavidromeSongs())
-                                else
-                                    getSongsOnDevice(context)
+                                viewModel.reloadData()
                             }
                         } },
                     label = { Text(stringResource(R.string.Action_Search)) },
@@ -148,15 +132,7 @@ fun SongsScreen(
                     keyboardActions = KeyboardActions(
                         onSearch = {
                             coroutineScope.launch {
-                                if (NavidromeManager.checkActiveServers()){
-                                    songsList.addAll(sendNavidromeGETRequest("search3.view?query=${searchFilter}&songCount=500&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaData.Song>())
-                                } else{
-                                    songsList = songsList.fastFilter {
-                                                it.title.lowercase().contains(searchFilter.lowercase()) ||
-                                                it.artist.lowercase().contains(searchFilter.lowercase())
-                                    }.toMutableList()
-                                }
-
+                                viewModel.search(searchFilter)
                                 isSearchFieldOpen = false
                             }
                         }
@@ -177,17 +153,18 @@ fun SongsScreen(
 
         Column(modifier = Modifier.padding(horizontal = 12.dp)) {
 
-            LaunchedEffect(searchFilter) {
-                if (searchFilter.isNotBlank() && NavidromeManager.checkActiveServers()){
-                    songsList.clear()
-                }
-            }
+//            LaunchedEffect(searchFilter) {
+//                if (searchFilter.isNotBlank() && NavidromeManager.checkActiveServers()){
+//                    songsList.clear()
+//                }
+//            }
 
             SongsHorizontalColumn(songList = allSongsList, onSongSelected = { song ->
                 SongHelper.currentSong = song
-                SongHelper.currentList = songsList.sortedBy { song.title }
+                SongHelper.currentList = allSongsList.sortedBy { song.title }
                 song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) } },
-                searchFilter.isNotBlank())
+                searchFilter.isNotBlank(),
+                viewModel)
         }
     }
 

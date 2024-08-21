@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,8 +44,11 @@ import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeAlbums
 import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.sliderPos
+import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
+import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 //region Songs
 @Composable
@@ -97,7 +101,12 @@ fun SongsRow(songsList: List<MediaData.Song>, onSongSelected: (song: MediaData.S
     }
 }
 @Composable
-fun SongsHorizontalColumn(songList: List<MediaData.Song>, onSongSelected: (song: MediaData.Song) -> Unit, isSearch: Boolean? = false){
+fun SongsHorizontalColumn(
+    songList: List<MediaData.Song>,
+    onSongSelected: (song: MediaData.Song) -> Unit,
+    isSearch: Boolean? = false,
+    viewModel: SongsScreenViewModel? = null
+){
     var isSongSelected by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -118,8 +127,8 @@ fun SongsHorizontalColumn(songList: List<MediaData.Song>, onSongSelected: (song:
                 .filter { it }
                 .collect {
                     coroutineScope.launch {
-                        val songOffset = songsList.size
-                        songsList.addAll(sendNavidromeGETRequest("search3.view?query=''&songCount=100&songOffset=$songOffset&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaData.Song>())
+                        if (viewModel == null) return@launch
+                        viewModel.getMoreSongs(100)
                     }
                 }
         }
@@ -150,7 +159,8 @@ fun AlbumGrid(
     mediaController: MediaController?,
     onAlbumSelected: (album: MediaData.Album) -> Unit,
     isSearch: Boolean? = false,
-    sort: String? = "alphabeticalByName",){
+    sort: String? = "alphabeticalByName",
+    viewModel: AlbumScreenViewModel = viewModel()){
 
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
@@ -169,8 +179,7 @@ fun AlbumGrid(
                 .filter { it }
                 .collect {
                     coroutineScope.launch {
-                        val albumOffset = albumList.size
-                        albumList.addAll(getNavidromeAlbums(sort, 100, albumOffset))
+                        viewModel.getMoreAlbums(sort, 100)
                     }
                 }
         }

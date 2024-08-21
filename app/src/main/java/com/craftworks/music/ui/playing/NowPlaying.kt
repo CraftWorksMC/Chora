@@ -167,14 +167,6 @@ fun NowPlayingContent(
 
     Log.d("RECOMPOSITION", "NowPlayingContent")
     Box {
-//        mediaController?.addListener(object : Player.Listener {
-//                override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-//                    super.onPlayWhenReadyChanged(playWhenReady, reason)
-//                    playing = playWhenReady
-//                }
-//            }
-//        )
-
         //region Update Content + Backgrounds
         // handle back presses
         val coroutineScope = rememberCoroutineScope()
@@ -297,103 +289,14 @@ fun NowPlayingContent(
 
         //endregion
 
-//        // MINI-PLAYER
-//        if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION){
-//            val bottomSheetOffset by remember {
-//                derivedStateOf {
-//                    if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
-//                        72
-//                    } else {
-//                        0
-//                    }
-//                }
-//            }
-//
-//            val offsetY by animateFloatAsState(
-//                targetValue = dpToPx(bottomSheetOffset).toFloat(),
-//                label = "Animated Top Offset"
-//            )
-//
-//            Box(modifier = Modifier
-//                .graphicsLayer { translationY = -offsetY }
-//                .zIndex(1f)) {
-//                NowPlayingMiniPlayer(scaffoldState, playing, mediaController)
-//            }
-//        }
-
         // MAIN UI
         Box(
-            modifier = Modifier
-                .wrapContentHeight()
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxSize()
         ) {
             if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) {
-                //region VERTICAL UI
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .padding(top = 48.dp),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    Column {
-                        // Album Art + Info
-                        NowPlayingPortraitCover(navHostController, scaffoldState, mediaController)
-
-                        // Seek Bar
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            SliderUpdating(false, mediaController)
-                        }
-
-                        //region Buttons
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            // First Row
-                            Row(
-                                modifier = Modifier
-                                    .height(98.dp)
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 18.dp)
-                                    .weight(1f),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                ShuffleButton(32.dp, mediaController)
-
-                                MainButtons(mediaController)
-
-                                RepeatButton(32.dp, mediaController)
-                            }
-
-                            Row(
-                                modifier = Modifier
-                                    .height(64.dp)
-                                    .width(256.dp)
-                                    .weight(1f)
-                                    .padding(bottom = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceEvenly
-                            ) {
-                                LyricsButton(64.dp)
-
-                                DownloadButton(64.dp)
-                            }
-                        }
-                        //endregion
-                    }
-                }
-                //endregion
-
+                NowPlayingPortrait(mediaController, scaffoldState, navHostController)
             }
             else {
-
                 //region LANDSCAPE TABLET UI
                 if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION){
                     Box(
@@ -435,16 +338,9 @@ fun NowPlayingContent(
                 }
                 //endregion
 
-                //region TV UI
                 else {
-                    NowPlaying_TV(
-                        lyricsOpen,
-                        song,
-                        snackbarHostState,
-                        coroutineScope,
-                        mediaController)
+                    NowPlaying_TV(lyricsOpen, mediaController)
                 }
-                //endregion
             }
         }
     }
@@ -454,10 +350,6 @@ fun NowPlayingContent(
 @Composable
 fun NowPlaying_TV(
     collapsed: Boolean? = false,
-    //isPlaying: Boolean? = false,
-    song: MediaData.Song = SongHelper.currentSong,
-    snackbarHostState: SnackbarHostState? = SnackbarHostState(),
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
     mediaController: MediaController?
 ) {
     val (prev, play, next, shuffle, replay) = remember { FocusRequester.createRefs() }
