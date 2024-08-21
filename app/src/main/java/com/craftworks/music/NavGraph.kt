@@ -26,7 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.craftworks.music.data.Screen
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.ui.NowPlayingContent
+import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.elements.bottomSpacerHeightDp
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen

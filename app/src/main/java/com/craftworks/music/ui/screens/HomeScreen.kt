@@ -63,7 +63,7 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.NavidromeManager
-import com.craftworks.music.ui.dpToPx
+import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel

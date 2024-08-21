@@ -39,7 +39,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -48,7 +47,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -70,8 +68,8 @@ import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
-import com.craftworks.music.ui.NowPlayingContent
-import com.craftworks.music.ui.dpToPx
+import com.craftworks.music.ui.playing.NowPlayingContent
+import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.elements.NowPlayingMiniPlayer
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
@@ -118,7 +116,6 @@ class MainActivity : ComponentActivity() {
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
                 navController = rememberNavController()
                 val mediaController = rememberManagedMediaController()
-                // TODO: global var that updates playing state
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -153,6 +150,23 @@ class MainActivity : ComponentActivity() {
                                 sheetDragHandle = { },
                                 scaffoldState = scaffoldState,
                                 sheetContent = {
+                                    Log.d("RECOMPOSITION", "Bottom Scaffold Sheet Content")
+                                    //var isPlaying by remember { mutableStateOf(mediaController.value?.isPlaying) }
+
+                                    // Update isPlaying with mediaController
+//                                    DisposableEffect(mediaController) {
+//                                        val listener = object : Player.Listener {
+//                                            override fun onIsPlayingChanged(playing: Boolean) {
+//                                                isPlaying = playing
+//                                            }
+//                                        }
+//
+//                                        mediaController.value?.addListener(listener)
+//
+//                                        onDispose {
+//                                            mediaController.value?.removeListener(listener)
+//                                        }
+//                                    }
                                     // MINI-PLAYER
                                     val (offset, setOffset) = remember { mutableFloatStateOf(0f) }
 

@@ -1,73 +1,98 @@
 package com.craftworks.music.ui.elements
 
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.BottomSheetScaffoldState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.artistList
+import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedArtist
+import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.fadingEdge
+import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.ui.DownloadButton
-import com.craftworks.music.ui.LyricsButton
-import com.craftworks.music.ui.LyricsView
-import com.craftworks.music.ui.MainButtons
-import com.craftworks.music.ui.RepeatButton
-import com.craftworks.music.ui.ShuffleButton
-import com.craftworks.music.ui.SliderUpdating
-import com.craftworks.music.ui.lyricsOpen
+import com.craftworks.music.providers.navidrome.NavidromeManager
+import com.craftworks.music.providers.navidrome.downloadNavidromeSong
+import com.craftworks.music.repeatSong
+import com.craftworks.music.shuffleSongs
+import com.craftworks.music.sliderPos
+import com.craftworks.music.ui.playing.LyricsView
+import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
+import com.craftworks.music.ui.playing.lyricsOpen
 import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -209,146 +234,15 @@ fun NowPlayingPortraitCover (
     }
 }
 
-@Composable
-fun NowPlayingLandscape(
-    collapsed: Boolean? = false,
-    isPlaying: Boolean? = false,
-    song: MediaData.Song = SongHelper.currentSong,
-    snackbarHostState: SnackbarHostState? = SnackbarHostState(),
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    mediaController: MediaController?
-) {
-    Row(modifier = Modifier
-        .fillMaxSize()
-        .padding(start = 6.dp),
-        verticalAlignment = Alignment.Top) {
-
-        /* Album Cover */
-        Box(modifier = Modifier
-            .heightIn(min = 256.dp)
-            .width(256.dp),
-            contentAlignment = Alignment.Center){
-            AnimatedContent(lyricsOpen, label = "Crossfade between lyrics") {
-                if (it){
-                    LyricsView(true, mediaController)
-                }
-                else {
-                    AsyncImage(
-                        model = SongHelper.currentSong.imageUrl,
-                        contentDescription = "Album Cover",
-                        placeholder = painterResource(R.drawable.placeholder),
-                        fallback = painterResource(R.drawable.placeholder),
-                        contentScale = ContentScale.FillHeight,
-                        alignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(256.dp)
-                            .padding(12.dp)
-                            .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    )
-                }
-            }
-        }
-
-        /* Song Title + Artist*/
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .padding(top = 4.dp),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.Top
-        ) {
-            Column(modifier = Modifier.height(72.dp)){
-                SongHelper.currentSong.title.let {
-                    Text(
-                        text = // Limit Song Title Length (if not collapsed).
-                        if (it.length > 24 && collapsed == false) it.substring(0, 21) + "..."
-                        else it,
-                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start
-                    )
-                }
-                SongHelper.currentSong.artist.let {
-                    Text(
-                        text = //Limit the artist name length (if not collapsed).
-                        if (it.length > 20 && collapsed == false)
-                            it.substring(0, 17) + "..." + " • " + SongHelper.currentSong.year
-                        else
-                            it + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year
-                            else "",
-                        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start
-                    )
-                }
-                if (showMoreInfo.value) {
-                    SongHelper.currentSong.format.let { format ->
-                        Text(
-                            text = format.toString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Light,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                            maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                }
-            }
-
-            /* Progress Bar */
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .padding(end = 12.dp)
-                .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                SliderUpdating(true, mediaController)
-            }
-
-            //region BUTTONS
-            Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
-                /* MAIN ACTIONS */
-                Row(modifier = Modifier
-                    .height(96.dp)
-                    .padding(horizontal = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically) {
-                    MainButtons(mediaController, isPlaying)
-                }
-                // BUTTONS
-                Row(modifier = Modifier
-                    .height(64.dp)
-                    //.width(256.dp)
-                    .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically) {
-                    LyricsButton(48.dp)
-
-                    ShuffleButton(48.dp, mediaController)
-
-                    RepeatButton(48.dp, mediaController)
-
-                    DownloadButton(snackbarHostState, coroutineScope, 48.dp)
-                }
-            }
-            //endregion
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NowPlayingMiniPlayer(
     scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     mediaController: MediaController?
 ) {
+    Log.d("RECOMPOSITION", "Mini Player")
     val coroutineScope = rememberCoroutineScope()
     val isPlaying = remember { mutableStateOf(false) }
-
 
     Box (modifier = Modifier
         .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp))
@@ -423,24 +317,442 @@ fun NowPlayingMiniPlayer(
                 modifier = Modifier.fillMaxHeight(),
                 verticalArrangement = Arrangement.Center
             ) {
+                PlayPauseButtonUpdating(mediaController, 48.dp)
+//                Icon(
+//                    imageVector = if (isPlaying.value)
+//                        ImageVector.vectorResource(R.drawable.media3_notification_pause)
+//                    else
+//                        Icons.Rounded.PlayArrow,
+//                    tint = MaterialTheme.colorScheme.onBackground,
+//                    contentDescription = "Play/Pause",
+//                    modifier = Modifier
+//                        .height(48.dp)
+//                        .size(48.dp)
+//                        .bounceClick()
+//                        .clip(RoundedCornerShape(12.dp))
+//                        .clickable {
+//                            mediaController?.playWhenReady =
+//                                !(mediaController?.playWhenReady ?: true)
+//                        }
+//                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SliderUpdating(isLandscape: Boolean? = false, mediaController: MediaController?){
+
+    LaunchedEffect(mediaController) {
+        while (true) {
+            delay(1000)
+            if (mediaController?.isPlaying == true) {
+                sliderPos.intValue = mediaController.currentPosition.toInt()
+            }
+        }
+    }
+
+    val animatedSliderValue by animateFloatAsState(
+        targetValue = sliderPos.intValue.toFloat(),
+        label = "Smooth Slider Update"
+    )
+    val sliderHeight = if (isLandscape == true) 24.dp else 12.dp
+
+
+    Slider(
+        enabled = (transcodingBitrate.value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .height(sliderHeight)
+            .scale(scaleX = 1f, scaleY = 1.25f)
+            .clip(RoundedCornerShape(12.dp))
+            .focusable(false),
+        value = animatedSliderValue,
+        onValueChange = {
+            SongHelper.isSeeking = true
+            sliderPos.intValue = it.toInt()
+        },
+        onValueChangeFinished = {
+            SongHelper.isSeeking = false
+            mediaController?.seekTo(sliderPos.intValue.toLong())
+        },
+        valueRange = 0f..(SongHelper.currentSong.duration.toFloat() * 1000),
+        colors = SliderDefaults.colors(
+            activeTrackColor = MaterialTheme.colorScheme.onBackground,
+            inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
+        ),
+        thumb = {}
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp)
+    ) {
+        Text(
+            text = formatMilliseconds(sliderPos.intValue / 1000),
+            fontWeight = FontWeight.Light,
+            textAlign = TextAlign.Start,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .width(64.dp),
+            maxLines = 1, overflow = TextOverflow.Ellipsis,
+        )
+
+        Text(
+            text = formatMilliseconds(SongHelper.currentSong.duration),
+            fontWeight = FontWeight.Light,
+            textAlign = TextAlign.End,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .width(64.dp),
+            maxLines = 1, overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable // Previous Song, Play/Pause, Next Song
+fun MainButtons(mediaController: MediaController?,
+                prev: FocusRequester = FocusRequester(),
+                play: FocusRequester = FocusRequester(),
+                next: FocusRequester = FocusRequester(),
+                shuffle: FocusRequester = FocusRequester()
+){
+
+    // Previous Song
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+    )
+    {
+        Button(
+            onClick = {
+                if (SongHelper.currentSong.isRadio == true) return@Button
+                mediaController?.seekToPreviousMediaItem()
+                println("MediaController has previous media item? ${mediaController?.hasPreviousMediaItem()}")
+                println("MediaController previous item index? ${mediaController?.previousMediaItemIndex}")
+            },
+            shape = CircleShape,
+            modifier = Modifier
+                .size(72.dp)
+                .bounceClick()
+                .moveClick(false)
+                .focusRequester(prev)
+                .focusProperties {
+                    right = play
+                    down = shuffle
+                    up = FocusRequester.Cancel
+                },
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+        ) {
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_previous),
+
+                tint = MaterialTheme.colorScheme.onBackground,
+                contentDescription = "Previous Song",
+                modifier = Modifier
+                    .height(48.dp)
+                    .size(48.dp)
+            )
+        }
+    }
+
+    PlayPauseButtonUpdating(mediaController, 92.dp)
+
+    /* Next Song Button */
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+    )
+    {
+        Button(
+            onClick = {
+                if (SongHelper.currentSong.isRadio == true) return@Button
+                mediaController?.seekToNextMediaItem()
+            },
+            shape = CircleShape,
+            modifier = Modifier
+                .size(72.dp)
+                .bounceClick()
+                .moveClick(true)
+                .focusRequester(next)
+                .focusProperties {
+                    left = play
+                    down = shuffle
+                    up = FocusRequester.Cancel
+                },
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+        ) {
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_next),
+                tint = MaterialTheme.colorScheme.onBackground,
+                contentDescription = "Next Song",
+                modifier = Modifier
+                    .height(48.dp)
+                    .size(48.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun PlayPauseButtonUpdating(mediaController: MediaController?, size: Dp){
+    Log.d("RECOMPOSITION", "PlayPauseButtonUpdating")
+    val playerStatus = remember { mutableStateOf("") }
+
+    // Update playerStatus from mediaController
+    DisposableEffect(mediaController) {
+        val listener = object : Player.Listener {
+            override fun onIsLoadingChanged(isLoading: Boolean) {
+                playerStatus.value = "loading"
+                super.onIsLoadingChanged(isLoading)
+            }
+
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                playerStatus.value = if (playWhenReady) "playing" else "paused"
+                super.onPlayWhenReadyChanged(playWhenReady, reason)
+            }
+        }
+
+        mediaController?.addListener(listener)
+        Log.d("RECOMPOSITION", "Registered new listener for mediaController!")
+
+        onDispose {
+            mediaController?.removeListener(listener)
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+    )
+    {
+        Button(
+            onClick = {
+                mediaController?.playWhenReady = !(mediaController?.playWhenReady ?: true)
+            },
+            shape = CircleShape,
+            modifier = Modifier
+                .size(size)
+                .bounceClick(),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            )
+        ) {
+
+            val icon = when (playerStatus.value) {
+                "playing" -> ImageVector.vectorResource(R.drawable.media3_notification_pause)
+                "paused" -> Icons.Rounded.PlayArrow
+                else -> null // Return null for loading state
+            }
+
+            if (icon != null) {
                 Icon(
-                    imageVector = if (isPlaying.value)
-                        ImageVector.vectorResource(R.drawable.media3_notification_pause)
-                    else
-                        Icons.Rounded.PlayArrow,
+                    imageVector = icon,
                     tint = MaterialTheme.colorScheme.onBackground,
-                    contentDescription = "Play/Pause",
+                    contentDescription = "Play/Pause button",
                     modifier = Modifier
-                        .height(48.dp)
-                        .size(48.dp)
-                        .bounceClick()
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable {
-                            mediaController?.playWhenReady =
-                                !(mediaController?.playWhenReady ?: true)
-                        }
+                        .height(size)
+                        .size(size)
+                )
+            } else {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(size / 8)
+                        .size(size),
+                    strokeCap = StrokeCap.Round,
+                    strokeWidth = size / 12,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun LyricsButton(size: Dp){
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+    )
+    {
+        Button(
+            onClick = { lyricsOpen = !lyricsOpen },
+            shape = CircleShape,
+            modifier = Modifier
+                .height(size)
+                .bounceClick(),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            )
+        ) {
+            Crossfade(targetState = lyricsOpen, label = "Lyrics Icon Crossfade") { open ->
+                when (open) {
+                    true -> Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
+                        tint = MaterialTheme.colorScheme.onBackground.copy(
+                            alpha = 0.5f
+                        ),
+                        contentDescription = "Close Lyrics",
+                        modifier = Modifier
+                            .height(size)
+                            .size(size)
+                    )
+
+                    false -> Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.lyrics_inactive),
+                        tint = MaterialTheme.colorScheme.onBackground.copy(
+                            alpha = 0.5f
+                        ),
+                        contentDescription = "View Lyrics",
+                        modifier = Modifier
+                            .height(size)
+                            .size(size)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DownloadButton(size: Dp){
+    val snackbarHostState = SnackbarHostState()
+    val coroutineScope = rememberCoroutineScope()
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+    )
+    {
+        Button(
+            onClick = {
+                if (navidromeServersList.isEmpty() || !NavidromeManager.checkActiveServers() || SongHelper.currentSong.navidromeID == "Local") return@Button
+                if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
+                    navidromeServersList[selectedNavidromeServerIndex.intValue].url == ""
+                ) return@Button
+
+                downloadNavidromeSong(
+                    "${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${SongHelper.currentSong.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",
+                    snackbarHostState = snackbarHostState,
+                    coroutineScope
+                )
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Downloading Started. Do not close the app or start another download until complete.")
+                }
+            },
+            shape = CircleShape,
+            modifier = Modifier
+                .height(size)
+                .bounceClick(),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            )
+        ) {
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
+                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                contentDescription = "Download Song",
+                modifier = Modifier
+                    .height(size)
+                    .size(size)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun ShuffleButton(size: Dp, mediaController: MediaController?,
+                  play: FocusRequester = FocusRequester(),
+                  shuffle: FocusRequester = FocusRequester()
+){
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+    )
+    {
+        Button(
+            onClick = {
+                shuffleSongs.value = !shuffleSongs.value
+                mediaController?.shuffleModeEnabled = shuffleSongs.value
+            },
+            shape = CircleShape,
+            modifier = Modifier
+                .size(size)
+                .focusRequester(shuffle)
+                .focusProperties {
+                    up = play
+                    down = FocusRequester.Cancel
+                },
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+        ) {
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.round_shuffle_28),
+                tint = MaterialTheme.colorScheme.onBackground.copy(if (shuffleSongs.value) 1f else 0.5f),
+                contentDescription = "Toggle Shuffle",
+                modifier = Modifier
+                    .height(size)
+                    .size(size)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun RepeatButton(size: Dp, mediaController: MediaController?,
+                 play: FocusRequester = FocusRequester(),
+                 replay: FocusRequester = FocusRequester()
+){
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+    )
+    {
+        Button(
+            onClick = {
+                repeatSong.value = !repeatSong.value
+                mediaController?.repeatMode =
+                    if (repeatSong.value)
+                        Player.REPEAT_MODE_ONE
+                    else
+                        Player.REPEAT_MODE_OFF
+            },
+            shape = CircleShape,
+            modifier = Modifier
+                .size(size)
+                .focusRequester(replay)
+                .focusProperties {
+                    up = play
+                    down = FocusRequester.Cancel
+                    right = FocusRequester.Cancel
+                },
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+        ) {
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.round_repeat_28),
+                tint = MaterialTheme.colorScheme.onBackground.copy(if (repeatSong.value) 1f else 0.5f),
+                contentDescription = "Toggle Repeat",
+                modifier = Modifier
+                    .height(size)
+                    .size(size)
+            )
         }
     }
 }
