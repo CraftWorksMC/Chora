@@ -38,7 +38,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -58,6 +57,7 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -66,7 +66,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -74,8 +73,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -97,7 +94,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -113,14 +109,13 @@ import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.fadingEdge
-import com.craftworks.music.lyrics.getLyrics
+import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
 import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.elements.DownloadButton
 import com.craftworks.music.ui.elements.LyricsButton
 import com.craftworks.music.ui.elements.MainButtons
-import com.craftworks.music.ui.elements.NowPlayingPortraitCover
 import com.craftworks.music.ui.elements.RepeatButton
 import com.craftworks.music.ui.elements.ShuffleButton
 import com.craftworks.music.ui.elements.SliderUpdating
@@ -502,22 +497,22 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?,
                playFocus: FocusRequester = FocusRequester()) {
 
     var currentLyricIndex by remember { mutableIntStateOf(0) }
+    val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(SyncedLyric, sliderPos) {
-        snapshotFlow { sliderPos.intValue.toLong() + 750 }
-            .collect { currentPosition ->
-                currentLyricIndex = ((SyncedLyric.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 } ?: SyncedLyric.size) - 1).coerceAtLeast(0)
+    val lyrics by LyricsManager.Lyrics.collectAsState()
 
-                if (currentLyricIndex in 0..SyncedLyric.size) {
-                    SyncedLyric = SyncedLyric.mapIndexed { index, lyric ->
-                        lyric.copy(isCurrentLyric = index == currentLyricIndex)
-                    }.toMutableStateList()
-                }
+    LaunchedEffect(lyrics, sliderPos) {
+        snapshotFlow { sliderPos.intValue.toLong() + 750 }.collect { currentPosition ->
+                currentLyricIndex =
+                    ((lyrics.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 }
+                        ?: lyrics.size) - 1).coerceAtLeast(0)
 
                 // Calculate the delay between lyrics. If the nextLyricIndex is -1 then it means we've reached the end of the lyrics.
-                val nextLyricIndex = SyncedLyric.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 } ?: SyncedLyric.size
-                val delayMillis = if (nextLyricIndex in 0 until SyncedLyric.size) {
-                    (SyncedLyric[nextLyricIndex].timestamp - currentPosition).coerceAtLeast(0)
+                val nextLyricIndex =
+                    lyrics.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 }
+                        ?: lyrics.size
+                val delayMillis = if (nextLyricIndex in lyrics.indices) {
+                    (lyrics[nextLyricIndex].timestamp - currentPosition).coerceAtLeast(0)
                 } else {
                     1000L
                 }
@@ -527,7 +522,6 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?,
 
     val topBottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.15f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
     val state = rememberLazyListState()
-
 
     LaunchedEffect(currentLyricIndex) {
         delay(100)
@@ -564,10 +558,10 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?,
         }
 
         // For displaying Synced Lyrics
-        if (SyncedLyric.isNotEmpty()) {
-            itemsIndexed(SyncedLyric) { index, lyric ->
+        if (lyrics.size > 1) {
+            itemsIndexed(lyrics) { index, lyric ->
                 val lyricAlpha: Float by animateFloatAsState(
-                    if (lyric.isCurrentLyric) 1f else 0.5f,
+                    if (currentLyricIndex == index) 1f else 0.5f,
                     label = "Current Lyric Alpha",
                     animationSpec = tween(1000, 0, FastOutSlowInEasing)
                 )
@@ -604,14 +598,29 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?,
                     )
                 }
             }
-        } else if (PlainLyrics == "No Lyrics / Instrumental") {
+        } else if (lyrics[0].timestamp == -1) {
+            item { // For displaying plain lyrics
+                Text(
+                    text = lyrics[0].content,
+                    style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    lineHeight = MaterialTheme.typography.titleLarge.lineHeight.times(1.2f)
+                )
+            }
+        } /*else {
             item { // For the "Retry" section
                 Box(
                     modifier = Modifier
                         //.height((dpToSp).dp)
                         .height(64.dp)
                         .clickable {
-                            getLyrics()
+                            coroutineScope.launch {
+                                LyricsManager.getLyrics()
+                            }
+                            //getLyrics()
                         }
                         .focusRequester(retryLyricsFocus)
                         .focusProperties {
@@ -634,19 +643,7 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?,
                     )
                 }
             }
-        } else {
-            item { // For displaying plain lyrics
-                Text(
-                    text = PlainLyrics,
-                    style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    lineHeight = MaterialTheme.typography.titleLarge.lineHeight.times(1.2f)
-                )
-            }
-        }
+        } */
     }
 }
 

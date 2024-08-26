@@ -1,5 +1,6 @@
 package com.craftworks.music.data
 
+import com.craftworks.music.providers.navidrome.SyncedLyrics
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -130,5 +131,24 @@ sealed class MediaData {
         var coverArt: String? = "",
         @SerialName("entry")
         var songs: List<Song>? = listOf()
+    ) : MediaData()
+
+    // Navidrome Plain Lyrics
+    @Serializable
+    data class PlainLyrics(
+        val value: String,
+        val artist: String? = "",
+        val title: String? = ""
+    ) : MediaData()
+
+    // Navidrome Synced Lyrics
+    @Serializable
+    data class StructuredLyrics(
+        val displayArtist: String? = "",
+        val displayTitle: String? = "",
+        val lang: String,
+        val offset: Int? = 0,
+        val synced: Boolean,
+        val line: List<SyncedLyrics>
     ) : MediaData()
 }

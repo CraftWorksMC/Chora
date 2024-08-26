@@ -20,7 +20,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionError
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.songsList
-import com.craftworks.music.lyrics.requestLyrics
+import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
 import com.google.common.collect.ImmutableList
@@ -156,7 +156,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     SongHelper.currentSong = song
 
                     if (SongHelper.currentSong.isRadio == false)
-                        requestLyrics()
+                        LyricsManager.getLyrics()
                 }
             }
 

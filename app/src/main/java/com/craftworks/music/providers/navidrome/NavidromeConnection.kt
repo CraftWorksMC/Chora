@@ -61,7 +61,11 @@ data class SubsonicResponse(
 
     // Playlists
     val playlist: MediaData.Playlist? = null,
-    val playlists: PlaylistContainer? = null
+    val playlists: PlaylistContainer? = null,
+
+    //Lyrics
+    val lyrics: MediaData.PlainLyrics? = null,
+    val lyricsList: LyricsList? = null
 )
 
 
@@ -228,6 +232,10 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
 
                         // Radios
                         endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
+
+                        // Lyrics
+                        endpoint.startsWith("getLyrics.") -> parsedData.addAll(listOf(parseNavidromePlainLyricsJSON(responseContent)))
+                        endpoint.startsWith("getLyricsBySongId.") -> parsedData.addAll(parseNavidromeSyncedLyricsJSON(responseContent))
 
                         else -> { setSyncingStatus(false) }
                     }
