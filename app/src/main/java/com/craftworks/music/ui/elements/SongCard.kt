@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.radioList
@@ -62,7 +66,12 @@ fun SongsCard(song: MediaItem, onClick: () -> Unit){
                         .padding(12.dp, 48.dp, 0.dp, 0.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .combinedClickable(
-                            onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.mediaMetadata.title) },
+                            onClick = {
+                                onClick(); Log.d(
+                                "Play",
+                                "Clicked Song: " + song.mediaMetadata.title
+                            )
+                            },
                             onLongClick = {
                                 if (song.mediaMetadata.extras?.getBoolean("isRadio") == false) return@combinedClickable
                                 showRadioModifyDialog.value = true
@@ -147,14 +156,17 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                 .height(72.dp), verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = song.imageUrl,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(song.imageUrl)
+                    .crossfade(true)
+                    .size(64)
+                    .build(),
                 placeholder = painterResource(R.drawable.placeholder),
                 fallback = painterResource(R.drawable.placeholder),
                 contentDescription = "Album Image",
                 contentScale = ContentScale.FillHeight,
                 modifier = Modifier
-                    .height(64.dp)
-                    .width(64.dp)
+                    .size(64.dp)
                     .padding(4.dp, 0.dp, 0.dp, 0.dp)
                     .clip(RoundedCornerShape(12.dp))
             )
@@ -186,8 +198,11 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                     textAlign = TextAlign.Start
                 )
             }
+            val formattedDuration by remember(song.duration) {
+                derivedStateOf { formatMilliseconds(song.duration) }
+            }
             Text(
-                text = formatMilliseconds(song.duration),
+                text = formattedDuration,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -223,7 +238,14 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                     onDismissRequest = { expanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.Dialog_Add_To_Playlist).replace("/ ","")) },
+                        text = {
+                            Text(
+                                stringResource(R.string.Dialog_Add_To_Playlist).replace(
+                                    "/ ",
+                                    ""
+                                )
+                            )
+                        },
                         onClick = {
                             println("Add Song To Playlist")
                             showAddSongToPlaylistDialog.value = true

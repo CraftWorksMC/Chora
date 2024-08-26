@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -21,43 +22,34 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
 import com.craftworks.music.providers.navidrome.NavidromeManager
-import com.craftworks.music.providers.navidrome.navidromeStatus
-import com.craftworks.music.providers.navidrome.navidromeSyncInProgress
 
 @Composable
 @Preview
-fun HorizontalLineWithNavidromeCheck(){
-    val showError by remember { derivedStateOf { NavidromeManager.checkActiveServers() && (navidromeStatus.value != "ok" && navidromeStatus.value != "") } }
-    val errorStatus by remember { derivedStateOf { navidromeStatus.value } }
-    val showSync by remember { derivedStateOf { navidromeSyncInProgress.get() } }
+fun HorizontalLineWithNavidromeCheck() {
+    val navidromeStatus by NavidromeManager.serverStatus.collectAsState()
+    val showError by remember { derivedStateOf { navidromeStatus } }
 
-    // Nah, i don't like this anymore
-//    HorizontalDivider(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(12.dp, 0.dp, 12.dp, 0.dp),
-//        thickness = 2.dp,
-//        color = MaterialTheme.colorScheme.onBackground
-//    )
+    val syncingStatus by NavidromeManager.syncStatus.collectAsState()
+    val showSync by remember { derivedStateOf { syncingStatus } }
 
-    Column(modifier = Modifier
-        .animateContentSize()
-        .fillMaxWidth()
-//        .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
-        .padding(horizontal = 12.dp, vertical = if (showError) 12.dp else 0.dp)
-        .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.errorContainer)
-        .heightIn(
-            max =
-            if (showError)
-                128.dp
-            else
-                0.dp
-        )
+    // Error Container
+    Column(
+        modifier = Modifier
+            .animateContentSize()
+            .fillMaxWidth()
+            .padding(
+                horizontal = 12.dp,
+                vertical = if (showError.isNotBlank() && showError != "ok") 12.dp else 0.dp
+            )
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.errorContainer)
+            .heightIn(
+                max = if (showError.isNotBlank() && showError != "ok") 128.dp
+                else 0.dp
+            )
     ) {
         Text(
-            text = stringResource(R.string.Navidrome_Error) + " Status: " + errorStatus,
-            //color = Color(0xFF181926),
+            text = stringResource(R.string.Navidrome_Error) + showError,
             color = MaterialTheme.colorScheme.onErrorContainer,
             fontWeight = FontWeight.SemiBold,
             fontSize = MaterialTheme.typography.titleMedium.fontSize,
@@ -65,20 +57,18 @@ fun HorizontalLineWithNavidromeCheck(){
         )
     }
 
-    Column(modifier = Modifier
-        .animateContentSize()
-        .fillMaxWidth()
-//        .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
-        .padding(horizontal = 12.dp, vertical = if (showSync) 12.dp else 0.dp)
-        .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.primaryContainer)
-        .heightIn(
-            max =
-            if (showSync)
-                128.dp
-            else
-                0.dp
-        )
+    // Syncing Container
+    Column(
+        modifier = Modifier
+            .animateContentSize()
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = if (showSync) 12.dp else 0.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .heightIn(
+                max = if (showSync) 128.dp
+                else 0.dp
+            )
     ) {
         Text(
             text = stringResource(R.string.Navidrome_Sync),

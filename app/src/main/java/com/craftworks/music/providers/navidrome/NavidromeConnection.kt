@@ -7,8 +7,12 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.providers.navidrome.NavidromeManager.getCurrentServer
+import com.craftworks.music.providers.navidrome.NavidromeManager.setSyncingStatus
 import com.craftworks.music.showNoProviderDialog
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -25,14 +29,11 @@ import java.net.URL
 import java.net.UnknownHostException
 import java.security.MessageDigest
 import java.security.cert.X509Certificate
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
-
-var navidromeSyncInProgress = AtomicBoolean(false)
 
 @Serializable
 @SerialName("subsonic-response")
@@ -67,6 +68,12 @@ data class SubsonicResponse(
 object NavidromeManager {
     private val servers = mutableMapOf<String, NavidromeProvider>()
     private var currentServerId: String? = null
+
+    private val _serverStatus = MutableStateFlow("")
+    val serverStatus: StateFlow<String> = _serverStatus.asStateFlow()
+
+    private val _syncStatus = MutableStateFlow(false)
+    val syncStatus: StateFlow<Boolean> = _syncStatus.asStateFlow()
 
     fun addServer(server: NavidromeProvider) {
         Log.d("NAVIDROME", "Added server $server")
@@ -103,6 +110,11 @@ object NavidromeManager {
     fun getAllServers(): List<NavidromeProvider> = servers.values.toList()
     fun getCurrentServer(): NavidromeProvider? = currentServerId?.let { servers[it] }
 
+    fun getServerStatus(): String = navidromeStatus.value
+    fun setServerStatus(status: String) { _serverStatus.value = status }
+
+    fun setSyncingStatus(status: Boolean) { _syncStatus.value = status }
+
     // Save and load navidrome servers.
     private lateinit var sharedPreferences: SharedPreferences
     private val json = Json { ignoreUnknownKeys = true }
@@ -110,6 +122,7 @@ object NavidromeManager {
     private const val PREF_CURRENT_SERVER = "current_server_id"
 
     fun init(context: Context) {
+        setSyncingStatus(true)
         sharedPreferences = context.getSharedPreferences("NavidromePrefs", Context.MODE_PRIVATE)
         loadServers()
 
@@ -132,30 +145,13 @@ object NavidromeManager {
     }
 }
 
-suspend fun sendNavidromeGETRequest(
-//    baseUrl: String? = "",
-//    username: String? = "",
-//    password: String? = "",
-    endpoint: String) : List<MediaData> {
-
+suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
     val parsedData = mutableListOf<MediaData>()
 
-    // If null then use failsafe.
     val server = getCurrentServer() ?: throw IllegalArgumentException("Could not get current server.")
-//    if (server == null &&
-//        baseUrl != null && username != null && password != null){
-//        server = NavidromeProvider(
-//            (NavidromeManager.getAllServers().count() + 1).toString(), //Set numerical ID.
-//            baseUrl,
-//            username,
-//            password,
-//            true,
-//            false
-//        )
-//    }
 
+    setSyncingStatus(true)
     withContext(Dispatchers.IO) {
-        navidromeSyncInProgress.set(true)
 
         // Generate a random password salt and MD5 hash.
         // This is kinda slow, but needed.
@@ -169,13 +165,6 @@ suspend fun sendNavidromeGETRequest(
             navidromeStatus.value = "Invalid URL"
             return@withContext
         }
-
-//        // Use HTTPS connection for allowing self-signed ssl certificates.
-//        val connection = if (url.protocol == "https") {
-//            url.openConnection() as HttpsURLConnection
-//        } else {
-//            url.openConnection() as HttpURLConnection
-//        }
 
         val connection = if (url.protocol == "https") {
             (url.openConnection() as HttpsURLConnection).apply {
@@ -210,7 +199,7 @@ suspend fun sendNavidromeGETRequest(
                 if (responseCode != 200){
                     Log.d("NAVIDROME", responseCode.toString())
                     navidromeStatus.value = "HTTP Error $responseCode"
-                    navidromeSyncInProgress.set(false)
+                    setSyncingStatus(false)
                     return@withContext
                 }
 
@@ -240,7 +229,7 @@ suspend fun sendNavidromeGETRequest(
                         // Radios
                         endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
 
-                        else -> { navidromeSyncInProgress.set(false) }
+                        else -> { setSyncingStatus(false) }
                     }
                 }
                 inputStream.close()
@@ -270,9 +259,9 @@ suspend fun sendNavidromeGETRequest(
         } catch (e: Exception) {
             navidromeStatus.value = "Fatal Error. Report immediately!"
             Log.d("NAVIDROME", "Exception: $e")
+        } finally {
+            setSyncingStatus(false)
         }
-
-        navidromeSyncInProgress.set(false)
     }
 
     return parsedData
