@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,10 +46,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
@@ -54,14 +58,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
-import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.ui.elements.ArtistsGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
@@ -76,35 +77,40 @@ fun ArtistsScreen(
     var isSearchFieldOpen by remember { mutableStateOf(false) }
     var searchFilter by remember { mutableStateOf("") }
 
-    val context = LocalContext.current
     val state = rememberPullToRefreshState()
-
     val allArtistList by viewModel.allArtists.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
+    // Refresh
     if (state.isRefreshing) {
         LaunchedEffect(true) {
             viewModel.reloadData()
-
-            delay(500)
             state.endRefresh()
         }
     }
 
-    Box(modifier = Modifier.nestedScroll(state.nestedScrollConnection)){
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(
-                start = leftPadding,
-                top = WindowInsets.statusBars
-                    .asPaddingValues()
-                    .calculateTopPadding()
-            )) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
+    Box(modifier = Modifier.nestedScroll(state.nestedScrollConnection)) {
+        Column(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(
+                    start = leftPadding,
+                    top = WindowInsets.statusBars
+                        .asPaddingValues()
+                        .calculateTopPadding()
+                )
+                .fillMaxSize()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.rounded_artist_24),
                     contentDescription = "Songs Icon",
                     tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(48.dp))
+                    modifier = Modifier.size(48.dp)
+                )
                 Text(
                     text = stringResource(R.string.Artists),
                     color = MaterialTheme.colorScheme.onBackground,
@@ -114,9 +120,11 @@ fun ArtistsScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                IconButton(onClick = { isSearchFieldOpen = !isSearchFieldOpen },
+                IconButton(
+                    onClick = { isSearchFieldOpen = !isSearchFieldOpen },
                     modifier = Modifier
-                        .size(48.dp)) {
+                        .size(48.dp)
+                ) {
                     Icon(Icons.Rounded.Search, contentDescription = "Search all songs")
                 }
             }
@@ -127,9 +135,10 @@ fun ArtistsScreen(
                 enter = expandVertically(),
                 exit = shrinkVertically()
             ) {
-                Box(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
                 ) {
                     val focusRequester = remember { FocusRequester() }
                     TextField(
@@ -137,10 +146,20 @@ fun ArtistsScreen(
                         onValueChange = { searchFilter = it },
                         label = { Text(stringResource(R.string.Action_Search)) },
                         singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(
+                            onSearch = {
+                                coroutineScope.launch {
+                                    viewModel.search(searchFilter)
+                                    isSearchFieldOpen = false
+                                }
+                            }
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
-                            .focusRequester(focusRequester))
+                            .focusRequester(focusRequester)
+                    )
 
                     LaunchedEffect(isSearchFieldOpen) {
                         if (isSearchFieldOpen)
@@ -151,13 +170,15 @@ fun ArtistsScreen(
                 }
             }
 
-            var sortedArtistList = allArtistList.sortedBy { it.name }.toMutableList()
+            //var sortedArtistList = allArtistList.sortedBy { it.name }.toMutableList()
 
-            if (searchFilter.isNotBlank()){
-                sortedArtistList = sortedArtistList.fastFilter { it.name.contains(searchFilter, true) }.toMutableList()
-            }
+//            if (searchFilter.isNotBlank()) {
+//                sortedArtistList =
+//                    sortedArtistList.fastFilter { it.name.contains(searchFilter, true) }
+//                        .toMutableList()
+//            }
 
-            ArtistsGrid(sortedArtistList, onArtistSelected = { artist ->
+            ArtistsGrid(allArtistList, onArtistSelected = { artist ->
                 selectedArtist = artist
                 navHostController.navigate(Screen.AristDetails.route) {
                     launchSingleTop = true

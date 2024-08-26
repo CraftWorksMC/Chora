@@ -23,7 +23,6 @@ import com.craftworks.music.data.songsList
 import com.craftworks.music.lyrics.requestLyrics
 import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
-import com.craftworks.music.saveManager
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -83,12 +82,12 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         Log.d("AA", "onCreate: Android Auto")
 
-        saveManager(this).loadPreferences()
-        saveManager(this).loadBottomNavItems()
-
-        serviceIOScope.launch {
-            saveManager(this@ChoraMediaLibraryService).loadSettings()
-        }
+//        saveManager(this).loadPreferences()
+//        saveManager(this).loadBottomNavItems()
+//
+//        serviceIOScope.launch {
+//            saveManager(this@ChoraMediaLibraryService).loadSettings()
+//        }
         initializePlayer()
     }
 

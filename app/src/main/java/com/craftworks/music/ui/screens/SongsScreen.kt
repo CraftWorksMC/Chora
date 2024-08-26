@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -75,8 +76,8 @@ fun SongsScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    /* SONGS ICON + TEXT */
     Column(modifier = Modifier
+        .background(MaterialTheme.colorScheme.background)
         .fillMaxWidth()
         .padding(
             start = leftPadding,

@@ -11,18 +11,11 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,21 +37,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -66,7 +52,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -76,11 +61,11 @@ import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
-import com.craftworks.music.ui.playing.NowPlayingContent
-import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.elements.NowPlayingMiniPlayer
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
+import com.craftworks.music.ui.playing.NowPlayingContent
+import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.theme.MusicPlayerTheme
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -101,9 +86,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        saveManager(this).loadNavidromeProviders()
-//        saveManager(this).loadLocalProviders()
-
         val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
         this@MainActivity.startService(serviceIntent)
 
@@ -118,7 +100,6 @@ class MainActivity : ComponentActivity() {
             snackbarHostState = SnackbarHostState()
         )
         val snackbarHostState = SnackbarHostState()
-
 
         setContent {
             MusicPlayerTheme {
@@ -137,30 +118,30 @@ class MainActivity : ComponentActivity() {
                         bottomBar = {
                             AnimatedBottomNavBar(navController, scaffoldState)
                         }
-                    ) {
-                        paddingValues -> SetupNavGraph(navController, paddingValues, mediaController.value)
+                    ) { paddingValues ->
+                        SetupNavGraph(navController, paddingValues, mediaController.value)
 
                         // No BottomSheetScaffold for Android TV
-                        if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION){
+                        if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION) {
                             BottomSheetScaffold(
-                                modifier = Modifier.fillMaxWidth(),
-                                sheetContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                                sheetContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                    3.dp
+                                ),
                                 sheetPeekHeight =
                                 if (SongHelper.currentSong.title == "" &&
                                     SongHelper.currentSong.duration == 0 &&
-                                    SongHelper.currentSong.imageUrl == "")
+                                    SongHelper.currentSong.imageUrl == ""
+                                )
                                     0.dp // Hide Mini-player if empty
-                                else if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
-                                    72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-                                }
-                                else 72.dp,
+                                else if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                                    72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues()
+                                        .calculateBottomPadding()
+                                } else 72.dp,
                                 sheetShadowElevation = 4.dp,
                                 sheetShape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
                                 sheetDragHandle = { },
                                 scaffoldState = scaffoldState,
                                 sheetContent = {
-                                    Log.d("RECOMPOSITION", "Bottom Scaffold Sheet Content")
-
                                     Box {
                                         NowPlayingMiniPlayer(scaffoldState, mediaController.value)
 
@@ -178,8 +159,11 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                if(showNoProviderDialog.value)
-                    NoMediaProvidersDialog(setShowDialog = { showNoProviderDialog.value = it }, navController)
+                if (showNoProviderDialog.value)
+                    NoMediaProvidersDialog(
+                        setShowDialog = { showNoProviderDialog.value = it },
+                        navController
+                    )
             }
         }
 
@@ -194,8 +178,7 @@ class MainActivity : ComponentActivity() {
             requestPermissionLauncher.launch(
                 android.Manifest.permission.READ_MEDIA_AUDIO
             )
-        }
-        else {
+        } else {
             requestPermissionLauncher.launch(
                 android.Manifest.permission.READ_EXTERNAL_STORAGE
             )
@@ -238,32 +221,33 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AnimatedBottomNavBar(
     navController: NavHostController,
-    scaffoldState : BottomSheetScaffoldState
-){
+    scaffoldState: BottomSheetScaffoldState
+) {
     val backStackEntry = navController.currentBackStackEntryAsState()
     val coroutineScope = rememberCoroutineScope()
 
-    var selectedItemIndex by rememberSaveable{ mutableIntStateOf(0) }
-
-    if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE){
+    if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) {
         val yTrans by animateIntAsState(
             targetValue =
             if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded)
-                dpToPx(-80 - WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding().value.toInt())
+                dpToPx(
+                    -80 - WindowInsets.navigationBars.asPaddingValues()
+                        .calculateBottomPadding().value.toInt()
+                )
             else 0,
-            label = "Fullscreen Translation")
+            label = "Fullscreen Translation"
+        )
 
-        NavigationBar (modifier = Modifier
-            .offset { IntOffset(x=0, y= -yTrans.toInt()) }
+        NavigationBar(modifier = Modifier
+            .offset { IntOffset(x = 0, y = -yTrans.toInt()) }
         ) {
-            bottomNavigationItems.forEachIndexed { index, item ->
+            bottomNavigationItems.forEachIndexed { _, item ->
                 if (!item.enabled) return@forEachIndexed
                 NavigationBarItem(
                     selected = item.screenRoute == backStackEntry.value?.destination?.route,
                     modifier = Modifier.bounceClick(),
                     onClick = {
-                        if (selectedItemIndex == index) return@NavigationBarItem
-                        selectedItemIndex = index
+                        if (item.screenRoute == backStackEntry.value?.destination?.route) return@NavigationBarItem
                         navController.navigate(item.screenRoute) {
                             launchSingleTop = true
                             restoreState = true
@@ -271,17 +255,17 @@ fun AnimatedBottomNavBar(
                         coroutineScope.launch {
                             if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded)
                                 scaffoldState.bottomSheetState.partialExpand()
-                        } },
+                        }
+                    },
                     label = { Text(text = item.title) },
                     alwaysShowLabel = false,
                     icon = {
-                        Icon(ImageVector.vectorResource(item.icon),contentDescription = item.title)
+                        Icon(ImageVector.vectorResource(item.icon), contentDescription = item.title)
                     }
                 )
             }
         }
-    }
-    else{
+    } else {
         NavigationRail {
             if (bottomNavigationItems.firstOrNull { it.screenRoute == "playing_tv_screen" } == null &&
                 LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) {
@@ -298,7 +282,7 @@ fun AnimatedBottomNavBar(
                 NavigationRailItem(
                     selected = item.screenRoute == backStackEntry.value?.destination?.route,
                     onClick = {
-                        selectedItemIndex = index
+                        if (item.screenRoute == backStackEntry.value?.destination?.route) return@NavigationRailItem
                         navController.navigate(item.screenRoute) {
                             launchSingleTop = true
                             restoreState = true
@@ -306,11 +290,12 @@ fun AnimatedBottomNavBar(
                         coroutineScope.launch {
                             if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded)
                                 scaffoldState.bottomSheetState.partialExpand()
-                        } },
+                        }
+                    },
                     label = { Text(text = item.title) },
                     alwaysShowLabel = false,
                     icon = {
-                        Icon(ImageVector.vectorResource(item.icon),contentDescription = item.title)
+                        Icon(ImageVector.vectorResource(item.icon), contentDescription = item.title)
                     },
                 )
             }
@@ -323,6 +308,7 @@ fun formatMilliseconds(seconds: Int): String {
     //return format.format(Date(milliseconds.toLong()))
     return String.format(Locale.getDefault(), "%02d:%02d", seconds / 60, seconds % 60)
 }
+
 fun Modifier.fadingEdge(brush: Brush) = this
     .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
     .drawWithContent {

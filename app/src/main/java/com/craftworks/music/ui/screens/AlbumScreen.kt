@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -90,6 +91,7 @@ fun AlbumScreen(
     Box(modifier = Modifier.nestedScroll(state.nestedScrollConnection)){
 
         Column(modifier = Modifier
+            .background(MaterialTheme.colorScheme.background)
             .fillMaxWidth()
             .padding(
                 start = leftPadding,
@@ -152,7 +154,8 @@ fun AlbumScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
+                            //.clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
+                            .clip(RoundedCornerShape(12.dp))
                             .focusRequester(focusRequester))
 
                     LaunchedEffect(isSearchFieldOpen) {

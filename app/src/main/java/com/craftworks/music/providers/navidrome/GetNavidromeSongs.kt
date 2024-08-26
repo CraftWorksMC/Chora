@@ -1,8 +1,8 @@
 package com.craftworks.music.providers.navidrome
 
-import android.util.Log
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.albumList
+import com.craftworks.music.data.artistList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import kotlinx.serialization.Serializable
@@ -13,7 +13,8 @@ import kotlinx.serialization.json.jsonObject
 @Serializable
 data class SearchResult3(
     val song: List<MediaData.Song>? = listOf(),
-    val album: List<MediaData.Album>? = listOf()
+    val album: List<MediaData.Album>? = listOf(),
+    val artist: List<MediaData.Artist>? = listOf()
 )
 
 
@@ -50,10 +51,9 @@ fun parseNavidromeSearch3JSON(
         it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora"
     }
 
-    //Check if query is empty for allSongsList
-
     var mediaDataSongs = emptyList<MediaData.Song>()
     var mediaDataAlbums = emptyList<MediaData.Album>()
+    var mediaDataArtists = emptyList<MediaData.Artist>()
 
     subsonicResponse.searchResult3?.song?.filterNot { newSong ->
         songsList.any { existingSong ->
@@ -67,9 +67,17 @@ fun parseNavidromeSearch3JSON(
         }
     }?.let { mediaDataAlbums = it }
 
-    Log.d("NAVIDROME", "Added songs. Total: ${mediaDataSongs.size}")
+    subsonicResponse.searchResult3?.artist?.filterNot { newArtist ->
+        artistList.any { existingArtist ->
+            existingArtist.navidromeID == newArtist.navidromeID
+        }
+    }?.let { mediaDataArtists = it }
 
-    // Return mediaDataAlbums if mediaDataSongs is empty.
-    return mediaDataSongs.ifEmpty { mediaDataAlbums }
+    // Prioritize songs, then albums, then artists
+    return when {
+        mediaDataSongs.isNotEmpty() -> mediaDataSongs
+        mediaDataAlbums.isNotEmpty() -> mediaDataAlbums
+        else -> mediaDataArtists
+    }
 }
 

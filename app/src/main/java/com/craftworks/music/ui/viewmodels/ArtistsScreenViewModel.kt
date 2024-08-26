@@ -10,6 +10,7 @@ import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeArtistBiography
 import com.craftworks.music.providers.navidrome.getNavidromeArtistDetails
 import com.craftworks.music.providers.navidrome.getNavidromeArtists
+import com.craftworks.music.providers.navidrome.searchNavidromeArtists
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,13 +39,18 @@ class ArtistsScreenViewModel : ViewModel(), ReloadableViewModel {
         }
     }
 
-    suspend fun search(query: String){
-
+    suspend fun search(query: String) {
+        if (NavidromeManager.checkActiveServers()) {
+            _allArtists.value = searchNavidromeArtists(query)
+        } else {
+            _allArtists.value =
+                artistList.fastFilter { it.name.lowercase().contains(query.lowercase()) }
+        }
     }
 
-    fun fetchArtistDetails(artistId : String){
+    fun fetchArtistDetails(artistId: String) {
         viewModelScope.launch {
-            if (NavidromeManager.getCurrentServer() != null){
+            if (NavidromeManager.getCurrentServer() != null) {
                 // Fetch artist details and biography concurrently
                 val detailsDeferred = async { getNavidromeArtistDetails(artistId) }
                 val biographyDeferred = async { getNavidromeArtistBiography(artistId) }
@@ -58,8 +64,7 @@ class ArtistsScreenViewModel : ViewModel(), ReloadableViewModel {
                     description = biography.description,
                     similarArtist = biography.similarArtist
                 )
-            }
-            else{
+            } else {
                 _selectedArtist.value = com.craftworks.music.data.selectedArtist.copy(
                     album = albumList.fastFilter { it.artist == com.craftworks.music.data.selectedArtist.name }
                 )

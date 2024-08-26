@@ -44,6 +44,7 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.navidromeStatus
+import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.LocalProviderCard
 import com.craftworks.music.ui.elements.NavidromeProviderCard
 import com.craftworks.music.ui.elements.bounceClick
@@ -102,11 +103,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 }
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                thickness = 2.dp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            HorizontalLineWithNavidromeCheck()
 
             Column(Modifier.padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally){

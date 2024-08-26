@@ -50,6 +50,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.ui.elements.BottomSpacer
+import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
 import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
 import com.craftworks.music.ui.elements.dialogs.backgroundType
@@ -76,7 +77,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = leftPadding,
+            .padding(
+                start = leftPadding,
                 top = WindowInsets.statusBars
                     .asPaddingValues()
                     .calculateTopPadding()
@@ -117,11 +119,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             }
         }
 
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            thickness = 2.dp,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        HorizontalLineWithNavidromeCheck()
 
         Column(Modifier.padding(12.dp,12.dp,24.dp,12.dp)){
 

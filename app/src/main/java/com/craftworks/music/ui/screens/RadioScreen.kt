@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -87,6 +88,7 @@ fun RadioScreen(
     }
 
     Box(modifier = Modifier
+        .background(MaterialTheme.colorScheme.background)
         .fillMaxSize()
         .nestedScroll(state.nestedScrollConnection)){
         /* RADIO ICON + TEXT */

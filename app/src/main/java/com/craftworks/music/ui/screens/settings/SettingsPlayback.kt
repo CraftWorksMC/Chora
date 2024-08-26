@@ -16,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +45,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.player.SongHelper.Companion.minPercentageScrobble
 import com.craftworks.music.ui.elements.BottomSpacer
+import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.dialogs.TranscodingDialog
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 
@@ -100,11 +100,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
             }
         }
 
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            thickness = 2.dp,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        HorizontalLineWithNavidromeCheck()
 
         Column(Modifier.padding(12.dp,12.dp,24.dp,12.dp)){
 

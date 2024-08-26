@@ -4,16 +4,16 @@ import android.content.res.Configuration
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -26,27 +26,28 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.craftworks.music.data.Screen
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.ui.playing.NowPlayingContent
+import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.ui.elements.bottomSpacerHeightDp
+import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
-import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.screens.ArtistDetails
 import com.craftworks.music.ui.screens.ArtistsScreen
-import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
-import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import com.craftworks.music.ui.screens.HomeScreen
-import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
 import com.craftworks.music.ui.screens.PlaylistDetails
 import com.craftworks.music.ui.screens.PlaylistScreen
-import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 import com.craftworks.music.ui.screens.RadioScreen
 import com.craftworks.music.ui.screens.SettingScreen
 import com.craftworks.music.ui.screens.SongsScreen
-import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import com.craftworks.music.ui.screens.settings.S_AppearanceScreen
 import com.craftworks.music.ui.screens.settings.S_PlaybackScreen
 import com.craftworks.music.ui.screens.settings.S_ProviderScreen
+import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
+import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
+import com.craftworks.music.ui.viewmodels.GlobalViewModels
+import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
+import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
+import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -66,25 +67,27 @@ fun SetupNavGraph(
     val artistsViewModel = remember { ArtistsScreenViewModel() }
     val playlistViewModel = remember { PlaylistScreenViewModel() }
 
-    GlobalViewModels.registerViewModel(homeViewModel)
-    GlobalViewModels.registerViewModel(albumViewModel)
-    GlobalViewModels.registerViewModel(songsViewModel)
-    GlobalViewModels.registerViewModel(artistsViewModel)
-    GlobalViewModels.registerViewModel(playlistViewModel)
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        GlobalViewModels.registerViewModel(homeViewModel)
+        GlobalViewModels.registerViewModel(albumViewModel)
+        GlobalViewModels.registerViewModel(songsViewModel)
+        GlobalViewModels.registerViewModel(artistsViewModel)
+        GlobalViewModels.registerViewModel(playlistViewModel)
 
+        NavidromeManager.init(context)
+        saveManager(context).loadSettings()
+        GlobalViewModels.refreshAll()
+    }
 
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
         modifier = Modifier.padding(bottom = bottomPadding + bottomSpacerHeightDp()),
         enterTransition = {
-            slideInVertically(animationSpec = tween(durationMillis = 200)) { fullHeight ->
-                -fullHeight / 4
-            } + fadeIn(animationSpec = tween(durationMillis = 200))
+            scaleIn(tween(300), 0.95f) + fadeIn(tween(400))
         },
         exitTransition = {
-            slideOutVertically(animationSpec = tween(durationMillis = 200)) { fullHeight ->
-                -fullHeight / 4
-            } + fadeOut(animationSpec = tween(durationMillis = 200))
+            fadeOut(tween(400))
         }
     )
     {

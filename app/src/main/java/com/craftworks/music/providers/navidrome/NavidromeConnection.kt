@@ -1,22 +1,19 @@
 package com.craftworks.music.providers.navidrome
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.data.albumList
-import com.craftworks.music.data.artistList
 import com.craftworks.music.data.localProviderList
-import com.craftworks.music.data.playlistList
-import com.craftworks.music.data.radioList
-import com.craftworks.music.data.songsList
-import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.NavidromeManager.getCurrentServer
-import com.craftworks.music.ui.viewmodels.GlobalViewModels
+import com.craftworks.music.showNoProviderDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.IOException
 import java.net.ConnectException
 import java.net.HttpURLConnection
@@ -78,6 +75,7 @@ object NavidromeManager {
         if (currentServerId == null) {
             currentServerId = server.id
         }
+        saveServers()
     }
 
     fun removeServer(id: String) {
@@ -86,10 +84,7 @@ object NavidromeManager {
         if (currentServerId == id) {
             currentServerId = servers.keys.firstOrNull()
         }
-    }
-
-    fun checkActiveServers() : Boolean {
-        return servers.keys.isNotEmpty() || currentServerId != null
+        saveServers()
     }
 
     fun setCurrentServer(id: String) {
@@ -98,10 +93,43 @@ object NavidromeManager {
         } else {
             throw IllegalArgumentException("Server with id $id not found")
         }
+        saveServers()
+    }
+
+    fun checkActiveServers(): Boolean {
+        return servers.keys.isNotEmpty() || currentServerId != null
     }
 
     fun getAllServers(): List<NavidromeProvider> = servers.values.toList()
     fun getCurrentServer(): NavidromeProvider? = currentServerId?.let { servers[it] }
+
+    // Save and load navidrome servers.
+    private lateinit var sharedPreferences: SharedPreferences
+    private val json = Json { ignoreUnknownKeys = true }
+    private const val PREF_SERVERS = "navidrome_servers"
+    private const val PREF_CURRENT_SERVER = "current_server_id"
+
+    fun init(context: Context) {
+        sharedPreferences = context.getSharedPreferences("NavidromePrefs", Context.MODE_PRIVATE)
+        loadServers()
+
+        if (getAllServers().isEmpty() && localProviderList.isEmpty()) showNoProviderDialog.value = true
+    }
+
+    private fun saveServers() {
+        val serversJson = json.encodeToString(servers as Map<String, NavidromeProvider>)
+        sharedPreferences.edit().putString(PREF_SERVERS, serversJson).apply()
+        sharedPreferences.edit().putString(PREF_CURRENT_SERVER, currentServerId).apply()
+    }
+
+    private fun loadServers() {
+        currentServerId = sharedPreferences.getString(PREF_CURRENT_SERVER, null)
+        val serversJson = sharedPreferences.getString(PREF_SERVERS, null)
+        if (serversJson != null) {
+            val loadedServers: Map<String, NavidromeProvider> = json.decodeFromString(serversJson)
+            servers.putAll(loadedServers)
+        }
+    }
 }
 
 suspend fun sendNavidromeGETRequest(
@@ -251,16 +279,16 @@ suspend fun sendNavidromeGETRequest(
 }
 
 suspend fun reloadNavidrome(context: Context){
-    songsList.clear()
-    albumList.clear()
-    artistList.clear()
-    playlistList.clear()
-    radioList.clear()
-
-    if (localProviderList.isNotEmpty())
-        getSongsOnDevice(context)
-
-    GlobalViewModels.refreshAll()
+//    songsList.clear()
+//    albumList.clear()
+//    artistList.clear()
+//    playlistList.clear()
+//    radioList.clear()
+//
+//    if (localProviderList.isNotEmpty())
+//        getSongsOnDevice(context)
+//
+//    GlobalViewModels.refreshAll(context)
     //songsList.addAll(getNavidromeSongs())
     //albumList.addAll(getNavidromeAlbums())
     //getNavidromeArtists()

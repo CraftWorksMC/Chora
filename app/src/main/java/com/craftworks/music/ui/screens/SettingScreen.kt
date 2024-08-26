@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +50,7 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.ui.elements.BottomSpacer
+import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.bounceClick
 
 var username = mutableStateOf("Username")
@@ -72,6 +73,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
     }
 
     Column(modifier = Modifier
+        .background(MaterialTheme.colorScheme.background)
         .fillMaxSize()
         .verticalScroll(rememberScrollState())
         .padding(
@@ -113,11 +115,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
             }
         }
 
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            thickness = 2.dp,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        HorizontalLineWithNavidromeCheck()
 
         /* Settings */
         Box(Modifier.padding(12.dp,12.dp,12.dp,12.dp)){

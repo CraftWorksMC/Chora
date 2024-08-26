@@ -3,6 +3,7 @@ package com.craftworks.music.ui.screens
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -87,7 +88,6 @@ fun AlbumDetails(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null
 ) {
-
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
@@ -115,6 +115,7 @@ fun AlbumDetails(
 //    otherSongsFromSameArtist.removeAll(albumSongs)
 
     Column(modifier = Modifier
+        .background(MaterialTheme.colorScheme.background)
         .fillMaxWidth()
         .padding(
             start = leftPadding,
