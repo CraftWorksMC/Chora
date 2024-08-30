@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -63,7 +62,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -71,7 +69,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.media3.common.Player
@@ -87,17 +84,16 @@ import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
-import com.craftworks.music.ui.playing.LyricsView
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
+import com.craftworks.music.ui.playing.LyricsView
 import com.craftworks.music.ui.playing.lyricsOpen
 import com.craftworks.music.ui.screens.showMoreInfo
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

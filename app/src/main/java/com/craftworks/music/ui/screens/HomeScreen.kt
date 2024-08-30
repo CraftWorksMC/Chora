@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import android.view.animation.OvershootInterpolator
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -37,6 +38,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,24 +63,26 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
+import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.NavidromeManager
-import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
+import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview(showBackground = true, showSystemUi = true,
-    device = "spec:parent=pixel_5"
+@Preview(
+    showBackground = true, showSystemUi = true, device = "spec:parent=pixel_5"
 )
 fun HomeScreen(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,
     viewModel: HomeScreenViewModel = viewModel()
 ) {
-    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
+    val leftPadding =
+        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     val context = LocalContext.current
 
@@ -106,38 +110,52 @@ fun HomeScreen(
             .background(MaterialTheme.colorScheme.background)
             .nestedScroll(state.nestedScrollConnection)
     ) {
-        Column(modifier = Modifier
-            .padding(start = leftPadding)
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .verticalScroll(rememberScrollState())) {
+        Column(
+            modifier = Modifier
+                .padding(start = leftPadding)
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .verticalScroll(rememberScrollState())
+        ) {
 
-            /* GREETING */
-            Row(verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(
-                        top = WindowInsets.statusBars
-                            .asPaddingValues()
-                            .calculateTopPadding()
+            Row(
+                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(
+                        top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
                     )
-                //.height(72.dp)
             ) {
-                /* GREETING */
                 Box(Modifier.weight(1f)) {
-                    NavidromeLogo()
-                    WelcomeText()
+                    val username = SettingsManager(context).usernameFlow.collectAsState("Username")
+                    val showNavidromeLogo =
+                        SettingsManager(context).showNavidromeLogoFlow.collectAsState(true).value && NavidromeManager.checkActiveServers()
+
+                    if (showNavidromeLogo) NavidromeLogo()
+
+                    Text(
+                        text = "${stringResource(R.string.welcome_text)},\n${username.value}!",
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                        modifier = Modifier.padding(
+                            start = if (showNavidromeLogo) 42.dp else 12.dp
+                        ),
+                        lineHeight = 32.sp
+                    )
                 }
-                Box(Modifier.padding(end = 12.dp)) {
-                    IconButton(onClick = { navHostController.navigate(Screen.Setting.route) {
-                        launchSingleTop = true
-                        restoreState = true
-                    } },
-                        modifier = Modifier
-                            .size(48.dp)) {
-                        Icon(ImageVector.vectorResource(R.drawable.rounded_settings_24),
-                            contentDescription = "Settings",
-                            modifier = Modifier.size(32.dp))
-                    }
+                IconButton(
+                    onClick = {
+                        navHostController.navigate(Screen.Setting.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }, modifier = Modifier
+                        .padding(end = 12.dp)
+                        .size(48.dp)
+                ) {
+                    Icon(
+                        ImageVector.vectorResource(R.drawable.rounded_settings_24),
+                        contentDescription = "Settings",
+                        modifier = Modifier.size(32.dp)
+                    )
                 }
             }
 
@@ -150,12 +168,8 @@ fun HomeScreen(
             RecentlyAdded(mediaController, navHostController, recentAlbums)
             MostPlayed(mediaController, navHostController, mostPlayedAlbums)
             Shuffled(mediaController, navHostController, shuffledAlbums)
-
-            /* EXPLORE FROM YOUR LIBRARY */
-
-
-            //BottomSpacer()
         }
+
         PullToRefreshContainer(
             modifier = Modifier.align(Alignment.TopCenter),
             state = state,
@@ -165,49 +179,34 @@ fun HomeScreen(
 }
 
 @Composable fun NavidromeLogo(){
-    if (NavidromeManager.checkActiveServers() && showNavidromeLogo.value){
-        var rotation by remember { mutableFloatStateOf(-10f) }
-        val animatedRotation by animateFloatAsState(
-            targetValue = rotation,
-            animationSpec = tween(durationMillis = 1000),
-            label = "Navidrome Logo Rotate"
-        )
-        val offsetX = dpToPx(-36)
-
-        val isClickable =
-            if (LocalConfiguration.current.uiMode == Configuration.UI_MODE_TYPE_TELEVISION)
-                Modifier.clickable { rotation += 360f }
-            else
-                Modifier
-
-        Image(
-            painter = painterResource(R.drawable.s_m_navidrome),
-            contentDescription = "Navidrome Icon",
-            modifier = Modifier
-                .size(72.dp)
-                .offset { IntOffset(offsetX, 0) }
-                .shadow(24.dp, CircleShape)
-                .graphicsLayer {
-                    rotationZ = animatedRotation
-                }
-                .then(isClickable)
-        )
+    var rotation by remember { mutableFloatStateOf(-10f) }
+    val animatedRotation by animateFloatAsState(
+        targetValue = rotation,
+        animationSpec = tween(durationMillis = 1200, 0 , easing = { OvershootInterpolator().getInterpolation(it) }),
+        label = "Navidrome Logo Rotate"
+    )
+    val offsetX = dpToPx(-36)
+    val clickAction = rememberUpdatedState {
+        rotation += 360f
     }
-}
 
-@Composable fun WelcomeText(){
-    Text(
-        text = "${stringResource(R.string.welcome_text)},\n${username.value}",
-        color = MaterialTheme.colorScheme.onBackground,
-        fontWeight = FontWeight.Bold,
-        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+    val isClickable =
+        if (LocalConfiguration.current.uiMode != Configuration.UI_MODE_TYPE_TELEVISION)
+            Modifier.clickable { clickAction.value.invoke() }
+        else
+            Modifier
+
+    Image(
+        painter = painterResource(R.drawable.s_m_navidrome),
+        contentDescription = "Navidrome Icon",
         modifier = Modifier
-            .padding(start =
-            if (NavidromeManager.checkActiveServers() && showNavidromeLogo.value)
-                42.dp
-            else
-                12.dp),
-        lineHeight = 32.sp
+            .size(72.dp)
+            .offset { IntOffset(offsetX, 0) }
+            .shadow(24.dp, CircleShape)
+            .graphicsLayer {
+                rotationZ = animatedRotation
+            }
+            .then(isClickable)
     )
 }
 

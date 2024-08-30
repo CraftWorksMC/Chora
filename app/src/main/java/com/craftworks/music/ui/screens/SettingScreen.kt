@@ -55,7 +55,6 @@ import com.craftworks.music.ui.elements.bounceClick
 
 var username = mutableStateOf("Username")
 var showMoreInfo = mutableStateOf(true)
-var showNavidromeLogo = mutableStateOf(true)
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,

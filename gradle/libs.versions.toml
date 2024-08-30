@@ -1,6 +1,9 @@
 [versions]
 # ...
 kotlin = "2.0.0"
+datastoreCoreAndroid = "1.1.1"
+[libraries]
+androidx-datastore-core-android = { group = "androidx.datastore", name = "datastore-core-android", version.ref = "datastoreCoreAndroid" }
 
 [plugins]
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

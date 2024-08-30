@@ -3,6 +3,7 @@ package com.craftworks.music.providers.navidrome
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import com.craftworks.music.data.NavidromeProvider
+import com.craftworks.music.managers.NavidromeManager
 import com.gitlab.mvysny.konsumexml.konsumeXml
 
 var navidromeStatus = mutableStateOf("")

@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
@@ -40,15 +40,12 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.songsList
-import com.craftworks.music.providers.navidrome.NavidromeManager
-import com.craftworks.music.providers.navidrome.getNavidromeAlbums
-import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 //region Songs
 @Composable

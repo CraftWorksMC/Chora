@@ -1,7 +1,7 @@
 package com.craftworks.music.lyrics
 
 import com.craftworks.music.data.Lyric
-import com.craftworks.music.providers.navidrome.NavidromeManager
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromePlainLyrics
 import com.craftworks.music.providers.navidrome.getNavidromeSyncedLyrics
 import kotlinx.coroutines.flow.MutableStateFlow

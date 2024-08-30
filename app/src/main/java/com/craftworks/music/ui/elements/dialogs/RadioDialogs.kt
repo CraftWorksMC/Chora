@@ -40,7 +40,7 @@ import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.radioList
-import com.craftworks.music.providers.navidrome.NavidromeManager
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.createNavidromeRadio
 import com.craftworks.music.providers.navidrome.deleteNavidromeRadio
 import com.craftworks.music.providers.navidrome.getNavidromeRadios

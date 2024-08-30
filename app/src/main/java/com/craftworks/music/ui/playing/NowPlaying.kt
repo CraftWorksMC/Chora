@@ -110,6 +110,7 @@ import com.craftworks.music.data.SyncedLyric
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.lyrics.LyricsManager
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
 import com.craftworks.music.sliderPos
@@ -119,7 +120,6 @@ import com.craftworks.music.ui.elements.MainButtons
 import com.craftworks.music.ui.elements.RepeatButton
 import com.craftworks.music.ui.elements.ShuffleButton
 import com.craftworks.music.ui.elements.SliderUpdating
-import com.craftworks.music.ui.elements.dialogs.backgroundType
 import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -196,8 +196,10 @@ fun NowPlayingContent(
                     }
         }
 
+        val backgroundType by SettingsManager(context).npBackgroundFlow.collectAsState("")
+
         // BLURRED BACKGROUND
-        if (backgroundType.value == "Static Blur") {
+        if (backgroundType == "Static Blur") {
             Crossfade(
                 SongHelper.currentSong.imageUrl,
                 label = "Crossfade Static Background Image"
@@ -216,7 +218,7 @@ fun NowPlayingContent(
 
         //region MOVING BLURRED BACKGROUND
         //       BASED ON: https://gist.github.com/KlassenKonstantin/d5f6ed1d74b3ddbdca699d66c6b9a3b2
-        if (backgroundType.value == "Animated Blur") {
+        if (backgroundType == "Animated Blur") {
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = Color.Transparent

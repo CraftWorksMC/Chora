@@ -42,13 +42,10 @@ import com.craftworks.music.R
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.localProviderList
-import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedLocalProvider
-import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.NavidromeManager
-import com.craftworks.music.providers.navidrome.reloadNavidrome
-import kotlinx.coroutines.launch
+import com.craftworks.music.ui.viewmodels.GlobalViewModels
 
 @Preview
 @Composable
@@ -125,14 +122,8 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
                     if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
                         getSongsOnDevice(context)
                 }
-                else {
-                    if (NavidromeManager.checkActiveServers() &&
-                        selectedNavidromeServerIndex.intValue >= 0 &&
-                        navidromeServersList.isNotEmpty()){
-
-                        coroutineScope.launch { reloadNavidrome(context) }
-                    }
-                }
+                else if (NavidromeManager.checkActiveServers())
+                        GlobalViewModels.refreshAll()
             }
         )
     }
@@ -204,7 +195,7 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","htt
                 Log.d("NAVIDROME", "Navidrome Current Server: ${server.id}")
                 if (it){
                     NavidromeManager.setCurrentServer(server.id)
-                    coroutineScope.launch { reloadNavidrome(context) }
+                    GlobalViewModels.refreshAll()
                 }
                 // Update checked
                 checked = (server.id == NavidromeManager.getCurrentServer()?.id)

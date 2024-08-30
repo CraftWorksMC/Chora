@@ -19,12 +19,4 @@ object GlobalViewModels {
         Log.d("NAVIDROME", "Reloading all ViewModels")
         viewModels.forEach { it.reloadData() }
     }
-
-//    fun refreshHomeScreen() {
-//        viewModels.filterIsInstance<HomeScreenViewModel>().forEach { it.reloadData() }
-//    }
-//
-//    fun refreshSongsScreen() {
-//        viewModels.filterIsInstance<SongsScreenViewModel>().forEach { it.reloadData() }
-//    }
 }

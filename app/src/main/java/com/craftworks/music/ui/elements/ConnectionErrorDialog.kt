@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
-import com.craftworks.music.providers.navidrome.NavidromeManager
+import com.craftworks.music.managers.NavidromeManager
 
 @Composable
 @Preview

@@ -16,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,9 +24,11 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -37,6 +38,7 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,15 +50,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.bottomNavigationItems
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
 import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
-import com.craftworks.music.ui.elements.dialogs.backgroundType
-import com.craftworks.music.ui.screens.showMoreInfo
-import com.craftworks.music.ui.screens.showNavidromeLogo
-import com.craftworks.music.ui.screens.username
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -67,6 +66,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 
     var showBackgroundDialog by remember { mutableStateOf(false) }
     var showNavbarItemsDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     val focusRequester = FocusRequester()
     LaunchedEffect (Unit) {
@@ -124,6 +126,10 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
         Column(Modifier.padding(12.dp,12.dp,24.dp,12.dp)){
 
             //Username
+
+            val username by SettingsManager(context).usernameFlow.collectAsState("Username")
+            var usernameTextField by remember(username) { mutableStateOf(username) }
+
             Row (verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
@@ -138,8 +144,13 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         .size(32.dp)
                 )
                 OutlinedTextField(
-                    value = username.value,
-                    onValueChange = { username.value = it },
+                    value = usernameTextField,
+                    onValueChange = {
+                        coroutineScope.launch {
+                            usernameTextField = it
+                            SettingsManager(context).setUsername(it)
+                        }
+                    },
                     label = { Text("Username:") },
                     singleLine = true,
                     modifier = Modifier.weight(1f)
@@ -174,13 +185,25 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start
                     )
+                    val backgroundType by SettingsManager(context).npBackgroundFlow.collectAsState("Animated Blur")
+                    val backgroundTypes = listOf(
+                        "Plain", "Static Blur", "Animated Blur"
+                    )
+                    val backgroundTypeStrings = listOf(
+                        R.string.Background_Plain,
+                        R.string.Background_Blur,
+                        R.string.Background_Anim
+                    )
                     Text(
-                        text = backgroundType.value,
+                        text = stringResource(
+                            id = backgroundTypeStrings[backgroundTypes.indexOf(backgroundType)]
+                        ),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
                         modifier = Modifier.fillMaxSize(),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start
                     )
                 }
@@ -213,7 +236,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         textAlign = TextAlign.Start
                     )
                     val enabledNavbarItems =
-                        bottomNavigationItems
+                        SettingsManager(context).bottomNavItemsFlow.collectAsState(emptyList()).value
                             .filter { it.enabled }
                             .joinToString(", ") { it.title }
                     Text(
@@ -229,7 +252,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             }
 
             //More Song Info
-            Row (verticalAlignment = Alignment.CenterVertically,
+            val showMoreInfo = SettingsManager(context).showMoreInfoFlow.collectAsState(true)
+
+            Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
                     .focusRequester(focusRequester)
@@ -248,13 +273,22 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f),
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Start
                 )
-                Switch(checked = showMoreInfo.value, onCheckedChange = { showMoreInfo.value = it })
+                Switch(checked = showMoreInfo.value, onCheckedChange = {
+                    coroutineScope.launch {
+                        SettingsManager(context).setShowMoreInfo(it)
+                    }
+                })
             }
+
+
             //Show Navidrome Logo
-            Row (verticalAlignment = Alignment.CenterVertically,
+            val showNavidromeLogo = SettingsManager(context).showNavidromeLogoFlow.collectAsState(true)
+
+            Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
                     .focusRequester(focusRequester)
@@ -273,10 +307,15 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f),
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Start
                 )
-                Switch(checked = showNavidromeLogo.value, onCheckedChange = { showNavidromeLogo.value = it })
+                Switch(checked = showNavidromeLogo.value, onCheckedChange = {
+                    coroutineScope.launch {
+                        SettingsManager(context).setShowNavidromeLogo(it)
+                    }
+                })
             }
 
             BottomSpacer()

@@ -2,24 +2,19 @@ package com.craftworks.music
 
 import android.content.Context
 import android.util.Log
-import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.data.bottomNavigationItems
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
-import com.craftworks.music.providers.navidrome.NavidromeManager
-import com.craftworks.music.ui.elements.dialogs.backgroundType
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
-import com.craftworks.music.ui.screens.showMoreInfo
-import com.craftworks.music.ui.screens.username
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,8 +33,8 @@ class saveManager(private val context: Context){
         // sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()
 
         // Check if there are any enabled navidrome servers and save if there are any.
-        val useNavidrome = navidromeServersList.any { it.enabled == true }
-        sharedPreferences.edit().putBoolean("useNavidrome", useNavidrome).apply()
+        //val useNavidrome = navidromeServersList.any { it.enabled == true }
+        //sharedPreferences.edit().putBoolean("useNavidrome", useNavidrome).apply()
 
         //region Save Lists
         // Save Navidrome Server List
@@ -65,24 +60,26 @@ class saveManager(private val context: Context){
         sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
         sharedPreferences.edit().putInt("activeLocalProvider", selectedLocalProvider.intValue).apply()
 
-        saveBottomNavItems()
+        //saveBottomNavItems()
 
         //endregion
 
         // Preferences
-        sharedPreferences.edit().putString("username", username.value).apply()
-        sharedPreferences.edit().putString("backgroundType", backgroundType.value).apply()
-        sharedPreferences.edit().putBoolean("showMoreInfo", showMoreInfo.value).apply()
+        //sharedPreferences.edit().putString("username", username.value).apply()
+        //sharedPreferences.edit().putString("backgroundType", backgroundType.value).apply()
+        //sharedPreferences.edit().putBoolean("showMoreInfo", showMoreInfo.value).apply()
         sharedPreferences.edit().putString("transcodingBitRate", transcodingBitrate.value).apply()
     }
 
     //region Save Single Components
 
+    /*
     fun saveBottomNavItems(){
         val navItems = bottomNavigationItems.joinToString(";") {
             "${it.title}|${it.icon}|${it.screenRoute}|${it.enabled}" }
         sharedPreferences.edit().putString("bottomNavItems", navItems).apply()
     }
+    */
     fun saveLocalRadios(){
         val radiosListString = radioList.joinToString(";") {
             if (it.navidromeID == "Local")
@@ -103,7 +100,7 @@ class saveManager(private val context: Context){
 
         coroutineScope {
 
-            loadBottomNavItems()
+            //loadBottomNavItems()
             loadPreferences()
             loadLocalProviders()
             loadRadios()
@@ -124,11 +121,13 @@ class saveManager(private val context: Context){
     fun loadPreferences(){
         Log.d("LOAD", "Loading Preferences")
 
-        username.value = sharedPreferences.getString("username", "Username") ?: "Username"
-        backgroundType.value = sharedPreferences.getString("backgroundType", "Animated Blur") ?: "Animated Blur"
-        showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
+        //username.value = sharedPreferences.getString("username", "Username") ?: "Username"
+        //backgroundType.value = sharedPreferences.getString("backgroundType", "Animated Blur") ?: "Animated Blur"
+        //showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
         transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
     }
+
+    /*
     fun loadBottomNavItems(){
         Log.d("LOAD", "Loading Bottom Nav Items")
 
@@ -153,6 +152,8 @@ class saveManager(private val context: Context){
             }
         }
     }
+    */
+
     fun loadNavidromeProviders(){
         Log.d("LOAD", "Loading Navidrome Providers")
 

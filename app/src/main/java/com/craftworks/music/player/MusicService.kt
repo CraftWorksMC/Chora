@@ -21,7 +21,7 @@ import androidx.media3.session.SessionError
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.songsList
 import com.craftworks.music.lyrics.LyricsManager
-import com.craftworks.music.providers.navidrome.NavidromeManager
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures

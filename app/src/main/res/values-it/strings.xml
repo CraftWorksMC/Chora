@@ -60,4 +60,5 @@
     <string name="Navidrome_Sync">Sincronizzazione con Navidrome in corso…</string>
     <string name="No_Providers_Splash">Non hai aggiunto nessun media provider. Aggiungine uno ora per iniziare ad ascoltare!</string>
     <string name="Action_Go">Andiamo!</string>
+    <string name="Background_Anim">Animato</string>
 </resources>

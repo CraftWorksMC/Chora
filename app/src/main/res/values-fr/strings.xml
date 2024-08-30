@@ -76,4 +76,5 @@
     <string name="Background_Plain">Plein</string>
     <string name="Background_Blur">Flouté</string>
     <string name="Background_Animated">Animé</string>
+    <string name="Background_Anim">Animé</string>
 </resources>

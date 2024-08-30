@@ -37,6 +37,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +51,7 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -57,7 +60,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.data.BottomNavItem
-import com.craftworks.music.data.bottomNavigationItems
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
@@ -220,31 +223,28 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimatedBottomNavBar(
-    navController: NavHostController,
-    scaffoldState: BottomSheetScaffoldState
+    navController: NavHostController, scaffoldState: BottomSheetScaffoldState
 ) {
     val backStackEntry = navController.currentBackStackEntryAsState()
     val coroutineScope = rememberCoroutineScope()
 
+    val orderedNavItems = SettingsManager(LocalContext.current).bottomNavItemsFlow.collectAsState(
+        initial = emptyList()
+    ).value
+
     if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) {
         val yTrans by animateIntAsState(
-            targetValue =
-            if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded)
-                dpToPx(
-                    -80 - WindowInsets.navigationBars.asPaddingValues()
-                        .calculateBottomPadding().value.toInt()
-                )
-            else 0,
-            label = "Fullscreen Translation"
+            targetValue = if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) dpToPx(
+                -80 - WindowInsets.navigationBars.asPaddingValues()
+                    .calculateBottomPadding().value.toInt()
+            )
+            else 0, label = "Fullscreen Translation"
         )
 
-        NavigationBar(modifier = Modifier
-            .offset { IntOffset(x = 0, y = -yTrans.toInt()) }
-        ) {
-            bottomNavigationItems.forEachIndexed { _, item ->
+        NavigationBar(modifier = Modifier.offset { IntOffset(x = 0, y = -yTrans) }) {
+            orderedNavItems.forEachIndexed { _, item ->
                 if (!item.enabled) return@forEachIndexed
-                NavigationBarItem(
-                    selected = item.screenRoute == backStackEntry.value?.destination?.route,
+                NavigationBarItem(selected = item.screenRoute == backStackEntry.value?.destination?.route,
                     modifier = Modifier.bounceClick(),
                     onClick = {
                         if (item.screenRoute == backStackEntry.value?.destination?.route) return@NavigationBarItem
@@ -253,32 +253,37 @@ fun AnimatedBottomNavBar(
                             restoreState = true
                         }
                         coroutineScope.launch {
-                            if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded)
-                                scaffoldState.bottomSheetState.partialExpand()
+                            if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
                         }
                     },
                     label = { Text(text = item.title) },
                     alwaysShowLabel = false,
                     icon = {
                         Icon(ImageVector.vectorResource(item.icon), contentDescription = item.title)
-                    }
-                )
+                    })
             }
         }
     } else {
         NavigationRail {
-            if (bottomNavigationItems.firstOrNull { it.screenRoute == "playing_tv_screen" } == null &&
-                LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) {
-                bottomNavigationItems.add(
-                    BottomNavItem(
-                        "Playing",
-                        R.drawable.s_m_playback,
-                        "playing_tv_screen"
+            val context = LocalContext.current
+            val uiMode = LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK
+            LaunchedEffect(orderedNavItems) {
+                if (orderedNavItems.firstOrNull { it.screenRoute == "playing_tv_screen" } == null && uiMode == Configuration.UI_MODE_TYPE_TELEVISION) {
+
+                    val updatedItems = orderedNavItems.toMutableList()
+                    updatedItems.add(
+                        BottomNavItem(
+                            "Playing", R.drawable.s_m_playback, "playing_tv_screen"
+                        )
                     )
-                )
+                    coroutineScope.launch {
+                        SettingsManager(context).setBottomNavItems(updatedItems)
+                    }
+                }
             }
-            bottomNavigationItems.forEachIndexed { index, item ->
-                if (!item.enabled) return@forEachIndexed
+
+            orderedNavItems.forEach { item ->
+                if (!item.enabled) return@forEach
                 NavigationRailItem(
                     selected = item.screenRoute == backStackEntry.value?.destination?.route,
                     onClick = {
@@ -288,8 +293,7 @@ fun AnimatedBottomNavBar(
                             restoreState = true
                         }
                         coroutineScope.launch {
-                            if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded)
-                                scaffoldState.bottomSheetState.partialExpand()
+                            if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
                         }
                     },
                     label = { Text(text = item.title) },

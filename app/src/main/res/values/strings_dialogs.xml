@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Now-Playing Background Dialog -->
+    <string name="Dialog_Background_Type">Background Type</string>
+        <string name="Background_Plain" translatable="false">Plain</string>
+        <string name="Background_Blur" translatable="false">Blurred</string>
+        <string name="Background_Anim">Animated</string>
+
     <!-- Provider Dialog -->
     <string name="Dialog_Media_Source">Media Source</string>
         <string name="No_Providers_Splash">You haven\'t added a media provider yet. Add one now to start listening to some tunes!</string>

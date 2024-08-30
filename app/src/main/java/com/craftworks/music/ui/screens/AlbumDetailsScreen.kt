@@ -68,8 +68,8 @@ import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.songsList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeAlbumSongs
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.BottomSpacer

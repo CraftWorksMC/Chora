@@ -54,9 +54,9 @@ import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.fadingEdge
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
-import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.addSongToNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromePlaylist
 import com.craftworks.music.providers.navidrome.deleteNavidromePlaylist

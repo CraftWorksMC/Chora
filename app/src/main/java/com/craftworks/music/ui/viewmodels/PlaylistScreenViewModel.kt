@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.playlistList
-import com.craftworks.music.providers.navidrome.NavidromeManager
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromePlaylistDetails
 import com.craftworks.music.providers.navidrome.getNavidromePlaylists
 import kotlinx.coroutines.async

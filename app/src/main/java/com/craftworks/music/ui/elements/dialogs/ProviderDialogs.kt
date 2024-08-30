@@ -54,13 +54,13 @@ import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.data.selectedNavidromeServerIndex
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.local.getSongsOnDevice
-import com.craftworks.music.providers.navidrome.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.providers.navidrome.navidromeStatus
-import com.craftworks.music.providers.navidrome.reloadNavidrome
 import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
+import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import kotlinx.coroutines.launch
 
 //region PREVIEWS
@@ -330,9 +330,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
 
                                         saveManager(context).saveSettings()
 
-                                        coroutineScope.launch {
-                                            reloadNavidrome(context)
-                                        }
+                                        GlobalViewModels.refreshAll()
 
                                         navidromeStatus.value = ""
                                         setShowDialog(false)

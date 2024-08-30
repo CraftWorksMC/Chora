@@ -1,6 +1,7 @@
 package com.craftworks.music.providers.navidrome
 
 import com.craftworks.music.data.MediaData
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.sliderPos
 

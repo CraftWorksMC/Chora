@@ -2,6 +2,7 @@ package com.craftworks.music.providers.navidrome
 
 import android.os.Environment
 import androidx.compose.material3.SnackbarHostState
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.player.SongHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
