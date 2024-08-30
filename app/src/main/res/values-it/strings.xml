@@ -61,4 +61,5 @@
     <string name="No_Providers_Splash">Non hai aggiunto nessun media provider. Aggiungine uno ora per iniziare ad ascoltare!</string>
     <string name="Action_Go">Andiamo!</string>
     <string name="Background_Anim">Animato</string>
+    <string name="Dialog_Background_Type">Stile Dello Sfondo</string>
 </resources>

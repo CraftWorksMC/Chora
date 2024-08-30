@@ -27,16 +27,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -65,11 +60,13 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
     //val context = LocalContext.current.applicationContext
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
-    val (back, appearance, providers, playback) = remember { FocusRequester.createRefs() }
-
-    LaunchedEffect(Unit) {
-        appearance.requestFocus()
-    }
+    // WARNING: This causes crashing when navigating!!!
+    //          Commenting out this temporarily.
+//    val (back, appearance, providers, playback) = remember { FocusRequester.createRefs() }
+//
+//    LaunchedEffect(Unit) {
+//        appearance.requestFocus()
+//    }
 
     Column(modifier = Modifier
         .background(MaterialTheme.colorScheme.background)
@@ -101,13 +98,14 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
             } },
                 modifier = Modifier
                     .size(48.dp)
-                    .focusRequester(back)
-                    .focusProperties {
-                        right = FocusRequester.Cancel
-                        down = appearance
-                        up = FocusRequester.Cancel
-                        left = FocusRequester.Cancel
-                    }) {
+//                    .focusRequester(back)
+//                    .focusProperties {
+//                        right = FocusRequester.Cancel
+//                        down = appearance
+//                        up = FocusRequester.Cancel
+//                        left = FocusRequester.Cancel
+//                    }
+            ) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back To Home",
                     modifier = Modifier.size(32.dp))
@@ -126,14 +124,14 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     modifier = Modifier
                         .height(76.dp)
                         .padding(vertical = 6.dp)
-                        .bounceClick()
-                        .focusRequester(appearance)
-                        .focusProperties {
-                            right = back
-                            down = providers
-                            up = back
-                            left = FocusRequester.Cancel
-                        },
+                        .bounceClick(),
+//                        .focusRequester(appearance)
+//                        .focusProperties {
+//                            right = back
+//                            down = providers
+//                            up = back
+//                            left = FocusRequester.Cancel
+//                        },
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -177,14 +175,14 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     modifier = Modifier
                         .height(76.dp)
                         .padding(vertical = 6.dp)
-                        .bounceClick()
-                        .focusRequester(providers)
-                        .focusProperties {
-                            right = FocusRequester.Cancel
-                            down = playback
-                            up = appearance
-                            left = FocusRequester.Cancel
-                        },
+                        .bounceClick(),
+//                        .focusRequester(providers)
+//                        .focusProperties {
+//                            right = FocusRequester.Cancel
+//                            down = playback
+//                            up = appearance
+//                            left = FocusRequester.Cancel
+//                        },
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -227,14 +225,14 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     modifier = Modifier
                         .height(76.dp)
                         .padding(vertical = 6.dp)
-                        .bounceClick()
-                        .focusRequester(playback)
-                        .focusProperties {
-                            right = FocusRequester.Cancel
-                            down = FocusRequester.Cancel
-                            up = providers
-                            left = FocusRequester.Cancel
-                        },
+                        .bounceClick(),
+//                        .focusRequester(playback)
+//                        .focusProperties {
+//                            right = FocusRequester.Cancel
+//                            down = FocusRequester.Cancel
+//                            up = providers
+//                            left = FocusRequester.Cancel
+//                        },
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)

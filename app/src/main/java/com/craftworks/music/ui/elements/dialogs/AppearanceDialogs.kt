@@ -47,7 +47,6 @@ import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
@@ -132,9 +131,10 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
 fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val bottomNavigationItems = SettingsManager(context).bottomNavItemsFlow.collectAsState(null).value ?: emptyList()
+    val bottomNavigationItems =
+        (SettingsManager(context).bottomNavItemsFlow.collectAsState(null).value ?: emptyList()).toMutableList()
 
-    Dialog(onDismissRequest = { saveManager(context).saveBottomNavItems(); setShowDialog(false) }) {
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(24.dp),
         ) {
@@ -179,10 +179,8 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
                                         onCheckedChange = {
                                             coroutineScope.launch {
                                                 checked = it
-
-                                                val updatedItems = bottomNavigationItems.toMutableList()
-                                                updatedItems[index].enabled = it
-                                                SettingsManager(context).setBottomNavItems(updatedItems)
+                                                bottomNavigationItems[index] = bottomNavigationItems[index].copy(enabled = it)
+                                                SettingsManager(context).setBottomNavItems(bottomNavigationItems)
                                             }
                                         },
                                         modifier = Modifier
