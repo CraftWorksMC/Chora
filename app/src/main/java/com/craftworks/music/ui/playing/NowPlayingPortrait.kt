@@ -49,12 +49,6 @@ import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.ui.elements.DownloadButton
-import com.craftworks.music.ui.elements.LyricsButton
-import com.craftworks.music.ui.elements.MainButtons
-import com.craftworks.music.ui.elements.RepeatButton
-import com.craftworks.music.ui.elements.ShuffleButton
-import com.craftworks.music.ui.elements.SliderUpdating
 import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.launch
 

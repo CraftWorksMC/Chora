@@ -9,7 +9,6 @@ import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -19,7 +18,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -50,7 +48,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
@@ -69,23 +66,17 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.LinearGradientShader
 import androidx.compose.ui.graphics.Shader
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -101,7 +92,6 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
@@ -114,12 +104,6 @@ import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.getNavidromeBitmap
 import com.craftworks.music.sliderPos
-import com.craftworks.music.ui.elements.DownloadButton
-import com.craftworks.music.ui.elements.LyricsButton
-import com.craftworks.music.ui.elements.MainButtons
-import com.craftworks.music.ui.elements.RepeatButton
-import com.craftworks.music.ui.elements.ShuffleButton
-import com.craftworks.music.ui.elements.SliderUpdating
 import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -162,7 +146,6 @@ fun NowPlayingContent(
 
     Log.d("RECOMPOSITION", "NowPlayingContent")
     Box {
-        //region Update Content + Backgrounds
         // handle back presses
         val coroutineScope = rememberCoroutineScope()
         BackHandler(scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
@@ -171,120 +154,7 @@ fun NowPlayingContent(
             }
         }
 
-        // Update Song Bitmap
-        LaunchedEffect(SongHelper.currentSong) {
-
-            if (SongHelper.currentSong.imageUrl == "") return@LaunchedEffect
-
-            bitmap.value =
-                if (SongHelper.currentSong.navidromeID != "Local" &&
-                    navidromeServersList.isNotEmpty() &&
-                    SongHelper.currentSong.isRadio == false
-                )
-                    getNavidromeBitmap(context)
-                else //Don't crash if there's no album art!
-                    try {
-                        Log.d("LOCAL", "Getting Local Cover Art Bitmap")
-                        ImageDecoder.decodeBitmap(
-                            ImageDecoder.createSource(
-                                context.contentResolver,
-                                Uri.parse(SongHelper.currentSong.imageUrl)
-                            )
-                        ).copy(Bitmap.Config.RGBA_F16, true)
-                    } catch (_: Exception) {
-                        Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
-                    }
-        }
-
-        val backgroundType by SettingsManager(context).npBackgroundFlow.collectAsState("")
-
-        // BLURRED BACKGROUND
-        if (backgroundType == "Static Blur") {
-            Crossfade(
-                SongHelper.currentSong.imageUrl,
-                label = "Crossfade Static Background Image"
-            ) { image ->
-                AsyncImage(
-                    model = image,
-                    contentDescription = "Blurred Background",
-                    contentScale = ContentScale.FillHeight,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(128.dp)
-                        .alpha(0.5f)
-                )
-            }
-        }
-
-        //region MOVING BLURRED BACKGROUND
-        //       BASED ON: https://gist.github.com/KlassenKonstantin/d5f6ed1d74b3ddbdca699d66c6b9a3b2
-        if (backgroundType == "Animated Blur") {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = Color.Transparent
-            ) {
-                var size by remember { mutableStateOf(Size.Zero) }
-
-                if (SongHelper.currentSong.imageUrl == "") return@Surface
-
-                val palette = Palette.from(bitmap.value).generate()
-
-                val shaderA = LinearGradientShader(
-                    Offset(size.width / 2f, 0f),
-                    Offset(size.width / 2f, size.height),
-                    listOf(
-                        Color(palette.getLightVibrantColor(0)),
-                        Color(palette.getDarkVibrantColor(0)),
-                    ),
-                    listOf(0f, 1f)
-                )
-
-                val shaderB = LinearGradientShader(
-                    Offset(size.width / 2f, 0f),
-                    Offset(size.width / 2f, size.height),
-                    listOf(
-                        Color(palette.getMutedColor(0)),
-                        Color(palette.getDominantColor(0)),
-                    ),
-                    listOf(0f, 1f)
-                )
-                val shaderMask = LinearGradientShader(
-                    Offset(size.width / 2f, 0f),
-                    Offset(size.width / 2f, size.height),
-                    listOf(
-                        Color.White,
-                        Color.Transparent
-                    ),
-                    listOf(0f, 1f)
-                )
-
-                val brushA by animateBrushRotation(shaderA, size, 20_000, true)
-                val brushB by animateBrushRotation(shaderB, size, 12_000, false)
-                val brushMask by animateBrushRotation(shaderMask, size, 15_000, true)
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .onSizeChanged {
-                            size = Size(it.width.toFloat(), it.height.toFloat())
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Canvas(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .alpha(0.75f)
-                    ) {
-                        drawRect(brushA)
-                        drawRect(brushMask, blendMode = BlendMode.DstOut)
-                        drawRect(brushB, blendMode = BlendMode.DstAtop)
-                    }
-                }
-            }
-        }
-        //endregion
-
-        //endregion
+        NowPlaying_Background(mediaController)
 
         // MAIN UI
         Box(

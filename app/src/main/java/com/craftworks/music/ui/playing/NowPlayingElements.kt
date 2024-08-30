@@ -1,4 +1,4 @@
-package com.craftworks.music.ui.elements
+package com.craftworks.music.ui.playing
 
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
@@ -90,9 +90,9 @@ import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
+import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
-import com.craftworks.music.ui.playing.LyricsView
-import com.craftworks.music.ui.playing.lyricsOpen
+import com.craftworks.music.ui.elements.moveClick
 import com.craftworks.music.ui.screens.showMoreInfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

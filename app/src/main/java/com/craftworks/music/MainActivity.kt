@@ -64,10 +64,10 @@ import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
-import com.craftworks.music.ui.elements.NowPlayingMiniPlayer
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
 import com.craftworks.music.ui.playing.NowPlayingContent
+import com.craftworks.music.ui.playing.NowPlayingMiniPlayer
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.theme.MusicPlayerTheme
 import kotlinx.coroutines.launch
