@@ -2,21 +2,12 @@ package com.craftworks.music.ui.playing
 
 import android.content.Context
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.graphics.Matrix
-import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,9 +44,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -68,11 +57,8 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shader
-import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -97,20 +83,14 @@ import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.SyncedLyric
-import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.lyrics.LyricsManager
-import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.navidrome.getNavidromeBitmap
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.screens.showMoreInfo
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-
-var bitmap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
 
 var lyricsOpen by mutableStateOf(false)
 
@@ -140,7 +120,7 @@ fun NowPlayingContent(
     scaffoldState: BottomSheetScaffoldState? = rememberBottomSheetScaffoldState(),
     snackbarHostState: SnackbarHostState? = SnackbarHostState(),
     navHostController: NavHostController = rememberNavController(),
-    mediaController: MediaController?
+    mediaController: MediaController? = rememberManagedMediaController().value
 ) {
     if (scaffoldState == null) return
 
@@ -197,8 +177,6 @@ fun NowPlayingContent(
 
                         NowPlayingLandscape(
                             lyricsOpen || scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
-                            snackbarHostState,
-                            coroutineScope,
                             mediaController
                         )
                     }
@@ -221,7 +199,7 @@ fun NowPlaying_TV(
 ) {
     val (prev, play, next, shuffle, replay) = remember { FocusRequester.createRefs() }
 
-    Row(){
+    Row {
         Column(modifier = Modifier
             .width(512.dp)
             .padding(start = 80.dp + 6.dp),
@@ -362,14 +340,12 @@ fun NowPlaying_TV(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?,
-               retryLyricsFocus: FocusRequester = FocusRequester(),
-               playFocus: FocusRequester = FocusRequester()) {
+fun LyricsView(
+    isLandscape: Boolean = false,
+    mediaController: MediaController?) {
 
     var currentLyricIndex by remember { mutableIntStateOf(0) }
-    val coroutineScope = rememberCoroutineScope()
 
     val lyrics by LyricsManager.Lyrics.collectAsState()
 
@@ -520,34 +496,6 @@ fun LyricsView(isLandscape: Boolean = false, mediaController: MediaController?,
 }
 
 @Composable
-fun animateBrushRotation(
-    shader: Shader,
-    size: Size,
-    duration: Int,
-    clockwise: Boolean
-): State<ShaderBrush> {
-    val infiniteTransition = rememberInfiniteTransition(label = "Animated Blurred Background")
-    val angle by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f * if (clockwise) 1f else -1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(duration, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ), label = "Blur Animation"
-    )
-
-    return remember(shader, size) {
-        derivedStateOf {
-            val matrix = Matrix().apply {
-                postRotate(angle, size.width / 2, size.height / 2)
-            }
-            shader.setLocalMatrix(matrix)
-            ShaderBrush(shader)
-        }
-    }
-}
-
-@Composable
 fun dpToPx(dp: Int): Int {
     return with(LocalDensity.current) { dp.dp.toPx() }.toInt()
 }
@@ -565,10 +513,6 @@ fun LazyListLayoutInfo.normalizedItemPosition(key: Any) : Float =
 @Composable
 fun NowPlayingLandscape(
     collapsed: Boolean? = false,
-    //isPlaying: Boolean? = false,
-    //song: MediaData.Song = SongHelper.currentSong,
-    snackbarHostState: SnackbarHostState? = SnackbarHostState(),
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
     mediaController: MediaController?
 ) {
     Row(
@@ -646,7 +590,7 @@ fun NowPlayingLandscape(
                 if (showMoreInfo.value) {
                     SongHelper.currentSong.format.let { format ->
                         Text(
-                            text = format.toString(),
+                            text = format,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Light,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
