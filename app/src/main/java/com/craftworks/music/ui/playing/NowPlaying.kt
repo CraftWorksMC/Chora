@@ -273,7 +273,7 @@ fun NowPlaying_TV(
                         .padding(horizontal = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically) {
-                        MainButtons(mediaController, prev, play, next, shuffle)
+                        //MainButtons(mediaController, prev, play, next, shuffle)
                     }
                     // BUTTONS
                     Row(modifier = Modifier
@@ -440,7 +440,7 @@ fun NowPlayingLandscape(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    MainButtons(mediaController)
+                    //MainButtons(mediaController)
                 }
                 // BUTTONS
                 Row(

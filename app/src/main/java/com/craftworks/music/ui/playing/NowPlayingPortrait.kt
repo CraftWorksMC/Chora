@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -64,14 +64,14 @@ import com.craftworks.music.ui.screens.showMoreInfo
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 import kotlinx.coroutines.launch
 
-@Preview(showSystemUi = false, showBackground = true, device = "spec:parent=pixel_8_pro",
+@Preview(showSystemUi = false, showBackground = false, device = "spec:parent=pixel_8_pro",
     wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NowPlayingPortrait(
-    mediaController: MediaController? = rememberManagedMediaController().value,
+    mediaController: MediaController? = null,
     scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     navHostController: NavHostController = rememberNavController(),
 ){
@@ -164,7 +164,6 @@ fun NowPlayingPortrait(
             }
 
             /* Song Title + Artist*/
-            val textFadingEdge = Brush.horizontalGradient(0.85f to Color.Red, 1f to Color.Transparent)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -248,21 +247,14 @@ fun NowPlayingPortrait(
 
         Spacer(Modifier.height(24.dp))
 
-        // Seek Bar
-        Column(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Log.d("RECOMPOSITION", "SliderUpdating")
-            SliderUpdating(iconTextColor, mediaController)
-        }
+        SliderUpdating(iconTextColor, mediaController)
 
         //region Buttons
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Top buttons
             Row(
                 modifier = Modifier
                     .height(98.dp)
@@ -272,11 +264,15 @@ fun NowPlayingPortrait(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ShuffleButton(32.dp, mediaController)
+                ShuffleButton(iconTextColor, mediaController, 32.dp)
 
-                MainButtons(mediaController)
+                PreviousSongButton(iconTextColor, mediaController, 48.dp)
 
-                RepeatButton(32.dp, mediaController)
+                PlayPauseButtonUpdating(iconTextColor, mediaController, 92.dp)
+
+                NextSongButton(iconTextColor, mediaController, 48.dp)
+
+                RepeatButton(iconTextColor, mediaController, 32.dp)
             }
 
             Row(
@@ -288,9 +284,9 @@ fun NowPlayingPortrait(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                LyricsButton(64.dp)
+                LyricsButton(iconTextColor, 64.dp)
 
-                DownloadButton(64.dp)
+                DownloadButton(iconTextColor, 64.dp)
             }
         }
         //endregion

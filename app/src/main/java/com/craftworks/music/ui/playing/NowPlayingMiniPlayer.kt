@@ -144,6 +144,6 @@ fun NowPlayingMiniPlayer(
             }
         }
 
-        PlayPauseButtonUpdating(mediaController, 48.dp)
+        PlayPauseButtonUpdating(MaterialTheme.colorScheme.onBackground, mediaController, 48.dp)
     }
 }
