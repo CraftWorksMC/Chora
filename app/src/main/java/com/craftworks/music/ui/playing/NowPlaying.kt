@@ -55,7 +55,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.screens.showMoreInfo
@@ -70,21 +69,6 @@ var lyricsOpen by mutableStateOf(false)
 )
 @Composable
 fun NowPlayingContent(
-    song: MediaData.Song = MediaData.Song(
-        title = "Song Title",
-        artist = "Song Artist",
-        duration = 69420,
-        imageUrl = "",
-        dateAdded = "",
-        year = 2024,
-        album = "Album Name",
-        albumId = "",
-        bpm = 0,
-        navidromeID = "Local",
-        format = "MP3",
-        parent = "",
-        path = "", size = 0
-    ),
     context: Context = LocalContext.current,
     scaffoldState: BottomSheetScaffoldState? = rememberBottomSheetScaffoldState(),
     snackbarHostState: SnackbarHostState? = SnackbarHostState(),
@@ -257,7 +241,7 @@ fun NowPlaying_TV(
                     .fillMaxWidth()
                     .padding(end = 12.dp)
                     .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    SliderUpdating(MaterialTheme.colorScheme.onBackground, mediaController)
+                    //SliderUpdating(MaterialTheme.colorScheme.onBackground, mediaController)
                 }
 
                 //region BUTTONS
@@ -282,9 +266,9 @@ fun NowPlaying_TV(
                         .padding(horizontal = 24.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically) {
-                        ShuffleButton(48.dp, mediaController, play, shuffle)
+                        //ShuffleButton(48.dp, mediaController, play, shuffle)
 
-                        RepeatButton(48.dp, mediaController, play, replay)
+                        //RepeatButton(48.dp, mediaController, play, replay)
 
                         //DownloadButton(snackbarHostState, coroutineScope, 48.dp)
                     }
@@ -307,7 +291,7 @@ fun NowPlaying_TV(
 //                .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
 //                .background(MaterialTheme.colorScheme.surfaceVariant)
 //        )
-        LyricsView(true, mediaController)
+        //LyricsView(MaterialTheme.colorScheme.onBackground,true, mediaController)
     }
 }
 
@@ -347,7 +331,7 @@ fun NowPlayingLandscape(
         ) {
             AnimatedContent(lyricsOpen, label = "Crossfade between lyrics") {
                 if (it) {
-                    LyricsView(true, mediaController)
+                    //LyricsView(MaterialTheme.colorScheme.onBackground,true, mediaController)
                 } else {
                     AsyncImage(
                         model = SongHelper.currentSong.imageUrl,
@@ -424,7 +408,7 @@ fun NowPlayingLandscape(
                     .padding(end = 12.dp)
                     .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                SliderUpdating(MaterialTheme.colorScheme.onBackground, mediaController)
+                //SliderUpdating(MaterialTheme.colorScheme.onBackground, mediaController)
             }
 
             //region BUTTONS
@@ -451,13 +435,13 @@ fun NowPlayingLandscape(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    LyricsButton(48.dp)
+                    //LyricsButton(48.dp)
 
-                    ShuffleButton(48.dp, mediaController)
+                    //ShuffleButton(48.dp, mediaController)
 
-                    RepeatButton(48.dp, mediaController)
+                    //RepeatButton(48.dp, mediaController)
 
-                    DownloadButton(48.dp)
+                    //DownloadButton(48.dp)
                 }
             }
             //endregion

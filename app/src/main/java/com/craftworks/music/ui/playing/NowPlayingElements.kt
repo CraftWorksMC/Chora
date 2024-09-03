@@ -2,11 +2,10 @@ package com.craftworks.music.ui.playing
 
 import android.util.Log
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,7 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,7 +49,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
@@ -64,84 +63,88 @@ import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
+import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.elements.moveClick
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.seconds
 
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
 @Composable
-fun SliderUpdating(color: Color, mediaController: MediaController?){
-    var currentValue by remember { mutableLongStateOf(0L) }
+fun PlaybackProgressSlider(
+    color: Color = MaterialTheme.colorScheme.onBackground,
+    mediaController: MediaController? = null,
+) {
+    var currentValue by remember { mutableIntStateOf(0) }
+    val animatedValue by animateFloatAsState(
+        targetValue = currentValue.toFloat(), label = "Smooth Slider Update"
+    )
 
-    LaunchedEffect(Unit) {
-        while (mediaController?.isPlaying == true) {
-            currentValue = mediaController.currentPosition
-            println("PLAYER POS: $currentValue")
-            delay(1.seconds)
+    LaunchedEffect(mediaController) {
+        while (true) {
+            delay(1000)
+            if (mediaController?.isPlaying == true) {
+                sliderPos.intValue = mediaController.currentPosition.toInt()
+                currentValue = mediaController.currentPosition.toInt()
+                println(currentValue)
+            }
         }
     }
 
-    val animatedValue by animateFloatAsState(
-        targetValue = currentValue.toFloat(),
-        animationSpec = tween(200, 0, EaseInOut),
-        label = "Animated slider value"
-    )
-
-    Slider(
-        enabled = (transcodingBitrate.value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .height(12.dp)
-            .scale(scaleX = 1f, scaleY = 1.25f)
-            .clip(RoundedCornerShape(12.dp))
-            .focusable(false),
-        value = animatedValue,
-        onValueChange = {
-            SongHelper.isSeeking = true
-            currentValue = it.toLong()
-        },
-        onValueChangeFinished = {
-            SongHelper.isSeeking = false
-            mediaController?.seekTo(currentValue)
-        },
-        valueRange = 0f..(SongHelper.currentSong.duration.toFloat() * 1000),
-        colors = SliderDefaults.colors(
-            activeTrackColor = color,
-            inactiveTrackColor = color.copy(alpha = 0.25f),
-        ),
-        thumb = {}
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.dp)
-    ) {
-        Text(
-            text = formatMilliseconds(currentValue.toInt() * 1000),
-            fontWeight = FontWeight.Light,
-            textAlign = TextAlign.Start,
-            color = color.copy(alpha = 0.5f),
+    Column {
+        Slider(enabled = (transcodingBitrate.value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
             modifier = Modifier
-                .align(Alignment.CenterStart)
-                .width(64.dp),
-            maxLines = 1, overflow = TextOverflow.Ellipsis,
-        )
+                .padding(horizontal = 24.dp)
+                .fillMaxWidth()
+                .scale(scaleX = 1f, scaleY = 1.25f)
+                .focusable(false),
+            value = animatedValue,
+            onValueChange = {
+                SongHelper.isSeeking = true
+                sliderPos.intValue = it.toInt()
+                currentValue = it.toInt()
+            },
+            onValueChangeFinished = {
+                SongHelper.isSeeking = false
+                mediaController?.seekTo(currentValue.toLong())
+            },
+            valueRange = 0f..(SongHelper.currentSong.duration.toFloat() * 1000),
+            colors = SliderDefaults.colors(
+                activeTrackColor = color,
+                inactiveTrackColor = color.copy(alpha = 0.25f),
+            ),
+            thumb = {})
 
-        Text(
-            text = formatMilliseconds(SongHelper.currentSong.duration),
-            fontWeight = FontWeight.Light,
-            textAlign = TextAlign.End,
-            color = color.copy(alpha = 0.5f),
+        // Time thingies
+        Box(
             modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .width(64.dp),
-            maxLines = 1, overflow = TextOverflow.Ellipsis,
-        )
+                .padding(horizontal = 32.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = formatMilliseconds(currentValue / 1000),
+                fontWeight = FontWeight.Light,
+                textAlign = TextAlign.Start,
+                color = color.copy(alpha = 0.5f),
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .width(64.dp),
+                maxLines = 1
+            )
+            Text(
+                text = formatMilliseconds(SongHelper.currentSong.duration),
+                fontWeight = FontWeight.Light,
+                textAlign = TextAlign.End,
+                color = color.copy(alpha = 0.5f),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .width(64.dp),
+                maxLines = 1
+            )
+        }
     }
 }
 
@@ -160,6 +163,7 @@ fun PreviousSongButton(color: Color, mediaController: MediaController?, size: Dp
                 .size(size)
                 .bounceClick()
                 .moveClick(false),
+            contentPadding = PaddingValues(0.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
             Icon(
@@ -209,6 +213,7 @@ fun PlayPauseButtonUpdating(color: Color, mediaController: MediaController?, siz
             .clip(RoundedCornerShape(12.dp))
             .size(size)
             .bounceClick(),
+        contentPadding = PaddingValues(0.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent
         )
@@ -256,6 +261,7 @@ fun NextSongButton(color: Color, mediaController: MediaController?, size: Dp) {
                 .size(size)
                 .bounceClick()
                 .moveClick(true),
+            contentPadding = PaddingValues(0.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
             Icon(
@@ -277,11 +283,11 @@ fun LyricsButton(color: Color, size: Dp){
     {
         Button(
             onClick = { lyricsOpen = !lyricsOpen },
-            shape = CircleShape,
+            shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .height(size)
                 .bounceClick(),
-            contentPadding = PaddingValues(2.dp),
+            contentPadding = PaddingValues(0.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent
             )
@@ -290,7 +296,7 @@ fun LyricsButton(color: Color, size: Dp){
                 when (open) {
                     true -> Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
-                        tint = MaterialTheme.colorScheme.onBackground.copy(
+                        tint = color.copy(
                             alpha = 0.5f
                         ),
                         contentDescription = "Close Lyrics",
@@ -344,7 +350,7 @@ fun DownloadButton(color: Color, size: Dp){
             modifier = Modifier
                 .height(size)
                 .bounceClick(),
-            contentPadding = PaddingValues(2.dp),
+            contentPadding = PaddingValues(0.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent
             )
@@ -386,7 +392,7 @@ fun ShuffleButton(color: Color, mediaController: MediaController?, size: Dp,
                     up = play
                     down = FocusRequester.Cancel
                 },
-            contentPadding = PaddingValues(2.dp),
+            contentPadding = PaddingValues(0.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
 
@@ -431,7 +437,7 @@ fun RepeatButton(color: Color, mediaController: MediaController?, size: Dp,
                     down = FocusRequester.Cancel
                     right = FocusRequester.Cancel
                 },
-            contentPadding = PaddingValues(2.dp),
+            contentPadding = PaddingValues(0.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
 

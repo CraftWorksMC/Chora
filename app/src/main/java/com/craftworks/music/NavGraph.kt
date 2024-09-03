@@ -26,7 +26,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.craftworks.music.data.Screen
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.bottomSpacerHeightDp
 import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.screens.AlbumDetails
@@ -156,7 +155,6 @@ fun SetupNavGraph(
 
         composable(route = Screen.NowPlaying_TV.route){
             NowPlayingContent(
-                SongHelper.currentSong,
                 LocalContext.current,
                 rememberBottomSheetScaffoldState(),
                 snackbarHostState = null,

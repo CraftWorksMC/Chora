@@ -95,7 +95,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     fun initializePlayer(){
 
         player = ExoPlayer.Builder(this)
-            .setSeekParameters(SeekParameters.CLOSEST_SYNC)
+            .setSeekParameters(SeekParameters.EXACT)
             .setWakeMode(
                 if (NavidromeManager.checkActiveServers())
                     C.WAKE_MODE_NETWORK

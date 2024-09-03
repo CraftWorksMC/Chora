@@ -21,8 +21,8 @@ data class Lyric(
 data class LrcLibLyrics(
     val id: Int,
     val instrumental: Boolean,
-    val plainLyrics: String,
-    val syncedLyrics: String
+    val plainLyrics: String? = "",
+    val syncedLyrics: String? = ""
 )
 
 //region Convert proprietary lyric format to app format.
@@ -49,7 +49,7 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
     else if (syncedLyrics != "null") {
         val result = mutableListOf<Lyric>()
 
-        syncedLyrics.lines().forEach { lyric ->
+        syncedLyrics?.lines()?.forEach { lyric ->
             val timeStampsRaw = getTimeStamps(lyric)[0]
             val time = mmssToMilliseconds(timeStampsRaw)
             val lyricText: String = lyric.drop(11)
@@ -58,7 +58,7 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
         }
 
         return result
-    } else return listOf(Lyric(-1, plainLyrics))
+    } else return listOf(Lyric(-1, plainLyrics ?: "No Lyrics Found"))
 }
 
 //endregion

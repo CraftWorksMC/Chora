@@ -12,6 +12,7 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -20,7 +21,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,14 +59,13 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 import kotlinx.coroutines.launch
 
-@Preview(showSystemUi = false, showBackground = false, device = "spec:parent=pixel_8_pro",
+@Preview(showSystemUi = false, device = "spec:parent=pixel_8_pro",
     wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true
 )
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -77,7 +76,7 @@ fun NowPlayingPortrait(
 ){
     Log.d("RECOMPOSITION", "NowPlaying Portrait")
 
-    val backgroundDarkMode = remember { mutableStateOf(true) }
+    val backgroundDarkMode = remember { mutableStateOf(false) }
 
     // use dark or light colors for icons and text based on the album art luminance.
     val iconTextColor =
@@ -97,7 +96,7 @@ fun NowPlayingPortrait(
 
     Column {
         // Top padding (for mini-player)
-        Spacer(Modifier.height(48.dp))
+        Spacer(Modifier.height(24.dp))
 
         // Album Art + Info
         Column(modifier = Modifier.heightIn(min=420.dp)) {
@@ -109,11 +108,15 @@ fun NowPlayingPortrait(
                 lyricsOpen, label = "Crossfade between lyrics",
                 modifier = Modifier
                     .heightIn(min = 320.dp)
-                    .fillMaxWidth()
-                    .aspectRatio(1f),
+                    .fillMaxWidth(),
             ) {
                 if (it) {
-                    LyricsView(false, mediaController)
+                    LyricsView(
+                        iconTextColor,
+                        false,
+                        mediaController,
+                        PaddingValues(horizontal = 32.dp, vertical = 16.dp)
+                    )
                 } else {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
@@ -129,7 +132,7 @@ fun NowPlayingPortrait(
                         alignment = Alignment.Center,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 32.dp)
+                            .padding(horizontal = 32.dp, vertical = 16.dp)
                             .aspectRatio(1f)
                             .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
                             .background(MaterialTheme.colorScheme.surfaceVariant),
@@ -184,9 +187,7 @@ fun NowPlayingPortrait(
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .marqueeHorizontalFadingEdges(
-                                marqueeProvider = { Modifier.basicMarquee() }
-                            )
+                            .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
                     )
                 }
 
@@ -203,9 +204,7 @@ fun NowPlayingPortrait(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .marqueeHorizontalFadingEdges(
-                                marqueeProvider = { Modifier.basicMarquee() }
-                            )
+                            .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
                             .clickable {
                                 try {
                                     selectedArtist = artistList.firstOrNull() {
@@ -227,6 +226,8 @@ fun NowPlayingPortrait(
                     )
                 }
 
+                Spacer(Modifier.height(8.dp))
+
                 if (showMoreInfo.value) {
                     Text(
                         text = "${SongHelper.currentSong.format.uppercase()} • ${SongHelper.currentSong.bitrate} • ${
@@ -245,9 +246,9 @@ fun NowPlayingPortrait(
             }
         }
 
-        Spacer(Modifier.height(24.dp))
+        //Spacer(Modifier.height(24.dp))
 
-        SliderUpdating(iconTextColor, mediaController)
+        PlaybackProgressSlider(iconTextColor)
 
         //region Buttons
         Column(
