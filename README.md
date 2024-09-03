@@ -23,7 +23,8 @@ To help keep this project free and open source to everyone, consider donating, t
 ## W.I.P
 
 - Better Android TV Support.
-- Better Android Auto Support.
+- Revamp save-load system to be more reliable.
+- UI changes
 
 ## Known Issues
 
@@ -31,8 +32,8 @@ To help keep this project free and open source to everyone, consider donating, t
 
 ## Roadmap
 
+- Better Android Auto Support.
 - Jellyfin (Music) Support.
-- **MAYBE** LG WebOS Support.
 
 
 ## Screenshots
