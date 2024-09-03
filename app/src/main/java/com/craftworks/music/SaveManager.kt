@@ -14,7 +14,6 @@ import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
-import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -68,7 +67,7 @@ class saveManager(private val context: Context){
         //sharedPreferences.edit().putString("username", username.value).apply()
         //sharedPreferences.edit().putString("backgroundType", backgroundType.value).apply()
         //sharedPreferences.edit().putBoolean("showMoreInfo", showMoreInfo.value).apply()
-        sharedPreferences.edit().putString("transcodingBitRate", transcodingBitrate.value).apply()
+        //sharedPreferences.edit().putString("transcodingBitRate", transcodingBitrate.value).apply()
     }
 
     //region Save Single Components
@@ -101,7 +100,6 @@ class saveManager(private val context: Context){
         coroutineScope {
 
             //loadBottomNavItems()
-            loadPreferences()
             loadLocalProviders()
             loadRadios()
             loadPlaylists()
@@ -115,44 +113,6 @@ class saveManager(private val context: Context){
         // Finished Loading Settings
         Log.d("LOAD", "Loaded Settings!")
     }
-
-    //region Load Single Components
-
-    fun loadPreferences(){
-        Log.d("LOAD", "Loading Preferences")
-
-        //username.value = sharedPreferences.getString("username", "Username") ?: "Username"
-        //backgroundType.value = sharedPreferences.getString("backgroundType", "Animated Blur") ?: "Animated Blur"
-        //showMoreInfo.value = sharedPreferences.getBoolean("showMoreInfo", true)
-        transcodingBitrate.value = sharedPreferences.getString("transcodingBitRate", "No Transcoding") ?: "No Transcoding"
-    }
-
-    /*
-    fun loadBottomNavItems(){
-        Log.d("LOAD", "Loading Bottom Nav Items")
-
-        // Get Artists List
-        val bottomNavItemsString = (sharedPreferences.getString("bottomNavItems", "") ?: "").split(";")
-        bottomNavItemsString.forEach { bottomNavItem ->
-            val parts = bottomNavItem.split("|")
-            if (parts.size > 1) {
-                try {
-                    val navItem = BottomNavItem(
-                        parts[0],
-                        parts[1].toInt(),
-                        parts[2],
-                        parts[3].toBoolean()
-                    )
-                    val index = bottomNavItemsString.indexOf(bottomNavItem)
-                    bottomNavigationItems[index] = navItem
-                }
-                catch (e:Exception){
-                    println("Failed to add all artists, motive: $e")
-                }
-            }
-        }
-    }
-    */
 
     fun loadNavidromeProviders(){
         Log.d("LOAD", "Loading Navidrome Providers")

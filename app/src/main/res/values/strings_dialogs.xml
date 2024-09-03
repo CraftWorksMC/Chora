@@ -2,8 +2,8 @@
 <resources>
     <!-- Now-Playing Background Dialog -->
     <string name="Dialog_Background_Type">Background Style</string>
-        <string name="Background_Plain" translatable="false">Plain</string>
-        <string name="Background_Blur" translatable="false">Blurred</string>
+        <string name="Background_Plain">Plain</string>
+        <string name="Background_Blur">Blurred</string>
         <string name="Background_Anim">Animated</string>
 
     <!-- Provider Dialog -->
@@ -18,6 +18,10 @@
             <string name="Label_Navidrome_Username">Username:</string>
             <string name="Label_Navidrome_Password">Password:</string>
             <string name="Label_Allow_Self_Signed_Certs">Allow self-signed certs</string>
+
+    <!-- Transcoding -->
+    <string name="Dialog_Transcoding">Transcoding</string>
+        <string name="Option_No_Transcoding">No Transcoding</string>
 
     <!-- Radios -->
     <string name="Dialog_Add_Radio">Add Internet Radio</string>

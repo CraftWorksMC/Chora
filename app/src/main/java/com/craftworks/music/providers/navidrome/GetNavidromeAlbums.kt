@@ -3,9 +3,9 @@ package com.craftworks.music.providers.navidrome
 import android.util.Log
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.albumList
-import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.screens.selectedAlbum
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -59,7 +59,7 @@ fun parseNavidromeAlbumListJSON(
     return mediaDataAlbums
 }
 
-fun parseNavidromeAlbumSongsJSON(
+suspend fun parseNavidromeAlbumSongsJSON(
     response: String,
     navidromeUrl: String,
     navidromeUsername: String,
@@ -73,10 +73,12 @@ fun parseNavidromeAlbumSongsJSON(
     val passwordSalt = generateSalt(8)
     val passwordHash = md5Hash(navidromePassword + passwordSalt)
 
+    val transcodingBitrate = SettingsManager().transcodingBitrateFlow.first()
+
     selectedAlbum?.songs = subsonicResponse.album?.songs
     selectedAlbum?.songs?.map {
-        it.media = if (transcodingBitrate.value != "No Transcoding")
-            "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&format=mp3&maxBitRate=${transcodingBitrate.value}&v=1.12.0&c=Chora"
+        it.media = if (transcodingBitrate != "No Transcoding")
+            "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&format=mp3&maxBitRate=${transcodingBitrate}&v=1.12.0&c=Chora"
         else
             "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora"
 

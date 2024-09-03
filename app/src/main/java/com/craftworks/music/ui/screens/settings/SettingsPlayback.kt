@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,11 +44,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper.Companion.minPercentageScrobble
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.dialogs.TranscodingDialog
-import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 
 @Composable
 @Preview(showSystemUi = false, showBackground = true)
@@ -61,7 +62,8 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = leftPadding,
+            .padding(
+                start = leftPadding,
                 top = WindowInsets.statusBars
                     .asPaddingValues()
                     .calculateTopPadding()
@@ -105,6 +107,9 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
         Column(Modifier.padding(12.dp,12.dp,24.dp,12.dp)){
 
             // Transcoding
+
+            val transcodingBitrate = SettingsManager().transcodingBitrateFlow.collectAsState("").value
+
             Row (verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
@@ -130,7 +135,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         textAlign = TextAlign.Start
                     )
                     Text(
-                        text = if (transcodingBitrate.value != "No Transcoding") "${transcodingBitrate.value} Kbps" else transcodingBitrate.value,
+                        text = if (transcodingBitrate != "No Transcoding") "$transcodingBitrate Kbps" else transcodingBitrate,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground.copy(0.75f),

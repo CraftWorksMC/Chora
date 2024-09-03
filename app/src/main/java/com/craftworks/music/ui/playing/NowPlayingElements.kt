@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -59,13 +60,13 @@ import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.elements.bounceClick
-import com.craftworks.music.ui.elements.dialogs.transcodingBitrate
 import com.craftworks.music.ui.elements.moveClick
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -95,7 +96,8 @@ fun PlaybackProgressSlider(
     }
 
     Column {
-        Slider(enabled = (transcodingBitrate.value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
+        Slider(
+            enabled = (SettingsManager().transcodingBitrateFlow.collectAsState(null).value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
             modifier = Modifier
                 .padding(horizontal = 24.dp)
                 .fillMaxWidth()

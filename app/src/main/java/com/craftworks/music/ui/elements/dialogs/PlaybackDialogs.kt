@@ -11,7 +11,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,9 +23,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
-import com.craftworks.music.data.songsList
-import com.craftworks.music.providers.navidrome.getNavidromeSongs
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.bounceClick
+import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import kotlinx.coroutines.launch
 
 //region PREVIEWS
@@ -36,21 +36,19 @@ fun PreviewTranscodingDialog(){
 }
 //endregion
 
-val transcodingBitrateList = listOf(
-    "1",
-    "96",
-    "128",
-    "192",
-    "256",
-    "320",
-    "No Transcoding"
-)
-var transcodingBitrate = mutableStateOf(transcodingBitrateList[6])
-
-
 @Composable
 fun TranscodingDialog(setShowDialog: (Boolean) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
+    val transcodingBitrate = SettingsManager().transcodingBitrateFlow.collectAsState("").value
+    val transcodingBitrateList = listOf(
+        "1",
+        "96",
+        "128",
+        "192",
+        "256",
+        "320",
+        "No Transcoding"
+    )
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
@@ -73,11 +71,11 @@ fun TranscodingDialog(setShowDialog: (Boolean) -> Unit) {
                                 .height(48.dp)
                         ) {
                             RadioButton(
-                                selected = bitrate == transcodingBitrate.value,
+                                selected = bitrate == transcodingBitrate,
                                 onClick = {
-                                    transcodingBitrate.value = bitrate
                                     coroutineScope.launch {
-                                        songsList.addAll(getNavidromeSongs())
+                                        SettingsManager().setTranscodingBitrate(bitrate)
+                                        GlobalViewModels.refreshAll()
                                     }
                                     setShowDialog(false)
                                 },
@@ -86,7 +84,7 @@ fun TranscodingDialog(setShowDialog: (Boolean) -> Unit) {
                                     .bounceClick()
                             )
                             Text(
-                                text = if (bitrate != "No Transcoding") "$bitrate Kbps" else bitrate,
+                                text = if (bitrate != "No Transcoding") "$bitrate Kbps" else stringResource(R.string.Option_No_Transcoding),
                                 fontWeight = FontWeight.Normal,
                                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                 color = MaterialTheme.colorScheme.onBackground

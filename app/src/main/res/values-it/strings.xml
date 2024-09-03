@@ -7,6 +7,7 @@
     <string name="Label_Navidrome_Username">Username</string>
     <string name="Label_Navidrome_Password">Password</string>
     <string name="Label_Allow_Self_Signed_Certs">Consenti certificati autofirmati</string>
+    <string name="Dialog_Transcoding">Trascodifica</string>
     <string name="Dialog_Add_Radio">Aggiungi Radio Internet</string>
     <string name="Dialog_Modify_Radio">"Modifica "</string>
     <string name="Label_Radio_Name">Nome Radio:</string>
@@ -61,4 +62,5 @@
     <string name="Action_Go">Andiamo!</string>
     <string name="Background_Anim">Animato</string>
     <string name="Dialog_Background_Type">Stile Dello Sfondo</string>
+    <string name="Option_No_Transcoding">Nessuna transcodifica</string>
 </resources>

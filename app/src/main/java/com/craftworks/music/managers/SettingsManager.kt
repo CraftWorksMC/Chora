@@ -16,7 +16,13 @@ import kotlinx.serialization.json.Json
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-class SettingsManager(private val context: Context) {
+class SettingsManager(contextOld: Context?= null) {
+    private lateinit var context: Context
+
+    fun initialize(context: Context) {
+        this.context = context.applicationContext
+    }
+
     companion object {
         private val USERNAME_KEY = stringPreferencesKey("username")
         private val NP_BACKGROUND_KEY = stringPreferencesKey("np_background_type")

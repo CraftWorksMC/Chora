@@ -92,6 +92,8 @@ class MainActivity : ComponentActivity() {
         val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
         this@MainActivity.startService(serviceIntent)
 
+        SettingsManager(this).initialize(this)
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val scaffoldState = BottomSheetScaffoldState(
