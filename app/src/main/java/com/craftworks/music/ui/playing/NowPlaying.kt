@@ -5,13 +5,7 @@ import android.content.res.Configuration
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,74 +16,49 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListLayoutInfo
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffoldState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.PlainLyrics
-import com.craftworks.music.data.SyncedLyric
-import com.craftworks.music.fadingEdge
-import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
-import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.screens.showMoreInfo
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 var lyricsOpen by mutableStateOf(false)
@@ -124,71 +93,73 @@ fun NowPlayingContent(
 ) {
     if (scaffoldState == null) return
 
-    Log.d("RECOMPOSITION", "NowPlayingContent")
-    Box {
-        // handle back presses
-        val coroutineScope = rememberCoroutineScope()
-        BackHandler(scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
-            coroutineScope.launch {
-                scaffoldState.bottomSheetState.partialExpand()
-            }
+    Log.d("RECOMPOSITION", "NowPlaying Root")
+
+    NowPlaying_Background(mediaController)
+
+    // handle back presses
+    val coroutineScope = rememberCoroutineScope()
+    BackHandler(scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
+        coroutineScope.launch {
+            scaffoldState.bottomSheetState.partialExpand()
         }
+    }
 
-        NowPlaying_Background(mediaController)
+    NowPlayingPortrait(mediaController, scaffoldState, navHostController)
 
-        // MAIN UI
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) {
-                NowPlayingPortrait(mediaController, scaffoldState, navHostController)
-            }
-            else {
-                //region LANDSCAPE TABLET UI
-                if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION){
-                    Box(
-                        modifier = Modifier
-                            .width(640.dp)
-                            .fillMaxHeight()
-                            .padding(0.dp, 48.dp, 0.dp, 0.dp),
-                        contentAlignment = Alignment.TopCenter
+    /*
+    Box(
+        modifier = Modifier
+    ) {
+        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) {
+            NowPlayingPortrait(mediaController, scaffoldState, navHostController)
+        }
+        else {
+            //region LANDSCAPE TABLET UI
+            if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION){
+                Box(
+                    modifier = Modifier
+                        .width(640.dp)
+                        .fillMaxHeight()
+                        .padding(0.dp, 48.dp, 0.dp, 0.dp),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    // Click to close
+                    TextButton(
+                        onClick = {
+//                                coroutineScope.launch {
+//                                    if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
+//                                        scaffoldState.bottomSheetState.partialExpand()
+//                                    }
+//                                }
+                        },
+                        modifier = Modifier.offset(y = -(48).dp),
+                        enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
                     ) {
-                        // Click to close
-                        TextButton(
-                            onClick = {
-                                coroutineScope.launch {
-                                    if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
-                                        scaffoldState.bottomSheetState.partialExpand()
-                                    }
-                                }
-                            },
-                            modifier = Modifier.offset(y = -(48).dp),
-                            enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
-                        ) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
-                                tint = MaterialTheme.colorScheme.onBackground,
-                                contentDescription = "Previous Song",
-                                modifier = Modifier
-                                    .height(32.dp)
-                                    .size(32.dp)
-                            )
-                        }
-
-                        NowPlayingLandscape(
-                            lyricsOpen || scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
-                            mediaController
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            contentDescription = "Previous Song",
+                            modifier = Modifier
+                                .height(32.dp)
+                                .size(32.dp)
                         )
                     }
-                }
-                //endregion
 
-                else {
-                    NowPlaying_TV(lyricsOpen, mediaController)
+                    NowPlayingLandscape(
+                        lyricsOpen || scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
+                        mediaController
+                    )
                 }
+            }
+            //endregion
+
+            else {
+                NowPlaying_TV(lyricsOpen, mediaController)
             }
         }
     }
+    */
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -286,7 +257,7 @@ fun NowPlaying_TV(
                     .fillMaxWidth()
                     .padding(end = 12.dp)
                     .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    SliderUpdating(true, mediaController)
+                    SliderUpdating(MaterialTheme.colorScheme.onBackground, mediaController)
                 }
 
                 //region BUTTONS
@@ -337,161 +308,6 @@ fun NowPlaying_TV(
 //                .background(MaterialTheme.colorScheme.surfaceVariant)
 //        )
         LyricsView(true, mediaController)
-    }
-}
-
-@Composable
-fun LyricsView(
-    isLandscape: Boolean = false,
-    mediaController: MediaController?) {
-
-    var currentLyricIndex by remember { mutableIntStateOf(0) }
-
-    val lyrics by LyricsManager.Lyrics.collectAsState()
-
-    LaunchedEffect(lyrics, sliderPos) {
-        snapshotFlow { sliderPos.intValue.toLong() + 750 }.collect { currentPosition ->
-                currentLyricIndex =
-                    ((lyrics.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 }
-                        ?: lyrics.size) - 1).coerceAtLeast(0)
-
-                // Calculate the delay between lyrics. If the nextLyricIndex is -1 then it means we've reached the end of the lyrics.
-                val nextLyricIndex =
-                    lyrics.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 }
-                        ?: lyrics.size
-                val delayMillis = if (nextLyricIndex in lyrics.indices) {
-                    (lyrics[nextLyricIndex].timestamp - currentPosition).coerceAtLeast(0)
-                } else {
-                    1000L
-                }
-                delay(delayMillis)
-            }
-    }
-
-    val topBottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.15f to Color.Red, 0.85f to Color.Red, 1f to Color.Transparent)
-    val state = rememberLazyListState()
-
-    LaunchedEffect(currentLyricIndex) {
-        delay(100)
-        state.animateScrollToItem(currentLyricIndex)
-    }
-
-    LazyColumn(
-        modifier = if (isLandscape) {
-            Modifier
-                .widthIn(min = 256.dp)
-                .fillMaxHeight()
-                .padding(horizontal = 12.dp)
-        } else {
-            Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp)
-        }
-            .fadingEdge(topBottomFade),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        state = state,
-    ) {
-        item { // For the spacing + loading indicator
-            Box(modifier = Modifier.height(if (isLandscape) 32.dp else 60.dp)) {
-                if (PlainLyrics == "Getting Lyrics..." && SyncedLyric.size == 0) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .size(32.dp),
-                        strokeCap = StrokeCap.Round
-                    )
-                }
-            }
-        }
-
-        // For displaying Synced Lyrics
-        if (lyrics.size > 1) {
-            itemsIndexed(lyrics) { index, lyric ->
-                val lyricAlpha: Float by animateFloatAsState(
-                    if (currentLyricIndex == index) 1f else 0.5f,
-                    label = "Current Lyric Alpha",
-                    animationSpec = tween(1000, 0, FastOutSlowInEasing)
-                )
-                val scale by animateFloatAsState(
-                    targetValue = if (currentLyricIndex == index) 1f else 0.9f,
-                    label = "Lyric Scale Animation",
-                    animationSpec = tween(1000, 0, FastOutSlowInEasing)
-                )
-                Box(
-                    modifier = Modifier
-                        .padding(vertical = 12.dp)
-                        .heightIn(min = 48.dp)
-                        .clickable {
-                            mediaController?.seekTo(lyric.timestamp.toLong())
-                            currentLyricIndex = index
-                        }
-                        .focusable(false)
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                        }
-                        .animateContentSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (lyric.content == "") "• • •" else lyric.content,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground.copy(lyricAlpha),
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        lineHeight = 32.sp
-                    )
-                }
-            }
-        } else if (lyrics[0].timestamp == -1) {
-            item { // For displaying plain lyrics
-                Text(
-                    text = lyrics[0].content,
-                    style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    lineHeight = MaterialTheme.typography.titleLarge.lineHeight.times(1.2f)
-                )
-            }
-        } /*else {
-            item { // For the "Retry" section
-                Box(
-                    modifier = Modifier
-                        //.height((dpToSp).dp)
-                        .height(64.dp)
-                        .clickable {
-                            coroutineScope.launch {
-                                LyricsManager.getLyrics()
-                            }
-                            //getLyrics()
-                        }
-                        .focusRequester(retryLyricsFocus)
-                        .focusProperties {
-                            down = playFocus
-                            right = FocusRequester.Cancel
-                            left = FocusRequester.Cancel
-                            up = FocusRequester.Cancel
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Retry",
-                        style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        textDecoration = TextDecoration.Underline,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        lineHeight = 32.sp
-                    )
-                }
-            }
-        } */
     }
 }
 
@@ -608,7 +424,7 @@ fun NowPlayingLandscape(
                     .padding(end = 12.dp)
                     .padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                SliderUpdating(true, mediaController)
+                SliderUpdating(MaterialTheme.colorScheme.onBackground, mediaController)
             }
 
             //region BUTTONS

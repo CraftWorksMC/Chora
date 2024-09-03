@@ -44,7 +44,6 @@
     <string name="Settings_Header_Playback">Riproduzione</string>
     <string name="Background_Plain">Semplice</string>
     <string name="Background_Blur">Sfocato</string>
-    <string name="Background_Animated">Animato</string>
     <string name="Albums">Album</string>
     <string name="Label_Confirm_Delete_Playlist">Sei sicuro/a di voler cancellare questa playlist?</string>
     <string name="Label_MoreSongsFrom">Altre Canzoni Da</string>

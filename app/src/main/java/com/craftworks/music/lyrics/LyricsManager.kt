@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 private var isGetLyricsRunning = false
 
 object LyricsManager {
-    private val _Lyrics = MutableStateFlow(emptyList<Lyric>())
+    private val _Lyrics = MutableStateFlow(listOf(Lyric(-1, "No Lyrics Found")))
     val Lyrics: StateFlow<List<Lyric>> = _Lyrics.asStateFlow()
 
     val useLrcLib: Boolean = true

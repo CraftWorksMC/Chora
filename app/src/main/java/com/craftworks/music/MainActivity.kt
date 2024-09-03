@@ -123,6 +123,7 @@ class MainActivity : ComponentActivity() {
                         }
                     ) { paddingValues ->
                         SetupNavGraph(navController, paddingValues, mediaController.value)
+                        Log.d("RECOMPOSITION", "Recomposing scaffold!")
 
                         // No BottomSheetScaffold for Android TV
                         if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION) {
@@ -145,6 +146,7 @@ class MainActivity : ComponentActivity() {
                                 sheetDragHandle = { },
                                 scaffoldState = scaffoldState,
                                 sheetContent = {
+                                    Log.d("RECOMPOSITION", "Recomposing SheetContent!")
                                     Box {
                                         NowPlayingMiniPlayer(scaffoldState, mediaController.value)
 
