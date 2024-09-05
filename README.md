@@ -48,8 +48,14 @@ To help keep this project free and open source to everyone, consider donating, t
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/SettingScreen.png?raw=true" width=200>
 </p>
 
+
+## Support the project
+
+To help keep this project free and open source to everyone, consider donating. Thank you!  
+<img width=256px src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate with PayPal"/>
+</a>
+
 Made with :heart: in italy
 
 > Lyrics icon provided by [Remix Icon](https://remixicon.com/ "Remix Icon")
-
 > Other icons are provided by [Google Icons](https://fonts.google.com/icons "Google Icons")

@@ -200,7 +200,7 @@ private fun Cloud(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .blur(64.dp), contentAlignment = alignment
+            .blur(96.dp), contentAlignment = alignment
     ) {
         Box(modifier = Modifier
             .fillMaxSize()

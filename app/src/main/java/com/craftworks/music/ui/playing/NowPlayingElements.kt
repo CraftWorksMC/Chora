@@ -28,7 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -59,7 +58,6 @@ import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.repeatSong
@@ -83,8 +81,6 @@ fun PlaybackProgressSlider(
         targetValue = currentValue.toFloat(), label = "Smooth Slider Update"
     )
 
-    val context = LocalContext.current
-
     LaunchedEffect(mediaController) {
         while (true) {
             delay(1000)
@@ -98,7 +94,7 @@ fun PlaybackProgressSlider(
 
     Column {
         Slider(
-            enabled = (SettingsManager(context).transcodingBitrateFlow.collectAsState(null).value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
+            enabled = (SongHelper.currentSong.isRadio == false),
             modifier = Modifier
                 .padding(horizontal = 24.dp)
                 .fillMaxWidth()

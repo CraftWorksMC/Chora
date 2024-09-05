@@ -90,60 +90,6 @@ fun NowPlayingContent(
     }
 
     NowPlayingPortrait(mediaController, scaffoldState, navHostController)
-
-    /*
-    Box(
-        modifier = Modifier
-    ) {
-        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) {
-            NowPlayingPortrait(mediaController, scaffoldState, navHostController)
-        }
-        else {
-            //region LANDSCAPE TABLET UI
-            if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION){
-                Box(
-                    modifier = Modifier
-                        .width(640.dp)
-                        .fillMaxHeight()
-                        .padding(0.dp, 48.dp, 0.dp, 0.dp),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    // Click to close
-                    TextButton(
-                        onClick = {
-//                                coroutineScope.launch {
-//                                    if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
-//                                        scaffoldState.bottomSheetState.partialExpand()
-//                                    }
-//                                }
-                        },
-                        modifier = Modifier.offset(y = -(48).dp),
-                        enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
-                    ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            contentDescription = "Previous Song",
-                            modifier = Modifier
-                                .height(32.dp)
-                                .size(32.dp)
-                        )
-                    }
-
-                    NowPlayingLandscape(
-                        lyricsOpen || scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded,
-                        mediaController
-                    )
-                }
-            }
-            //endregion
-
-            else {
-                NowPlaying_TV(lyricsOpen, mediaController)
-            }
-        }
-    }
-    */
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -276,22 +222,6 @@ fun NowPlaying_TV(
                 //endregion
             }
         }
-
-//        AsyncImage(
-//            model = SongHelper.currentSong.imageUrl,
-//            contentDescription = "Album Cover",
-//            placeholder = painterResource(R.drawable.placeholder),
-//            fallback = painterResource(R.drawable.placeholder),
-//            contentScale = ContentScale.FillHeight,
-//            alignment = Alignment.Center,
-//            modifier = Modifier
-//                .padding(32.dp)
-//                .weight(1f)
-//                .aspectRatio(1f)
-//                .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
-//                .background(MaterialTheme.colorScheme.surfaceVariant)
-//        )
-        //LyricsView(MaterialTheme.colorScheme.onBackground,true, mediaController)
     }
 }
 
