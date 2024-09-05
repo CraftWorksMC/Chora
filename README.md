@@ -4,11 +4,6 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 
 <a href='https://play.google.com/store/apps/details?id=com.craftworks.music&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img width=256px alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
 
-To help keep this project free and open source to everyone, consider donating, thank you!
-<a href="https://www.paypal.com/donate/?hosted_button_id=REWCVJBKECU34">
-  <img width=256px src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate with PayPal" />
-</a>
-
 ## Features
 
 - Subsonic Integration.
