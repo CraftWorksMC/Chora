@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -86,6 +87,8 @@ fun ArtistDetails(
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val artist by viewModel.selectedArtist.collectAsState()
+
+    val context = LocalContext.current
 
     LaunchedEffect(selectedArtist.name) {
         viewModel.fetchArtistDetails(selectedArtist.navidromeID)
@@ -203,7 +206,7 @@ fun ArtistDetails(
                     if (artistSongs.isEmpty()) return@Button
                     SongHelper.currentSong = artistSongs[0]
                     SongHelper.currentList = artistSongs
-                    artistSongs[0].media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
+                    artistSongs[0].media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -224,7 +227,7 @@ fun ArtistDetails(
                     val random = artistSongs.indices.random()
                     SongHelper.currentSong = artistSongs[random]
                     SongHelper.currentList = artistSongs
-                    artistSongs[random].media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
+                    artistSongs[random].media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -282,7 +285,7 @@ fun ArtistDetails(
                     HorizontalSongCard(song = song, onClick = {
                         SongHelper.currentSong = song
                         SongHelper.currentList = artistSongs
-                        song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
+                        song.media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
                     })
                 }
             }

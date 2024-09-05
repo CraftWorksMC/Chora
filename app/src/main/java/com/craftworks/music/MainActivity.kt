@@ -56,6 +56,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -80,6 +81,7 @@ var shuffleSongs = mutableStateOf(false)
 
 var showNoProviderDialog = mutableStateOf(false)
 
+@UnstableApi
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -91,8 +93,6 @@ class MainActivity : ComponentActivity() {
 
         val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
         this@MainActivity.startService(serviceIntent)
-
-        SettingsManager(this).initialize(this)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -227,12 +227,13 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimatedBottomNavBar(
-    navController: NavHostController, scaffoldState: BottomSheetScaffoldState
+    navController: NavHostController, scaffoldState: BottomSheetScaffoldState,
 ) {
     val backStackEntry = navController.currentBackStackEntryAsState()
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    val orderedNavItems = SettingsManager(LocalContext.current).bottomNavItemsFlow.collectAsState(
+    val orderedNavItems = SettingsManager(context).bottomNavItemsFlow.collectAsState(
         initial = //region Default Items
         listOf(
             BottomNavItem(
@@ -285,7 +286,6 @@ fun AnimatedBottomNavBar(
         }
     } else {
         NavigationRail {
-            val context = LocalContext.current
             val uiMode = LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK
             LaunchedEffect(orderedNavItems) {
                 if (orderedNavItems.firstOrNull { it.screenRoute == "playing_tv_screen" } == null && uiMode == Configuration.UI_MODE_TYPE_TELEVISION) {

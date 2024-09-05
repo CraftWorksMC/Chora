@@ -322,12 +322,6 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                         )
                                         NavidromeManager.addServer(server)
 
-                                        if (!navidromeServersList.contains(server)) {
-                                            navidromeServersList.add(server)
-                                        }
-                                        selectedNavidromeServerIndex.intValue =
-                                            navidromeServersList.indexOf(server)
-
                                         saveManager(context).saveSettings()
 
                                         GlobalViewModels.refreshAll()

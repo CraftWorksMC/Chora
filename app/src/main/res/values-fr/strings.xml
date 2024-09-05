@@ -77,5 +77,10 @@
     <string name="Background_Blur">Flouté</string>
     <string name="Background_Anim">Animé</string>
     <string name="Dialog_Background_Type">Style de l\'arrière-plan</string>
+    <string name="Dialog_Transcoding">Transcodage</string>
     <string name="Option_No_Transcoding">Pas de transcodage</string>
+    <string name="Notification_Download_Name">Notification de téléchargement</string>
+    <string name="Notification_Download_Desc">Notifications pour l\'état du téléchargement</string>
+    <string name="Notification_Download_Success">Chanson téléchargée avec succès !</string>
+    <string name="Notification_Download_Failure">Oh oh, quelque chose s\'est mal passé lors du téléchargement de cette chanson.</string>
 </resources>

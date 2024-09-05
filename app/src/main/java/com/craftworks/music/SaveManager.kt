@@ -28,28 +28,11 @@ class saveManager(private val context: Context){
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
 
     fun saveSettings(){
-        // Old junk that i'm keeping in case the new stuff doesn't work:
-        // sharedPreferences.edit().putBoolean("useNavidrome", useNavidromeServer.value).apply()
-
-        // Check if there are any enabled navidrome servers and save if there are any.
-        //val useNavidrome = navidromeServersList.any { it.enabled == true }
-        //sharedPreferences.edit().putBoolean("useNavidrome", useNavidrome).apply()
-
-        //region Save Lists
-        // Save Navidrome Server List
-//        val serverListString = navidromeServersList.joinToString(";") { "${it.id},${it.url},${it.username},${it.password},${it.enabled},${it.allowSelfSignedCert}" }
-//        sharedPreferences.edit().putString("navidromeServerList", serverListString).apply()
 
         // Save Local Provider List
         val localListString = localProviderList.joinToString(";") {
             "${it.directory},${it.enabled}" }
         sharedPreferences.edit().putString("localProviderList", localListString).apply()
-
-        /* Save Artists List
-        val artistsListString = artistList.joinToString(";") {
-            "${it.name}|${it.artistImageUrl}|${it.navidromeID}" }
-        sharedPreferences.edit().putString("artistsList", artistsListString).apply()
-        */
 
         saveLocalRadios()
 
@@ -58,16 +41,6 @@ class saveManager(private val context: Context){
         // Save Active Providers
         sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
         sharedPreferences.edit().putInt("activeLocalProvider", selectedLocalProvider.intValue).apply()
-
-        //saveBottomNavItems()
-
-        //endregion
-
-        // Preferences
-        //sharedPreferences.edit().putString("username", username.value).apply()
-        //sharedPreferences.edit().putString("backgroundType", backgroundType.value).apply()
-        //sharedPreferences.edit().putBoolean("showMoreInfo", showMoreInfo.value).apply()
-        //sharedPreferences.edit().putString("transcodingBitRate", transcodingBitrate.value).apply()
     }
 
     //region Save Single Components

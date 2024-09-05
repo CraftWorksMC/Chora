@@ -7,7 +7,7 @@
     <string name="Label_Navidrome_Username">Username</string>
     <string name="Label_Navidrome_Password">Password</string>
     <string name="Label_Allow_Self_Signed_Certs">Consenti certificati autofirmati</string>
-    <string name="Dialog_Transcoding">Trascodifica</string>
+    <string name="Dialog_Transcoding">Transcodifica</string>
     <string name="Dialog_Add_Radio">Aggiungi Radio Internet</string>
     <string name="Dialog_Modify_Radio">"Modifica "</string>
     <string name="Label_Radio_Name">Nome Radio:</string>
@@ -20,23 +20,19 @@
     <string name="Action_Reset">Reimposta</string>
     <string name="Action_Search">Cerca</string>
     <string name="Action_Play">Riproduci</string>
+    <string name="Action_Done">Fatto</string>
+    <string name="Action_Remove">Rimuovi</string>
     <string name="Action_Shuffle">Shuffle</string>
     <string name="Action_Add">Aggiungi</string>
     <string name="Action_Success">Successo</string>
     <string name="Action_Login">Accedi</string>
     <string name="Action_CreatePlaylist">Crea Playlist</string>
-    <string name="Action_Done">Fatto</string>
-    <string name="Action_Remove">Rimuovi</string>
     <string name="welcome_text">Benvenuto</string>
     <string name="recently_added">Aggiunte Recentemente</string>
     <string name="songs">Brani</string>
     <string name="most_played">Più Ascoltate</string>
-    <string name="Artists">Artisti</string>
-    <string name="settings">Impostazioni</string>
     <string name="recently_played">Ascoltate Recentemente</string>
     <string name="random_songs">Esplora La Tua Libreria</string>
-    <string name="radios">Radio</string>
-    <string name="playlists">Playlist</string>
     <string name="Settings_Header_Appearance">Aspetto</string>
     <string name="Settings_Header_Media">Fonti Media</string>
     <string name="Setting_Background">Stile Sfondo</string>
@@ -45,7 +41,6 @@
     <string name="Settings_Header_Playback">Riproduzione</string>
     <string name="Background_Plain">Semplice</string>
     <string name="Background_Blur">Sfocato</string>
-    <string name="Albums">Album</string>
     <string name="Label_Confirm_Delete_Playlist">Sei sicuro/a di voler cancellare questa playlist?</string>
     <string name="Label_MoreSongsFrom">Altre Canzoni Da</string>
     <string name="Label_NoDescription">Nessuna Descrizione Disponibile.</string>
@@ -63,4 +58,13 @@
     <string name="Background_Anim">Animato</string>
     <string name="Dialog_Background_Type">Stile Dello Sfondo</string>
     <string name="Option_No_Transcoding">Nessuna transcodifica</string>
+    <string name="Notification_Download_Name">Notifiche di download</string>
+    <string name="Notification_Download_Desc">Notifiche per lo stato di download</string>
+    <string name="Albums">Album</string>
+    <string name="Artists">Artisti</string>
+    <string name="settings">Impostazioni</string>
+    <string name="radios">Radio Internet</string>
+    <string name="playlists">Playlist</string>
+    <string name="Notification_Download_Success">Canzone scaricata con successo!</string>
+    <string name="Notification_Download_Failure">Uh oh, qualcosa è andato storto nel scaricare questa canzone.</string>
 </resources>

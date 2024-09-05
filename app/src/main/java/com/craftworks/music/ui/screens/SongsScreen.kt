@@ -163,7 +163,7 @@ fun SongsScreen(
             SongsHorizontalColumn(songList = allSongsList, onSongSelected = { song ->
                 SongHelper.currentSong = song
                 SongHelper.currentList = allSongsList.sortedBy { song.title }
-                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) } },
+                song.media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController) } },
                 searchFilter.isNotBlank(),
                 viewModel)
         }

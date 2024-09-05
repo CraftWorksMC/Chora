@@ -1,11 +1,11 @@
 package com.craftworks.music.providers.navidrome
 
 import android.util.Log
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.albumList
-import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.screens.selectedAlbum
-import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -31,7 +31,7 @@ fun parseNavidromeAlbumListJSON(
     response: String,
     navidromeUrl: String,
     navidromeUsername: String,
-    navidromePassword: String
+    navidromePassword: String,
 ) : List<MediaData.Album> {
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
@@ -59,11 +59,12 @@ fun parseNavidromeAlbumListJSON(
     return mediaDataAlbums
 }
 
+@OptIn(UnstableApi::class)
 suspend fun parseNavidromeAlbumSongsJSON(
     response: String,
     navidromeUrl: String,
     navidromeUsername: String,
-    navidromePassword: String
+    navidromePassword: String,
 ){
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
@@ -73,15 +74,11 @@ suspend fun parseNavidromeAlbumSongsJSON(
     val passwordSalt = generateSalt(8)
     val passwordHash = md5Hash(navidromePassword + passwordSalt)
 
-    val transcodingBitrate = SettingsManager().transcodingBitrateFlow.first()
+    //val transcodingBitrate = SettingsManager(context).transcodingBitrateFlow.first()
 
     selectedAlbum?.songs = subsonicResponse.album?.songs
     selectedAlbum?.songs?.map {
-        it.media = if (transcodingBitrate != "No Transcoding")
-            "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&format=mp3&maxBitRate=${transcodingBitrate}&v=1.12.0&c=Chora"
-        else
-            "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora"
-
+        it.media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora"
         it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora"
     }
 

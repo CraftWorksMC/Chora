@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.contentDescription
@@ -53,6 +54,7 @@ import com.craftworks.music.ui.elements.dialogs.TranscodingDialog
 @Composable
 @Preview(showSystemUi = false, showBackground = true)
 fun S_PlaybackScreen(navHostController: NavHostController = rememberNavController()) {
+    val context = LocalContext.current
     val leftPadding =
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
@@ -108,7 +110,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
 
             // Transcoding
 
-            val transcodingBitrate = SettingsManager().transcodingBitrateFlow.collectAsState("").value
+            val transcodingBitrate = SettingsManager(context).transcodingBitrateFlow.collectAsState("").value
 
             Row (verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier

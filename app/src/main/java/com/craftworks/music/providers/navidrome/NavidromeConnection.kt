@@ -65,7 +65,6 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
 
     setSyncingStatus(true)
     withContext(Dispatchers.IO) {
-
         // Generate a random password salt and MD5 hash.
         // This is kinda slow, but needed.
         val passwordSalt = generateSalt(8)

@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,6 +62,7 @@ fun PlaylistDetails(
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red, Color.Transparent))
+    val context = LocalContext.current
 
     LaunchedEffect(selectedPlaylist.navidromeID) {
         if (NavidromeManager.checkActiveServers() && selectedPlaylist.songs?.isEmpty() == true){
@@ -134,7 +136,7 @@ fun PlaylistDetails(
                 SongsHorizontalColumn(it, onSongSelected = { song ->
                     SongHelper.currentSong = song
                     SongHelper.currentList = selectedPlaylist.songs.orEmpty()
-                    song.media?.let { songUri -> SongHelper.playStream(Uri.parse(songUri), false, mediaController) }
+                    song.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
                 })
             }
         }

@@ -50,4 +50,9 @@
     <string name="Navidrome_Error">Navidrome server unreachable.</string>
     <string name="Navidrome_Sync">Navidrome sync in progress…</string>
 
+    <!-- Downloading -->
+    <string name="Notification_Download_Name">Download Notifications</string>
+    <string name="Notification_Download_Desc">Notifications for download status</string>
+    <string name="Notification_Download_Success">Song downloaded successfully!</string>
+    <string name="Notification_Download_Failure">Uh oh, something went wrong while downloading this song.</string>
 </resources>

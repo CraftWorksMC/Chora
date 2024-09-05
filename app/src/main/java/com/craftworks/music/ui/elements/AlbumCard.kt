@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.elements
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -67,128 +68,7 @@ fun AlbumCard(
     mediaController: MediaController? = null,
     onClick: () -> Unit = {}
 ) {
-    /* OLD
-    Card(
-        onClick = { onClick() },
-        modifier = Modifier
-            .padding(12.dp, 12.dp, 0.dp, 0.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.onBackground,
-            disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .width(128.dp)
-                .height(172.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(album.coverArt)
-                        .crossfade(true)
-                        .size(64)
-                        .build(),
-                    fallback = painterResource(R.drawable.placeholder),
-                    contentScale = ContentScale.FillHeight,
-                    contentDescription = "Album Image",
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(12.dp))
-                )
-
-                val coroutineScope = rememberCoroutineScope()
-
-                Button(
-                    onClick = {
-                        // Play First Song in Album
-                        coroutineScope.launch {
-                            selectedAlbum = album
-
-                            // Fetch songs if the list is empty
-                            if (selectedAlbum?.songs.isNullOrEmpty()) {
-                                if (NavidromeManager.checkActiveServers()) {
-                                    selectedAlbum?.navidromeID?.let { albumId ->
-                                        withContext(Dispatchers.IO) {
-                                            getNavidromeAlbumSongs(albumId)
-                                        }
-                                    }
-                                } else {
-                                    selectedAlbum?.songs =
-                                        songsList.fastFilter { it.album == selectedAlbum?.name }
-                                }
-                            }
-
-                            // Try to play song
-                            selectedAlbum?.songs?.let { songs ->
-                                if (songs.isEmpty()) return@launch
-
-                                SongHelper.currentSong = songs[0]
-                                SongHelper.currentList = songs
-                                SongHelper.playStream(
-                                    Uri.parse(songs[0].media ?: ""),
-                                    false,
-                                    mediaController
-                                )
-                            }
-                        }
-                    },
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .align(Alignment.BottomStart)
-                        .padding(6.dp),
-                    contentPadding = PaddingValues(2.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.background.copy(0.5f)
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.PlayArrow,
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "Play Album",
-                        modifier = Modifier
-                            .height(48.dp)
-                            .size(48.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            album.name?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Text(
-                text = album.artist,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 1, overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-    */
-
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .padding(12.dp, 12.dp, 0.dp, 0.dp)
@@ -218,7 +98,7 @@ fun AlbumCard(
             val coroutineScope = rememberCoroutineScope()
 
             IconButton(
-                onClick = { playSelectedAlbum(coroutineScope, mediaController, album) },
+                onClick = { playSelectedAlbum(context, coroutineScope, mediaController, album) },
                 modifier = Modifier
                     .padding(6.dp)
                     .background(
@@ -260,6 +140,7 @@ fun AlbumCard(
 }
 
 private fun playSelectedAlbum(
+    context: Context,
     coroutineScope: CoroutineScope,
     mediaController: MediaController?,
     album: MediaData.Album
@@ -288,6 +169,7 @@ private fun playSelectedAlbum(
             SongHelper.currentSong = songs[0]
             SongHelper.currentList = songs
             SongHelper.playStream(
+                context,
                 Uri.parse(songs[0].media ?: ""),
                 false,
                 mediaController

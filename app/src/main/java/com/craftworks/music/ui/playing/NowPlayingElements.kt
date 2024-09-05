@@ -24,7 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -47,6 +46,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -54,10 +54,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
-import com.craftworks.music.data.navidromeServersList
-import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
@@ -84,6 +83,8 @@ fun PlaybackProgressSlider(
         targetValue = currentValue.toFloat(), label = "Smooth Slider Update"
     )
 
+    val context = LocalContext.current
+
     LaunchedEffect(mediaController) {
         while (true) {
             delay(1000)
@@ -97,7 +98,7 @@ fun PlaybackProgressSlider(
 
     Column {
         Slider(
-            enabled = (SettingsManager().transcodingBitrateFlow.collectAsState(null).value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
+            enabled = (SettingsManager(context).transcodingBitrateFlow.collectAsState(null).value == "No Transcoding" || SongHelper.currentSong.isRadio == false),
             modifier = Modifier
                 .padding(horizontal = 24.dp)
                 .fillMaxWidth()
@@ -323,31 +324,22 @@ fun LyricsButton(color: Color, size: Dp){
     }
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun DownloadButton(color: Color, size: Dp){
-    val snackbarHostState = SnackbarHostState()
+fun DownloadButton(color: Color, size: Dp) {
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
-    )
-    {
+        modifier = Modifier.clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+    ) {
         Button(
             onClick = {
-                if (navidromeServersList.isEmpty() || !NavidromeManager.checkActiveServers() || SongHelper.currentSong.navidromeID == "Local") return@Button
-                if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-                    navidromeServersList[selectedNavidromeServerIndex.intValue].url == ""
-                ) return@Button
-
-                downloadNavidromeSong(
-                    "${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/download.view?id=${SongHelper.currentSong.navidromeID}&submission=true&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora",
-                    snackbarHostState = snackbarHostState,
-                    coroutineScope
-                )
                 coroutineScope.launch {
-                    snackbarHostState.showSnackbar("Downloading Started. Do not close the app or start another download until complete.")
+                    downloadNavidromeSong(context)
                 }
             },
+            enabled = NavidromeManager.checkActiveServers(),
             shape = CircleShape,
             modifier = Modifier
                 .height(size)
@@ -372,9 +364,10 @@ fun DownloadButton(color: Color, size: Dp){
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ShuffleButton(color: Color, mediaController: MediaController?, size: Dp,
-                  play: FocusRequester = FocusRequester(),
-                  shuffle: FocusRequester = FocusRequester()
+fun ShuffleButton(
+    color: Color, mediaController: MediaController?, size: Dp,
+    play: FocusRequester = FocusRequester(),
+    shuffle: FocusRequester = FocusRequester(),
 ){
     Box(
         modifier = Modifier
@@ -412,9 +405,10 @@ fun ShuffleButton(color: Color, mediaController: MediaController?, size: Dp,
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun RepeatButton(color: Color, mediaController: MediaController?, size: Dp,
-                 play: FocusRequester = FocusRequester(),
-                 replay: FocusRequester = FocusRequester()
+fun RepeatButton(
+    color: Color, mediaController: MediaController?, size: Dp,
+    play: FocusRequester = FocusRequester(),
+    replay: FocusRequester = FocusRequester(),
 ){
     Box(
         modifier = Modifier

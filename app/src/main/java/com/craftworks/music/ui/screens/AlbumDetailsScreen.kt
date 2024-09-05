@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -94,6 +95,8 @@ fun AlbumDetails(
     var albumSongs by remember { mutableStateOf<List<MediaData.Song>>(emptyList()) }
 
     val requester = FocusRequester()
+
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         requester.requestFocus();
@@ -214,7 +217,7 @@ fun AlbumDetails(
                 onClick = {
                     SongHelper.currentSong = albumSongs[0]
                     SongHelper.currentList = albumSongs
-                    albumSongs[0].media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
+                    albumSongs[0].media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -237,7 +240,7 @@ fun AlbumDetails(
                     val random = albumSongs.indices.random()
                     SongHelper.currentSong = albumSongs[random]
                     SongHelper.currentList = albumSongs
-                    albumSongs[random].media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
+                    albumSongs[random].media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -270,7 +273,7 @@ fun AlbumDetails(
                     HorizontalSongCard(song = song, onClick = {
                         SongHelper.currentSong = song
                         SongHelper.currentList = albumSongs
-                        song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
+                        song.media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
                     })
                 }
             }
