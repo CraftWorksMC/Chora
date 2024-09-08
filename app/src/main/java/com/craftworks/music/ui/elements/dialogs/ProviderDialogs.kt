@@ -26,6 +26,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +34,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -51,9 +54,7 @@ import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.localProviderList
-import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.selectedLocalProvider
-import com.craftworks.music.data.selectedNavidromeServerIndex
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeStatus
@@ -358,6 +359,11 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
 
 @Composable
 fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavHostController) {
+    val focusRequester = FocusRequester()
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(24.dp),
@@ -395,7 +401,8 @@ fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavH
                             .height(50.dp)
                             .widthIn(max = 320.dp)
                             .fillMaxWidth()
-                            .bounceClick(),
+                            .bounceClick()
+                            .focusRequester(focusRequester),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(stringResource(R.string.Action_Go),

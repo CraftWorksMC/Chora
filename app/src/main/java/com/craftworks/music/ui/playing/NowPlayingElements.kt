@@ -38,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -98,7 +97,7 @@ fun PlaybackProgressSlider(
             modifier = Modifier
                 .padding(horizontal = 24.dp)
                 .fillMaxWidth()
-                .scale(scaleX = 1f, scaleY = 1.25f)
+                //.scale(scaleX = 1f, scaleY = 1.25f)
                 .focusable(false),
             value = animatedValue,
             onValueChange = {
@@ -115,7 +114,8 @@ fun PlaybackProgressSlider(
                 activeTrackColor = color,
                 inactiveTrackColor = color.copy(alpha = 0.25f),
             ),
-            thumb = {})
+            //thumb = {}
+        )
 
         // Time thingies
         Box(

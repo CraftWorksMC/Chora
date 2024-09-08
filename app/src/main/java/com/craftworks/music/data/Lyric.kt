@@ -46,7 +46,7 @@ fun MediaData.StructuredLyrics.toLyrics(): List<Lyric> {
 
 fun LrcLibLyrics.toLyrics(): List<Lyric> {
     if (instrumental) return listOf(Lyric(-1, ""))
-    else if (syncedLyrics != "null") {
+    else if (syncedLyrics.toString() != "null") {
         val result = mutableListOf<Lyric>()
 
         syncedLyrics?.lines()?.forEach { lyric ->
@@ -58,7 +58,11 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
         }
 
         return result
-    } else return listOf(Lyric(-1, plainLyrics ?: "No Lyrics Found"))
+    }
+    else if (plainLyrics.toString() != "null")
+        return listOf(Lyric(-1, plainLyrics.toString()))
+    else
+        return listOf(Lyric(-1, "No Lyrics Found"))
 }
 
 //endregion

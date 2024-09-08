@@ -24,6 +24,7 @@ class SettingsManager(
         private val NP_BACKGROUND_KEY = stringPreferencesKey("np_background_type")
         private val SHOW_NAVIDROME_KEY = booleanPreferencesKey("show_navidrome_logo")
         private val SHOW_MORE_INFO_KEY = booleanPreferencesKey("show_more_info")
+        private val NOW_PLAYING_LYRIC_BLUR_KEY = booleanPreferencesKey("now_playing_lyrics_blur")
         private val BOTTOM_NAV_ITEMS_KEY = stringPreferencesKey("bottom_nav_order")
 
         private val TRANSCODING_BITRATE_KEY = stringPreferencesKey("transcoding_bitrate")
@@ -58,6 +59,16 @@ class SettingsManager(
     suspend fun setShowMoreInfo(showMoreInfo: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[SHOW_MORE_INFO_KEY] = showMoreInfo
+        }
+    }
+
+    val nowPlayingLyricsBlurFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[NOW_PLAYING_LYRIC_BLUR_KEY] ?: true
+    }
+
+    suspend fun setNowPlayingLyricsBlur(blur: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[NOW_PLAYING_LYRIC_BLUR_KEY] = blur
         }
     }
 

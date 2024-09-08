@@ -1,8 +1,10 @@
 package com.craftworks.music.ui.screens.settings
 
 import android.content.res.Configuration
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -33,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -41,6 +46,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,9 +61,10 @@ import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
 import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
+import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 @Preview(showSystemUi = false, showBackground = true)
 fun S_AppearanceScreen(navHostController: NavHostController = rememberNavController()) {
@@ -71,6 +78,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
     val coroutineScope = rememberCoroutineScope()
 
     val focusRequester = FocusRequester()
+
     LaunchedEffect (Unit) {
         focusRequester.requestFocus()
     }
@@ -85,6 +93,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     .asPaddingValues()
                     .calculateTopPadding()
             )
+            .dialogFocusable()
             .background(MaterialTheme.colorScheme.background)
     ) {
 
@@ -126,7 +135,6 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
         Column(Modifier.padding(12.dp,12.dp,24.dp,12.dp)){
 
             //Username
-
             val username by SettingsManager(context).usernameFlow.collectAsState("Username")
             var usernameTextField by remember(username) { mutableStateOf(username) }
 
@@ -162,6 +170,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             Row (verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable {
                         showBackgroundDialog = true
                     }
@@ -210,18 +219,26 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             }
 
             //Navbar Items
+            val navBarItemsEnabled = LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION
+
             Row (verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable {
-                        showNavbarItemsDialog = true
+                        if (navBarItemsEnabled)
+                            showNavbarItemsDialog = true
                     }
+                    .focusable(navBarItemsEnabled)
                     .focusRequester(focusRequester)
-                    .focusProperties { left = FocusRequester.Cancel }) {
+                    .focusProperties { left = FocusRequester.Cancel }
+            ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_a_navbar_items),
                     contentDescription = "Navbar Menus Icon",
-                    tint = MaterialTheme.colorScheme.onBackground,
+                    tint = if (navBarItemsEnabled)
+                        MaterialTheme.colorScheme.onBackground
+                    else MaterialTheme.colorScheme.onBackground.copy(0.5f),
                     modifier = Modifier
                         .padding(horizontal = 12.dp)
                         .size(32.dp)
@@ -231,7 +248,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         text = stringResource(R.string.Setting_Navbar_Items),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = if (navBarItemsEnabled)
+                        MaterialTheme.colorScheme.onBackground
+                        else MaterialTheme.colorScheme.onBackground.copy(0.5f),
                         modifier = Modifier.fillMaxSize(),
                         textAlign = TextAlign.Start
                     )
@@ -240,10 +259,12 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                             .filter { it.enabled }
                             .joinToString(", ") { it.title }
                     Text(
-                        text = enabledNavbarItems,
+                        text = if (navBarItemsEnabled) enabledNavbarItems else "Not Available for Android TV",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
+                        color =if (navBarItemsEnabled)
+                            MaterialTheme.colorScheme.onBackground.copy(0.75f)
+                        else MaterialTheme.colorScheme.onBackground.copy(0.4f),
                         modifier = Modifier.fillMaxSize(),
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start
@@ -254,11 +275,31 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             //More Song Info
             val showMoreInfo = SettingsManager(context).showMoreInfoFlow.collectAsState(true)
 
+            SettingsSwitch(
+                showMoreInfo.value,
+                stringResource(R.string.Setting_MoreInfo),
+                toggleEvent = {
+                    coroutineScope.launch {
+                        SettingsManager(context).setShowMoreInfo(!showMoreInfo.value)
+                    }
+                }
+            )
+
+            /*
             Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
-                    .focusRequester(focusRequester)
-                    .focusProperties { left = FocusRequester.Cancel }) {
+                    .clip(RoundedCornerShape(12.dp))
+                    .selectable(
+                        selected = showMoreInfo.value,
+                        onClick = {
+                            coroutineScope.launch {
+                                SettingsManager(context).setShowMoreInfo(!showMoreInfo.value)
+                            }
+                        },
+                        role = Role.RadioButton
+                    )
+            ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
                     contentDescription = "Settings Icon",
@@ -277,22 +318,88 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Start
                 )
-                Switch(checked = showMoreInfo.value, onCheckedChange = {
-                    coroutineScope.launch {
-                        SettingsManager(context).setShowMoreInfo(it)
-                    }
-                })
+                Switch(checked = showMoreInfo.value, onCheckedChange = {})
             }
+            */
 
+            //More Song Info
+            val nowPlayingLyricsBlur = SettingsManager(context).nowPlayingLyricsBlurFlow.collectAsState(true)
+
+            SettingsSwitch(
+                nowPlayingLyricsBlur.value,
+                stringResource(R.string.Setting_NowPlayingLyricsBlur),
+                toggleEvent = {
+                    coroutineScope.launch {
+                        SettingsManager(context).setNowPlayingLyricsBlur(!nowPlayingLyricsBlur.value)
+                    }
+                }
+            )
+
+            /*
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(vertical = 6.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .selectable(
+                        selected = nowPlayingLyricsBlur.value,
+                        onClick = {
+                            coroutineScope.launch {
+                                SettingsManager(context).setNowPlayingLyricsBlur(!nowPlayingLyricsBlur.value)
+                            }
+                        },
+                        role = Role.RadioButton
+                    )
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
+                    contentDescription = "Settings Icon",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .size(32.dp)
+                )
+                Text(
+                    text = stringResource(R.string.Setting_NowPlayingLyricsBlur),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Start
+                )
+                Switch(checked = nowPlayingLyricsBlur.value, onCheckedChange = {})
+            }
+            */
 
             //Show Navidrome Logo
             val showNavidromeLogo = SettingsManager(context).showNavidromeLogoFlow.collectAsState(true)
 
+            SettingsSwitch(
+                showNavidromeLogo.value,
+                stringResource(R.string.Setting_NavidromeLogo),
+                toggleEvent = {
+                    coroutineScope.launch {
+                        SettingsManager(context).setShowNavidromeLogo(!showNavidromeLogo.value)
+                    }
+                }
+            )
+
+/*
             Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
-                    .focusRequester(focusRequester)
-                    .focusProperties { left = FocusRequester.Cancel }) {
+                    .clip(RoundedCornerShape(12.dp))
+                    .selectable(
+                        selected = showNavidromeLogo.value,
+                        onClick = {
+                            coroutineScope.launch {
+                                SettingsManager(context).setNowPlayingLyricsBlur(!showNavidromeLogo.value)
+                            }
+                        },
+                        role = Role.RadioButton
+                    )
+            ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
                     contentDescription = "Settings Icon",
@@ -311,13 +418,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Start
                 )
-                Switch(checked = showNavidromeLogo.value, onCheckedChange = {
-                    coroutineScope.launch {
-                        SettingsManager(context).setShowNavidromeLogo(it)
-                    }
-                })
+                Switch(checked = showNavidromeLogo.value, onCheckedChange = {})
             }
-
+*/
             BottomSpacer()
         }
 
@@ -326,5 +429,43 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 
         if(showNavbarItemsDialog)
             NavbarItemsDialog(setShowDialog = { showNavbarItemsDialog = it })
+    }
+}
+
+@Composable
+private fun SettingsSwitch(
+    selected: Boolean,
+    settingsName: String,
+    toggleEvent: () -> Unit = {}
+){
+    Row(verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(vertical = 6.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .selectable(
+                selected = selected,
+                onClick = toggleEvent,
+                role = Role.RadioButton
+            )
+    ) {
+        Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
+            contentDescription = "Settings Icon",
+            tint = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .size(32.dp)
+        )
+        Text(
+            text = settingsName,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Start
+        )
+        Switch(checked = selected, onCheckedChange = {})
     }
 }

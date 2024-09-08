@@ -67,4 +67,5 @@
     <string name="playlists">Playlist</string>
     <string name="Notification_Download_Success">Canzone scaricata con successo!</string>
     <string name="Notification_Download_Failure">Uh oh, qualcosa è andato storto nel scaricare questa canzone.</string>
+    <string name="Setting_NowPlayingLyricsBlur">Sfocatura Testi</string>
 </resources>

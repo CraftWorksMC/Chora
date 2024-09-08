@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.elements.dialogs
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,10 +11,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,11 +37,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -66,6 +74,7 @@ fun PreviewNavbarItemsDialog(){
 }
 //endregion
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
@@ -80,46 +89,54 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
         R.string.Background_Plain, R.string.Background_Blur, R.string.Background_Anim
     )
 
-    val coroutineScope= rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
-        Surface(
-            shape = RoundedCornerShape(24.dp),
+        Column(
+            modifier = Modifier
+                .shadow(12.dp, RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(24.dp)
+                .dialogFocusable()
+                .selectableGroup()
         ) {
-            Box(
-                contentAlignment = Alignment.Center
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Text(
-                        text = stringResource(R.string.Setting_Background),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(bottom = 24.dp)
+            Text(
+                text = stringResource(R.string.Setting_Background),
+                fontWeight = FontWeight.SemiBold,
+                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            for ((index, option) in backgroundTypes.withIndex()) {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .selectable(
+                            selected = (option == backgroundType),
+                            onClick = {
+                                coroutineScope.launch {
+                                    SettingsManager(context).setBackgroundType(option)
+                                }
+                                setShowDialog(false)
+                            },
+                            role = Role.RadioButton
+                        ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = option == backgroundType,
+                        onClick = { },
+                        modifier = Modifier.bounceClick()
                     )
-                    for ((index, option) in backgroundTypes.withIndex()) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.height(48.dp)
-                        ) {
-                            RadioButton(selected = option == backgroundType,
-                                onClick = {
-                                    coroutineScope.launch {
-                                        SettingsManager(context).setBackgroundType(option)
-                                    }
-                                    setShowDialog(false)
-                                },
-                                modifier = Modifier
-                                    .semantics { contentDescription = option }
-                                    .bounceClick())
-                            Text(
-                                text = stringResource(id = backgroundTypeStrings[index]),
-                                fontWeight = FontWeight.Normal,
-                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                        }
-                    }
+                    Text(
+                        text = stringResource(id = backgroundTypeStrings[index]),
+                        fontWeight = FontWeight.Normal,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
         }

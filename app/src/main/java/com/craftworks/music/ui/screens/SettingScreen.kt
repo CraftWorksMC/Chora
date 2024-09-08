@@ -2,7 +2,6 @@ package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,13 +10,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
@@ -27,11 +24,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -46,7 +48,6 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
-import com.craftworks.music.ui.elements.bounceClick
 
 var username = mutableStateOf("Username")
 var showMoreInfo = mutableStateOf(true)
@@ -71,7 +72,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
     Column(modifier = Modifier
         .background(MaterialTheme.colorScheme.background)
         .fillMaxSize()
-        .verticalScroll(rememberScrollState())
+        //.verticalScroll(rememberScrollState())
         .padding(
             start = leftPadding,
             top = WindowInsets.statusBars
@@ -115,67 +116,80 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
         HorizontalLineWithNavidromeCheck()
 
         /* Settings */
-        Box(Modifier.padding(12.dp,12.dp,12.dp,12.dp)){
-            Column {
-                //region Appearance
-                Button(
-                    onClick = { navHostController.navigate(Screen.S_Appearance.route) {
-                    launchSingleTop = true } },
-                    modifier = Modifier
-                        .height(76.dp)
-                        .padding(vertical = 6.dp)
-                        .bounceClick(),
-//                        .focusRequester(appearance)
-//                        .focusProperties {
-//                            right = back
-//                            down = providers
-//                            up = back
-//                            left = FocusRequester.Cancel
-//                        },
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()){
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
-                            contentDescription = stringResource(R.string.Settings_Header_Appearance),
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(start = 12.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.Settings_Header_Appearance),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                            modifier = Modifier.padding(start = 12.dp)
-                        )
-                        Spacer(
-                            Modifier
-                                .weight(1f)
-                                .fillMaxHeight())
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
-                            contentDescription = stringResource(R.string.Settings_Header_Appearance),
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(end = 12.dp)
-                                .rotate(-90f))
-                    }
-                }
-                //endregion
+        Column {
+            SettingsButton(
+                Screen.S_Appearance.route,
+                R.drawable.s_a_palette,
+                R.string.Settings_Header_Appearance,
+                navHostController)
 
-                //region Media Providers
-                Button(
-                    onClick = { navHostController.navigate(Screen.S_Providers.route) {
-                        launchSingleTop = true } },
-                    modifier = Modifier
-                        .height(76.dp)
-                        .padding(vertical = 6.dp)
-                        .bounceClick(),
+            SettingsButton(
+                Screen.S_Providers.route,
+                R.drawable.s_m_media_providers,
+                R.string.Settings_Header_Media,
+                navHostController)
+
+            SettingsButton(
+                Screen.S_Playback.route,
+                R.drawable.s_m_playback,
+                R.string.Settings_Header_Playback,
+                navHostController)
+
+            /*
+            //region Appearance
+            Button(
+                onClick = { navHostController.navigate(Screen.S_Appearance.route) {
+                    launchSingleTop = true } },
+                modifier = Modifier
+                    .height(76.dp)
+                    .padding(vertical = 6.dp, horizontal = 12.dp)
+                    .bounceClick()
+                    .focusable(true),
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()){
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
+                        contentDescription = stringResource(R.string.Settings_Header_Appearance),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(start = 12.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.Settings_Header_Appearance),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                    Spacer(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight())
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
+                        contentDescription = stringResource(R.string.Settings_Header_Appearance),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(end = 12.dp)
+                            .rotate(-90f))
+                }
+            }
+            //endregion
+
+            //region Media Providers
+            Button(
+                onClick = { navHostController.navigate(Screen.S_Providers.route) {
+                    launchSingleTop = true } },
+                modifier = Modifier
+                    .focusable(true)
+                    .height(76.dp)
+                    .padding(vertical = 6.dp, horizontal = 12.dp)
+                    .bounceClick(),
 //                        .focusRequester(providers)
 //                        .focusProperties {
 //                            right = FocusRequester.Cancel
@@ -183,49 +197,50 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
 //                            up = appearance
 //                            left = FocusRequester.Cancel
 //                        },
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()){
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.s_m_media_providers),
-                            contentDescription = stringResource(R.string.Settings_Header_Media),
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(start = 12.dp))
-                        Text(
-                            text = stringResource(R.string.Settings_Header_Media),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                            modifier = Modifier.padding(start = 12.dp)
-                        )
-                        Spacer(
-                            Modifier
-                                .weight(1f)
-                                .fillMaxHeight())
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
-                            contentDescription = stringResource(R.string.Settings_Header_Media),
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(end = 12.dp)
-                                .rotate(-90f))
-                    }
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()){
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.s_m_media_providers),
+                        contentDescription = stringResource(R.string.Settings_Header_Media),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(start = 12.dp))
+                    Text(
+                        text = stringResource(R.string.Settings_Header_Media),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                    Spacer(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight())
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
+                        contentDescription = stringResource(R.string.Settings_Header_Media),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(end = 12.dp)
+                            .rotate(-90f))
                 }
-                //endregion
+            }
+            //endregion
 
-                //region Playback
-                Button(
-                    onClick = { navHostController.navigate(Screen.S_Playback.route) {
-                        launchSingleTop = true } },
-                    modifier = Modifier
-                        .height(76.dp)
-                        .padding(vertical = 6.dp)
-                        .bounceClick(),
+            //region Playback
+            Button(
+                onClick = { navHostController.navigate(Screen.S_Playback.route) {
+                    launchSingleTop = true } },
+                modifier = Modifier
+                    .focusable(true)
+                    .height(76.dp)
+                    .padding(vertical = 6.dp, horizontal = 12.dp)
+                    .bounceClick(),
 //                        .focusRequester(playback)
 //                        .focusProperties {
 //                            right = FocusRequester.Cancel
@@ -233,43 +248,95 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
 //                            up = providers
 //                            left = FocusRequester.Cancel
 //                        },
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()){
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.s_m_playback),
-                            contentDescription = stringResource(R.string.Settings_Header_Playback),
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(start = 12.dp))
-                        Text(
-                            text = stringResource(R.string.Settings_Header_Playback),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                            modifier = Modifier.padding(start = 12.dp)
-                        )
-                        Spacer(
-                            Modifier
-                                .weight(1f)
-                                .fillMaxHeight())
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
-                            contentDescription = stringResource(R.string.Settings_Header_Playback),
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(end = 12.dp)
-                                .rotate(-90f))
-                    }
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()){
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.s_m_playback),
+                        contentDescription = stringResource(R.string.Settings_Header_Playback),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(start = 12.dp))
+                    Text(
+                        text = stringResource(R.string.Settings_Header_Playback),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                    Spacer(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight())
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
+                        contentDescription = stringResource(R.string.Settings_Header_Playback),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(end = 12.dp)
+                            .rotate(-90f))
                 }
-                //endregion
             }
+            //endregion
+            */
         }
 
         BottomSpacer()
+    }
+}
+
+@Composable
+private fun SettingsButton(route: String, icon: Int, text: Int, navHostController: NavHostController){
+    var isFocused by remember { mutableStateOf(false) }
+    Button(
+        onClick = { navHostController.navigate(route) {
+            launchSingleTop = true
+        } },
+        modifier = Modifier
+            .height(76.dp)
+            .fillMaxWidth()
+            .padding(vertical = 6.dp, horizontal = 12.dp)
+            .onFocusChanged { focusState ->
+                isFocused = focusState.isFocused
+            },
+        contentPadding = PaddingValues(0.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onBackground
+        )
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()){
+            Icon(
+                imageVector = ImageVector.vectorResource(icon),
+                contentDescription = stringResource(text),
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier
+                    .size(48.dp)
+                    .padding(start = 12.dp)
+            )
+            Text(
+                text = stringResource(text),
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold,
+                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                modifier = Modifier.padding(start = 12.dp)
+            )
+            Spacer(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight())
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
+                contentDescription = stringResource(R.string.Settings_Header_Appearance),
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier
+                    .size(48.dp)
+                    .padding(end = 12.dp)
+                    .rotate(-90f))
+        }
     }
 }

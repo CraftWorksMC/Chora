@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -89,7 +90,10 @@ fun NowPlayingContent(
         }
     }
 
-    NowPlayingPortrait(mediaController, scaffoldState, navHostController)
+    when (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK){
+        Configuration.UI_MODE_TYPE_TELEVISION -> NowPlayingTV(mediaController, scaffoldState, navHostController)
+        else -> NowPlayingPortrait(mediaController, scaffoldState, navHostController)
+    }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

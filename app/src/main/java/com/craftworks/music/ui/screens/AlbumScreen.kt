@@ -27,7 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,7 +43,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -78,20 +77,23 @@ fun AlbumScreen(
     var searchFilter by remember { mutableStateOf("") }
 
     val state = rememberPullToRefreshState()
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val onRefresh: () -> Unit = {
+        isRefreshing = true
+        viewModel.reloadData()
+        isRefreshing = false
+    }
 
     val allAlbumsList by viewModel.allAlbums.collectAsState()
 
-    if (state.isRefreshing) {
-        LaunchedEffect(true) {
-            viewModel.reloadData()
-            state.endRefresh()
-        }
-    }
-
-    Box(modifier = Modifier.nestedScroll(state.nestedScrollConnection)){
-
+    PullToRefreshBox(
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        state = state,
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh
+    ) {
         Column(modifier = Modifier
-            .background(MaterialTheme.colorScheme.background)
             .fillMaxWidth()
             .padding(
                 start = leftPadding,
@@ -184,10 +186,5 @@ fun AlbumScreen(
                 "alphabeticalByName",
                 viewModel)
         }
-
-        PullToRefreshContainer(
-            modifier = Modifier.align(Alignment.TopCenter),
-            state = state,
-        )
     }
 }

@@ -28,13 +28,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -43,7 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -90,23 +89,23 @@ fun HomeScreen(
     val shuffledAlbums by viewModel.shuffledAlbums.collectAsState()
 
     val state = rememberPullToRefreshState()
+    var isRefreshing by remember { mutableStateOf(false) }
 
-    if (state.isRefreshing) {
-        LaunchedEffect(true) {
+    val onRefresh: () -> Unit = {
+        isRefreshing = true
+        getSongsOnDevice(context)
 
-            getSongsOnDevice(context)
-
-            viewModel.reloadData()
-
-            state.endRefresh()
-        }
+        viewModel.reloadData()
+        isRefreshing = false
     }
 
-    Box(
-        Modifier
+    PullToRefreshBox(
+        modifier = Modifier
             //.fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .nestedScroll(state.nestedScrollConnection)
+            .background(MaterialTheme.colorScheme.background),
+        state = state,
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh
     ) {
         Column(
             modifier = Modifier
@@ -165,13 +164,7 @@ fun HomeScreen(
             MostPlayed(mediaController, navHostController, mostPlayedAlbums)
             Shuffled(mediaController, navHostController, shuffledAlbums)
         }
-
-        PullToRefreshContainer(
-            modifier = Modifier.align(Alignment.TopCenter),
-            state = state,
-        )
     }
-
 }
 
 @Composable fun NavidromeLogo(){
@@ -187,7 +180,7 @@ fun HomeScreen(
     }
 
     val isClickable =
-        if (LocalConfiguration.current.uiMode != Configuration.UI_MODE_TYPE_TELEVISION)
+        if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION)
             Modifier.clickable { clickAction.value.invoke() }
         else
             Modifier
@@ -231,29 +224,6 @@ fun HomeScreen(
             }
             selectedAlbum = album
         }
-
-        /*
-        if (homeScreenUseAlbums.value){
-            /* ALBUMS ROW */
-            //val recentlyPlayedAlbums = albumList.sortedByDescending { it.played }.take(20)
-
-            AlbumRow(albums = viewModel.recentlyPlayedAlbums.collectAsState().value, mediaController = mediaController) { album ->
-                navHostController.navigate(Screen.AlbumDetails.route) {
-                    launchSingleTop = true
-                }
-                selectedAlbum = album
-            }
-        }
-        else {
-            /* SONGS ROW */
-            val recentlyPlayedSongsList = songsList.sortedByDescending { song: MediaData.Song -> song.lastPlayed }.take(20)
-            SongsRow(songsList = recentlyPlayedSongsList, onSongSelected = { song ->
-                //SongHelper.currentSong = song
-                SongHelper.currentList = recentlyPlayedSongsList
-                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
-            })
-        }
-        */
     }
 }
 

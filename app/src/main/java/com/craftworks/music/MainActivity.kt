@@ -52,7 +52,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -100,7 +102,8 @@ class MainActivity : ComponentActivity() {
             bottomSheetState = SheetState(
                 skipPartiallyExpanded = false,
                 initialValue = SheetValue.PartiallyExpanded,
-                skipHiddenState = true
+                skipHiddenState = true,
+                density = Density(this)
             ),
             snackbarHostState = SnackbarHostState()
         )

@@ -6,6 +6,9 @@ import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -30,6 +33,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,6 +56,7 @@ import androidx.core.graphics.luminance
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
@@ -79,8 +84,8 @@ fun NowPlayingPortrait(
     val backgroundDarkMode = remember { mutableStateOf(false) }
 
     // use dark or light colors for icons and text based on the album art luminance.
-    val iconTextColor =
-        // dynamicColorScheme is only available in Android 12+
+    val iconTextColor by animateColorAsState(
+        targetValue = // dynamicColorScheme is only available in Android 12+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (backgroundDarkMode.value)
                 dynamicDarkColorScheme(LocalContext.current).onBackground
@@ -92,7 +97,11 @@ fun NowPlayingPortrait(
                 Color.White
             else
                 Color.Black
-        }
+        },
+        animationSpec = tween(1000, 0, FastOutSlowInEasing),
+        label = "Animated text color"
+    )
+
 
     Column {
         // Top padding (for mini-player)
@@ -144,6 +153,7 @@ fun NowPlayingPortrait(
                                 val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 64, 64, true).copy(Bitmap.Config.ARGB_8888, true)
 
                                 // Calculate average luminance
+
                                 val totalPixels = scaledBitmap.width * scaledBitmap.height
                                 var totalLuminance = 0.0
 
@@ -157,7 +167,8 @@ fun NowPlayingPortrait(
                                 val averageLuminance = totalLuminance / totalPixels
                                 Log.d("LUMINANCE", "average luminance: $averageLuminance")
 
-                                backgroundDarkMode.value = averageLuminance < 0.5
+                                val palette = Palette.from(scaledBitmap).generate().lightVibrantSwatch?.rgb
+                                backgroundDarkMode.value = (palette?.luminance ?: 0.5f) + (averageLuminance.toFloat()) / 2 < 0.5f
 
                                 scaledBitmap.recycle()
                             }

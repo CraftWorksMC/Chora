@@ -10,7 +10,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.CircleShape
@@ -140,11 +139,11 @@ private fun AnimatedBG(
     var colors by remember {
         mutableStateOf(listOf(Color.Cyan, Color.Green, Color.Yellow, Color.Cyan))
     }
-    val isDarkMode = isSystemInDarkTheme()
 
     LaunchedEffect(SongHelper.currentSong.imageUrl) {
+        if (SongHelper.currentSong.imageUrl.isBlank()) return@LaunchedEffect
         colors = withContext(Dispatchers.IO) {
-            extractColorsFromUri(SongHelper.currentSong.imageUrl, context, isDarkMode)
+            extractColorsFromUri(SongHelper.currentSong.imageUrl, context)
         }
     }
 
@@ -178,7 +177,10 @@ private fun AnimatedBG(
 
 @Composable
 private fun Cloud(
-    color: Color, rotationStart: Float, duration: Int, alignment: Alignment
+    color: Color,
+    rotationStart: Float,
+    duration: Int,
+    alignment: Alignment
 ) {
     val offsets = remember {
         Pair(Random.nextFloat() * 300f - 150f, Random.nextFloat() * 300f - 150f)
@@ -194,13 +196,15 @@ private fun Cloud(
         label = ""
     )
     val animatedColor by animateColorAsState(
-        targetValue = color, animationSpec = tween(1000, 0, EaseInOut), label = ""
+        targetValue = color,
+        animationSpec = tween(1000, 0, EaseInOut),
+        label = ""
     )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .blur(96.dp), contentAlignment = alignment
+            .blur(128.dp), contentAlignment = alignment
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -209,11 +213,11 @@ private fun Cloud(
                 translationX = offsets.first.dp.toPx()
                 translationY = offsets.second.dp.toPx()
             }
-            .background(animatedColor.copy(alpha = 0.75f), CircleShape))
+            .background(animatedColor.copy(alpha = 0.8f), CircleShape))
     }
 }
 
-suspend fun extractColorsFromUri(uri: String, context: android.content.Context, isDarkMode: Boolean): List<Color> {
+suspend fun extractColorsFromUri(uri: String, context: android.content.Context): List<Color> {
     val loader = ImageLoader(context)
     val request = ImageRequest.Builder(context)
         .size(64)
@@ -224,18 +228,28 @@ suspend fun extractColorsFromUri(uri: String, context: android.content.Context, 
     val result = (loader.execute(request) as? SuccessResult)?.drawable
     val bitmap = result?.toBitmap()
 
+//    return bitmap?.let { bitmapImage ->
+//        val palette = Palette.from(bitmapImage).generate()
+//        listOfNotNull(
+//            palette.vibrantSwatch?.rgb?.let { Color(it) },
+//            if (isDarkMode)
+//                palette.darkVibrantSwatch?.rgb?.let { Color(it) }
+//            else
+//                palette.lightVibrantSwatch?.rgb?.let { Color(it) },
+//            palette.lightVibrantSwatch?.rgb?.let { Color(it) },
+//            if (isDarkMode)
+//                palette.darkMutedSwatch?.rgb?.let { Color(it) }
+//            else
+//                palette.lightMutedSwatch?.rgb?.let { Color(it) })
+//    } ?: listOf(Color.Gray)
+
     return bitmap?.let { bitmapImage ->
         val palette = Palette.from(bitmapImage).generate()
         listOfNotNull(
             palette.vibrantSwatch?.rgb?.let { Color(it) },
-            if (isDarkMode)
-                palette.darkVibrantSwatch?.rgb?.let { Color(it) }
-            else
-                palette.lightVibrantSwatch?.rgb?.let { Color(it) },
+            palette.darkVibrantSwatch?.rgb?.let { Color(it) },
             palette.lightVibrantSwatch?.rgb?.let { Color(it) },
-            if (isDarkMode)
-                palette.darkMutedSwatch?.rgb?.let { Color(it) }
-            else
-                palette.lightMutedSwatch?.rgb?.let { Color(it) })
-    } ?: listOf(Color.Gray)
+            palette.lightMutedSwatch?.rgb?.let { Color(it) }
+        )
+    } ?: listOf(Color.Gray, Color.Gray, Color.Gray, Color.Gray)
 }

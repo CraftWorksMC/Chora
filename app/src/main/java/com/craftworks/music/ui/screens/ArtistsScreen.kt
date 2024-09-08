@@ -28,7 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,7 +44,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -52,7 +51,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -77,19 +75,24 @@ fun ArtistsScreen(
     var isSearchFieldOpen by remember { mutableStateOf(false) }
     var searchFilter by remember { mutableStateOf("") }
 
-    val state = rememberPullToRefreshState()
     val allArtistList by viewModel.allArtists.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Refresh
-    if (state.isRefreshing) {
-        LaunchedEffect(true) {
-            viewModel.reloadData()
-            state.endRefresh()
-        }
+    val state = rememberPullToRefreshState()
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val onRefresh: () -> Unit = {
+        isRefreshing = true
+        viewModel.reloadData()
+        isRefreshing = false
     }
 
-    Box(modifier = Modifier.nestedScroll(state.nestedScrollConnection)) {
+    PullToRefreshBox(
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        state = state,
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh
+    ) {
         Column(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
@@ -185,10 +188,5 @@ fun ArtistsScreen(
                 }
             })
         }
-
-        PullToRefreshContainer(
-            modifier = Modifier.align(Alignment.TopCenter),
-            state = state,
-        )
     }
 }

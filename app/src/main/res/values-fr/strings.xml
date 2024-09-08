@@ -83,4 +83,5 @@
     <string name="Notification_Download_Desc">Notifications pour l\'état du téléchargement</string>
     <string name="Notification_Download_Success">Chanson téléchargée avec succès !</string>
     <string name="Notification_Download_Failure">Oh oh, quelque chose s\'est mal passé lors du téléchargement de cette chanson.</string>
+    <string name="Setting_NowPlayingLyricsBlur">Flou du texte</string>
 </resources>
