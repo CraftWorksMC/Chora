@@ -4,10 +4,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 
 // Taken from this Medium article:
@@ -39,11 +38,11 @@ fun Modifier.bounceClick() = composed {
             scaleX = scale
             scaleY = scale
         }
-        .clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = null,
-            onClick = {  }
-        )
+//        .clickable(
+//            interactionSource = remember { MutableInteractionSource() },
+//            indication = null,
+//            onClick = {  }
+//        )
         .pointerInput(buttonState) {
             awaitPointerEventScope {
                 buttonState = if (buttonState == ButtonState.Pressed) {
@@ -69,15 +68,14 @@ fun Modifier.moveClick(right: Boolean) = composed {
     )
 
     this
-        .offset(
-            x = if (right) position else -position,
-            y = 0.dp
-        )
-        .clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = null,
-            onClick = {  }
-        )
+        .offset{
+            IntOffset(x = if (right) position.toPx().toInt() else -position.toPx().toInt(), y= 0)
+        }
+//        .clickable(
+//            interactionSource = remember { MutableInteractionSource() },
+//            indication = null,
+//            onClick = {  }
+//        )
         .pointerInput(buttonState) {
             awaitPointerEventScope {
                 buttonState = if (buttonState == ButtonState.Pressed) {

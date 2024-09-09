@@ -56,6 +56,7 @@ import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
 import com.gigamole.composefadingedges.verticalFadingEdges
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.abs
 
 @Composable
@@ -70,7 +71,6 @@ fun LyricsView(
     val lyrics by LyricsManager.Lyrics.collectAsState()
 
     val state = rememberLazyListState()
-    val isScrollInProgress by remember { derivedStateOf { state.isScrollInProgress } }
     val visibleItemsInfo by remember { derivedStateOf { state.layoutInfo.visibleItemsInfo } }
 
     val useBlur by SettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
@@ -88,21 +88,37 @@ fun LyricsView(
     }
 
     // Update current lyric
+//    LaunchedEffect(lyrics, currentPositionValue) {
+//        snapshotFlow { currentPositionValue.intValue.toLong() + 750 }.collect { currentPosition ->
+//            currentLyricIndex.intValue =
+//                ((lyrics.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 }
+//                    ?: lyrics.size) - 1).coerceAtLeast(0)
+//
+//            // Calculate the delay between lyrics. If the nextLyricIndex is -1 then it means we've reached the end of the lyrics.
+//            val nextLyricIndex =
+//                lyrics.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 }
+//                    ?: lyrics.size
+//            val delayMillis = if (nextLyricIndex in lyrics.indices) {
+//                (lyrics[nextLyricIndex].timestamp - currentPosition).coerceAtLeast(0)
+//            } else {
+//                1000L
+//            }
+//            delay(delayMillis)
+//        }
+//    }
     LaunchedEffect(lyrics, currentPositionValue) {
-        snapshotFlow { currentPositionValue.intValue.toLong() + 750 }.collect { currentPosition ->
-            currentLyricIndex.intValue =
-                ((lyrics.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 }
-                    ?: lyrics.size) - 1).coerceAtLeast(0)
+        snapshotFlow { currentPositionValue.intValue.toLong() + 750 }.collectLatest { currentPosition ->
+            val nextLyricIndex = lyrics.indexOfFirst { it.timestamp > currentPosition }
+                .takeIf { it >= 0 } ?: lyrics.size
 
-            // Calculate the delay between lyrics. If the nextLyricIndex is -1 then it means we've reached the end of the lyrics.
-            val nextLyricIndex =
-                lyrics.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 }
-                    ?: lyrics.size
+            currentLyricIndex.intValue = (nextLyricIndex - 1).coerceAtLeast(0)
+
             val delayMillis = if (nextLyricIndex in lyrics.indices) {
                 (lyrics[nextLyricIndex].timestamp - currentPosition).coerceAtLeast(0)
             } else {
                 1000L
             }
+
             delay(delayMillis)
         }
     }
@@ -155,7 +171,6 @@ fun LyricsView(
                     index = index,
                     currentLyricIndex = currentLyricIndex.intValue,
                     useBlur = useBlur,
-                    isScrollInProgress = isScrollInProgress,
                     visibleItemsInfo = visibleItemsInfo,
                     color = color
                 )
@@ -185,7 +200,6 @@ fun SyncedLyricItem(
     index: Int,
     currentLyricIndex: Int,
     useBlur: Boolean,
-    isScrollInProgress: Boolean,
     visibleItemsInfo: List<LazyListItemInfo>,
     color: Color,
 ) {
@@ -196,7 +210,7 @@ fun SyncedLyricItem(
     )
     val lyricBlur: Dp by animateDpAsState(
         targetValue = if (useBlur) calculateLyricBlur(
-            index, currentLyricIndex, isScrollInProgress, visibleItemsInfo
+            index, currentLyricIndex, visibleItemsInfo
         ) else 0.dp,
         label = "Lyric Blur",
         animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing)
@@ -233,11 +247,10 @@ fun SyncedLyricItem(
 fun calculateLyricBlur(
     index: Int,
     currentLyricIndex: Int,
-    isScrollInProgress: Boolean,
     visibleItemsInfo: List<LazyListItemInfo>
 ): Dp {
     return when {
-        index == currentLyricIndex || isScrollInProgress || !visibleItemsInfo.any { it.index == currentLyricIndex } -> 0.dp
+        index == currentLyricIndex || !visibleItemsInfo.any { it.index == currentLyricIndex } -> 0.dp
         else -> minOf(abs(currentLyricIndex - index).toFloat(), 8f).dp
     }
 }

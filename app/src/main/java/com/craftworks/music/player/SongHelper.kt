@@ -15,18 +15,11 @@ import androidx.media3.session.MediaController
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.sliderPos
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 class SongHelper {
     companion object{
-
-        private val scope = CoroutineScope(Dispatchers.Main)
-
-        var isSeeking = false
-
         var currentSong by mutableStateOf(
             MediaData.Song(
                 "id",

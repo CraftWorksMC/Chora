@@ -1,9 +1,11 @@
 package com.craftworks.music.ui.playing
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,15 +37,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -76,45 +80,78 @@ fun PlaybackProgressSlider(
     mediaController: MediaController? = null,
 ) {
     var currentValue by remember { mutableIntStateOf(0) }
+
     val animatedValue by animateFloatAsState(
         targetValue = currentValue.toFloat(), label = "Smooth Slider Update"
     )
 
-    LaunchedEffect(mediaController) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focused = remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
         while (true) {
             delay(1000)
             if (mediaController?.isPlaying == true) {
                 sliderPos.intValue = mediaController.currentPosition.toInt()
                 currentValue = mediaController.currentPosition.toInt()
-                println(currentValue)
             }
         }
     }
 
-    Column {
+    Column(Modifier
+            .focusable(false)
+            //.indication(interactionSource, LocalIndication.current)
+    ) {
         Slider(
             enabled = (SongHelper.currentSong.isRadio == false),
             modifier = Modifier
                 .padding(horizontal = 24.dp)
                 .fillMaxWidth()
-                //.scale(scaleX = 1f, scaleY = 1.25f)
-                .focusable(false),
+                .onFocusChanged {
+                    focused.value = it.isFocused
+                }
+                .onKeyEvent { keyEvent ->
+                    when {
+                        keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyDown -> {
+                            currentValue = (currentValue + 5000)
+                            mediaController?.seekTo(currentValue.toLong())
+                            true
+                        }
+
+                        keyEvent.key == Key.DirectionLeft && keyEvent.type == KeyEventType.KeyDown -> {
+                            currentValue = (currentValue - 5000)
+                            mediaController?.seekTo(currentValue.toLong())
+                            true
+                        }
+
+                        else -> false
+                    }
+                },
             value = animatedValue,
             onValueChange = {
-                SongHelper.isSeeking = true
                 sliderPos.intValue = it.toInt()
                 currentValue = it.toInt()
             },
             onValueChangeFinished = {
-                SongHelper.isSeeking = false
                 mediaController?.seekTo(currentValue.toLong())
             },
             valueRange = 0f..(SongHelper.currentSong.duration.toFloat() * 1000),
             colors = SliderDefaults.colors(
                 activeTrackColor = color,
                 inactiveTrackColor = color.copy(alpha = 0.25f),
+                thumbColor = color
             ),
-            //thumb = {}
+            interactionSource = interactionSource,
+            thumb = {
+                AnimatedVisibility(
+                    focused.value
+                ) {
+                    SliderDefaults.Thumb(
+                        interactionSource = interactionSource,
+                        colors = SliderDefaults.colors().copy(thumbColor = color)
+                    )
+                }
+            }
         )
 
         // Time thingies
@@ -149,49 +186,52 @@ fun PlaybackProgressSlider(
 
 @Composable
 fun PreviousSongButton(color: Color, mediaController: MediaController?, size: Dp) {
-    Box(
-        modifier = Modifier.clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+
+    Button(
+        onClick = {
+            if (SongHelper.currentSong.isRadio == true) return@Button
+            mediaController?.seekToPreviousMediaItem()
+        },
+        shape = CircleShape,
+        modifier = Modifier
+            .size(size)
+            .bounceClick()
+            .moveClick(false),
+        contentPadding = PaddingValues(0.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
     ) {
-        Button(
-            onClick = {
-                if (SongHelper.currentSong.isRadio == true) return@Button
-                mediaController?.seekToPreviousMediaItem()
-            },
-            shape = CircleShape,
+        Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_previous),
+            tint = color,
+            contentDescription = "Previous Song",
             modifier = Modifier
                 .size(size)
-                .bounceClick()
-                .moveClick(false),
-            contentPadding = PaddingValues(0.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_previous),
-                tint = color,
-                contentDescription = "Previous Song",
-                modifier = Modifier
-                    .size(size)
-            )
-        }
+        )
     }
 }
 
 @Composable
 fun PlayPauseButtonUpdating(color: Color, mediaController: MediaController?, size: Dp){
     Log.d("RECOMPOSITION", "PlayPauseButtonUpdating")
-    val playerStatus = remember { mutableStateOf("") }
+    val playerStatus = remember {
+        mutableStateOf(
+            if (mediaController?.isLoading == true) "loading"
+            else if (mediaController?.isPlaying == true) "playing"
+            else "paused"
+        )
+    }
 
     // Update playerStatus from mediaController
     DisposableEffect(mediaController) {
         val listener = object : Player.Listener {
             override fun onIsLoadingChanged(isLoading: Boolean) {
-                playerStatus.value = "loading"
+                playerStatus.value = if (isLoading) "loading" else playerStatus.value
                 super.onIsLoadingChanged(isLoading)
             }
 
-            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                playerStatus.value = if (playWhenReady) "playing" else "paused"
-                super.onPlayWhenReadyChanged(playWhenReady, reason)
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                playerStatus.value = if (isPlaying) "playing" else "paused"
+                super.onIsPlayingChanged(isPlaying)
             }
         }
 
@@ -247,29 +287,25 @@ fun PlayPauseButtonUpdating(color: Color, mediaController: MediaController?, siz
 
 @Composable
 fun NextSongButton(color: Color, mediaController: MediaController?, size: Dp) {
-    Box(
-        modifier = Modifier.clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+    Button(
+        onClick = {
+            if (SongHelper.currentSong.isRadio == true) return@Button
+            mediaController?.seekToNextMediaItem()
+        },
+        shape = CircleShape,
+        modifier = Modifier
+            .size(size)
+            .bounceClick()
+            .moveClick(true),
+        contentPadding = PaddingValues(0.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
     ) {
-        Button(
-            onClick = {
-                if (SongHelper.currentSong.isRadio == true) return@Button
-                mediaController?.seekToNextMediaItem()
-            },
-            shape = CircleShape,
-            modifier = Modifier
-                .size(size)
-                .bounceClick()
-                .moveClick(true),
-            contentPadding = PaddingValues(0.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_next),
-                tint = color,
-                contentDescription = "Next Song",
-                modifier = Modifier.size(size)
-            )
-        }
+        Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_next),
+            tint = color,
+            contentDescription = "Next Song",
+            modifier = Modifier.size(size)
+        )
     }
 }
 
@@ -277,7 +313,8 @@ fun NextSongButton(color: Color, mediaController: MediaController?, size: Dp) {
 fun LyricsButton(color: Color, size: Dp){
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+            .clip(RoundedCornerShape(12.dp)),
+        contentAlignment = Alignment.Center
     )
     {
         Button(
@@ -327,7 +364,8 @@ fun DownloadButton(color: Color, size: Dp) {
     val context = LocalContext.current
 
     Box(
-        modifier = Modifier.clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
+        modifier = Modifier.clip(RoundedCornerShape(12.dp)),
+        contentAlignment = Alignment.Center
     ) {
         Button(
             onClick = {
@@ -345,7 +383,6 @@ fun DownloadButton(color: Color, size: Dp) {
                 containerColor = Color.Transparent
             )
         ) {
-
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
                 tint = color.copy(alpha = 0.5f),
@@ -358,89 +395,60 @@ fun DownloadButton(color: Color, size: Dp) {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ShuffleButton(
-    color: Color, mediaController: MediaController?, size: Dp,
-    play: FocusRequester = FocusRequester(),
-    shuffle: FocusRequester = FocusRequester(),
+    color: Color, mediaController: MediaController?, size: Dp
 ){
-    Box(
+    Button(
+        onClick = {
+            shuffleSongs.value = !shuffleSongs.value
+            mediaController?.shuffleModeEnabled = shuffleSongs.value
+        },
+        shape = CircleShape,
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
-    )
-    {
-        Button(
-            onClick = {
-                shuffleSongs.value = !shuffleSongs.value
-                mediaController?.shuffleModeEnabled = shuffleSongs.value
-            },
-            shape = CircleShape,
-            modifier = Modifier
-                .size(size)
-                .focusRequester(shuffle)
-                .focusProperties {
-                    up = play
-                    down = FocusRequester.Cancel
-                },
-            contentPadding = PaddingValues(0.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-        ) {
+            .size(size),
+        contentPadding = PaddingValues(0.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+    ) {
 
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.round_shuffle_28),
-                tint = color.copy(if (shuffleSongs.value) 1f else 0.5f),
-                contentDescription = "Toggle Shuffle",
-                modifier = Modifier
-                    .height(size)
-                    .size(size)
-            )
-        }
+        Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.round_shuffle_28),
+            tint = color.copy(if (shuffleSongs.value) 1f else 0.5f),
+            contentDescription = "Toggle Shuffle",
+            modifier = Modifier
+                .height(size)
+                .size(size)
+        )
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RepeatButton(
     color: Color, mediaController: MediaController?, size: Dp,
-    play: FocusRequester = FocusRequester(),
-    replay: FocusRequester = FocusRequester(),
-){
-    Box(
+) {
+    Button(
+        onClick = {
+            repeatSong.value = !repeatSong.value
+            mediaController?.repeatMode =
+                if (repeatSong.value)
+                    Player.REPEAT_MODE_ONE
+                else
+                    Player.REPEAT_MODE_OFF
+        },
+        shape = CircleShape,
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
-    )
-    {
-        Button(
-            onClick = {
-                repeatSong.value = !repeatSong.value
-                mediaController?.repeatMode =
-                    if (repeatSong.value)
-                        Player.REPEAT_MODE_ONE
-                    else
-                        Player.REPEAT_MODE_OFF
-            },
-            shape = CircleShape,
-            modifier = Modifier
-                .size(size)
-                .focusRequester(replay)
-                .focusProperties {
-                    up = play
-                    down = FocusRequester.Cancel
-                    right = FocusRequester.Cancel
-                },
-            contentPadding = PaddingValues(0.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-        ) {
+            .size(size),
+        contentPadding = PaddingValues(0.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+    ) {
 
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.round_repeat_28),
-                tint = color.copy(if (repeatSong.value) 1f else 0.5f),
-                contentDescription = "Toggle Repeat",
-                modifier = Modifier
-                    .height(size)
-                    .size(size)
-            )
-        }
+        Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.round_repeat_28),
+            tint = color.copy(if (repeatSong.value) 1f else 0.5f),
+            contentDescription = "Toggle Repeat",
+            modifier = Modifier
+                .height(size)
+                .size(size)
+        )
     }
 }

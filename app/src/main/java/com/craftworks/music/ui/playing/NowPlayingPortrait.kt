@@ -259,7 +259,7 @@ fun NowPlayingPortrait(
 
         //Spacer(Modifier.height(24.dp))
 
-        PlaybackProgressSlider(iconTextColor)
+        PlaybackProgressSlider(iconTextColor, mediaController)
 
         //region Buttons
         Column(

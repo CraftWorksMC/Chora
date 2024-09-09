@@ -9,7 +9,9 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,8 +20,9 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,6 +57,7 @@ import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
@@ -92,13 +96,15 @@ fun NowPlayingTV(
     Row (
         Modifier.padding(start = 80.dp)
     ) {
-        Column(Modifier.width(512.dp)) {
+        Column(Modifier.weight(1f).widthIn(min = 512.dp)) {
             // Top padding (for mini-player)
             Spacer(Modifier.height(24.dp))
 
             // Album Art + Info
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
+            Column(
+                Modifier.focusable(false),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Log.d("RECOMPOSITION", "Album cover or lyrics")
 
                 /* Album Cover + Lyrics */
@@ -197,44 +203,49 @@ fun NowPlayingTV(
                 }
             }
 
-
             //Spacer(Modifier.height(24.dp))
 
-            PlaybackProgressSlider(iconTextColor)
-
-            //region Buttons
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Top buttons
-                Row(
-                    modifier = Modifier
-                        .wrapContentHeight()
-                        .fillMaxWidth()
-                        .padding(horizontal = 18.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ShuffleButton(iconTextColor, mediaController, 32.dp)
-
-                    PreviousSongButton(iconTextColor, mediaController, 48.dp)
-
-                    PlayPauseButtonUpdating(iconTextColor, mediaController, 92.dp)
-
-                    NextSongButton(iconTextColor, mediaController, 48.dp)
-
-                    RepeatButton(iconTextColor, mediaController, 32.dp)
-                }
+            if (SongHelper.currentSong.isRadio == true){
+                Spacer(Modifier.height(48.dp))
+            }
+            else {
+                PlaybackProgressSlider(iconTextColor, mediaController)
             }
 
-            //endregion
+            Row(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .padding(horizontal = 18.dp)
+                    .selectableGroup(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ShuffleButton(iconTextColor, mediaController, 32.dp)
+
+                PreviousSongButton(iconTextColor, mediaController, 48.dp)
+
+                PlayPauseButtonUpdating(iconTextColor, mediaController, 92.dp)
+
+                NextSongButton(iconTextColor, mediaController, 48.dp)
+
+                RepeatButton(iconTextColor, mediaController, 32.dp)
+            }
         }
-        LyricsView(
-            iconTextColor,
-            false,
-            mediaController,
-            PaddingValues(horizontal = 32.dp, vertical = 16.dp)
-        )
+
+        val lyrics by LyricsManager.Lyrics.collectAsState()
+
+        if (SongHelper.currentSong.isRadio == false &&
+            !(lyrics[0].content == "No Lyrics Found" && lyrics.size == 1)
+        ) {
+            Box(Modifier.weight(0.75f)){
+                LyricsView(
+                    iconTextColor,
+                    false,
+                    mediaController,
+                    PaddingValues(horizontal = 32.dp, vertical = 16.dp)
+                )
+            }
+        }
     }
 }

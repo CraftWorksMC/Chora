@@ -15,6 +15,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -22,6 +23,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -120,13 +122,13 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
             )
             var selectedOptionText by remember { mutableStateOf(options[1]) }
 
-            ExposedDropdownMenuBox(
+            ExposedDropdownMenuBox (
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded },
             ) {
                 TextField(
                     shape = RoundedCornerShape(12.dp, 12.dp),
-                    modifier = Modifier.menuAnchor(),
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
                     readOnly = true,
                     value = selectedOptionText,
                     onValueChange = {},
