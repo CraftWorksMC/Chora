@@ -70,13 +70,14 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
         val passwordSalt = generateSalt(8)
         val passwordHash = md5Hash(server.password + passwordSalt)
 
-        // All get requests come from this file. Use Subsonic link template.
-        val url = URL("${server.url}/rest/$endpoint&u=${server.username}&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
-
-        if (url.protocol.isEmpty() && url.host.isEmpty()){
+        // Return if link isn't valid (just checking if HTTP is specified)
+        if (!server.url.startsWith("http")){
             navidromeStatus.value = "Invalid URL"
             return@withContext
         }
+
+        // All get requests come from this file. Use Subsonic link template.
+        val url = URL("${server.url}/rest/$endpoint&u=${server.username}&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
 
         val connection = if (url.protocol == "https") {
             (url.openConnection() as HttpsURLConnection).apply {

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -139,9 +140,10 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","htt
         .padding(bottom = 12.dp)
         .height(64.dp)
         .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.surfaceVariant),
-        verticalAlignment = Alignment.CenterVertically) {
-
+        .background(MaterialTheme.colorScheme.surfaceVariant)
+        .selectableGroup(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         // Provider Icon
         Image(
             painter = painterResource(R.drawable.s_m_navidrome),

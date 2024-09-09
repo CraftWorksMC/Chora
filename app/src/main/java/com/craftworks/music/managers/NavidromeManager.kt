@@ -75,6 +75,8 @@ object NavidromeManager {
         loadServers()
 
         if (getAllServers().isEmpty() && localProviderList.isEmpty()) showNoProviderDialog.value = true
+
+        setSyncingStatus(false)
     }
 
     private fun saveServers() {
