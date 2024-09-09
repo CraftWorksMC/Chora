@@ -88,7 +88,7 @@ fun PlaybackProgressSlider(
     val interactionSource = remember { MutableInteractionSource() }
     val focused = remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(mediaController) {
         while (true) {
             delay(1000)
             if (mediaController?.isPlaying == true) {

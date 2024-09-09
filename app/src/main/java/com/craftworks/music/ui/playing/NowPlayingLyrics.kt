@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -66,9 +66,13 @@ fun LyricsView(
     mediaController: MediaController?,
     paddingValues: PaddingValues = PaddingValues(),
 ) {
-    val currentLyricIndex = remember { mutableIntStateOf(0) }
-    val currentPositionValue = remember { mutableIntStateOf(0) }
+    val currentPositionValue = remember { mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0) }
     val lyrics by LyricsManager.Lyrics.collectAsState()
+    val currentLyricIndex = remember {
+        mutableIntStateOf(lyrics.indexOfFirst {
+            it.timestamp > currentPositionValue.intValue
+        }.takeIf { it >= 0 } ?: lyrics.size)
+    }
 
     val state = rememberLazyListState()
     val visibleItemsInfo by remember { derivedStateOf { state.layoutInfo.visibleItemsInfo } }
@@ -124,7 +128,6 @@ fun LyricsView(
     }
 
     LaunchedEffect(currentLyricIndex.intValue) {
-        delay(100)
         state.animateScrollToItem(currentLyricIndex.intValue)
     }
 
@@ -135,7 +138,9 @@ fun LyricsView(
                 .widthIn(min = 256.dp)
                 .fillMaxHeight()
         } else {
-            Modifier.fillMaxSize()
+            Modifier
+                .fillMaxWidth()
+                .aspectRatio(0.95f)
         }
             .padding(paddingValues)
             .verticalFadingEdges(
