@@ -137,7 +137,7 @@ private fun AnimatedBG(
     // Get Song Colors
     val context = LocalContext.current
     var colors by remember {
-        mutableStateOf(listOf(Color.Cyan, Color.Green, Color.Yellow, Color.Cyan))
+        mutableStateOf(listOf(Color.Gray))
     }
 
     LaunchedEffect(SongHelper.currentSong.imageUrl) {

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -148,7 +149,7 @@ fun NowPlayingTV(
                             val averageLuminance = totalLuminance / totalPixels
                             Log.d("LUMINANCE", "average luminance: $averageLuminance")
 
-                            val palette = Palette.from(scaledBitmap).generate().lightVibrantSwatch?.rgb
+                            val palette = Palette.from(scaledBitmap).generate().vibrantSwatch?.rgb
                             backgroundDarkMode.value = (palette?.luminance ?: 0.5f) + (averageLuminance.toFloat()) / 2 < 0.5f
 
                             scaledBitmap.recycle()
@@ -238,10 +239,10 @@ fun NowPlayingTV(
         if (SongHelper.currentSong.isRadio == false &&
             !(lyrics[0].content == "No Lyrics Found" && lyrics.size == 1)
         ) {
-            Box(Modifier.weight(0.75f)){
+            Box(Modifier.weight(0.75f).fillMaxHeight()){
                 LyricsView(
                     iconTextColor,
-                    false,
+                    true,
                     mediaController,
                     PaddingValues(horizontal = 32.dp, vertical = 16.dp)
                 )

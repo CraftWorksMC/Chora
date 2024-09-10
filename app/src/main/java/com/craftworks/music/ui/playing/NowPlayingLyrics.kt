@@ -187,7 +187,7 @@ fun LyricsView(
             item {
                 Text(
                     text = lyrics[0].content,
-                    style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = color,
                     modifier = Modifier.fillMaxWidth(),

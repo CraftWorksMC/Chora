@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -26,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
@@ -52,7 +54,9 @@ import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.getNavidromePlaylistDetails
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
+import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 
+@OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = false)
 @Composable
@@ -78,7 +82,9 @@ fun PlaylistDetails(
             top = WindowInsets.statusBars
                 .asPaddingValues()
                 .calculateTopPadding()
-        )) {
+        )
+        .dialogFocusable()
+    ) {
         Box (modifier = Modifier
             .padding(horizontal = 12.dp)
             .height(128.dp)
@@ -112,11 +118,11 @@ fun PlaylistDetails(
                 modifier = Modifier
                     .padding(top = 12.dp, start = 12.dp)
                     .size(32.dp),
-                contentPadding = PaddingValues(2.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
+                contentPadding = PaddingValues(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground)
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     tint = MaterialTheme.colorScheme.onBackground,
                     contentDescription = "Settings",
                     modifier = Modifier

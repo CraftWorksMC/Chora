@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -28,19 +29,22 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.ui.elements.dialogs.playlistToDelete
 import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun PlaylistCard(playlist: MediaData.Playlist, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .padding(12.dp)
-            .combinedClickable(onClick = { onClick() }, onLongClick = {
-                playlistToDelete.value = playlist
-                showDeletePlaylistDialog.value = true
-            }, onLongClickLabel = "Delete Playlist"
+            .clip(RoundedCornerShape(12.dp))
+            .combinedClickable(
+                onClick = { onClick() },
+                onLongClick = {
+                    playlistToDelete.value = playlist
+                    showDeletePlaylistDialog.value = true
+                },
+                onLongClickLabel = "Delete Playlist"
             )
-            .widthIn(min = 128.dp)
-            .clip(RoundedCornerShape(12.dp)),
+            .widthIn(min = 128.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AsyncImage(

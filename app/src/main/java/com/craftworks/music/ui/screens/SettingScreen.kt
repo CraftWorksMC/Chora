@@ -67,8 +67,8 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
             top = WindowInsets.statusBars
                 .asPaddingValues()
                 .calculateTopPadding()
-        )) {
-
+        )
+    ) {
         /* HEADER */
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
             Icon(

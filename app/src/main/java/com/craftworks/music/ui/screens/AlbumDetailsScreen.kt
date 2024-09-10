@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
@@ -63,9 +63,6 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.Screen
-import com.craftworks.music.data.artistList
-import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.songsList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
@@ -76,12 +73,14 @@ import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
+import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 var selectedAlbum by mutableStateOf<MediaData.Album?>(MediaData.Album(navidromeID = "", parent = "", album = "", title = "", name = "", songCount = 0, duration = 0, artistId = "", artist = "", coverArt = ""))
 
+@OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true, locale = "it")
 @Composable
@@ -127,7 +126,9 @@ fun AlbumDetails(
                 .calculateTopPadding()
         )
         .wrapContentHeight()
-        .verticalScroll(rememberScrollState())) {
+        .verticalScroll(rememberScrollState())
+        .dialogFocusable()
+    ) {
         Box (modifier = Modifier
             .padding(horizontal = 12.dp)
             .height(192.dp)
@@ -150,8 +151,8 @@ fun AlbumDetails(
                 modifier = Modifier
                     .padding(top = 12.dp, start = 12.dp)
                     .size(32.dp),
-                contentPadding = PaddingValues(2.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
+                contentPadding = PaddingValues(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
@@ -183,12 +184,13 @@ fun AlbumDetails(
                             fontWeight = FontWeight.Normal,
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.clickable {
-                                selectedArtist = artistList.firstOrNull { it.name == artistName } ?: return@clickable
-                                navHostController.navigate(Screen.AristDetails.route) {
-                                    launchSingleTop = true
-                                }
-                            }
+//                            modifier = Modifier.clickable {
+//                                selectedArtist = artistList.firstOrNull { it.name == artistName }
+//                                    ?: return@clickable
+//                                navHostController.navigate(Screen.AristDetails.route) {
+//                                    launchSingleTop = true
+//                                }
+//                            }
                         )
                     }
                     var albumDuration = 0
@@ -222,7 +224,8 @@ fun AlbumDetails(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
+                modifier = Modifier
+                    .widthIn(min = 128.dp, max = 320.dp)
                     .focusRequester(requester)
             ) {
                 Row (verticalAlignment = Alignment.CenterVertically,
