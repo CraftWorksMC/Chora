@@ -25,13 +25,11 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -68,7 +66,6 @@ import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 @Composable
 fun NowPlayingTV(
     mediaController: MediaController? = null,
-    scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     navHostController: NavHostController = rememberNavController(),
 ){
     Log.d("RECOMPOSITION", "NowPlaying Portrait")

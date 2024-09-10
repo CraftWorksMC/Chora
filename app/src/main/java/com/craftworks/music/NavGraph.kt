@@ -11,7 +11,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -156,8 +155,8 @@ fun SetupNavGraph(
         composable(route = Screen.NowPlaying_TV.route){
             NowPlayingContent(
                 LocalContext.current,
-                rememberBottomSheetScaffoldState(),
-                snackbarHostState = null,
+                //rememberBottomSheetScaffoldState(),
+                //snackbarHostState = null,
                 navController,
                 mediaController
             )

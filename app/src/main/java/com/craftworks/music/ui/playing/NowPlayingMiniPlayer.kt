@@ -1,7 +1,7 @@
 package com.craftworks.music.ui.playing
 
 import android.util.Log
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,18 +21,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -39,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.media3.session.MediaController
@@ -57,25 +53,17 @@ fun NowPlayingMiniPlayer(
 ) {
     Log.d("RECOMPOSITION", "Mini Player")
 
-    var offset by remember { mutableFloatStateOf(0f) }
-
-    LaunchedEffect(scaffoldState.bottomSheetState.targetValue) {
-        offset =
-            if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) 72.dp.value.toFloat() else 0f
-    }
-
-    val animatedOffset by animateFloatAsState(
-        targetValue = offset, label = "Animated Top Offset"
-    )
-
     val coroutineScope = rememberCoroutineScope()
 
+    val yTrans by animateIntAsState(
+        targetValue = if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) dpToPx(72) else 0,
+        label = "Fullscreen Translation"
+    )
+
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier
-        .graphicsLayer {
-            translationY = -animatedOffset.dp.toPx()
-        }
+        .offset { IntOffset(x = 0, y = -yTrans) }
         .zIndex(1f)
-        .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp))
+        .background(MaterialTheme.colorScheme.surfaceContainer)
         .height(72.dp)
         .fillMaxWidth()
         .padding(horizontal = 4.dp)
@@ -84,12 +72,13 @@ fun NowPlayingMiniPlayer(
                 if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded) scaffoldState.bottomSheetState.expand()
                 else scaffoldState.bottomSheetState.partialExpand()
             }
-        }) {
+        }
+    ) {
         // Album Image
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(SongHelper.currentSong.imageUrl)
-                .size(256)
+                .size(128)
                 .crossfade(true)
                 .build(),
             contentDescription = "Album Cover",

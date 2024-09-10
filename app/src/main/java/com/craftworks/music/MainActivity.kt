@@ -157,8 +157,8 @@ class MainActivity : ComponentActivity() {
 
                                         NowPlayingContent(
                                             context = this@MainActivity,
-                                            scaffoldState = scaffoldState,
-                                            snackbarHostState = snackbarHostState,
+                                            //scaffoldState = scaffoldState,
+                                            //snackbarHostState = snackbarHostState,
                                             navHostController = navController,
                                             mediaController = mediaController.value
                                         )
@@ -232,6 +232,8 @@ class MainActivity : ComponentActivity() {
 fun AnimatedBottomNavBar(
     navController: NavHostController, scaffoldState: BottomSheetScaffoldState,
 ) {
+    Log.d("RECOMPOSITION", "Recomposing AnimatedBottomNavBar!")
+
     val backStackEntry = navController.currentBackStackEntryAsState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current

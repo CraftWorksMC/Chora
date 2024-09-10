@@ -72,11 +72,11 @@ import kotlinx.coroutines.launch
     wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true
 )
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NowPlayingPortrait(
     mediaController: MediaController? = null,
-    scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
+    //scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     navHostController: NavHostController = rememberNavController(),
 ){
     Log.d("RECOMPOSITION", "NowPlaying Portrait")
@@ -216,24 +216,24 @@ fun NowPlayingPortrait(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
                             .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
-                            .clickable {
-                                try {
-                                    selectedArtist = artistList.firstOrNull() {
-                                        it.name.equals(
-                                            artistName, ignoreCase = true
-                                        )
-                                    }!!
-                                } catch (e: Exception) {
-                                    Log.d("NAVIDROME", "Artist not found!")
-                                    return@clickable
-                                }
-                                coroutine.launch {
-                                    scaffoldState.bottomSheetState.partialExpand()
-                                }
-                                navHostController.navigate(Screen.AristDetails.route) {
-                                    launchSingleTop = true
-                                }
-                            }
+//                            .clickable {
+//                                try {
+//                                    selectedArtist = artistList.firstOrNull() {
+//                                        it.name.equals(
+//                                            artistName, ignoreCase = true
+//                                        )
+//                                    }!!
+//                                } catch (e: Exception) {
+//                                    Log.d("NAVIDROME", "Artist not found!")
+//                                    return@clickable
+//                                }
+//                                coroutine.launch {
+//                                    scaffoldState.bottomSheetState.partialExpand()
+//                                }
+//                                navHostController.navigate(Screen.AristDetails.route) {
+//                                    launchSingleTop = true
+//                                }
+//                            }
                     )
                 }
 

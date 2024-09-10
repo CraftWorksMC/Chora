@@ -254,7 +254,8 @@ fun PlayPauseButtonUpdating(color: Color, mediaController: MediaController?, siz
             .bounceClick(),
         contentPadding = PaddingValues(0.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent
+            containerColor = Color.Transparent,
+            contentColor = color
         )
     ) {
         val icon = when (playerStatus.value) {
