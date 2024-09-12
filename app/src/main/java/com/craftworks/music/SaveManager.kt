@@ -4,14 +4,10 @@ import android.content.Context
 import android.util.Log
 import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.localProviderList
-import com.craftworks.music.data.navidromeServersList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedLocalProvider
-import com.craftworks.music.data.selectedNavidromeServerIndex
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import kotlinx.coroutines.CoroutineScope
@@ -39,19 +35,11 @@ class saveManager(private val context: Context){
         saveLocalPlaylists()
 
         // Save Active Providers
-        sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
-        sharedPreferences.edit().putInt("activeLocalProvider", selectedLocalProvider.intValue).apply()
+        //sharedPreferences.edit().putInt("activeNavidromeServer", selectedNavidromeServerIndex.intValue).apply()
+        //sharedPreferences.edit().putInt("activeLocalProvider", selectedLocalProvider.intValue).apply()
     }
 
     //region Save Single Components
-
-    /*
-    fun saveBottomNavItems(){
-        val navItems = bottomNavigationItems.joinToString(";") {
-            "${it.title}|${it.icon}|${it.screenRoute}|${it.enabled}" }
-        sharedPreferences.edit().putString("bottomNavItems", navItems).apply()
-    }
-    */
     fun saveLocalRadios(){
         val radiosListString = radioList.joinToString(";") {
             if (it.navidromeID == "Local")
@@ -87,24 +75,6 @@ class saveManager(private val context: Context){
         Log.d("LOAD", "Loaded Settings!")
     }
 
-    fun loadNavidromeProviders(){
-        Log.d("LOAD", "Loading Navidrome Providers")
-
-        //useNavidromeServer.value = sharedPreferences.getBoolean("useNavidrome", false)
-
-        val navidromeStrings = (sharedPreferences.getString("navidromeServerList", "") ?: "").split(";")
-        navidromeStrings.forEach { navidromeString ->
-            val parts = navidromeString.split(",")
-            if (parts.size == 6) {
-                val navidromeProvider = NavidromeProvider(parts[0], parts[1], parts[2], parts[3], parts[4].toBoolean(), parts[5].toBoolean())
-                if (navidromeServersList.contains(navidromeProvider)) return
-                navidromeServersList.add(navidromeProvider)
-                println(navidromeProvider)
-                NavidromeManager.addServer(navidromeProvider)
-            }
-        }
-        selectedNavidromeServerIndex.intValue = sharedPreferences.getInt("activeNavidromeServer", 0)
-    }
     fun loadLocalProviders(){
         Log.d("LOAD", "Loading Local Providers")
 
@@ -120,39 +90,6 @@ class saveManager(private val context: Context){
         }
         selectedLocalProvider.intValue = sharedPreferences.getInt("activeLocalProvider", 0)
     }
-
-    /*
-    private fun loadArtists(){
-        Log.d("LOAD", "Loading Cached Artists")
-
-        // Get Artists List
-        val artistListStrings = (sharedPreferences.getString("artistsList", "") ?: "").split(";")
-        artistListStrings.forEach { localString ->
-            val parts = localString.split("|")
-            if (parts.size > 1) {
-                try {
-                    val artist = MediaData.Artist(
-                        parts[0],
-                        parts[1],
-                        parts[2],
-                    )
-                    if (artistList.contains(artistList.firstOrNull { it.name == artist.name && it.navidromeID == "Local"})){
-                        artistList[artistList.indexOfFirst { it.name == artist.name && it.navidromeID == "Local" }].apply {
-                            navidromeID = artist.navidromeID
-                        }
-                    }
-                    else{
-                        if (!artistList.contains(artistList.firstOrNull { it.name == artist.name }))
-                            artistList.add(artist)
-                    }
-                }
-                catch (e:Exception){
-                    println("Failed to add all artists, motive: $e")
-                }
-
-            }
-        }
-    } */
 
     fun loadRadios(){
         Log.d("LOAD", "Loading Radios")
@@ -172,11 +109,6 @@ class saveManager(private val context: Context){
                 radioList.add(radio)
             }
         }
-//        if (useNavidromeServer.value){
-//            scope.launch {
-//                getNavidromeRadios()
-//            }
-//        }
     }
     fun loadPlaylists(){
         Log.d("LOAD", "Loading Offline Playlists")
