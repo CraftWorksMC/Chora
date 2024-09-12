@@ -31,7 +31,6 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -107,7 +106,6 @@ class MainActivity : ComponentActivity() {
             ),
             snackbarHostState = SnackbarHostState()
         )
-        val snackbarHostState = SnackbarHostState()
 
         setContent {
             MusicPlayerTheme {
@@ -122,7 +120,6 @@ class MainActivity : ComponentActivity() {
                     println("Recomposing EVERYTHING!!!!! VERY BAD")
 
                     Scaffold(
-                        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                         bottomBar = {
                             AnimatedBottomNavBar(navController, scaffoldState)
                         }
@@ -131,7 +128,8 @@ class MainActivity : ComponentActivity() {
                         Log.d("RECOMPOSITION", "Recomposing scaffold!")
 
                         // No BottomSheetScaffold for Android TV
-                        if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION) {
+                        if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION) &&
+                            LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
                             BottomSheetScaffold(
                                 sheetContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
                                     3.dp
@@ -296,8 +294,9 @@ fun AnimatedBottomNavBar(
     } else {
         NavigationRail {
             val uiMode = LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK
+            val orientation = LocalConfiguration.current.orientation
             LaunchedEffect(orderedNavItems) {
-                if (orderedNavItems.firstOrNull { it.screenRoute == "playing_tv_screen" } == null && uiMode == Configuration.UI_MODE_TYPE_TELEVISION) {
+                if (orderedNavItems.firstOrNull { it.screenRoute == "playing_tv_screen" } == null && (uiMode == Configuration.UI_MODE_TYPE_TELEVISION || orientation == Configuration.ORIENTATION_LANDSCAPE)) {
 
                     val updatedItems = orderedNavItems.toMutableList()
                     updatedItems.add(

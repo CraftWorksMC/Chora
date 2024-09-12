@@ -48,10 +48,11 @@ fun NowPlayingContent(
 //        }
 //    }
 
-    when (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK){
-        Configuration.UI_MODE_TYPE_TELEVISION -> NowPlayingTV(mediaController, navHostController)
-        else -> NowPlayingPortrait(mediaController, navHostController)
+    if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) ||
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE){
+        NowPlayingTV(mediaController, navHostController)
     }
+    else NowPlayingPortrait(mediaController, navHostController)
 }
 
 @Composable
