@@ -29,8 +29,6 @@ var lyricsOpen by mutableStateOf(false)
 @Composable
 fun NowPlayingContent(
     context: Context = LocalContext.current,
-    //scaffoldState: BottomSheetScaffoldState? = rememberBottomSheetScaffoldState(),
-    //snackbarHostState: SnackbarHostState? = SnackbarHostState(),
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = rememberManagedMediaController().value
 ) {
@@ -50,7 +48,7 @@ fun NowPlayingContent(
 
     if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) ||
         LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE){
-        NowPlayingTV(mediaController, navHostController)
+        NowPlayingLandscape(mediaController, navHostController)
     }
     else NowPlayingPortrait(mediaController, navHostController)
 }

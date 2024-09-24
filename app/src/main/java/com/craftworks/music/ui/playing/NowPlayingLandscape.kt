@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -61,10 +60,10 @@ import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Preview(device = "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240", showBackground = true, showSystemUi = true)
 @Preview(device = "id:tv_1080p", showBackground = true, showSystemUi = true)
 @Composable
-fun NowPlayingTV(
+fun NowPlayingLandscape(
     mediaController: MediaController? = null,
     navHostController: NavHostController = rememberNavController(),
 ){
@@ -119,7 +118,7 @@ fun NowPlayingTV(
                     contentScale = ContentScale.FillWidth,
                     alignment = Alignment.Center,
                     modifier = Modifier
-                        .height(256.dp)
+                        .fillMaxHeight(0.6f)
                         .aspectRatio(1f)
                         .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
                         .background(MaterialTheme.colorScheme.surfaceVariant),
@@ -234,7 +233,7 @@ fun NowPlayingTV(
         val lyrics by LyricsManager.Lyrics.collectAsState()
 
         if (SongHelper.currentSong.isRadio == false &&
-            !(lyrics[0].content == "No Lyrics Found" && lyrics.size == 1)
+            /*!*/(lyrics[0].content == "No Lyrics Found" && lyrics.size == 1)
         ) {
             Box(Modifier.weight(0.75f).fillMaxHeight()){
                 LyricsView(
