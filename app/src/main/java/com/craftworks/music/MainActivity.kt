@@ -36,7 +36,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -62,6 +61,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.data.BottomNavItem
+import com.craftworks.music.data.Screen
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.SongHelper
@@ -256,7 +256,7 @@ fun AnimatedBottomNavBar(
         //endregion
     ).value
 
-    if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) {
+    if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
         val yTrans by animateIntAsState(
             targetValue = if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) dpToPx(
                 -80 - WindowInsets.navigationBars.asPaddingValues()
@@ -293,23 +293,6 @@ fun AnimatedBottomNavBar(
         }
     } else {
         NavigationRail {
-            val uiMode = LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK
-            val orientation = LocalConfiguration.current.orientation
-            LaunchedEffect(orderedNavItems) {
-                if (orderedNavItems.firstOrNull { it.screenRoute == "playing_tv_screen" } == null && (uiMode == Configuration.UI_MODE_TYPE_TELEVISION || orientation == Configuration.ORIENTATION_LANDSCAPE)) {
-
-                    val updatedItems = orderedNavItems.toMutableList()
-                    updatedItems.add(
-                        BottomNavItem(
-                            "Playing", R.drawable.s_m_playback, "playing_tv_screen"
-                        )
-                    )
-                    coroutineScope.launch {
-                        SettingsManager(context).setBottomNavItems(updatedItems)
-                    }
-                }
-            }
-
             orderedNavItems.forEach { item ->
                 if (!item.enabled) return@forEach
                 NavigationRailItem(
@@ -334,6 +317,30 @@ fun AnimatedBottomNavBar(
                     },
                 )
             }
+            NavigationRailItem(
+                selected = Screen.NowPlaying_TV.route == backStackEntry.value?.destination?.route,
+                onClick = {
+                    if (Screen.NowPlaying_TV.route == backStackEntry.value?.destination?.route) return@NavigationRailItem
+                    navController.navigate(Screen.NowPlaying_TV.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                    }
+                    coroutineScope.launch {
+                        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
+                    }
+                },
+                label = { Text(text = "Playing") },
+                alwaysShowLabel = false,
+                icon = {
+                    Icon(
+                        ImageVector.vectorResource(R.drawable.s_m_playback),
+                        contentDescription = "Playing"
+                    )
+                },
+            )
         }
     }
 }
