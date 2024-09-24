@@ -1,5 +1,8 @@
 package com.craftworks.music.lyrics
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.craftworks.music.data.Lyric
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromePlainLyrics
@@ -21,19 +24,33 @@ object LyricsManager {
         // If that fails, try LRCLIB.net.
         // If we turned it off or we cannot find lyrics, then return "No Lyrics Found"
 
+        var foundNavidromePlainLyrics:Boolean by mutableStateOf(false)
+
         if (NavidromeManager.checkActiveServers()) {
             getNavidromeSyncedLyrics().takeIf { it.isNotEmpty() }?.let {
-                _Lyrics.value = it
-                return
+                if (it.size == 1)
+                    foundNavidromePlainLyrics = true
+                else {
+                    _Lyrics.value = it
+                    return
+                }
             }
 
             getNavidromePlainLyrics().takeIf { it.first().content.isNotEmpty() }?.let {
+                if (it.size == 1)
+                    foundNavidromePlainLyrics = true
+
                 _Lyrics.value = it
-                return
             }
         }
 
         if (useLrcLib) {
+            if (foundNavidromePlainLyrics) {
+                getLrcLibLyrics().takeIf { it.isNotEmpty() }?.let {
+                    if (it.size != 1) _Lyrics.value = it
+                    return
+                }
+            }
             getLrcLibLyrics().takeIf { it.isNotEmpty() }?.let {
                 _Lyrics.value = it
                 return
