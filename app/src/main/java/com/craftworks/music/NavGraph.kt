@@ -120,7 +120,7 @@ fun SetupNavGraph(
             PlaylistScreen(navController, playlistViewModel)
         }
         composable(route = Screen.PlaylistDetails.route) {
-            PlaylistDetails(navController, mediaController)
+            PlaylistDetails(navController, mediaController, playlistViewModel)
         }
 
         //Settings

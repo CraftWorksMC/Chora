@@ -78,11 +78,12 @@ fun parseNavidromePlaylistJSON(
     val mediaDataPlaylist = selectedPlaylist
 
     // Generate password salt and hash
-    val passwordSaltArt = generateSalt(8)
-    val passwordHashArt = md5Hash(navidromePassword + passwordSaltArt)
+    val passwordSalt = generateSalt(8)
+    val passwordHash = md5Hash(navidromePassword + passwordSalt)
 
     subsonicResponse.playlist?.songs?.map {
-        it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashArt&s=$passwordSaltArt&v=1.16.1&c=Chora"
+        it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora"
+        it.media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora"
     }
 
     mediaDataPlaylist.songs = subsonicResponse.playlist?.songs

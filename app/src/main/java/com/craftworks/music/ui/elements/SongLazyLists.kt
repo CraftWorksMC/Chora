@@ -183,7 +183,7 @@ fun AlbumGrid(
     }
 
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(128.dp),
+        columns = GridCells.Adaptive(96.dp),
         modifier = Modifier
             .wrapContentWidth()
             .fillMaxHeight()
