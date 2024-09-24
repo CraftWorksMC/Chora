@@ -318,10 +318,10 @@ fun AnimatedBottomNavBar(
                 )
             }
             NavigationRailItem(
-                selected = Screen.NowPlaying_TV.route == backStackEntry.value?.destination?.route,
+                selected = Screen.NowPlayingLandscape.route == backStackEntry.value?.destination?.route,
                 onClick = {
-                    if (Screen.NowPlaying_TV.route == backStackEntry.value?.destination?.route) return@NavigationRailItem
-                    navController.navigate(Screen.NowPlaying_TV.route) {
+                    if (Screen.NowPlayingLandscape.route == backStackEntry.value?.destination?.route) return@NavigationRailItem
+                    navController.navigate(Screen.NowPlayingLandscape.route) {
                         launchSingleTop = true
                         restoreState = true
                         popUpTo(navController.graph.findStartDestination().id) {

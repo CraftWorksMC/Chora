@@ -152,14 +152,13 @@ fun SetupNavGraph(
             S_PlaybackScreen(navController)
         }
 
-        composable(route = Screen.NowPlaying_TV.route){
-            NowPlayingContent(
-                LocalContext.current,
-                //rememberBottomSheetScaffoldState(),
-                //snackbarHostState = null,
-                navController,
-                mediaController
-            )
+        composable(route = Screen.NowPlayingLandscape.route){
+            if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) ||
+                LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                NowPlayingContent(
+                    LocalContext.current, navController, mediaController
+                )
+            }
         }
     }
 }

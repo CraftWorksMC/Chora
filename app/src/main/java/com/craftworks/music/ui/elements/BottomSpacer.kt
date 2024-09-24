@@ -40,7 +40,8 @@ fun bottomSpacerHeightDp(): Dp {
     return if (SongHelper.currentSong.title == "" &&
         SongHelper.currentSong.duration == 0 &&
         SongHelper.currentSong.imageUrl == "" ||
-        LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) {
+        LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION ||
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             0.dp
     }
     else {

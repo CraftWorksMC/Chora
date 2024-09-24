@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.util.Log
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -40,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -62,6 +64,7 @@ import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
 @Preview(device = "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240", showBackground = true, showSystemUi = true)
 @Preview(device = "id:tv_1080p", showBackground = true, showSystemUi = true)
+@Preview(device = "spec:parent=pixel_6,orientation=landscape", showBackground = true, showSystemUi = true)
 @Composable
 fun NowPlayingLandscape(
     mediaController: MediaController? = null,
@@ -93,111 +96,114 @@ fun NowPlayingLandscape(
     Row (
         Modifier.padding(start = 80.dp)
     ) {
+
         Column(Modifier.weight(1f).widthIn(min = 512.dp)) {
             // Top padding (for mini-player)
             Spacer(Modifier.height(24.dp))
 
-            // Album Art + Info
-            Column(
-                Modifier.focusable(false),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Log.d("RECOMPOSITION", "Album cover or lyrics")
-
-                /* Album Cover + Lyrics */
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(SongHelper.currentSong.imageUrl)
-                        .allowHardware(false)
-                        .size(1024)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Album Cover Art",
-                    placeholder = painterResource(R.drawable.placeholder),
-                    fallback = painterResource(R.drawable.placeholder),
-                    contentScale = ContentScale.FillWidth,
-                    alignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxHeight(0.6f)
-                        .aspectRatio(1f)
-                        .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    onSuccess = { result ->
-                        // Dark or Light mode for UI elements
-                        val drawable = result.result.drawable
-                        val bitmap = (drawable as? BitmapDrawable)?.bitmap?.copy(Bitmap.Config.ARGB_8888, true)
-                        bitmap?.let {
-                            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 64, 64, true).copy(
-                                Bitmap.Config.ARGB_8888, true)
-
-                            // Calculate average luminance
-
-                            val totalPixels = scaledBitmap.width * scaledBitmap.height
-                            var totalLuminance = 0.0
-
-                            for (x in 0 until scaledBitmap.width) {
-                                for (y in 0 until scaledBitmap.height) {
-                                    val pixel = scaledBitmap.getPixel(x, y)
-                                    totalLuminance += pixel.luminance
-                                }
-                            }
-
-                            val averageLuminance = totalLuminance / totalPixels
-                            Log.d("LUMINANCE", "average luminance: $averageLuminance")
-
-                            val palette = Palette.from(scaledBitmap).generate().vibrantSwatch?.rgb
-                            backgroundDarkMode.value = (palette?.luminance ?: 0.5f) + (averageLuminance.toFloat()) / 2 < 0.5f
-
-                            scaledBitmap.recycle()
-                        }
-                    }
-                )
-
-                /* Song Title + Artist*/
+            // Album Art
+            if (LocalConfiguration.current.screenHeightDp.dp > 512.dp){
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 6.dp)
-                        .padding(horizontal = 32.dp),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Top
+                    Modifier.focusable(false).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Log.d("RECOMPOSITION", "Titles and artist")
-                    SongHelper.currentSong.title.let {
+                    Log.d("RECOMPOSITION", "Album cover or lyrics")
+
+                    /* Album Cover + Lyrics */
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(SongHelper.currentSong.imageUrl)
+                            .allowHardware(false)
+                            .size(1024)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Album Cover Art",
+                        placeholder = painterResource(R.drawable.placeholder),
+                        fallback = painterResource(R.drawable.placeholder),
+                        contentScale = ContentScale.FillWidth,
+                        alignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxHeight(0.6f)
+                            .aspectRatio(1f)
+                            .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        onSuccess = { result ->
+                            // Dark or Light mode for UI elements
+                            val drawable = result.result.drawable
+                            val bitmap = (drawable as? BitmapDrawable)?.bitmap?.copy(Bitmap.Config.ARGB_8888, true)
+                            bitmap?.let {
+                                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 64, 64, true).copy(
+                                    Bitmap.Config.ARGB_8888, true)
+
+                                // Calculate average luminance
+
+                                val totalPixels = scaledBitmap.width * scaledBitmap.height
+                                var totalLuminance = 0.0
+
+                                for (x in 0 until scaledBitmap.width) {
+                                    for (y in 0 until scaledBitmap.height) {
+                                        val pixel = scaledBitmap.getPixel(x, y)
+                                        totalLuminance += pixel.luminance
+                                    }
+                                }
+
+                                val averageLuminance = totalLuminance / totalPixels
+                                Log.d("LUMINANCE", "average luminance: $averageLuminance")
+
+                                val palette = Palette.from(scaledBitmap).generate().vibrantSwatch?.rgb
+                                backgroundDarkMode.value = (palette?.luminance ?: 0.5f) + (averageLuminance.toFloat()) / 2 < 0.5f
+
+                                scaledBitmap.recycle()
+                            }
+                        }
+                    )
+                }
+            }
+
+            /* Song Title + Artist*/
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 6.dp)
+                    .padding(horizontal = 32.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Top
+            ) {
+                Log.d("RECOMPOSITION", "Titles and artist")
+                SongHelper.currentSong.title.let {
+                    Text(
+                        text = it,
+                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                        fontWeight = FontWeight.SemiBold,
+                        color = iconTextColor,
+                        maxLines = 1, overflow = TextOverflow.Visible,
+                        softWrap = false,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+                    )
+                }
+
+                if (SettingsManager(LocalContext.current).showMoreInfoFlow.collectAsState(true).value){
+                    SongHelper.currentSong.artist.let { artistName ->
                         Text(
-                            text = it,
-                            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                            fontWeight = FontWeight.SemiBold,
+                            text = artistName + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
+                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                            fontWeight = FontWeight.Normal,
                             color = iconTextColor,
-                            maxLines = 1, overflow = TextOverflow.Visible,
+                            maxLines = 1,
                             softWrap = false,
                             textAlign = TextAlign.Start,
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
-                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
                                 .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
                         )
                     }
-
-                    if (SettingsManager(LocalContext.current).showMoreInfoFlow.collectAsState(true).value){
-                        SongHelper.currentSong.artist.let { artistName ->
-                            Text(
-                                text = artistName + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
-                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                fontWeight = FontWeight.Normal,
-                                color = iconTextColor,
-                                maxLines = 1,
-                                softWrap = false,
-                                textAlign = TextAlign.Start,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.height(8.dp))
                 }
+
+                Spacer(Modifier.height(8.dp))
             }
 
             //Spacer(Modifier.height(24.dp))
@@ -228,20 +234,107 @@ fun NowPlayingLandscape(
 
                 RepeatButton(iconTextColor, mediaController, 32.dp)
             }
+            if (LocalConfiguration.current.screenHeightDp.dp < 512.dp){
+                Row(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .selectableGroup(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    LyricsButton(iconTextColor, 48.dp)
+                }
+            }
         }
 
         val lyrics by LyricsManager.Lyrics.collectAsState()
 
-        if (SongHelper.currentSong.isRadio == false &&
-            /*!*/(lyrics[0].content == "No Lyrics Found" && lyrics.size == 1)
-        ) {
-            Box(Modifier.weight(0.75f).fillMaxHeight()){
-                LyricsView(
-                    iconTextColor,
-                    true,
-                    mediaController,
-                    PaddingValues(horizontal = 32.dp, vertical = 16.dp)
-                )
+        if (LocalConfiguration.current.screenHeightDp.dp < 512.dp){
+            Crossfade(
+                lyricsOpen,
+                label = ""
+            ) {
+                if (it){
+                    Box(Modifier
+                        .padding(32.dp)
+                        .fillMaxHeight()
+                        .aspectRatio(1f)
+                    ){
+                        LyricsView(
+                            iconTextColor,
+                            true,
+                            mediaController,
+                            PaddingValues(horizontal = 32.dp, vertical = 16.dp)
+                        )
+                    }
+                }
+                else {
+                    /* Album Cover + Lyrics */
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(SongHelper.currentSong.imageUrl)
+                            .allowHardware(false)
+                            .size(1024)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Album Cover Art",
+                        placeholder = painterResource(R.drawable.placeholder),
+                        fallback = painterResource(R.drawable.placeholder),
+                        contentScale = ContentScale.FillWidth,
+                        alignment = Alignment.Center,
+                        modifier = Modifier
+                            .padding(32.dp)
+                            .fillMaxHeight()
+                            .aspectRatio(1f)
+                            .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        onSuccess = { result ->
+                            // Dark or Light mode for UI elements
+                            val drawable = result.result.drawable
+                            val bitmap = (drawable as? BitmapDrawable)?.bitmap?.copy(Bitmap.Config.ARGB_8888, true)
+                            bitmap?.let {
+                                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 64, 64, true).copy(
+                                    Bitmap.Config.ARGB_8888, true)
+
+                                // Calculate average luminance
+
+                                val totalPixels = scaledBitmap.width * scaledBitmap.height
+                                var totalLuminance = 0.0
+
+                                for (x in 0 until scaledBitmap.width) {
+                                    for (y in 0 until scaledBitmap.height) {
+                                        val pixel = scaledBitmap.getPixel(x, y)
+                                        totalLuminance += pixel.luminance
+                                    }
+                                }
+
+                                val averageLuminance = totalLuminance / totalPixels
+                                Log.d("LUMINANCE", "average luminance: $averageLuminance")
+
+                                val palette = Palette.from(scaledBitmap).generate().vibrantSwatch?.rgb
+                                backgroundDarkMode.value = (palette?.luminance ?: 0.5f) + (averageLuminance.toFloat()) / 2 < 0.5f
+
+                                scaledBitmap.recycle()
+                            }
+                        }
+                    )
+                }
+            }
+        }
+        else {
+            if (SongHelper.currentSong.isRadio == false &&
+                !(lyrics[0].content == "No Lyrics Found" && lyrics.size == 1)
+            ) {
+                Box(Modifier.weight(0.75f).fillMaxHeight()){
+                    LyricsView(
+                        iconTextColor,
+                        true,
+                        mediaController,
+                        PaddingValues(horizontal = 32.dp, vertical = 16.dp)
+                    )
+                }
             }
         }
     }
