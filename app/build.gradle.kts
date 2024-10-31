@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.craftworks.music"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.craftworks.music"
         minSdk = 30
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 241
         versionName = "1.24.1"
 
