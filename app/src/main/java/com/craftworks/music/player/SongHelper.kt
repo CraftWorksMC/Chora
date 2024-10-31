@@ -15,8 +15,12 @@ import androidx.media3.session.MediaController
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.sliderPos
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class SongHelper {
     companion object{
@@ -66,91 +70,94 @@ class SongHelper {
         var minPercentageScrobble = mutableIntStateOf(75)
 
         fun playStream(context: Context, url: Uri, isRadio: Boolean ? = false, mediaController: MediaController? = null) {
-            if (mediaController?.isConnected == false) return
 
-            currentTracklist.clear()
+            CoroutineScope(Dispatchers.IO).launch {
+                if (mediaController?.isConnected == false) return@launch
 
-            var transcodingValue = ""
-            runBlocking {
-                transcodingValue = SettingsManager(context).transcodingBitrateFlow.first()
+                currentTracklist.clear()
+
+                val transcodingValue = SettingsManager(context).transcodingBitrateFlow.first()
                 println("TRANSCODING VALUE = $transcodingValue")
-            }
 
-            sliderPos.intValue = 0
+                sliderPos.intValue = 0
 
-            if (isRadio == false){
-                for (song in currentList){
+                if (isRadio == false) {
+                    for (song in currentList) {
 
-                    //Assign transcoding to media
-                    if (transcodingValue != "No Transcoding")
-                        song.media += "&format=mp3&maxBitRate=${transcodingValue}"
+                        //Assign transcoding to media
+                        if (transcodingValue != "No Transcoding")
+                            song.media += "&format=mp3&maxBitRate=${transcodingValue}"
 
-                    val mediaMetadata = MediaMetadata.Builder()
+                        val mediaMetadata = MediaMetadata.Builder()
+                            .setIsPlayable(true)
+                            .setIsBrowsable(false)
+                            .setTitle(song.title)
+                            .setArtist(song.artist)
+                            .setAlbumTitle(song.album)
+                            .setArtworkUri(Uri.parse(song.imageUrl))
+                            .setReleaseYear(song.year)
+                            .setExtras(Bundle().apply {
+                                putInt("duration", song.duration)
+                                putString("NavidromeID", song.navidromeID)
+                                putBoolean("isRadio", song.isRadio ?: false)
+                                putString("format", song.format)
+                                putInt("bitrate", song.bitrate ?: 0)
+                            })
+                            .build()
+                        val mediaItem = MediaItem.Builder()
+                            .setMediaId(song.media.toString())
+                            .setUri(song.media.toString())
+                            .setMediaMetadata(mediaMetadata)
+                            .build()
+
+                        currentTracklist.add(mediaItem)
+                        println("MEDIAID = " + mediaItem.mediaId + " |||| MEDIAURL = " + url)
+                    }
+
+                    val currentTrackIndex = currentTracklist.indexOfFirst { it.mediaId.substringBefore("&format=mp3") == url.toString() }
+
+                    withContext(Dispatchers.Main) {
+                        mediaController?.setMediaItems(currentTracklist, currentTrackIndex, 0)
+                        mediaController?.seekToDefaultPosition(currentTrackIndex)
+                        mediaController?.prepare()
+                        mediaController?.play()
+
+                        println("Index: $currentTrackIndex, playlist size: ${mediaController?.mediaItemCount}")
+                    }
+                } else {
+                    val radioMetadata = MediaMetadata.Builder()
                         .setIsPlayable(true)
                         .setIsBrowsable(false)
-                        .setTitle(song.title)
-                        .setArtist(song.artist)
-                        .setAlbumTitle(song.album)
-                        .setArtworkUri(Uri.parse(song.imageUrl))
-                        .setReleaseYear(song.year)
+                        .setTitle(currentSong.title)
+                        .setArtist(currentSong.artist)
+                        .setAlbumTitle(currentSong.album)
+                        .setArtworkUri(Uri.parse(currentSong.imageUrl))
+                        .setReleaseYear(currentSong.year)
                         .setExtras(Bundle().apply {
-                            putInt("duration", song.duration)
-                            putString("NavidromeID", song.navidromeID)
-                            putBoolean("isRadio", song.isRadio ?: false)
-                            putString("format", song.format)
-                            putInt("bitrate", song.bitrate ?: 0)
+                            putInt("duration", currentSong.duration)
+                            putString("NavidromeID", currentSong.navidromeID)
+                            putBoolean("isRadio", true)
+                            putString("format", currentSong.format)
+                            putInt("bitrate", currentSong.bitrate ?: 0)
                         })
                         .build()
-                    val mediaItem = MediaItem.Builder()
-                        .setMediaId(song.media.toString())
-                        .setUri(song.media.toString())
-                        .setMediaMetadata(mediaMetadata)
+                    val radioItem = MediaItem.Builder()
+                        .setUri(url)
+                        .setMediaId(url.toString())
+                        .setMediaMetadata(radioMetadata)
                         .build()
 
-                    currentTracklist.add(mediaItem)
-                    println("MEDIAID = " + mediaItem.mediaId + " |||| MEDIAURL = " + url)
+                    currentTracklist = mutableListOf(radioItem)
+
+                    withContext(Dispatchers.Main) {
+                        mediaController?.setMediaItem(radioItem)
+                        mediaController?.seekToDefaultPosition()
+                        mediaController?.prepare()
+                        mediaController?.play()
+
+                        println("listening to radio")
+                    }
                 }
-
-                val currentTrackIndex = currentTracklist.indexOfFirst { it.mediaId.substringBefore("&format=mp3") == url.toString() }
-
-                mediaController?.setMediaItems(currentTracklist, currentTrackIndex, 0)
-                mediaController?.seekToDefaultPosition(currentTrackIndex)
-                mediaController?.prepare()
-                mediaController?.play()
-
-                println("Index: ${currentTrackIndex}, playlist size: ${mediaController?.mediaItemCount}")
-            }
-            else {
-                val radioMetadata = MediaMetadata.Builder()
-                    .setIsPlayable(true)
-                    .setIsBrowsable(false)
-                    .setTitle(currentSong.title)
-                    .setArtist(currentSong.artist)
-                    .setAlbumTitle(currentSong.album)
-                    .setArtworkUri(Uri.parse(currentSong.imageUrl))
-                    .setReleaseYear(currentSong.year)
-                    .setExtras(Bundle().apply {
-                        putInt("duration", currentSong.duration)
-                        putString("NavidromeID", currentSong.navidromeID)
-                        putBoolean("isRadio", true)
-                        putString("format", currentSong.format)
-                        putInt("bitrate", currentSong.bitrate ?: 0)
-                    })
-                    .build()
-                val radioItem = MediaItem.Builder()
-                    .setUri(url)
-                    .setMediaId(url.toString())
-                    .setMediaMetadata(radioMetadata)
-                    .build()
-
-                currentTracklist = mutableListOf(radioItem)
-
-                mediaController?.setMediaItem(radioItem)
-                mediaController?.seekToDefaultPosition()
-                mediaController?.prepare()
-                mediaController?.play()
-
-                println("listening to radio")
             }
         }
     }

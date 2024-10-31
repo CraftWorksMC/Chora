@@ -33,6 +33,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,6 +81,8 @@ fun NowPlayingPortrait(
     navHostController: NavHostController = rememberNavController(),
 ){
     Log.d("RECOMPOSITION", "NowPlaying Portrait")
+
+    val coroutineScope = rememberCoroutineScope()
 
     val backgroundDarkMode = remember { mutableStateOf(false) }
 
@@ -147,30 +150,32 @@ fun NowPlayingPortrait(
                             .background(MaterialTheme.colorScheme.surfaceVariant),
                         onSuccess = { result ->
                             // Dark or Light mode for UI elements
-                            val drawable = result.result.drawable
-                            val bitmap = (drawable as? BitmapDrawable)?.bitmap?.copy(Bitmap.Config.ARGB_8888, true)
-                            bitmap?.let {
-                                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 64, 64, true).copy(Bitmap.Config.ARGB_8888, true)
+                            coroutineScope.launch {
+                                val drawable = result.result.drawable
+                                val bitmap = (drawable as? BitmapDrawable)?.bitmap?.copy(Bitmap.Config.ARGB_8888, true)
+                                bitmap?.let {
+                                    val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 64, 64, true).copy(Bitmap.Config.ARGB_8888, true)
 
-                                // Calculate average luminance
+                                    // Calculate average luminance
 
-                                val totalPixels = scaledBitmap.width * scaledBitmap.height
-                                var totalLuminance = 0.0
+                                    val totalPixels = scaledBitmap.width * scaledBitmap.height
+                                    var totalLuminance = 0.0
 
-                                for (x in 0 until scaledBitmap.width) {
-                                    for (y in 0 until scaledBitmap.height) {
-                                        val pixel = scaledBitmap.getPixel(x, y)
-                                        totalLuminance += pixel.luminance
+                                    for (x in 0 until scaledBitmap.width) {
+                                        for (y in 0 until scaledBitmap.height) {
+                                            val pixel = scaledBitmap.getPixel(x, y)
+                                            totalLuminance += pixel.luminance
+                                        }
                                     }
+
+                                    val averageLuminance = totalLuminance / totalPixels
+                                    Log.d("LUMINANCE", "average luminance: $averageLuminance")
+
+                                    val palette = Palette.from(scaledBitmap).generate().lightVibrantSwatch?.rgb
+                                    backgroundDarkMode.value = (palette?.luminance ?: 0.5f) + (averageLuminance.toFloat()) / 2 < 0.65f
+
+                                    scaledBitmap.recycle()
                                 }
-
-                                val averageLuminance = totalLuminance / totalPixels
-                                Log.d("LUMINANCE", "average luminance: $averageLuminance")
-
-                                val palette = Palette.from(scaledBitmap).generate().lightVibrantSwatch?.rgb
-                                backgroundDarkMode.value = (palette?.luminance ?: 0.5f) + (averageLuminance.toFloat()) / 2 < 0.5f
-
-                                scaledBitmap.recycle()
                             }
                         }
                     )
