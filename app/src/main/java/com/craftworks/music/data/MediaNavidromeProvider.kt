@@ -4,9 +4,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import kotlinx.serialization.Serializable
 
-var navidromeServersList:MutableList<NavidromeProvider> = mutableStateListOf()
-var selectedNavidromeServerIndex = mutableIntStateOf(0)
-
 @Serializable
 data class NavidromeProvider (
     val id: String = "0",

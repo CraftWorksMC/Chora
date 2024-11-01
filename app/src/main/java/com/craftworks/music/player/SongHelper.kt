@@ -1,6 +1,8 @@
 @file:OptIn(UnstableApi::class) package com.craftworks.music.player
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.OptIn
@@ -19,7 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 class SongHelper {
@@ -76,7 +77,24 @@ class SongHelper {
 
                 currentTracklist.clear()
 
-                val transcodingValue = SettingsManager(context).transcodingBitrateFlow.first()
+                // Check if using wifi or mobile data, for transcoding
+                val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                var isConnectedToWiFi by mutableStateOf(false)
+
+                val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+                if (capabilities != null) {
+                    if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                        isConnectedToWiFi = false
+                    } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                        isConnectedToWiFi = true
+                    }
+                }
+
+                val transcodingValue = if (isConnectedToWiFi)
+                    SettingsManager(context).wifiTranscodingBitrateFlow.first()
+                else
+                    SettingsManager(context).mobileDataTranscodingBitrateFlow.first()
+
                 println("TRANSCODING VALUE = $transcodingValue")
 
                 sliderPos.intValue = 0

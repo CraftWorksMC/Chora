@@ -3,7 +3,6 @@ package com.craftworks.music.ui.screens.settings
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -73,7 +72,8 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
     val leftPadding =
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
-    var showTranscodingDialog by remember { mutableStateOf(false) }
+    var showWifiTranscodingDialog by remember { mutableStateOf(false) }
+    var showDataTranscodingDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -129,15 +129,15 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
 
             // Transcoding
 
-            val transcodingBitrate =
-                SettingsManager(context).transcodingBitrateFlow.collectAsState("").value
+            val transcodingBitrateWifi =
+                SettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("").value
 
             Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .clickable {
-                        showTranscodingDialog = true
+                        showWifiTranscodingDialog = true
                     }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_p_transcoding),
@@ -149,7 +149,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                 )
                 Column {
                     Text(
-                        text = stringResource(R.string.Setting_Transcoding),
+                        text = stringResource(R.string.Setting_Transcoding_Wifi),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -159,7 +159,49 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         textAlign = TextAlign.Start
                     )
                     Text(
-                        text = if (transcodingBitrate != "No Transcoding") "$transcodingBitrate Kbps" else transcodingBitrate,
+                        text = if (transcodingBitrateWifi != "No Transcoding") "$transcodingBitrateWifi Kbps" else transcodingBitrateWifi,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
+                        modifier = Modifier.fillMaxSize(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start
+                    )
+                }
+            }
+
+            val transcodingBitrateData =
+                SettingsManager(context).mobileDataTranscodingBitrateFlow.collectAsState("").value
+
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(vertical = 6.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable {
+                        showDataTranscodingDialog = true
+                    }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.s_p_transcoding),
+                    contentDescription = "Background Style Icon",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .size(32.dp)
+                )
+                Column {
+                    Text(
+                        text = stringResource(R.string.Setting_Transcoding_Data),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.fillMaxSize(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start
+                    )
+                    Text(
+                        text = if (transcodingBitrateData != "No Transcoding") "$transcodingBitrateData Kbps" else transcodingBitrateData,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
@@ -241,6 +283,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
             BottomSpacer()
         }
 
-        if (showTranscodingDialog) TranscodingDialog(setShowDialog = { showTranscodingDialog = it })
+        if (showWifiTranscodingDialog) TranscodingDialog(setShowDialog = { showWifiTranscodingDialog = it }, true)
+        if (showDataTranscodingDialog) TranscodingDialog(setShowDialog = { showDataTranscodingDialog = it }, false)
     }
 }

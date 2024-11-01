@@ -10,7 +10,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.session.MediaController
@@ -28,7 +27,6 @@ class MediaControllerManager private constructor(context: Context) : RememberObs
     private val appContext = context.applicationContext
     private var factory: ListenableFuture<MediaController>? = null
     var controller = mutableStateOf<MediaController?>(null)
-        private set
 
     init { initialize() }
 
@@ -105,7 +103,7 @@ class MediaControllerManager private constructor(context: Context) : RememberObs
  */
 @Composable
 fun rememberManagedMediaController(
-    lifecycle: Lifecycle = LocalLifecycleOwner.current.lifecycle
+    lifecycle: Lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
 ): State<MediaController?> {
     // Application context is used to prevent memory leaks
     val appContext = LocalContext.current.applicationContext

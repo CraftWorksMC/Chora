@@ -25,19 +25,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.player.SongHelper
 import kotlinx.coroutines.launch
 
 @Preview
@@ -192,12 +189,14 @@ fun AnimatedGradientBG(
 
     val currentColor1 by animateColorAsState(
         targetValue = color1,
-        animationSpec = tween(durationMillis = 1000)
+        animationSpec = tween(durationMillis = 1000),
+        label = "Smooth color transition"
     )
 
     val currentColor2 by animateColorAsState(
         targetValue = color2,
-        animationSpec = tween(durationMillis = 1000)
+        animationSpec = tween(durationMillis = 1000),
+        label = "Smooth color transition"
     )
 
     val scope = rememberCoroutineScope()

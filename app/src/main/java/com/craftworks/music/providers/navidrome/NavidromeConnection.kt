@@ -1,5 +1,6 @@
 package com.craftworks.music.providers.navidrome
 
+import android.annotation.SuppressLint
 import android.util.Log
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.managers.NavidromeManager.getCurrentServer
@@ -83,11 +84,17 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
             (url.openConnection() as HttpsURLConnection).apply {
                 if (server.allowSelfSignedCert == true) {
                     // Allow every single cert. Not the best way to do this but eh
-                    val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-                        override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-                        override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-                        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-                    })
+                    val trustAllCerts =
+                        arrayOf<TrustManager>(@SuppressLint("CustomX509TrustManager") object :
+                            X509TrustManager {
+                            @SuppressLint("TrustAllX509TrustManager")
+                            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) { }
+
+                            @SuppressLint("TrustAllX509TrustManager")
+                            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) { }
+
+                            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+                        })
 
                     val sslContext = SSLContext.getInstance("SSL")
                     sslContext.init(null, trustAllCerts, java.security.SecureRandom())

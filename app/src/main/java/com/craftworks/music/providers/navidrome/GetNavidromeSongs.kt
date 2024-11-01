@@ -24,7 +24,7 @@ suspend fun getNavidromeSongs() : List<MediaData.Song> {
 }
 
 @OptIn(UnstableApi::class)
-suspend fun parseNavidromeSearch3JSON(
+fun parseNavidromeSearch3JSON(
     response: String,
     navidromeUrl: String,
     navidromeUsername: String,

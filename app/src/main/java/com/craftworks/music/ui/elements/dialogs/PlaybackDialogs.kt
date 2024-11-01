@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -23,8 +22,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,8 +29,8 @@ import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.bounceClick
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+
 
 //region PREVIEWS
 @Preview(showBackground = true)
@@ -45,11 +42,15 @@ fun PreviewTranscodingDialog(){
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun TranscodingDialog(setShowDialog: (Boolean) -> Unit) {
-    val coroutineScope = rememberCoroutineScope()
+fun TranscodingDialog(
+    setShowDialog: (Boolean) -> Unit,
+    isWifiDialog: Boolean = true
+) {
     val context = LocalContext.current
 
-    val transcodingBitrate by SettingsManager(context).transcodingBitrateFlow.collectAsState("")
+    val transcodingBitrateWifi by SettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("")
+    val transcodingBitrateData by SettingsManager(context).mobileDataTranscodingBitrateFlow.collectAsState("")
+
     val transcodingBitrateList = listOf(
         "1",
         "96",
@@ -83,10 +84,16 @@ fun TranscodingDialog(setShowDialog: (Boolean) -> Unit) {
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
                         .selectable(
-                            selected = (bitrate == transcodingBitrate),
+                            selected = if (isWifiDialog)
+                                bitrate == transcodingBitrateWifi
+                            else
+                                bitrate == transcodingBitrateData,
                             onClick = {
                                 runBlocking {
-                                    SettingsManager(context).setTranscodingBitrate(bitrate)
+                                    if (isWifiDialog)
+                                        SettingsManager(context).setWifiTranscodingBitrate(bitrate)
+                                    else
+                                        SettingsManager(context).setMobileDataTranscodingBitrate(bitrate)
                                 }
                                 setShowDialog(false)
                             },
@@ -94,10 +101,16 @@ fun TranscodingDialog(setShowDialog: (Boolean) -> Unit) {
                         ),
                 ) {
                     RadioButton(
-                        selected = bitrate == transcodingBitrate,
+                        selected = if (isWifiDialog)
+                            bitrate == transcodingBitrateWifi
+                        else
+                            bitrate == transcodingBitrateData,
                         onClick = {
                             runBlocking {
-                                SettingsManager(context).setTranscodingBitrate(bitrate)
+                                if (isWifiDialog)
+                                    SettingsManager(context).setWifiTranscodingBitrate(bitrate)
+                                else
+                                    SettingsManager(context).setMobileDataTranscodingBitrate(bitrate)
                             }
                             setShowDialog(false)
                         },

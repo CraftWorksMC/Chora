@@ -225,7 +225,6 @@ fun AlbumRow(albums: List<MediaData.Album>, mediaController: MediaController?, o
 @ExperimentalFoundationApi
 @Composable
 fun ArtistsGrid(artists: List<MediaData.Artist>,
-                navHostController: NavHostController = rememberNavController(),
                 onArtistSelected: (artist: MediaData.Artist) -> Unit){
     LazyVerticalGrid(
         columns = GridCells.Adaptive(128.dp),
@@ -258,7 +257,7 @@ fun RadiosGrid(radioList: List<MediaData.Radio>, onSongSelected: (song: MediaDat
                 title = radio.name,
                 imageUrl = "android.resource://com.craftworks.music/" + R.drawable.radioplaceholder,
                 artist = radio.name,
-                media = radio.media.toString(),
+                media = radio.media,
                 duration = 0,
                 album = "Internet Radio",
                 year = 2024,

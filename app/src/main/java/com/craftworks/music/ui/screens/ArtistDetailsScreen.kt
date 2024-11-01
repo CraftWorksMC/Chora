@@ -67,6 +67,7 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.selectedArtist
@@ -120,7 +121,12 @@ fun ArtistDetails(
             .fillMaxWidth()) {
             //Image and Name
             AsyncImage(
-                model = artist?.artistImageUrl,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(artist?.artistImageUrl)
+                    .allowHardware(false)
+                    .size(256)
+                    .crossfade(true)
+                    .build(),
                 placeholder = painterResource(R.drawable.s_a_username),
                 fallback = painterResource(R.drawable.s_a_username),
                 contentScale = ContentScale.FillWidth,

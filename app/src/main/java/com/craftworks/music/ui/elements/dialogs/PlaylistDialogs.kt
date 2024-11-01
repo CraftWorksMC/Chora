@@ -167,8 +167,8 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
 
                                     if (NavidromeManager.checkActiveServers())
                                         coroutineScope.launch { addSongToNavidromePlaylist(
-                                            playlist.navidromeID.toString(),
-                                            songToAddToPlaylist.value.navidromeID.toString()
+                                            playlist.navidromeID,
+                                            songToAddToPlaylist.value.navidromeID
                                         ) }
                                     else {
                                         playlist.songs = playlist.songs?.plus(songToAddToPlaylist.value)
@@ -364,9 +364,7 @@ fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
                             onClick = {
                                 try {
                                     if (NavidromeManager.checkActiveServers())
-                                        playlistToDelete.value.navidromeID?.let {
-                                            coroutineScope.launch { deleteNavidromePlaylist(it) }
-                                        }
+                                        coroutineScope.launch { deleteNavidromePlaylist(playlistToDelete.value.navidromeID) }
                                     else {
                                         playlistList.remove(playlistToDelete.value)
                                         coroutineScope.launch {

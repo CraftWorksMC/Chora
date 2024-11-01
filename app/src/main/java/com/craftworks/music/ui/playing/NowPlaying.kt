@@ -4,12 +4,6 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.util.Log
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.lazy.LazyListLayoutInfo
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
@@ -20,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -103,7 +96,7 @@ fun Color.customLuminance(): Float {
     return 0.2126f * red + 0.7152f * green + 0.0722f * blue
 }
 
-suspend fun extractColorsFromUri(uri: String, context: android.content.Context): List<Color> {
+suspend fun extractColorsFromUri(uri: String, context: Context): List<Color> {
     val loader = ImageLoader(context)
     val request = ImageRequest.Builder(context)
         .size(64)

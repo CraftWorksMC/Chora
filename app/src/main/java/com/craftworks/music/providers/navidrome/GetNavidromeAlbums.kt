@@ -60,7 +60,7 @@ fun parseNavidromeAlbumListJSON(
 }
 
 @OptIn(UnstableApi::class)
-suspend fun parseNavidromeAlbumSongsJSON(
+fun parseNavidromeAlbumSongsJSON(
     response: String,
     navidromeUrl: String,
     navidromeUsername: String,

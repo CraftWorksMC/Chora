@@ -7,11 +7,9 @@ import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.showNoProviderDialog
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -61,7 +59,7 @@ object NavidromeManager {
     fun getCurrentServer(): NavidromeProvider? = currentServerId?.let { servers[it] }
 
     fun getServerStatus(): String = navidromeStatus.value
-    fun setServerStatus(status: String) { _serverStatus.value = status }
+    //fun setServerStatus(status: String) { _serverStatus.value = status }
 
     fun setSyncingStatus(status: Boolean) { _syncStatus.value = status }
 

@@ -32,7 +32,8 @@ class SettingsManager(
         private val NOW_PLAYING_LYRIC_BLUR_KEY = booleanPreferencesKey("now_playing_lyrics_blur")
         private val BOTTOM_NAV_ITEMS_KEY = stringPreferencesKey("bottom_nav_order")
 
-        private val TRANSCODING_BITRATE_KEY = stringPreferencesKey("transcoding_bitrate")
+        private val TRANSCODING_BITRATE_WIFI_KEY = stringPreferencesKey("transcoding_bitrate_wifi")
+        private val TRANSCODING_BITRATE_DATA_KEY = stringPreferencesKey("transcoding_bitrate_data")
         private val SCROBBLE_PERCENT_KEY = intPreferencesKey("scrobble_percent")
 
         private val LOCAL_PROVIDERS = stringPreferencesKey("local_providers")
@@ -120,13 +121,23 @@ class SettingsManager(
     //endregion
 
     //region Playback Settings
-    val transcodingBitrateFlow: Flow<String> = context.dataStore.data.map { preferences ->
-        preferences[TRANSCODING_BITRATE_KEY] ?: "No Transcoding"
+    val wifiTranscodingBitrateFlow: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[TRANSCODING_BITRATE_WIFI_KEY] ?: "No Transcoding"
     }
 
-    suspend fun setTranscodingBitrate(bitrate: String) {
+    suspend fun setWifiTranscodingBitrate(bitrate: String) {
         context.dataStore.edit { preferences ->
-            preferences[TRANSCODING_BITRATE_KEY] = bitrate
+            preferences[TRANSCODING_BITRATE_WIFI_KEY] = bitrate
+        }
+    }
+
+    val mobileDataTranscodingBitrateFlow: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[TRANSCODING_BITRATE_DATA_KEY] ?: "No Transcoding"
+    }
+
+    suspend fun setMobileDataTranscodingBitrate(bitrate: String) {
+        context.dataStore.edit { preferences ->
+            preferences[TRANSCODING_BITRATE_DATA_KEY] = bitrate
         }
     }
 

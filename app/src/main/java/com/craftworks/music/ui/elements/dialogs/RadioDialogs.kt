@@ -259,7 +259,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) 
                                 radioList.remove(radio)
                                 if (NavidromeManager.checkActiveServers()) radio.navidromeID.let {
                                     coroutineScope.launch {
-                                        deleteNavidromeRadio(it.toString())
+                                        deleteNavidromeRadio(it)
                                     }
 
                                 }

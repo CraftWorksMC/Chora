@@ -71,6 +71,7 @@
     <string name="Setting_NavidromeLogo">Afficher le logo de Navidrome</string>
     <string name="Settings_Header_Playback">Playback</string>
     <string name="Setting_Transcoding">Max Bitrate</string>
+    <string name="Setting_Transcoding_Data">Max Bitrate (Mobile data)</string>
     <string name="Setting_Scrobble_Percent">Min. Scrobble Percentage</string>
     <string name="Setting_Scrobble_Description">Navidrome seulement.</string>
     <string name="Background_Plain">Plein</string>
@@ -84,4 +85,5 @@
     <string name="Notification_Download_Success">Chanson téléchargée avec succès !</string>
     <string name="Notification_Download_Failure">Oh oh, quelque chose s\'est mal passé lors du téléchargement de cette chanson.</string>
     <string name="Setting_NowPlayingLyricsBlur">Flou du texte</string>
+    <string name="Setting_Transcoding_Wifi">Max Bitrate (WiFi)</string>
 </resources>

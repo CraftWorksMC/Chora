@@ -1,12 +1,6 @@
 package com.craftworks.music.ui.playing
 
-import android.graphics.RenderEffect
-import android.graphics.Shader
 import android.util.Log
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.focusable
@@ -23,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,27 +27,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Matrix
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,7 +44,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.session.MediaController
-import com.craftworks.music.data.Lyric
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.SettingsManager
 import com.gigamole.composefadingedges.FadingEdgesGravity
@@ -70,7 +51,6 @@ import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
 import com.gigamole.composefadingedges.verticalFadingEdges
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.abs
 
 @Composable
@@ -217,7 +197,8 @@ fun SyncedLyricItem(
 
     val alpha by animateFloatAsState(
         targetValue = if (isCurrentLyric) 1f else 0.3f,
-        animationSpec = tween(durationMillis = 300)
+        animationSpec = tween(durationMillis = 300),
+        label = "Non-current lyrics alpha"
     )
 
 
@@ -254,26 +235,3 @@ fun SyncedLyricItem(
 //        else -> minOf(abs(currentLyricIndex - index).toFloat(), 8f).dp
 //    }
 //}
-
-/**
- * Calculate the blur amount based on the distance from the current lyric index.
- * Returns 0.dp if the current lyric is not visible.
- */
-fun calculateBlur(currentLyricIndex: Int, currentIndex: Int, isCurrentLyricVisible: Boolean): Dp {
-    val maxBlur = 8.dp
-
-    if (!isCurrentLyricVisible) {
-        return 0.dp // No blur when the current lyric is not visible
-    }
-
-    // Calculate distance from the current lyric index
-    val distance = abs(currentIndex - currentLyricIndex)
-
-    // Calculate blur amount based on the distance
-    return when (distance) {
-        0 -> 0.dp
-        1 -> 1.dp
-        2 -> 2.dp
-        else -> maxBlur
-    }
-}

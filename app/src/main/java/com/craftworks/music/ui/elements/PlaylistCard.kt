@@ -29,7 +29,7 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.ui.elements.dialogs.playlistToDelete
 import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistCard(playlist: MediaData.Playlist, onClick: () -> Unit) {
     Column(

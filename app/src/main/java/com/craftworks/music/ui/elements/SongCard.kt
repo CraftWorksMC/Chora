@@ -78,7 +78,7 @@ fun SongsCard(song: MediaItem, onClick: () -> Unit){
                                 if (song.mediaMetadata.extras?.getBoolean("isRadio") == false) return@combinedClickable
                                 showRadioModifyDialog.value = true
                                 selectedRadioIndex.intValue =
-                                    radioList.indexOf(radioList.firstOrNull { it.name == song.mediaMetadata.artist && it.media.toString() == song.mediaId })
+                                    radioList.indexOf(radioList.firstOrNull { it.name == song.mediaMetadata.artist && it.media == song.mediaId })
                             },
                             onLongClickLabel = "Modify Radio"
                         ),
@@ -137,7 +137,6 @@ fun SongsCard(song: MediaItem, onClick: () -> Unit){
                 }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
     Card(

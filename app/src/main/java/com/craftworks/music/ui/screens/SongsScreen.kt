@@ -55,7 +55,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist

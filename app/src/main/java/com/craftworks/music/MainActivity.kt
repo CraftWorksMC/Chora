@@ -3,6 +3,7 @@ package com.craftworks.music
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.app.ComponentCaller
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
@@ -93,6 +94,7 @@ class MainActivity : ComponentActivity() {
 
         val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
         this@MainActivity.startService(serviceIntent)
+        handleSearchIntent(intent)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -213,7 +215,23 @@ class MainActivity : ComponentActivity() {
                 println("Destroyed, Goodbye :(")
             }
         })
+    }
 
+    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
+        super.onNewIntent(intent, caller)
+        handleSearchIntent(intent)
+    }
+
+    private fun handleSearchIntent(intent: Intent) {
+        if (intent.action == "android.media.action.MEDIA_PLAY_FROM_SEARCH") {
+            val query = intent.getStringExtra("query")
+
+            val mediaLibraryService = ChoraMediaLibraryService()
+
+            query?.let { searchQuery ->
+                //mediaLibraryService.searchAndPlayMedia(searchQuery)
+            }
+        }
     }
 }
 

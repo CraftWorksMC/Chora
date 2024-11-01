@@ -89,7 +89,7 @@ fun getSongsOnDevice(context: Context){
                 )
                 synchronized(songsList){
                     if (!songsList.contains(songsList.firstOrNull { it.title == song.title && it.artist == song.artist })) {
-                        songsList.add(song);
+                        songsList.add(song)
                     }
                 }
 

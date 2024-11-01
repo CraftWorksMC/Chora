@@ -3,7 +3,6 @@ package com.craftworks.music.ui.screens
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,6 +60,7 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.songsList
@@ -98,7 +98,7 @@ fun AlbumDetails(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        requester.requestFocus();
+        requester.requestFocus()
     }
 
     LaunchedEffect(selectedAlbum?.songs) {
@@ -137,7 +137,12 @@ fun AlbumDetails(
             .height(192.dp)
             .fillMaxWidth()) {
             AsyncImage(
-                model = selectedAlbum?.coverArt,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(selectedAlbum?.coverArt)
+                    .allowHardware(false)
+                    .size(256)
+                    .crossfade(true)
+                    .build(),
                 placeholder = painterResource(R.drawable.placeholder),
                 fallback = painterResource(R.drawable.placeholder),
                 contentScale = ContentScale.FillWidth,
