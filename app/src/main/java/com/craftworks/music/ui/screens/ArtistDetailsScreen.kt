@@ -102,7 +102,7 @@ fun ArtistDetails(
     //val artistAlbums = viewModel.selectedArtist.value?.album ?: emptyList()
 
     Column(modifier = Modifier
-        .background(MaterialTheme.colorScheme.background)
+        //.background(MaterialTheme.colorScheme.background)
         .fillMaxWidth()
         .padding(
             start = leftPadding,

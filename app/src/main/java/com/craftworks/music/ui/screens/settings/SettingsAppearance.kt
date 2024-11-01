@@ -94,7 +94,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     .calculateTopPadding()
             )
             .dialogFocusable()
-            .background(MaterialTheme.colorScheme.background)
+            //.background(MaterialTheme.colorScheme.background)
     ) {
 
         /* HEADER */

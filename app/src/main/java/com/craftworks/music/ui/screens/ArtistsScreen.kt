@@ -88,7 +88,7 @@ fun ArtistsScreen(
     }
 
     PullToRefreshBox(
-        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        //modifier = Modifier.background(MaterialTheme.colorScheme.background),
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh

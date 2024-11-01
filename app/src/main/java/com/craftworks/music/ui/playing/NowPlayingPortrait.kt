@@ -13,6 +13,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,6 +35,8 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -64,6 +68,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.selectedArtist
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.screens.showMoreInfo
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
@@ -73,154 +78,107 @@ import kotlinx.coroutines.launch
     wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true
 )
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NowPlayingPortrait(
     mediaController: MediaController? = null,
-    //scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     navHostController: NavHostController = rememberNavController(),
+    iconColor: Color = Color.White
 ){
+    SideEffect {
+        println("Changed iconColor: $iconColor")
+    }
+
     Log.d("RECOMPOSITION", "NowPlaying Portrait")
-
-    val coroutineScope = rememberCoroutineScope()
-
-    val backgroundDarkMode = remember { mutableStateOf(false) }
 
     // use dark or light colors for icons and text based on the album art luminance.
     val iconTextColor by animateColorAsState(
-        targetValue = // dynamicColorScheme is only available in Android 12+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (backgroundDarkMode.value)
-                dynamicDarkColorScheme(LocalContext.current).onBackground
-            else
-                dynamicLightColorScheme(LocalContext.current).onBackground
-        }
-        else {
-            if (backgroundDarkMode.value)
-                Color.White
-            else
-                Color.Black
-        },
+        targetValue = iconColor,
         animationSpec = tween(1000, 0, FastOutSlowInEasing),
         label = "Animated text color"
     )
-
 
     Column {
         // Top padding (for mini-player)
         Spacer(Modifier.height(24.dp))
 
         // Album Art + Info
-        Column(modifier = Modifier.heightIn(min=420.dp)) {
+        Log.d("RECOMPOSITION", "Album cover or lyrics")
 
-            Log.d("RECOMPOSITION", "Album cover or lyrics")
+        /* Album Cover + Lyrics */
+        AnimatedContent(
+            lyricsOpen, label = "Crossfade between lyrics",
+            modifier = Modifier
+                .heightIn(min = 320.dp, max=420.dp)
+                .fillMaxWidth(),
+        ) {
+            if (it) {
+                LyricsView(
+                    iconTextColor,
+                    false,
+                    mediaController,
+                    PaddingValues(horizontal = 32.dp, vertical = 16.dp)
+                )
+            } else {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(SongHelper.currentSong.imageUrl)
+                        .allowHardware(false)
+                        .size(1024)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Album Cover Art",
+                    placeholder = painterResource(R.drawable.placeholder),
+                    fallback = painterResource(R.drawable.placeholder),
+                    contentScale = ContentScale.FillWidth,
+                    alignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp, vertical = 16.dp)
+                        .aspectRatio(1f)
+                        .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
+                    //.background(MaterialTheme.colorScheme.surfaceVariant),
+                )
+            }
+        }
 
-            /* Album Cover + Lyrics */
-            AnimatedContent(
-                lyricsOpen, label = "Crossfade between lyrics",
-                modifier = Modifier
-                    .heightIn(min = 320.dp)
-                    .fillMaxWidth(),
-            ) {
-                if (it) {
-                    LyricsView(
-                        iconTextColor,
-                        false,
-                        mediaController,
-                        PaddingValues(horizontal = 32.dp, vertical = 16.dp)
-                    )
-                } else {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(SongHelper.currentSong.imageUrl)
-                            .allowHardware(false)
-                            .size(1024)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Album Cover Art",
-                        placeholder = painterResource(R.drawable.placeholder),
-                        fallback = painterResource(R.drawable.placeholder),
-                        contentScale = ContentScale.FillWidth,
-                        alignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 32.dp, vertical = 16.dp)
-                            .aspectRatio(1f)
-                            .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        onSuccess = { result ->
-                            // Dark or Light mode for UI elements
-                            coroutineScope.launch {
-                                val drawable = result.result.drawable
-                                val bitmap = (drawable as? BitmapDrawable)?.bitmap?.copy(Bitmap.Config.ARGB_8888, true)
-                                bitmap?.let {
-                                    val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 64, 64, true).copy(Bitmap.Config.ARGB_8888, true)
-
-                                    // Calculate average luminance
-
-                                    val totalPixels = scaledBitmap.width * scaledBitmap.height
-                                    var totalLuminance = 0.0
-
-                                    for (x in 0 until scaledBitmap.width) {
-                                        for (y in 0 until scaledBitmap.height) {
-                                            val pixel = scaledBitmap.getPixel(x, y)
-                                            totalLuminance += pixel.luminance
-                                        }
-                                    }
-
-                                    val averageLuminance = totalLuminance / totalPixels
-                                    Log.d("LUMINANCE", "average luminance: $averageLuminance")
-
-                                    val palette = Palette.from(scaledBitmap).generate().lightVibrantSwatch?.rgb
-                                    backgroundDarkMode.value = (palette?.luminance ?: 0.5f) + (averageLuminance.toFloat()) / 2 < 0.65f
-
-                                    scaledBitmap.recycle()
-                                }
-                            }
-                        }
-                    )
-                }
+        /* Song Title + Artist*/
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp)
+                .padding(horizontal = 32.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Log.d("RECOMPOSITION", "Titles and artist")
+            SongHelper.currentSong.title.let {
+                Text(
+                    text = it,
+                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                    fontWeight = FontWeight.SemiBold,
+                    color = iconTextColor,
+                    maxLines = 1, overflow = TextOverflow.Visible,
+                    softWrap = false,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+                )
             }
 
-            /* Song Title + Artist*/
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp)
-                    .padding(horizontal = 32.dp),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Top
-            ) {
-                Log.d("RECOMPOSITION", "Titles and artist")
-                SongHelper.currentSong.title.let {
-                    Text(
-                        text = it,
-                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                        fontWeight = FontWeight.SemiBold,
-                        color = iconTextColor,
-                        maxLines = 1, overflow = TextOverflow.Visible,
-                        softWrap = false,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
-                    )
-                }
-
-                val coroutine = rememberCoroutineScope()
-                SongHelper.currentSong.artist.let { artistName ->
-                    Text(
-                        text = artistName + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.Normal,
-                        color = iconTextColor,
-                        maxLines = 1,
-                        softWrap = false,
-                        textAlign = TextAlign.Start,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+            SongHelper.currentSong.artist.let { artistName ->
+                Text(
+                    text = artistName + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                    fontWeight = FontWeight.Normal,
+                    color = iconTextColor,
+                    maxLines = 1,
+                    softWrap = false,
+                    textAlign = TextAlign.Start,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
 //                            .clickable {
 //                                try {
 //                                    selectedArtist = artistList.firstOrNull() {
@@ -239,30 +197,27 @@ fun NowPlayingPortrait(
 //                                    launchSingleTop = true
 //                                }
 //                            }
-                    )
-                }
+                )
+            }
 
-                Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(8.dp))
 
-                if (showMoreInfo.value) {
-                    Text(
-                        text = "${SongHelper.currentSong.format.uppercase()} • ${SongHelper.currentSong.bitrate} • ${
-                            if (SongHelper.currentSong.navidromeID == "Local")
-                                stringResource(R.string.Source_Local)
-                            else
-                                stringResource(R.string.Source_Navidrome)
-                        } ",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Light,
-                        color = iconTextColor.copy(alpha = 0.5f),
-                        maxLines = 1,
-                        textAlign = TextAlign.Start
-                    )
-                }
+            if (showMoreInfo.value) {
+                Text(
+                    text = "${SongHelper.currentSong.format.uppercase()} • ${SongHelper.currentSong.bitrate} • ${
+                        if (SongHelper.currentSong.navidromeID == "Local")
+                            stringResource(R.string.Source_Local)
+                        else
+                            stringResource(R.string.Source_Navidrome)
+                    } ",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Light,
+                    color = iconTextColor.copy(alpha = 0.5f),
+                    maxLines = 1,
+                    textAlign = TextAlign.Start
+                )
             }
         }
-
-        //Spacer(Modifier.height(24.dp))
 
         PlaybackProgressSlider(iconTextColor, mediaController)
 

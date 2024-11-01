@@ -41,11 +41,11 @@ import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.radioList
 import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.providers.navidrome.createNavidromeRadio
 import com.craftworks.music.providers.navidrome.deleteNavidromeRadio
 import com.craftworks.music.providers.navidrome.getNavidromeRadios
 import com.craftworks.music.providers.navidrome.modifyNavidromeRadio
-import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
 import kotlinx.coroutines.launch
 
@@ -155,7 +155,9 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                                             homePageUrl = radioPage,
                                         )
                                     )
-                                    saveManager(context).saveLocalRadios()
+                                    coroutineScope.launch {
+                                        SettingsManager(context).saveLocalRadios()
+                                    }
                                 }
 
                                 setShowDialog(false)
@@ -261,7 +263,9 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) 
                                     }
 
                                 }
-                                saveManager(context).saveLocalRadios()
+                                coroutineScope.launch {
+                                    SettingsManager(context).saveLocalRadios()
+                                }
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -299,7 +303,9 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) 
                                     )
                                 }
                                 setShowDialog(false)
-                                saveManager(context).saveLocalRadios()
+                                coroutineScope.launch {
+                                    SettingsManager(context).saveLocalRadios()
+                                }
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(

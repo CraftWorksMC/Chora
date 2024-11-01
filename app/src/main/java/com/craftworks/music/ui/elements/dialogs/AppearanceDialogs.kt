@@ -57,6 +57,7 @@ import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.bounceClick
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -116,7 +117,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                         .selectable(
                             selected = (option == backgroundType),
                             onClick = {
-                                coroutineScope.launch {
+                                runBlocking {
                                     SettingsManager(context).setBackgroundType(option)
                                 }
                                 setShowDialog(false)
@@ -127,7 +128,12 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                 ) {
                     RadioButton(
                         selected = option == backgroundType,
-                        onClick = { },
+                        onClick = {
+                            runBlocking {
+                                SettingsManager(context).setBackgroundType(option)
+                            }
+                            setShowDialog(false)
+                        },
                         modifier = Modifier.bounceClick()
                     )
                     Text(

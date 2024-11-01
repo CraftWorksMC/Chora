@@ -42,7 +42,9 @@ suspend fun getLrcLibLyrics(): List<Lyric> {
                 }
 
                 inputStream.bufferedReader().use {
-                    lyrics = parseLrcLibLyrics(it.readText())
+                    withContext(Dispatchers.Default) {
+                        lyrics = parseLrcLibLyrics(it.readText())
+                    }
                 }
             }
         } catch (e: Exception) {

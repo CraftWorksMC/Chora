@@ -1,7 +1,10 @@
 package com.craftworks.music.ui.playing
 
+import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.util.Log
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -28,19 +31,30 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Matrix
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -66,71 +80,42 @@ fun LyricsView(
     mediaController: MediaController?,
     paddingValues: PaddingValues = PaddingValues(),
 ) {
-    val currentPositionValue = remember { mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0) }
+    SideEffect {
+        Log.d("RECOMPOSITION", "Recomposed Lyrics View")
+    }
+
     val lyrics by LyricsManager.Lyrics.collectAsState()
+    val useBlur by SettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
+
+    // State holding the current position
+    val currentPositionValue = remember { mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0) }
+
     val currentLyricIndex = remember {
-        mutableIntStateOf(lyrics.indexOfFirst {
-            it.timestamp > currentPositionValue.intValue
-        }.takeIf { it >= 0 } ?: lyrics.size)
+        mutableIntStateOf(
+            lyrics.indexOfFirst {
+                it.timestamp > currentPositionValue.intValue
+            }.takeIf { it >= 0 } ?: lyrics.size
+        )
     }
 
     val state = rememberLazyListState()
-    val visibleItemsInfo by remember { derivedStateOf { state.layoutInfo.visibleItemsInfo } }
 
-    val useBlur by SettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
-
-    Log.d("RECOMPOSITION", "Lyrics View!")
-
-    // Get current position
+    // Update the current playback position every second
     LaunchedEffect(mediaController) {
         while (true) {
             delay(1000)
             if (mediaController?.isPlaying == true) {
                 currentPositionValue.intValue = mediaController.currentPosition.toInt()
+
+                val newCurrentLyricIndex = lyrics.indexOfFirst { it.timestamp > currentPositionValue.intValue }
+                    .takeIf { it >= 0 } ?: 0
+
+                currentLyricIndex.intValue = (newCurrentLyricIndex - 1).coerceAtLeast(0)
+
+                state.animateScrollToItem(currentLyricIndex.intValue)
             }
         }
     }
-
-    // Update current lyric
-//    LaunchedEffect(lyrics, currentPositionValue) {
-//        snapshotFlow { currentPositionValue.intValue.toLong() + 750 }.collect { currentPosition ->
-//            currentLyricIndex.intValue =
-//                ((lyrics.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 }
-//                    ?: lyrics.size) - 1).coerceAtLeast(0)
-//
-//            // Calculate the delay between lyrics. If the nextLyricIndex is -1 then it means we've reached the end of the lyrics.
-//            val nextLyricIndex =
-//                lyrics.indexOfFirst { it.timestamp > currentPosition }.takeIf { it >= 0 }
-//                    ?: lyrics.size
-//            val delayMillis = if (nextLyricIndex in lyrics.indices) {
-//                (lyrics[nextLyricIndex].timestamp - currentPosition).coerceAtLeast(0)
-//            } else {
-//                1000L
-//            }
-//            delay(delayMillis)
-//        }
-//    }
-    LaunchedEffect(lyrics, currentPositionValue) {
-        snapshotFlow { currentPositionValue.intValue.toLong() + 750 }.collectLatest { currentPosition ->
-            val nextLyricIndex = lyrics.indexOfFirst { it.timestamp > currentPosition }
-                .takeIf { it >= 0 } ?: lyrics.size
-
-            currentLyricIndex.intValue = (nextLyricIndex - 1).coerceAtLeast(0)
-
-            val delayMillis = if (nextLyricIndex in lyrics.indices) {
-                (lyrics[nextLyricIndex].timestamp - currentPosition).coerceAtLeast(0)
-            } else {
-                1000L
-            }
-
-            delay(delayMillis)
-        }
-    }
-
-    LaunchedEffect(currentLyricIndex.intValue) {
-        state.animateScrollToItem(currentLyricIndex.intValue)
-    }
-
 
     LazyColumn(
         modifier = if (isLandscape) {
@@ -152,9 +137,10 @@ fun LyricsView(
         horizontalAlignment = Alignment.CenterHorizontally,
         state = state,
     ) {
+
         // Loading spinner thingy
-        item {
-            if (lyrics[0].content.isEmpty() && lyrics.size == 1) {
+        if (lyrics[0].content.isEmpty() && lyrics.size == 1) {
+            item {
                 Box(modifier = Modifier.height(64.dp)) {
                     CircularProgressIndicator(
                         modifier = Modifier
@@ -170,14 +156,32 @@ fun LyricsView(
             item {
                 Spacer(Modifier.height(64.dp))
             }
-            itemsIndexed(lyrics) { index, lyric ->
+            itemsIndexed(
+                lyrics,
+                key = { index, lyric -> "${index}:${lyric.content}" }
+            ) { index, lyric ->
+//                val blur by remember(currentLyricIndex.intValue, isCurrentLyricVisible) {
+//                    derivedStateOf {
+//                        calculateBlur(
+//                            currentLyricIndex = currentLyricIndex.intValue,
+//                            currentIndex = index,
+//                            isCurrentLyricVisible = isCurrentLyricVisible
+//                        )
+//                    }
+//                }
+
+                var isCurrentLyric by remember { mutableStateOf(index == currentLyricIndex.intValue) }
+
+                LaunchedEffect(currentLyricIndex) {
+                    isCurrentLyric = index == currentLyricIndex.intValue
+                }
+
                 SyncedLyricItem(
-                    lyric = lyric,
-                    index = index,
-                    currentLyricIndex = currentLyricIndex.intValue,
-                    useBlur = useBlur,
-                    visibleItemsInfo = visibleItemsInfo,
-                    color = color
+                    lyric = lyric.content,
+                    //index = index,
+                    //currentLyricIndex = currentLyricIndex.intValue,
+                    color = color,
+                    isCurrentLyric = isCurrentLyric,
                 )
             }
         }
@@ -199,63 +203,77 @@ fun LyricsView(
     }
 }
 
+@Stable
 @Composable
 fun SyncedLyricItem(
-    lyric: Lyric,
-    index: Int,
-    currentLyricIndex: Int,
-    useBlur: Boolean,
-    visibleItemsInfo: List<LazyListItemInfo>,
+    lyric: String,
     color: Color,
+    isCurrentLyric: Boolean,
 ) {
-    val lyricAlpha: Float by animateFloatAsState(
-        if (currentLyricIndex == index) 1f else 0.5f,
-        label = "Current Lyric Alpha",
-        animationSpec = tween(1000, 0, FastOutSlowInEasing)
+    SideEffect {
+        Log.d("RECOMPOSITION", "Recomposed SyncedLyricsItem")
+    }
+
+
+    val alpha by animateFloatAsState(
+        targetValue = if (isCurrentLyric) 1f else 0.3f,
+        animationSpec = tween(durationMillis = 300)
     )
-    val lyricBlur: Dp by animateDpAsState(
-        targetValue = if (useBlur) calculateLyricBlur(
-            index, currentLyricIndex, visibleItemsInfo
-        ) else 0.dp,
-        label = "Lyric Blur",
-        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing)
-    )
-    val scale by animateFloatAsState(
-        targetValue = if (currentLyricIndex == index) 1f else 0.9f,
-        label = "Lyric Scale Animation",
-        animationSpec = tween(1000, 0, FastOutSlowInEasing)
-    )
+
 
     Box(modifier = Modifier
         .padding(vertical = 12.dp)
         .heightIn(min = 48.dp)
-        .focusable(false)
-        .graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        }
-        .blur(lyricBlur)
-        .animateContentSize(), contentAlignment = Alignment.Center) {
+        .focusable(false),
+        contentAlignment = Alignment.Center) {
         Text(
-            text = if (lyric.content == "") "• • •" else lyric.content,
+            text = if (lyric == "") "• • •" else lyric,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = color.copy(lyricAlpha),
-            modifier = Modifier.fillMaxWidth(),
+            //color = color.copy(lyricAlpha),
+            color = color,
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer(
+                    alpha = alpha
+                ),
             textAlign = TextAlign.Center,
             lineHeight = 32.sp
         )
     }
 }
 
-@Stable
-fun calculateLyricBlur(
-    index: Int,
-    currentLyricIndex: Int,
-    visibleItemsInfo: List<LazyListItemInfo>
-): Dp {
-    return when {
-        index == currentLyricIndex || !visibleItemsInfo.any { it.index == currentLyricIndex } -> 0.dp
-        else -> minOf(abs(currentLyricIndex - index).toFloat(), 8f).dp
+//@Stable
+//fun calculateLyricBlur(
+//    index: Int,
+//    currentLyricIndex: Int,
+//    isVisible: Boolean
+//): Dp {
+//    return when {
+//        index == currentLyricIndex || !isVisible -> 0.dp
+//        else -> minOf(abs(currentLyricIndex - index).toFloat(), 8f).dp
+//    }
+//}
+
+/**
+ * Calculate the blur amount based on the distance from the current lyric index.
+ * Returns 0.dp if the current lyric is not visible.
+ */
+fun calculateBlur(currentLyricIndex: Int, currentIndex: Int, isCurrentLyricVisible: Boolean): Dp {
+    val maxBlur = 8.dp
+
+    if (!isCurrentLyricVisible) {
+        return 0.dp // No blur when the current lyric is not visible
+    }
+
+    // Calculate distance from the current lyric index
+    val distance = abs(currentIndex - currentLyricIndex)
+
+    // Calculate blur amount based on the distance
+    return when (distance) {
+        0 -> 0.dp
+        1 -> 1.dp
+        2 -> 2.dp
+        else -> maxBlur
     }
 }

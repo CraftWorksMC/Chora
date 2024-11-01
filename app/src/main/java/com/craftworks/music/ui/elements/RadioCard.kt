@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +35,7 @@ import com.craftworks.music.ui.screens.selectedRadioIndex
 import com.craftworks.music.ui.screens.showRadioModifyDialog
 
 @OptIn(ExperimentalFoundationApi::class)
+@Stable
 @Composable
 fun RadioCard(radio: MediaData.Radio, onClick: () -> Unit) {
     Column(

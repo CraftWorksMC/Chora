@@ -88,7 +88,10 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 //        serviceIOScope.launch {
 //            saveManager(this@ChoraMediaLibraryService).loadSettings()
 //        }
-        initializePlayer()
+        if (session == null)
+            initializePlayer()
+        else
+            Log.d("AA", "MediaSession already initialized, not recreating")
     }
 
     @OptIn(UnstableApi::class)

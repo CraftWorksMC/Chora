@@ -88,7 +88,7 @@ fun AlbumScreen(
     val allAlbumsList by viewModel.allAlbums.collectAsState()
 
     PullToRefreshBox(
-        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        //modifier = Modifier.background(MaterialTheme.colorScheme.background),
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh

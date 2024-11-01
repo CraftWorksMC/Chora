@@ -37,7 +37,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.PlainLyrics
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.managers.NavidromeManager
@@ -183,7 +182,7 @@ fun AlbumGrid(
     }
 
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(96.dp),
+        columns = GridCells.Adaptive(128.dp),
         modifier = Modifier
             .wrapContentWidth()
             .fillMaxHeight()
@@ -272,7 +271,6 @@ fun RadiosGrid(radioList: List<MediaData.Radio>, onSongSelected: (song: MediaDat
                 isSongSelected = true
                 sliderPos.intValue = 0
                 onSongSelected(song)
-                PlainLyrics = "No Lyrics For Internet Radio"
             })
         }
     }

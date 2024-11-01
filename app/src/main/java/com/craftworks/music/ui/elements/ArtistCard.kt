@@ -17,6 +17,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +33,7 @@ import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 
+@Stable
 @Composable
 fun ArtistCard(artist: MediaData.Artist, onClick: () -> Unit) {
     Column(

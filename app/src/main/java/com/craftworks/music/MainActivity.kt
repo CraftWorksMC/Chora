@@ -15,7 +15,6 @@ import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,21 +31,24 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -55,7 +57,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -82,8 +83,6 @@ var shuffleSongs = mutableStateOf(false)
 
 var showNoProviderDialog = mutableStateOf(false)
 
-@UnstableApi
-@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     lateinit var navController: NavHostController
@@ -113,65 +112,73 @@ class MainActivity : ComponentActivity() {
                 navController = rememberNavController()
                 val mediaController = rememberManagedMediaController()
 
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    println("Recomposing EVERYTHING!!!!! VERY BAD")
+                println("Recomposing EVERYTHING!!!!! VERY BAD")
 
-                    Scaffold(
-                        bottomBar = {
-                            AnimatedBottomNavBar(navController, scaffoldState)
-                        }
-                    ) { paddingValues ->
-                        SetupNavGraph(navController, paddingValues, mediaController.value)
-                        Log.d("RECOMPOSITION", "Recomposing scaffold!")
+                // Set background color to colorScheme.background
+                window.decorView.setBackgroundColor(
+                    MaterialTheme.colorScheme.background.toArgb()
+                )
 
-                        // No BottomSheetScaffold for Android TV
-                        if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION) &&
-                            LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                            BottomSheetScaffold(
-                                sheetContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                                    3.dp
-                                ),
-                                sheetPeekHeight =
-                                if (SongHelper.currentSong.title == "" &&
-                                    SongHelper.currentSong.duration == 0 &&
-                                    SongHelper.currentSong.imageUrl == ""
-                                )
-                                    0.dp // Hide Mini-player if empty
-                                else if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) {
-                                    72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues()
-                                        .calculateBottomPadding()
-                                } else 72.dp,
-                                sheetShadowElevation = 4.dp,
-                                sheetShape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
-                                sheetDragHandle = { },
-                                scaffoldState = scaffoldState,
-                                sheetContent = {
-                                    Log.d("RECOMPOSITION", "Recomposing SheetContent!")
-                                    Box {
-                                        NowPlayingMiniPlayer(scaffoldState, mediaController.value)
+                Scaffold(
+                    bottomBar = {
+                        AnimatedBottomNavBar(navController, scaffoldState)
+                    },
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                    containerColor = Color.Transparent // So we can use transparent here. this eliminates 1 level of overdraw.
+                ) { paddingValues ->
+                    SetupNavGraph(navController, paddingValues, mediaController.value)
 
-                                        NowPlayingContent(
-                                            context = this@MainActivity,
-                                            //scaffoldState = scaffoldState,
-                                            //snackbarHostState = snackbarHostState,
-                                            navHostController = navController,
-                                            mediaController = mediaController.value
-                                        )
+                    Log.d("RECOMPOSITION", "Recomposing scaffold!")
+
+                    // No BottomSheetScaffold for Android TV
+                    if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION) &&
+                        LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
+                    ) {
+                        BottomSheetScaffold(
+                            sheetContainerColor = Color.Transparent,
+                            containerColor = Color.Transparent,
+                            sheetPeekHeight =
+                            if (SongHelper.currentSong.title == "" &&
+                                SongHelper.currentSong.duration == 0 &&
+                                SongHelper.currentSong.imageUrl == ""
+                            )
+                                0.dp // Hide Mini-player if empty
+                            else if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                                72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues()
+                                    .calculateBottomPadding()
+                            } else 72.dp,
+                            sheetShadowElevation = 4.dp,
+                            sheetShape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
+                            sheetDragHandle = { },
+                            scaffoldState = scaffoldState,
+                            sheetContent = {
+                                Log.d("RECOMPOSITION", "Recomposing SheetContent!")
+                                Box {
+                                    val coroutineScope = rememberCoroutineScope()
+
+                                    NowPlayingMiniPlayer(scaffoldState, mediaController.value) {
+                                        coroutineScope.launch {
+                                            if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded) scaffoldState.bottomSheetState.expand()
+                                            else scaffoldState.bottomSheetState.partialExpand()
+                                        }
                                     }
-                                }) {
-                            }
+
+                                    NowPlayingContent(
+                                        context = this@MainActivity,
+                                        navHostController = navController,
+                                        mediaController = mediaController.value
+                                    )
+                                }
+                            }) {
                         }
                     }
-                }
 
-                if (showNoProviderDialog.value)
-                    NoMediaProvidersDialog(
-                        setShowDialog = { showNoProviderDialog.value = it },
-                        navController
-                    )
+                    if (showNoProviderDialog.value)
+                        NoMediaProvidersDialog(
+                            setShowDialog = { showNoProviderDialog.value = it },
+                            navController
+                        )
+                }
             }
         }
 
@@ -194,28 +201,13 @@ class MainActivity : ComponentActivity() {
 
         // SAVE SETTINGS ON APP EXIT
         registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-            }
-
-            override fun onActivityStarted(activity: Activity) {
-            }
-
-            override fun onActivityResumed(activity: Activity) {
-            }
-
-            override fun onActivityPaused(activity: Activity) {
-            }
-
-            override fun onActivityPreStopped(activity: Activity) {
-                saveManager(this@MainActivity).saveSettings()
-            }
-
-            override fun onActivityStopped(activity: Activity) {
-            }
-
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
-            }
-
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) { }
+            override fun onActivityStarted(activity: Activity) { }
+            override fun onActivityResumed(activity: Activity) { }
+            override fun onActivityPaused(activity: Activity) { }
+            override fun onActivityPreStopped(activity: Activity) { }
+            override fun onActivityStopped(activity: Activity) { }
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) { }
             override fun onActivityDestroyed(activity: Activity) {
                 ChoraMediaLibraryService().onDestroy()
                 println("Destroyed, Goodbye :(")
@@ -227,12 +219,11 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Stable
 fun AnimatedBottomNavBar(
     navController: NavHostController, scaffoldState: BottomSheetScaffoldState,
 ) {
-    Log.d("RECOMPOSITION", "Recomposing AnimatedBottomNavBar!")
-
-    val backStackEntry = navController.currentBackStackEntryAsState()
+    val backStackEntry by navController.currentBackStackEntryAsState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -257,8 +248,10 @@ fun AnimatedBottomNavBar(
     ).value
 
     if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
+        val expanded by remember { derivedStateOf { scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded } }
+
         val yTrans by animateIntAsState(
-            targetValue = if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) dpToPx(
+            targetValue = if (expanded) dpToPx(
                 -80 - WindowInsets.navigationBars.asPaddingValues()
                     .calculateBottomPadding().value.toInt()
             )
@@ -268,17 +261,14 @@ fun AnimatedBottomNavBar(
         NavigationBar(modifier = Modifier.offset { IntOffset(x = 0, y = -yTrans) }) {
             orderedNavItems.forEachIndexed { _, item ->
                 if (!item.enabled) return@forEachIndexed
-                NavigationBarItem(selected = item.screenRoute == backStackEntry.value?.destination?.route,
+                NavigationBarItem(
+                    selected = item.screenRoute == backStackEntry?.destination?.route,
                     modifier = Modifier.bounceClick(),
                     onClick = {
-                        if (item.screenRoute == backStackEntry.value?.destination?.route) return@NavigationBarItem
+                        if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationBarItem
                         navController.navigate(item.screenRoute) {
                             launchSingleTop = true
-                            restoreState = true
-
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
+                            popUpTo(navController.graph.findStartDestination().id)
                         }
                         coroutineScope.launch {
                             if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
@@ -296,15 +286,16 @@ fun AnimatedBottomNavBar(
             orderedNavItems.forEach { item ->
                 if (!item.enabled) return@forEach
                 NavigationRailItem(
-                    selected = item.screenRoute == backStackEntry.value?.destination?.route,
+                    selected = item.screenRoute == backStackEntry?.destination?.route,
                     onClick = {
-                        if (item.screenRoute == backStackEntry.value?.destination?.route) return@NavigationRailItem
+                        if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationRailItem
                         navController.navigate(item.screenRoute) {
                             launchSingleTop = true
-                            restoreState = true
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
+                            //restoreState = true
+                            popUpTo(navController.graph.findStartDestination().id)
+//                            {
+//                                saveState = true
+//                            }
                         }
                         coroutineScope.launch {
                             if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
@@ -318,15 +309,12 @@ fun AnimatedBottomNavBar(
                 )
             }
             NavigationRailItem(
-                selected = Screen.NowPlayingLandscape.route == backStackEntry.value?.destination?.route,
+                selected = Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route,
                 onClick = {
-                    if (Screen.NowPlayingLandscape.route == backStackEntry.value?.destination?.route) return@NavigationRailItem
+                    if (Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route) return@NavigationRailItem
                     navController.navigate(Screen.NowPlayingLandscape.route) {
                         launchSingleTop = true
-                        restoreState = true
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
+                        popUpTo(navController.graph.findStartDestination().id)
                     }
                     coroutineScope.launch {
                         if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()

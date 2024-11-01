@@ -103,10 +103,13 @@ fun AlbumDetails(
 
     LaunchedEffect(selectedAlbum?.songs) {
         albumSongs = selectedAlbum?.songs!!
+
         if (selectedAlbum?.songs?.isNotEmpty() == true) return@LaunchedEffect
+
         if (NavidromeManager.checkActiveServers()) {
             selectedAlbum?.navidromeID?.let { albumId ->
                 withContext(Dispatchers.IO){ getNavidromeAlbumSongs(albumId) } }
+            albumSongs = selectedAlbum?.songs!!
         }
         else {
             selectedAlbum?.songs = songsList.fastFilter { it.album == selectedAlbum?.album }
@@ -117,7 +120,7 @@ fun AlbumDetails(
 //    otherSongsFromSameArtist.removeAll(albumSongs)
 
     Column(modifier = Modifier
-        .background(MaterialTheme.colorScheme.background)
+        //.background(MaterialTheme.colorScheme.background)
         .fillMaxWidth()
         .padding(
             start = leftPadding,

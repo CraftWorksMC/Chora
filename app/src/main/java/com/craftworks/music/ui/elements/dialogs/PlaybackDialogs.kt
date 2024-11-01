@@ -95,7 +95,12 @@ fun TranscodingDialog(setShowDialog: (Boolean) -> Unit) {
                 ) {
                     RadioButton(
                         selected = bitrate == transcodingBitrate,
-                        onClick = { },
+                        onClick = {
+                            runBlocking {
+                                SettingsManager(context).setTranscodingBitrate(bitrate)
+                            }
+                            setShowDialog(false)
+                        },
                         modifier = Modifier.bounceClick()
                     )
                     Text(

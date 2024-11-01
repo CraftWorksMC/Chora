@@ -91,9 +91,9 @@ fun SongsScreen(
     }
 
     PullToRefreshBox(
-        modifier = Modifier
+        modifier = Modifier,
             //.fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            //.background(MaterialTheme.colorScheme.background),
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh

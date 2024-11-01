@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -23,8 +24,13 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
+import com.craftworks.music.data.localProviderList
+import com.craftworks.music.data.playlistList
+import com.craftworks.music.data.radioList
 import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.bottomSpacerHeightDp
 import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.screens.AlbumDetails
@@ -66,6 +72,11 @@ fun SetupNavGraph(
     val playlistViewModel = remember { PlaylistScreenViewModel() }
 
     val context = LocalContext.current
+
+    localProviderList = SettingsManager(context).localProviders.collectAsState(mutableListOf()).value
+    playlistList = SettingsManager(context).localPlaylists.collectAsState(mutableListOf()).value
+    radioList = SettingsManager(context).localRadios.collectAsState(mutableListOf()).value
+
     LaunchedEffect(Unit) {
         GlobalViewModels.registerViewModel(homeViewModel)
         GlobalViewModels.registerViewModel(albumViewModel)
@@ -74,7 +85,7 @@ fun SetupNavGraph(
         GlobalViewModels.registerViewModel(playlistViewModel)
 
         NavidromeManager.init(context)
-        saveManager(context).loadSettings()
+
         GlobalViewModels.refreshAll()
     }
 

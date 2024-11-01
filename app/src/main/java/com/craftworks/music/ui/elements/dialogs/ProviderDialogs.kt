@@ -15,7 +15,6 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -60,10 +59,10 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.selectedLocalProvider
 import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.providers.navidrome.navidromeStatus
-import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import kotlinx.coroutines.launch
@@ -169,17 +168,24 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
 
                     Button(
                         onClick = {
-                            try {
-                                val localProvider = LocalProvider(dir, true)
-                                if (!localProviderList.contains(localProvider)) {
-                                    localProviderList.add(localProvider)
+                            coroutineScope.launch {
+                                try {
+                                    val localProvider = LocalProvider(dir, true)
+
+                                    if (!localProviderList.contains(localProvider)) {
+                                        localProviderList.add(localProvider)
+                                    }
+
+                                    selectedLocalProvider.intValue =
+                                        localProviderList.indexOf(localProvider)
+
+                                    getSongsOnDevice(context)
+                                    SettingsManager(context).saveLocalProviders()
+
+                                    setShowDialog(false)
+                                } catch (_: Exception) {
+                                    // DO NOTHING
                                 }
-                                selectedLocalProvider.intValue =
-                                    localProviderList.indexOf(localProvider)
-                                getSongsOnDevice(context)
-                                setShowDialog(false)
-                            } catch (_: Exception) {
-                                // DO NOTHING
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
@@ -338,8 +344,6 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                     allowCerts
                                 )
                                 NavidromeManager.addServer(server)
-
-                                saveManager(context).saveSettings()
 
                                 GlobalViewModels.refreshAll()
 

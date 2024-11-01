@@ -117,36 +117,38 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
                 }
 
                 inputStream.bufferedReader().use {
-                    val responseContent = it.readText()
-                    when {
-                        endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (responseContent)
-                        endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON    (responseContent, server.url, server.username, server.password))
+                    withContext(Dispatchers.Default) {
+                        val responseContent = it.readText()
+                        when {
+                            endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (responseContent)
+                            endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON    (responseContent, server.url, server.username, server.password))
 
-                        // Albums
-                        endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))
-                        endpoint.startsWith("getAlbum.")    -> parseNavidromeAlbumSongsJSON(responseContent, server.url, server.username, server.password)
+                            // Albums
+                            endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))
+                            endpoint.startsWith("getAlbum.")    -> parseNavidromeAlbumSongsJSON(responseContent, server.url, server.username, server.password)
 
 
-                        // Artists
-                        endpoint.startsWith("getArtists")   -> parsedData.addAll(parseNavidromeArtistsJSON(responseContent))
-                        endpoint.startsWith("getArtist.")   -> parsedData.addAll(listOf(parseNavidromeArtistAlbumsJSON(responseContent, server.url, server.username, server.password)))
-                        endpoint.startsWith("getArtistInfo")-> parsedData.addAll(listOf(parseNavidromeArtistBiographyJSON(responseContent)))
+                            // Artists
+                            endpoint.startsWith("getArtists")   -> parsedData.addAll(parseNavidromeArtistsJSON(responseContent))
+                            endpoint.startsWith("getArtist.")   -> parsedData.addAll(listOf(parseNavidromeArtistAlbumsJSON(responseContent, server.url, server.username, server.password)))
+                            endpoint.startsWith("getArtistInfo")-> parsedData.addAll(listOf(parseNavidromeArtistBiographyJSON(responseContent)))
 
-                        // Playlists
-                        endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
-                        endpoint.startsWith("getPlaylist.") -> parsedData.addAll(listOf(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password)))
-                        endpoint.startsWith("updatePlaylist") -> getNavidromePlaylists()
-                        endpoint.startsWith("createPlaylist") -> getNavidromePlaylists()
-                        endpoint.startsWith("deletePlaylist") -> getNavidromePlaylists()
+                            // Playlists
+                            endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
+                            endpoint.startsWith("getPlaylist.") -> parsedData.addAll(listOf(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password)))
+                            endpoint.startsWith("updatePlaylist") -> getNavidromePlaylists()
+                            endpoint.startsWith("createPlaylist") -> getNavidromePlaylists()
+                            endpoint.startsWith("deletePlaylist") -> getNavidromePlaylists()
 
-                        // Radios
-                        endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
+                            // Radios
+                            endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
 
-                        // Lyrics
-                        endpoint.startsWith("getLyrics.") -> parsedData.addAll(listOf(parseNavidromePlainLyricsJSON(responseContent)))
-                        endpoint.startsWith("getLyricsBySongId.") -> parsedData.addAll(parseNavidromeSyncedLyricsJSON(responseContent))
+                            // Lyrics
+                            endpoint.startsWith("getLyrics.") -> parsedData.addAll(listOf(parseNavidromePlainLyricsJSON(responseContent)))
+                            endpoint.startsWith("getLyricsBySongId.") -> parsedData.addAll(parseNavidromeSyncedLyricsJSON(responseContent))
 
-                        else -> { setSyncingStatus(false) }
+                            else -> { setSyncingStatus(false) }
+                        }
                     }
                 }
                 inputStream.close()

@@ -111,7 +111,6 @@ class SongHelper {
                             .build()
 
                         currentTracklist.add(mediaItem)
-                        println("MEDIAID = " + mediaItem.mediaId + " |||| MEDIAURL = " + url)
                     }
 
                     val currentTrackIndex = currentTracklist.indexOfFirst { it.mediaId.substringBefore("&format=mp3") == url.toString() }

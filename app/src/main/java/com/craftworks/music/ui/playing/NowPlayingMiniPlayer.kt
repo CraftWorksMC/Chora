@@ -22,11 +22,16 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -46,17 +51,17 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
+@Stable
 @Composable
 fun NowPlayingMiniPlayer(
     scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     mediaController: MediaController? = null,
+    onClick: () -> Unit = { }
 ) {
-    Log.d("RECOMPOSITION", "Mini Player")
-
-    val coroutineScope = rememberCoroutineScope()
+    val expanded by remember { derivedStateOf { scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded } }
 
     val yTrans by animateIntAsState(
-        targetValue = if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) dpToPx(72) else 0,
+        targetValue = if (expanded) dpToPx(72) else 0,
         label = "Fullscreen Translation"
     )
 
@@ -68,10 +73,7 @@ fun NowPlayingMiniPlayer(
         .fillMaxWidth()
         .padding(horizontal = 4.dp)
         .clickable {
-            coroutineScope.launch {
-                if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded) scaffoldState.bottomSheetState.expand()
-                else scaffoldState.bottomSheetState.partialExpand()
-            }
+            onClick.invoke()
         }
     ) {
         // Album Image

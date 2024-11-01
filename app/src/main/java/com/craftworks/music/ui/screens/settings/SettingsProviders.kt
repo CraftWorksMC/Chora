@@ -73,7 +73,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                     .calculateTopPadding()
             )
             .dialogFocusable()
-            .background(MaterialTheme.colorScheme.background)
+            //.background(MaterialTheme.colorScheme.background)
     ) {
         /* HEADER */
         Row(

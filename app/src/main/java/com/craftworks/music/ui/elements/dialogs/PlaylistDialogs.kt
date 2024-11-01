@@ -55,12 +55,12 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.providers.navidrome.addSongToNavidromePlaylist
 import com.craftworks.music.providers.navidrome.createNavidromePlaylist
 import com.craftworks.music.providers.navidrome.deleteNavidromePlaylist
-import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.bounceClick
 import kotlinx.coroutines.launch
 
@@ -172,7 +172,10 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                         ) }
                                     else {
                                         playlist.songs = playlist.songs?.plus(songToAddToPlaylist.value)
-                                        saveManager(context).saveLocalPlaylists()
+                                        coroutineScope.launch {
+                                            SettingsManager(context).saveLocalPlaylists()
+                                        }
+                                        //saveManager(context).saveLocalPlaylists()
                                     }
                                     setShowDialog(false)
                                 }, verticalAlignment = Alignment.CenterVertically
@@ -291,7 +294,9 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
                                             )
                                         )
                                         println("Added Playlist: $name")
-                                        saveManager(context).saveLocalPlaylists()
+                                        coroutineScope.launch {
+                                            SettingsManager(context).saveLocalPlaylists()
+                                        }
                                         setShowDialog(false)
                                         showAddSongToPlaylistDialog.value = false
                                     }
@@ -364,7 +369,9 @@ fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
                                         }
                                     else {
                                         playlistList.remove(playlistToDelete.value)
-                                        saveManager(context).saveLocalPlaylists()
+                                        coroutineScope.launch {
+                                            SettingsManager(context).saveLocalPlaylists()
+                                        }
                                     }
                                 } catch (_: Exception) {
                                     // DO NOTHING

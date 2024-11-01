@@ -30,6 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -79,6 +82,10 @@ fun PlaybackProgressSlider(
     color: Color = MaterialTheme.colorScheme.onBackground,
     mediaController: MediaController? = null,
 ) {
+//    SideEffect {
+//        Log.d("RECOMPOSITION", "Recomposing playback progress slider")
+//    }
+
     var currentValue by remember { mutableIntStateOf(0) }
 
     val animatedValue by animateFloatAsState(
@@ -210,9 +217,14 @@ fun PreviousSongButton(color: Color, mediaController: MediaController?, size: Dp
     }
 }
 
+@Stable
 @Composable
 fun PlayPauseButtonUpdating(color: Color, mediaController: MediaController?, size: Dp){
-    Log.d("RECOMPOSITION", "PlayPauseButtonUpdating")
+
+    SideEffect {
+        Log.d("RECOMPOSITION", "PlayPauseButtonUpdating")
+    }
+
     val playerStatus = remember {
         mutableStateOf(
             if (mediaController?.isLoading == true) "loading"

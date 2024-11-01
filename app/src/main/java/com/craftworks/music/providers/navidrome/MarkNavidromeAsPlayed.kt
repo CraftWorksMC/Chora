@@ -8,8 +8,8 @@ import com.craftworks.music.sliderPos
 suspend fun markNavidromeSongAsPlayed(song: MediaData.Song){
     if (SongHelper.currentSong.isRadio == true || !NavidromeManager.checkActiveServers()) return
 
-    val scrobblePercentage = (sliderPos.intValue.toFloat() / SongHelper.currentSong.duration.toFloat()) * 1000f
-    println("Scrobble Percentage: $scrobblePercentage, with sliderPos = ${sliderPos.intValue} | songDuration = ${SongHelper.currentSong.duration} | minPercentage = ${SongHelper.minPercentageScrobble}")
+    val scrobblePercentage = sliderPos.intValue.toFloat() / (SongHelper.currentSong.duration.toFloat() * 1000f)
+    println("Scrobble Percentage: $scrobblePercentage, with sliderPos = ${sliderPos.intValue} | songDuration = ${SongHelper.currentSong.duration} | minPercentage = ${SongHelper.minPercentageScrobble.intValue}")
 
     if (scrobblePercentage < SongHelper.minPercentageScrobble.intValue) return
 

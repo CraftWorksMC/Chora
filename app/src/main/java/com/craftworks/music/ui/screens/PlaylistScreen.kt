@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +41,6 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
-import com.craftworks.music.saveManager
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.PlaylistGrid
 import com.craftworks.music.ui.elements.dialogs.DeletePlaylist
@@ -82,8 +80,6 @@ fun PlaylistScreen(
         coroutineScope.launch {
             isRefreshing = true
             playlistList.clear()
-
-            saveManager(context).loadPlaylists()
 
             viewModel.reloadData()
 
