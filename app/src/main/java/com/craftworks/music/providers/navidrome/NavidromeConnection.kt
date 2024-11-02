@@ -132,7 +132,7 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
 
                             // Albums
                             endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))
-                            endpoint.startsWith("getAlbum.")    -> parseNavidromeAlbumSongsJSON(responseContent, server.url, server.username, server.password)
+                            endpoint.startsWith("getAlbum.")    -> parsedData.addAll(parseNavidromeAlbumSongsJSON(responseContent, server.url, server.username, server.password))
 
 
                             // Artists

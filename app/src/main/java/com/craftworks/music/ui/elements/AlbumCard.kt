@@ -155,7 +155,7 @@ private fun playSelectedAlbum(
             if (NavidromeManager.checkActiveServers()) {
                 selectedAlbum?.navidromeID?.let { albumId ->
                     withContext(Dispatchers.IO) {
-                        getNavidromeAlbumSongs(albumId)
+                        selectedAlbum?.songs = getNavidromeAlbumSongs(albumId)
                     }
                 }
             } else {

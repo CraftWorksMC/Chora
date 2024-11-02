@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -88,6 +89,7 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     lateinit var navController: NavHostController
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -210,6 +212,8 @@ class MainActivity : ComponentActivity() {
             override fun onActivityPreStopped(activity: Activity) { }
             override fun onActivityStopped(activity: Activity) { }
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) { }
+
+            @androidx.annotation.OptIn(UnstableApi::class)
             override fun onActivityDestroyed(activity: Activity) {
                 ChoraMediaLibraryService().onDestroy()
                 println("Destroyed, Goodbye :(")
@@ -222,6 +226,7 @@ class MainActivity : ComponentActivity() {
         handleSearchIntent(intent)
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     private fun handleSearchIntent(intent: Intent) {
         if (intent.action == "android.media.action.MEDIA_PLAY_FROM_SEARCH") {
             val query = intent.getStringExtra("query")

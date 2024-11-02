@@ -23,8 +23,8 @@ suspend fun searchNavidromeAlbums(query: String? = ""): List<MediaData.Album> {
     return sendNavidromeGETRequest("search3.view?query=$query&songCount=0&songOffset=0&artistCount=0&albumCount=100&f=json").filterIsInstance<MediaData.Album>()
 }
 
-suspend fun getNavidromeAlbumSongs(albumId: String) {
-    sendNavidromeGETRequest("getAlbum.view?id=$albumId&f=json")
+suspend fun getNavidromeAlbumSongs(albumId: String): List<MediaData.Song> {
+    return sendNavidromeGETRequest("getAlbum.view?id=$albumId&f=json").filterIsInstance<MediaData.Song>()
 }
 
 fun parseNavidromeAlbumListJSON(
@@ -65,7 +65,7 @@ fun parseNavidromeAlbumSongsJSON(
     navidromeUrl: String,
     navidromeUsername: String,
     navidromePassword: String,
-){
+): List<MediaData.Song> {
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
         jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
@@ -83,4 +83,6 @@ fun parseNavidromeAlbumSongsJSON(
     }
 
     Log.d("NAVIDROME", "Got Album Songs: ${subsonicResponse.album?.songs?.get(0)?.title}")
+
+    return selectedAlbum?.songs.orEmpty()
 }

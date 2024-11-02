@@ -1,5 +1,3 @@
-@file:Suppress("SpellCheckingInspection")
-
 package com.craftworks.music.ui.viewmodels
 
 import androidx.compose.ui.util.fastFilter
@@ -20,7 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-@Suppress("SpellCheckingInspection")
 class ArtistsScreenViewModel : ViewModel(), ReloadableViewModel {
     private val _allArtists = MutableStateFlow<List<MediaData.Artist>>(emptyList())
     val allArtists: StateFlow<List<MediaData.Artist>> = _allArtists.asStateFlow()

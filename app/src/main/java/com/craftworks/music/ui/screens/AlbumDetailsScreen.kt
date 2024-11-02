@@ -108,7 +108,10 @@ fun AlbumDetails(
 
         if (NavidromeManager.checkActiveServers()) {
             selectedAlbum?.navidromeID?.let { albumId ->
-                withContext(Dispatchers.IO){ getNavidromeAlbumSongs(albumId) } }
+                withContext(Dispatchers.IO){
+                    selectedAlbum?.songs = getNavidromeAlbumSongs(albumId)
+                }
+            }
             albumSongs = selectedAlbum?.songs!!
         }
         else {
