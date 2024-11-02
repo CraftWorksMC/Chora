@@ -15,6 +15,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.LibraryResult
+import androidx.media3.session.MediaConstants
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionError
@@ -28,15 +29,20 @@ import com.craftworks.music.ui.screens.selectedAlbum
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.internal.toImmutableList
+
 /*
     Thanks to Yurowitz on StackOverflow for this! Used it as a template.
     https://stackoverflow.com/questions/76838126/can-i-define-a-medialibraryservice-without-an-app
 */
 
+@UnstableApi
 class ChoraMediaLibraryService : MediaLibraryService() {
 
     //region Vars
@@ -55,8 +61,23 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         )
         .build()
 
-    private val subrootTracklistItem = MediaItem.Builder()
-        .setMediaId("nodeTRACKLIST")
+    private val homeItem = MediaItem.Builder()
+        .setMediaId("nodeHOME")
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setIsBrowsable(true)
+                .setIsPlayable(false)
+                .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
+                .setTitle("Home")
+                .setArtworkUri(
+                    Uri.parse("android.resource://com.craftworks.music/drawable/ic_home_icon")
+                )
+                .build()
+        )
+        .build()
+
+    private val recentlyPlayedItem = MediaItem.Builder()
+        .setMediaId("nodeRECENTLYPLAYED")
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setIsBrowsable(true)
@@ -66,18 +87,39 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 .setArtworkUri(
                     Uri.parse("android.resource://com.craftworks.music/drawable/ic_notification_icon")
                 )
+                .setExtras(Bundle().apply {
+                    putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_GRID_ITEM)
+                })
                 .build()
         )
         .build()
-    private val rootHierarchy = listOf(subrootTracklistItem)
+
+    private val mostPlayedItem = MediaItem.Builder()
+        .setMediaId("nodeMOSTPLAYED")
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setIsBrowsable(true)
+                .setIsPlayable(false)
+                .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS)
+                .setTitle("Most Played Albums")
+                .setArtworkUri(
+                    Uri.parse("android.resource://com.craftworks.music/drawable/ic_notification_icon")
+                )
+                .setExtras(Bundle().apply {
+                    putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_GRID_ITEM)
+                })
+                .build()
+        )
+        .build()
+
+    private val rootHierarchy = listOf(homeItem)
 
     private val serviceMainScope = CoroutineScope(Dispatchers.Main)
     private val serviceIOScope = CoroutineScope(Dispatchers.IO)
 
     var aRecentlyPlayed = mutableListOf<MediaItem>()
+    var aMostPlayed = mutableListOf<MediaItem>()
     var aAlbumSongs = mutableListOf<MediaItem>()
-
-    private var isLoadingAlbum = false
 
     //endregion
 
@@ -113,14 +155,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         player.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
-
-//                //Controlling Android Auto queue here intelligently
-//                if (mediaItem != null && player.mediaItemCount == 1) {
-//                    if (tracklist.size > 1) {
-//                        val index = tracklist.indexOfFirst { it.mediaId == mediaItem.mediaId }
-//                        player.setMediaItems(tracklist, index, 0)
-//                    }
-//                }
 
                 if (NavidromeManager.checkActiveServers())
                     serviceMainScope.launch { markNavidromeSongAsPlayed(SongHelper.currentSong) }
@@ -162,31 +196,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 }
             }
 
-//            override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-//                super.onMediaMetadataChanged(mediaMetadata)
-//
-//                if (SongHelper.currentSong.title == mediaMetadata.title.toString() &&
-//                    SongHelper.currentSong.artist == mediaMetadata.artist.toString())
-//                    return //Don't update metadata if song is already the same
-//
-//                serviceIOScope.launch {
-//                    val song = Song(
-//                        title = mediaMetadata.title.toString(),
-//                        artist = mediaMetadata.artist.toString(),
-//                        duration = mediaMetadata.extras?.getInt("duration") ?: 0,
-//                        imageUrl = Uri.parse(mediaMetadata.artworkUri.toString()),
-//                        year = mediaMetadata.releaseYear.toString(),
-//                        album = mediaMetadata.albumTitle.toString(),
-//                        format = mediaMetadata.extras?.getString("MoreInfo"),
-//                        navidromeID = mediaMetadata.extras?.getString("NavidromeID"),
-//                        isRadio = mediaMetadata.extras?.getBoolean("isRadio"))
-//                    SongHelper.currentSong = song
-//                }
-//
-//                if (SongHelper.currentSong.isRadio == false)
-//                    getLyrics()
-//            }
-
             override fun onPlayerError(error: PlaybackException) {
                 error.printStackTrace()
                 Log.e("PLAYER", error.stackTraceToString())
@@ -197,24 +206,32 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             .setId("AutoSession")
             .build()
 
+        // Add recently played albums
         serviceIOScope.launch {
 
             NavidromeManager.init(this@ChoraMediaLibraryService)
 
-            val recentlyPlayedAlbumsAsync = async { getNavidromeAlbums("recent", 20) }
-            val recentlyPlayedAlbums = recentlyPlayedAlbumsAsync.await()
+            if (NavidromeManager.checkActiveServers()){
+                val recentlyPlayedAlbumsAsync = async { getNavidromeAlbums("recent", 20) }
+                val mostPlayedAlbumsAsync = async { getNavidromeAlbums("frequent", 20) }
 
-            Log.d("AA", "Got ${recentlyPlayedAlbums.size} recently played albums!")
+                val recentlyPlayedAlbums = recentlyPlayedAlbumsAsync.await()
+                val mostPlayedAlbums = mostPlayedAlbumsAsync.await()
 
-            for (album in recentlyPlayedAlbums)
-                aRecentlyPlayed.add(albumToMediaItem(album))
+                Log.d("AA", "Got ${recentlyPlayedAlbums.size} recently played albums and ${mostPlayedAlbums.size} most played!")
 
-            aRecentlyPlayed = aRecentlyPlayed.sortedBy { it.mediaMetadata.title.toString() }.toMutableList()
-            SongHelper.currentTracklist = aRecentlyPlayed
+                for (album in recentlyPlayedAlbums)
+                    aRecentlyPlayed.add(albumToMediaItem(album))
+
+                for (album in mostPlayedAlbums)
+                    aMostPlayed.add(albumToMediaItem(album))
+            }
 
             Log.d("AA", "Notified AA of new tracks")
 
-            session?.notifyChildrenChanged("nodeTRACKLIST", aRecentlyPlayed.size, null)
+            session?.notifyChildrenChanged("nodeHOME", 2, null)
+            session?.notifyChildrenChanged("nodeRECENTLYPLAYED", aRecentlyPlayed.size, null)
+            session?.notifyChildrenChanged("nodeMOSTPLAYED", aMostPlayed.size, null)
         }
 
 
@@ -292,11 +309,14 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         override fun onGetLibraryRoot(
             session: MediaLibrarySession,
-            browser: MediaSession.ControllerInfo, params: LibraryParams?
+            browser: MediaSession.ControllerInfo,
+            params: LibraryParams?
         ): ListenableFuture<LibraryResult<MediaItem>> {
             return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params))
         }
 
+        var isGettingChildren = false
+        @OptIn(UnstableApi::class)
         override fun onGetChildren(
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
@@ -306,71 +326,54 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             params: LibraryParams?
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
 
-//            if (parentId.startsWith("album_")) {
-//                val albumId = parentId.removePrefix("album_")
-//                serviceIOScope.launch {
-//                    getNavidromeAlbumSongs(albumId)
-//                    val albumSongs = selectedAlbum?.songs ?: emptyList()
-//
-//                    aAlbumSongs.clear()
-//
-//                    for (song in albumSongs)
-//                        aAlbumSongs.add(songToMediaItem(song))
-//
-//                    session.notifyChildrenChanged(parentId, aAlbumSongs.size, params)
-//                }
-//            }
-//
-//            return Futures.immediateFuture(
-//                LibraryResult.ofItemList(
-//                    when (parentId) {
-//                        "nodeROOT" -> rootHierarchy
-//                        "nodeTRACKLIST" -> aRecentlyPlayed
-//                        else -> if (parentId.startsWith("album_"))
-//                            aAlbumSongs
-//                        else emptyList()
-//                    }, params
-//                )
-//            )
+            val future = SettableFuture.create<LibraryResult<ImmutableList<MediaItem>>>()
 
-            if (parentId.startsWith("album_") && !isLoadingAlbum) {
-                val albumId = parentId.removePrefix("album_")
-                isLoadingAlbum = true
+            serviceIOScope.launch {
+                try {
+                    val items = withContext(Dispatchers.IO) {
+                        when {
+                            parentId == "nodeROOT" -> rootHierarchy
+                            parentId == "nodeRECENTLYPLAYED" -> aRecentlyPlayed
+                            parentId == "nodeMOSTPLAYED" -> aMostPlayed
+                            parentId == "nodeHOME" -> listOf(recentlyPlayedItem, mostPlayedItem) // Return both folders for Home
+                            parentId.startsWith("album_") -> {
+                                // Extract album ID from parentId (e.g., "album_<albumId>")
+                                val albumId = parentId.removePrefix("album_")
 
-                serviceIOScope.launch {
-                    try {
-                        if (albumId == selectedAlbum?.navidromeID) return@launch
+                                // Use a lock to prevent concurrent loading of the same album
+                                if (!isGettingChildren) {
+                                    isGettingChildren = true
+                                    // Load album songs only if albumId is different
+                                    getNavidromeAlbumSongs(albumId)
+                                    aAlbumSongs = selectedAlbum?.songs?.map { track ->
+                                        songToMediaItem(track)
+                                    }?.toMutableList() ?: mutableListOf()
+                                    isGettingChildren = false
+                                } else {
+                                    // If another coroutine is loading, wait until it completes
+                                    emptyList<MediaItem>()
+                                }
 
-                        getNavidromeAlbumSongs(albumId)
-                        val albumSongs = selectedAlbum?.songs ?: emptyList()
+                                SongHelper.currentTracklist = aAlbumSongs
 
-                        aAlbumSongs.clear()
-                        for (song in albumSongs) {
-                            aAlbumSongs.add(songToMediaItem(song))
+                                // Use cached album songs from aAlbumSongs
+                                aAlbumSongs.ifEmpty {
+                                    selectedAlbum?.songs?.map { track ->
+                                        songToMediaItem(track)
+                                    }?.toImmutableList() ?: emptyList()
+                                }
+                            }
+                            else -> emptyList()
                         }
-
-                        // Only notify if we actually got new songs
-                        if (albumSongs.isNotEmpty()) {
-                            SongHelper.currentTracklist = aAlbumSongs
-                            session.notifyChildrenChanged(parentId, aAlbumSongs.size, params)
-                        }
-                    } finally {
-                        isLoadingAlbum = false
                     }
+                    future.set(LibraryResult.ofItemList(items, params))
+                } catch (e: Exception) {
+                    future.setException(e)
                 }
             }
 
-            return Futures.immediateFuture(
-                LibraryResult.ofItemList(
-                    when (parentId) {
-                        "nodeROOT" -> rootHierarchy
-                        "nodeTRACKLIST" -> aRecentlyPlayed
-                        else -> if (parentId.startsWith("album_"))
-                            aAlbumSongs
-                        else emptyList()
-                    }, params
-                )
-            )
+            // Return the ListenableFuture
+            return future
         }
 
 
@@ -380,7 +383,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             browser: MediaSession.ControllerInfo,
             mediaId: String
         ): ListenableFuture<LibraryResult<MediaItem>> {
-            val mediaItem = aRecentlyPlayed.find { it.mediaId == mediaId }
+            val mediaItem =
+                aMostPlayed.find { it.mediaId == mediaId }
+                ?: aRecentlyPlayed.find { it.mediaId == mediaId }
                 ?: aAlbumSongs.find { it.mediaId == mediaId }
                 ?: return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
 
@@ -397,7 +402,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 parentId,
                 when (parentId) {
                     "nodeROOT" -> 2
-                    "nodeTRACKLIST" -> aRecentlyPlayed.size
+                    "nodeHOME" -> 2
+                    "nodeMOSTPLAYED" -> aMostPlayed.size
+                    "nodeRECENTLYPLAYED" -> aRecentlyPlayed.size
                     else -> 0
                 },
                 params
@@ -417,6 +424,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     }
 }
 
+@OptIn(UnstableApi::class)
 fun albumToMediaItem(album: MediaData.Album): MediaItem {
     val mediaMetadata = MediaMetadata.Builder()
         .setTitle(album.title)
@@ -431,6 +439,7 @@ fun albumToMediaItem(album: MediaData.Album): MediaItem {
         .setExtras(Bundle().apply {
             putString("navidromeID", album.navidromeID)
             putInt("Duration", album.duration)
+            putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM)
         })
         .build()
 
