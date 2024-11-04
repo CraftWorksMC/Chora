@@ -45,10 +45,9 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.data.radioList
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.getIcecastMetadata
-import com.craftworks.music.providers.navidrome.getNavidromeRadios
+import com.craftworks.music.providers.getRadios
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.RadiosGrid
 import com.craftworks.music.ui.elements.dialogs.AddRadioDialog
@@ -67,9 +66,7 @@ fun RadioScreen(
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     LaunchedEffect(Unit) {
-        if (radioList.isEmpty() && NavidromeManager.checkActiveServers()) {
-            getNavidromeRadios()
-        }
+        getRadios()
     }
 
     val context = LocalContext.current

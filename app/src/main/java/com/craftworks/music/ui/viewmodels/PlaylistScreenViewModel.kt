@@ -3,10 +3,9 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.playlistList
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.providers.navidrome.getNavidromePlaylistDetails
-import com.craftworks.music.providers.navidrome.getNavidromePlaylists
+import com.craftworks.music.providers.getPlaylistDetails
+import com.craftworks.music.providers.getPlaylists
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,15 +27,9 @@ class PlaylistScreenViewModel : ViewModel(), ReloadableViewModel {
     override fun reloadData() {
         viewModelScope.launch {
             coroutineScope {
-                if (NavidromeManager.checkActiveServers()) {
-                    val allPlaylistsDeferred = async { getNavidromePlaylists() }
+                val allPlaylistsDeferred = async { getPlaylists() }
 
-                    _allPlaylists.value = allPlaylistsDeferred.await()
-
-                    _allPlaylists.value += playlistList
-                } else {
-                    _allPlaylists.value = playlistList
-                }
+                _allPlaylists.value = allPlaylistsDeferred.await()
             }
         }
     }
@@ -46,9 +39,9 @@ class PlaylistScreenViewModel : ViewModel(), ReloadableViewModel {
 
         viewModelScope.launch {
             coroutineScope {
-                val selectedPlaylistDeferred = async { getNavidromePlaylistDetails(playlistId) }
+                val selectedPlaylistDeferred = async { getPlaylistDetails(playlistId) }
 
-                _selectedPlaylist.value = selectedPlaylistDeferred.await()[0]
+                _selectedPlaylist.value = selectedPlaylistDeferred.await()
 
                 com.craftworks.music.ui.screens.selectedPlaylist = _selectedPlaylist.value!!
             }

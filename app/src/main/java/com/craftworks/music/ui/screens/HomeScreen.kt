@@ -48,7 +48,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,17 +60,14 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
+import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview(
-    showBackground = true, showSystemUi = true, device = "spec:parent=pixel_5"
-)
 fun HomeScreen(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,
@@ -92,16 +88,12 @@ fun HomeScreen(
 
     val onRefresh: () -> Unit = {
         isRefreshing = true
-        getSongsOnDevice(context)
-
         viewModel.reloadData()
         isRefreshing = false
     }
 
     PullToRefreshBox(
         modifier = Modifier,
-            //.fillMaxSize()
-            //.background(MaterialTheme.colorScheme.background),
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh
@@ -156,7 +148,6 @@ fun HomeScreen(
             HorizontalLineWithNavidromeCheck()
 
             Spacer(modifier = Modifier.height(12.dp))
-
 
             RecentlyPlayed(mediaController, navHostController, recentlyPlayedAlbums)
             RecentlyAdded(mediaController, navHostController, recentAlbums)
@@ -217,11 +208,11 @@ fun HomeScreen(
             modifier = Modifier.padding(start = 12.dp)
         )
 
-        AlbumRow(albums = albums, mediaController = mediaController) { album ->
-            navHostController.navigate(Screen.AlbumDetails.route) {
+        AlbumRow(albums, mediaController) { album ->
+            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
+            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
                 launchSingleTop = true
             }
-            selectedAlbum = album
         }
     }
 }
@@ -245,35 +236,12 @@ fun HomeScreen(
             modifier = Modifier.padding(start = 12.dp)
         )
 
-        AlbumRow(albums = albums, mediaController = mediaController) { album ->
-            navHostController.navigate(Screen.AlbumDetails.route) {
+        AlbumRow(albums, mediaController) { album ->
+            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
+            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
                 launchSingleTop = true
             }
-            selectedAlbum = album
         }
-
-        /*
-        if (homeScreenUseAlbums.value){
-            /* ALBUMS ROW */
-            //val recentlyAddedAlbums = albumList.sortedByDescending { it.created }.take(20)
-            AlbumRow(albums = viewModel.recentAlbums.collectAsState().value, mediaController = mediaController) { album ->
-                navHostController.navigate(Screen.AlbumDetails.route) {
-                    launchSingleTop = true
-                }
-                selectedAlbum = album
-            }
-        }
-        else {
-            /* SONGS ROW */
-            val recentSongsList = songsList.sortedByDescending { song: MediaData.Song -> song.dateAdded }.take(20)
-            SongsRow(songsList = recentSongsList, onSongSelected = { song ->
-                //SongHelper.currentSong = song
-                SongHelper.currentList = recentSongsList
-                //songState = true
-                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
-            })
-        }
-        */
     }
 }
 
@@ -296,34 +264,12 @@ fun HomeScreen(
             modifier = Modifier.padding(start = 12.dp)
         )
 
-        AlbumRow(albums = albums, mediaController = mediaController) { album ->
-            navHostController.navigate(Screen.AlbumDetails.route) {
+        AlbumRow(albums, mediaController) { album ->
+            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
+            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
                 launchSingleTop = true
             }
-            selectedAlbum = album
         }
-
-        /*
-        if (homeScreenUseAlbums.value){
-            /* ALBUMS ROW */
-            //val mostPlayedAlbums = albumList.sortedByDescending { it.playCount }.take(20)
-            AlbumRow(albums = viewModel.mostPlayedAlbums.collectAsState().value, mediaController = mediaController) { album ->
-                navHostController.navigate(Screen.AlbumDetails.route) {
-                    launchSingleTop = true
-                }
-                selectedAlbum = album
-            }
-        }
-        else{
-            /* SONGS ROW */
-            val mostPlayedList = songsList.sortedByDescending { song: MediaData.Song -> song.timesPlayed }.take(20)
-            SongsRow(songsList = mostPlayedList, onSongSelected = { song ->
-                //SongHelper.currentSong = song
-                SongHelper.currentList = mostPlayedList
-                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
-            })
-        }
-        */
     }
 }
 
@@ -346,38 +292,11 @@ fun HomeScreen(
             modifier = Modifier.padding(start = 12.dp)
         )
 
-        AlbumRow(albums = albums, mediaController = mediaController) { album ->
-            navHostController.navigate(Screen.AlbumDetails.route) {
+        AlbumRow(albums, mediaController) { album ->
+            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
+            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
                 launchSingleTop = true
             }
-            selectedAlbum = album
         }
-
-        /*
-        if (homeScreenUseAlbums.value){
-            /* ALBUMS ROW */
-//                    val shuffledAlbumsList = remember {
-//                        derivedStateOf { albumList.shuffled().take(20) }
-//                    }
-            AlbumRow(albums = viewModel.shuffledAlbums.collectAsState().value, mediaController = mediaController) { album ->
-                navHostController.navigate(Screen.AlbumDetails.route) {
-                    launchSingleTop = true
-                }
-                selectedAlbum = album
-            }
-        }
-        else{
-            /* SONGS ROW */
-            val shuffledSongsList = remember {
-                derivedStateOf { songsList.shuffled().take(20) }
-            }
-            SongsRow(songsList = shuffledSongsList.value, onSongSelected = { song ->
-                //SongHelper.currentSong = song
-                SongHelper.currentList = shuffledSongsList.value
-                //songState = true
-                song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController) }
-            })
-        }
-        */
     }
 }

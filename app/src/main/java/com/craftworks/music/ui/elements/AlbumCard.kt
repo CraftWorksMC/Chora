@@ -34,24 +34,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastFilter
 import androidx.media3.session.MediaController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.songsList
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.navidrome.getNavidromeAlbumSongs
-import com.craftworks.music.ui.screens.selectedAlbum
+import com.craftworks.music.providers.getAlbum
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-@Preview
 @Stable
 @Composable
 fun AlbumCard(
@@ -100,12 +92,13 @@ fun AlbumCard(
             val coroutineScope = rememberCoroutineScope()
 
             IconButton(
-                onClick = { playSelectedAlbum(context, coroutineScope, mediaController, album) },
+                onClick = { playSelectedAlbum(context, coroutineScope, mediaController, album.navidromeID) },
                 modifier = Modifier
                     .padding(6.dp)
                     .background(
                         MaterialTheme.colorScheme.background.copy(alpha = 0.75f),
-                        shape = CircleShape)
+                        shape = CircleShape
+                    )
                     .height(36.dp)
                     .size(36.dp)
                     .align(Alignment.BottomStart)
@@ -127,7 +120,7 @@ fun AlbumCard(
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Text(
@@ -136,7 +129,7 @@ fun AlbumCard(
             color = LocalContentColor.current.copy(alpha = 0.75f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
     }
 }
@@ -145,37 +138,21 @@ private fun playSelectedAlbum(
     context: Context,
     coroutineScope: CoroutineScope,
     mediaController: MediaController?,
-    album: MediaData.Album
+    albumId: String
 ) {
     coroutineScope.launch {
-        selectedAlbum = album
-
-        // Fetch songs if the list is empty
-        if (selectedAlbum?.songs.isNullOrEmpty()) {
-            if (NavidromeManager.checkActiveServers()) {
-                selectedAlbum?.navidromeID?.let { albumId ->
-                    withContext(Dispatchers.IO) {
-                        selectedAlbum?.songs = getNavidromeAlbumSongs(albumId)
-                    }
-                }
-            } else {
-                selectedAlbum?.songs =
-                    songsList.fastFilter { it.album == selectedAlbum?.name }
-            }
-        }
+        val currentAlbum = getAlbum(albumId)
 
         // Try to play song
-        selectedAlbum?.songs?.let { songs ->
-            if (songs.isEmpty()) return@launch
+        if (currentAlbum?.songs.isNullOrEmpty()) return@launch
 
-            SongHelper.currentSong = songs[0]
-            SongHelper.currentList = songs
-            SongHelper.playStream(
-                context,
-                Uri.parse(songs[0].media ?: ""),
-                false,
-                mediaController
-            )
-        }
+        SongHelper.currentSong = currentAlbum?.songs?.get(0)!!
+        SongHelper.currentList = currentAlbum.songs ?: emptyList()
+        SongHelper.playStream(
+            context,
+            Uri.parse(currentAlbum.songs?.get(0)!!.media ?: ""),
+            false,
+            mediaController
+        )
     }
 }

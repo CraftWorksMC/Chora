@@ -59,7 +59,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -79,10 +78,10 @@ import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
+import java.net.URLEncoder
 
 @OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalFoundationApi
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ArtistDetails(
     navHostController: NavHostController = rememberNavController(),
@@ -267,7 +266,8 @@ fun ArtistDetails(
 
             /* SONGS ROW */
             AlbumRow(albums = artist?.album.orEmpty(), mediaController, onAlbumSelected = { album ->
-                navHostController.navigate(Screen.AlbumDetails.route) {
+                val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
+                navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
                     launchSingleTop = true
                 }
                 selectedAlbum = album }

@@ -17,23 +17,6 @@ data class Artists(val index: List<index>)
 @Serializable
 data class index(val artist: List<MediaData.Artist>? = listOf())
 
-
-suspend fun getNavidromeArtists() : List<MediaData.Artist>{
-    return sendNavidromeGETRequest("getArtists.view?size=100&f=json").filterIsInstance<MediaData.Artist>()
-}
-
-suspend fun searchNavidromeArtists(query: String? = ""): List<MediaData.Artist> {
-    return sendNavidromeGETRequest("search3.view?query=$query&songCount=0&songOffset=0&artistCount=100&albumCount=0&f=json").filterIsInstance<MediaData.Artist>()
-}
-
-suspend fun getNavidromeArtistDetails(id: String): MediaData.Artist {
-    return sendNavidromeGETRequest("getArtist.view?id=$id&f=json").filterIsInstance<MediaData.Artist>()[0] //Use index 0 because sendNavidromeGETRequest only returns a list.
-}
-
-suspend fun getNavidromeArtistBiography(id: String): MediaData.Artist {
-    return sendNavidromeGETRequest("getArtistInfo.view?id=$id&f=json").filterIsInstance<MediaData.Artist>()[0] //Use index 0 because sendNavidromeGETRequest only returns a list.
-}
-
 fun parseNavidromeArtistsJSON(
     response: String
 ) : List<MediaData.Artist> {

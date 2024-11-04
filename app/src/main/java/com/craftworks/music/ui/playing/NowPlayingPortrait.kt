@@ -22,8 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,20 +58,20 @@ import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 fun NowPlayingPortrait(
     mediaController: MediaController? = null,
     navHostController: NavHostController = rememberNavController(),
-    iconColor: Color = Color.White
+    iconColor: Color = Color.Black
 ){
-    SideEffect {
-        println("Changed iconColor: $iconColor")
-    }
-
     Log.d("RECOMPOSITION", "NowPlaying Portrait")
 
     // use dark or light colors for icons and text based on the album art luminance.
-    val iconTextColor by animateColorAsState(
+    val iconTextColor = animateColorAsState(
         targetValue = iconColor,
         animationSpec = tween(1000, 0, FastOutSlowInEasing),
         label = "Animated text color"
     )
+
+    val currentSong by remember {
+        derivedStateOf { SongHelper.currentSong }
+    }
 
     Column {
         // Top padding (for mini-player)
@@ -81,14 +82,15 @@ fun NowPlayingPortrait(
 
         /* Album Cover + Lyrics */
         AnimatedContent(
-            lyricsOpen, label = "Crossfade between lyrics",
+            lyricsOpen,
+            label = "Crossfade between lyrics",
             modifier = Modifier
-                .heightIn(min = 320.dp, max=420.dp)
+                .heightIn(min = 320.dp, max = 420.dp)
                 .fillMaxWidth(),
         ) {
             if (it) {
                 LyricsView(
-                    iconTextColor,
+                    iconTextColor.value,
                     false,
                     mediaController,
                     PaddingValues(horizontal = 32.dp, vertical = 16.dp)
@@ -96,7 +98,7 @@ fun NowPlayingPortrait(
             } else {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(SongHelper.currentSong.imageUrl)
+                        .data(currentSong.imageUrl)
                         .allowHardware(false)
                         .size(1024)
                         .crossfade(true)
@@ -116,6 +118,7 @@ fun NowPlayingPortrait(
             }
         }
 
+
         /* Song Title + Artist*/
         Column(
             modifier = Modifier
@@ -126,75 +129,55 @@ fun NowPlayingPortrait(
             verticalArrangement = Arrangement.Top
         ) {
             Log.d("RECOMPOSITION", "Titles and artist")
-            SongHelper.currentSong.title.let {
-                Text(
-                    text = it,
-                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                    fontWeight = FontWeight.SemiBold,
-                    color = iconTextColor,
-                    maxLines = 1, overflow = TextOverflow.Visible,
-                    softWrap = false,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
-                )
-            }
+            Text(
+                text = currentSong.title,
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                fontWeight = FontWeight.SemiBold,
+                color = iconTextColor.value,
+                maxLines = 1, overflow = TextOverflow.Visible,
+                softWrap = false,
+                textAlign = TextAlign.Start,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+            )
 
-            SongHelper.currentSong.artist.let { artistName ->
-                Text(
-                    text = artistName + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
-                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                    fontWeight = FontWeight.Normal,
-                    color = iconTextColor,
-                    maxLines = 1,
-                    softWrap = false,
-                    textAlign = TextAlign.Start,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
-//                            .clickable {
-//                                try {
-//                                    selectedArtist = artistList.firstOrNull() {
-//                                        it.name.equals(
-//                                            artistName, ignoreCase = true
-//                                        )
-//                                    }!!
-//                                } catch (e: Exception) {
-//                                    Log.d("NAVIDROME", "Artist not found!")
-//                                    return@clickable
-//                                }
-//                                coroutine.launch {
-//                                    scaffoldState.bottomSheetState.partialExpand()
-//                                }
-//                                navHostController.navigate(Screen.AristDetails.route) {
-//                                    launchSingleTop = true
-//                                }
-//                            }
-                )
-            }
+            Text(
+                text = currentSong.artist + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
+                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                fontWeight = FontWeight.Normal,
+                color = iconTextColor.value,
+                maxLines = 1,
+                softWrap = false,
+                textAlign = TextAlign.Start,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+            )
 
             Spacer(Modifier.height(8.dp))
 
             if (showMoreInfo.value) {
                 Text(
-                    text = "${SongHelper.currentSong.format.uppercase()} • ${SongHelper.currentSong.bitrate} • ${
-                        if (SongHelper.currentSong.navidromeID == "Local")
+                    text = "${currentSong.format.uppercase()} • ${currentSong.bitrate} • ${
+                        if (currentSong.navidromeID.startsWith("Local_"))
                             stringResource(R.string.Source_Local)
                         else
                             stringResource(R.string.Source_Navidrome)
                     } ",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Light,
-                    color = iconTextColor.copy(alpha = 0.5f),
+                    color = iconTextColor.value.copy(alpha = 0.5f),
                     maxLines = 1,
                     textAlign = TextAlign.Start
                 )
             }
         }
 
-        PlaybackProgressSlider(iconTextColor, mediaController)
+
+
+        PlaybackProgressSlider(iconTextColor.value, mediaController)
 
         //region Buttons
         Column(
@@ -211,15 +194,15 @@ fun NowPlayingPortrait(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ShuffleButton(iconTextColor, mediaController, 32.dp)
+                ShuffleButton(iconTextColor.value, mediaController, 32.dp)
 
-                PreviousSongButton(iconTextColor, mediaController, 48.dp)
+                PreviousSongButton(iconTextColor.value, mediaController, 48.dp)
 
-                PlayPauseButtonUpdating(iconTextColor, mediaController, 92.dp)
+                PlayPauseButtonUpdating(iconTextColor.value, mediaController, 92.dp)
 
-                NextSongButton(iconTextColor, mediaController, 48.dp)
+                NextSongButton(iconTextColor.value, mediaController, 48.dp)
 
-                RepeatButton(iconTextColor, mediaController, 32.dp)
+                RepeatButton(iconTextColor.value, mediaController, 32.dp)
             }
 
             Row(
@@ -231,11 +214,12 @@ fun NowPlayingPortrait(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                LyricsButton(iconTextColor, 64.dp)
+                LyricsButton(iconTextColor.value, 64.dp)
 
-                DownloadButton(iconTextColor, 64.dp)
+                DownloadButton(iconTextColor.value, 64.dp)
             }
         }
         //endregion
+
     }
 }

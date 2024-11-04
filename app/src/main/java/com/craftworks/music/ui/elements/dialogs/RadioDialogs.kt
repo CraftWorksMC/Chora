@@ -39,13 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.radioList
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.providers.navidrome.createNavidromeRadio
-import com.craftworks.music.providers.navidrome.deleteNavidromeRadio
-import com.craftworks.music.providers.navidrome.getNavidromeRadios
-import com.craftworks.music.providers.navidrome.modifyNavidromeRadio
+import com.craftworks.music.providers.createRadio
+import com.craftworks.music.providers.deleteRadio
+import com.craftworks.music.providers.modifyRadio
 import com.craftworks.music.ui.elements.bounceClick
 import kotlinx.coroutines.launch
 
@@ -138,26 +134,13 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                             onClick = {
                                 if (radioName.isBlank() && radioUrl.isBlank()) return@Button
 
-                                if (NavidromeManager.checkActiveServers()){
-                                    coroutineScope.launch {
-                                        createNavidromeRadio(
-                                            radioName,
-                                            radioUrl,
-                                            radioPage)
-                                        getNavidromeRadios()
-                                    }
-                                } else {
-                                    radioList.add(
-                                        MediaData.Radio(
-                                            navidromeID = "Local",
-                                            name = radioName,
-                                            media = radioUrl,
-                                            homePageUrl = radioPage,
-                                        )
+                                coroutineScope.launch {
+                                    createRadio(
+                                        radioName,
+                                        radioUrl,
+                                        radioPage,
+                                        context
                                     )
-                                    coroutineScope.launch {
-                                        SettingsManager(context).saveLocalRadios()
-                                    }
                                 }
 
                                 setShowDialog(false)
@@ -256,15 +239,8 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) 
                         Button(
                             onClick = {
                                 setShowDialog(false)
-                                radioList.remove(radio)
-                                if (NavidromeManager.checkActiveServers()) radio.navidromeID.let {
-                                    coroutineScope.launch {
-                                        deleteNavidromeRadio(it)
-                                    }
-
-                                }
                                 coroutineScope.launch {
-                                    SettingsManager(context).saveLocalRadios()
+                                    deleteRadio(radio, context)
                                 }
                             },
                             shape = RoundedCornerShape(12.dp),
@@ -283,29 +259,10 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) 
                         Button(
                             onClick = {
                                 if (radioName.isBlank() && radioUrl.isBlank()) return@Button
-                                if (NavidromeManager.checkActiveServers())
-                                    coroutineScope.launch {
-                                        modifyNavidromeRadio(
-                                            radio.navidromeID,
-                                            radioName,
-                                            radioUrl,
-                                            radioPage
-                                        )
-                                    }
-                                else {
-                                    radioList.remove(radio)
-                                    radioList.add(
-                                        MediaData.Radio(
-                                            navidromeID = "Local",
-                                            name = radioName,
-                                            media = radioUrl
-                                        )
-                                    )
+                                coroutineScope.launch {
+                                    modifyRadio(radio)
                                 }
                                 setShowDialog(false)
-                                coroutineScope.launch {
-                                    SettingsManager(context).saveLocalRadios()
-                                }
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(

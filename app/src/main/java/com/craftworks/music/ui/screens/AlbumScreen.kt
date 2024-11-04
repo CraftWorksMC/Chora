@@ -2,6 +2,9 @@ package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -58,15 +61,16 @@ import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
-@Preview(showBackground = true, showSystemUi = false)
 @Composable
 fun AlbumScreen(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,
-    viewModel: AlbumScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: AlbumScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
@@ -85,7 +89,6 @@ fun AlbumScreen(
     val allAlbumsList by viewModel.allAlbums.collectAsState()
 
     PullToRefreshBox(
-        //modifier = Modifier.background(MaterialTheme.colorScheme.background),
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh
@@ -166,22 +169,18 @@ fun AlbumScreen(
                 }
             }
 
-//            LaunchedEffect(searchFilter) {
-//                if (searchFilter.isNotBlank() && NavidromeManager.checkActiveServers()){
-//                    albumList.clear()
-//                }
-//            }
-
             AlbumGrid(allAlbumsList,
                 mediaController,
                 onAlbumSelected = { album ->
-                        navHostController.navigate(Screen.AlbumDetails.route) {
-                            launchSingleTop = true
+                    val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
+                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                        launchSingleTop = true
                     }
                 selectedAlbum = album },
                 searchFilter.isNotBlank(),
                 "alphabeticalByName",
-                viewModel)
+                viewModel
+            )
         }
     }
 }

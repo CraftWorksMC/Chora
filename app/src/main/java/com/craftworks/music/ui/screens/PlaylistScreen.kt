@@ -84,7 +84,7 @@ fun PlaylistScreen(
             viewModel.reloadData()
 
             for (playlist in playlistList){
-                if (playlist.navidromeID == "Local"){
+                if (playlist.navidromeID.startsWith("Local_")){
                     val playlistImage = playlist.songs?.let { localPlaylistImageGenerator(it, context) } ?: ""
                     playlist.coverArt = playlistImage.toString()
                 }

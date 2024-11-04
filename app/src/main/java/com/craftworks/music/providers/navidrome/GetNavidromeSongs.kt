@@ -18,11 +18,6 @@ data class SearchResult3(
     val artist: List<MediaData.Artist>? = listOf(),
 )
 
-
-suspend fun getNavidromeSongs() : List<MediaData.Song> {
-    return sendNavidromeGETRequest("search3.view?query=''&songCount=100&songOffset=0&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaData.Song>()
-}
-
 @OptIn(UnstableApi::class)
 fun parseNavidromeSearch3JSON(
     response: String,

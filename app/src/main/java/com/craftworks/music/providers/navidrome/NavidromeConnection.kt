@@ -5,6 +5,7 @@ import android.util.Log
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.managers.NavidromeManager.getCurrentServer
 import com.craftworks.music.managers.NavidromeManager.setSyncingStatus
+import com.craftworks.music.providers.getPlaylists
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -132,7 +133,7 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
 
                             // Albums
                             endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))
-                            endpoint.startsWith("getAlbum.")    -> parsedData.addAll(parseNavidromeAlbumSongsJSON(responseContent, server.url, server.username, server.password))
+                            endpoint.startsWith("getAlbum.")    -> parsedData.addAll(parseNavidromeAlbumJSON(responseContent, server.url, server.username, server.password))
 
 
                             // Artists
@@ -143,9 +144,9 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
                             // Playlists
                             endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
                             endpoint.startsWith("getPlaylist.") -> parsedData.addAll(listOf(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password)))
-                            endpoint.startsWith("updatePlaylist") -> getNavidromePlaylists()
-                            endpoint.startsWith("createPlaylist") -> getNavidromePlaylists()
-                            endpoint.startsWith("deletePlaylist") -> getNavidromePlaylists()
+                            endpoint.startsWith("updatePlaylist") -> getPlaylists()
+                            endpoint.startsWith("createPlaylist") -> getPlaylists()
+                            endpoint.startsWith("deletePlaylist") -> getPlaylists()
 
                             // Radios
                             endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))

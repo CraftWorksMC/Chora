@@ -13,22 +13,6 @@ import kotlinx.serialization.json.jsonObject
 @SerialName("artists")
 data class internetRadioStations(val internetRadioStation: List<MediaData.Radio>)
 
-suspend fun getNavidromeRadios(){
-    radioList.addAll(sendNavidromeGETRequest("getInternetRadioStations.view?f=json").filterIsInstance<MediaData.Radio>())
-}
-
-suspend fun deleteNavidromeRadio(id:String){
-    sendNavidromeGETRequest("deleteInternetRadioStation.view?id=$id")
-}
-
-suspend fun modifyNavidromeRadio(id:String, name:String, url:String, homePage:String){
-    sendNavidromeGETRequest("updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage&id=$id")
-}
-
-suspend fun createNavidromeRadio(name:String, url:String, homePage:String){
-    sendNavidromeGETRequest("createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage")
-}
-
 fun parseNavidromeRadioJSON(
     response: String
 ) : List<MediaData.Radio> {
@@ -47,7 +31,7 @@ fun parseNavidromeRadioJSON(
         mediaDataRadios = it
     }
 
-    Log.d("NAVIDROME", "Added playlists. Total: ${mediaDataRadios.size}")
+    Log.d("NAVIDROME", "Added radios. Total: ${mediaDataRadios.size}")
 
     return mediaDataRadios
 }

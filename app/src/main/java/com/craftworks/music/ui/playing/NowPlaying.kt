@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.util.Log
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
@@ -60,7 +61,7 @@ fun NowPlayingContent(
     }
 
     var backgroundDarkMode by remember { mutableStateOf(false) }
-    //backgroundDarkMode.value = isSystemInDarkTheme()
+    backgroundDarkMode = isSystemInDarkTheme()
 
     val iconTextColor = remember(backgroundDarkMode) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -84,7 +85,9 @@ fun NowPlayingContent(
         LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE){
         NowPlayingLandscape(mediaController, navHostController)
     }
-    else NowPlayingPortrait(mediaController, navHostController, iconTextColor)
+    else {
+        NowPlayingPortrait(mediaController, navHostController, iconTextColor)
+    }
 }
 
 @Composable

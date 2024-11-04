@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.elements.dialogs
 
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,13 +53,10 @@ import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.fadingEdge
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.local.localPlaylistImageGenerator
-import com.craftworks.music.providers.navidrome.addSongToNavidromePlaylist
-import com.craftworks.music.providers.navidrome.createNavidromePlaylist
-import com.craftworks.music.providers.navidrome.deleteNavidromePlaylist
+import com.craftworks.music.providers.addSongToPlaylist
+import com.craftworks.music.providers.createPlaylist
+import com.craftworks.music.providers.deletePlaylist
 import com.craftworks.music.ui.elements.bounceClick
 import kotlinx.coroutines.launch
 
@@ -165,17 +161,8 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 .clickable {
                                     if (playlist.songs?.contains(songToAddToPlaylist.value) == true) return@clickable
 
-                                    if (NavidromeManager.checkActiveServers())
-                                        coroutineScope.launch { addSongToNavidromePlaylist(
-                                            playlist.navidromeID,
-                                            songToAddToPlaylist.value.navidromeID
-                                        ) }
-                                    else {
-                                        playlist.songs = playlist.songs?.plus(songToAddToPlaylist.value)
-                                        coroutineScope.launch {
-                                            SettingsManager(context).saveLocalPlaylists()
-                                        }
-                                        //saveManager(context).saveLocalPlaylists()
+                                    coroutineScope.launch {
+                                        addSongToPlaylist(playlist, songToAddToPlaylist.value.navidromeID, context)
                                     }
                                     setShowDialog(false)
                                 }, verticalAlignment = Alignment.CenterVertically
@@ -272,37 +259,11 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
                         val coroutineScope = rememberCoroutineScope()
                         Button(
                             onClick = {
-                                try {
-                                    if (playlistList.firstOrNull { it.name == name } != null) return@Button
+                                if (playlistList.firstOrNull { it.name == name } != null) return@Button
 
-                                    if (NavidromeManager.checkActiveServers())
-                                        coroutineScope.launch { createNavidromePlaylist(name) }
-                                    else {
-                                        var playlistImage = Uri.EMPTY
-                                        coroutineScope.launch {
-                                            playlistImage = localPlaylistImageGenerator(
-                                                listOf(songToAddToPlaylist.value), context
-                                            ) ?: Uri.EMPTY
-                                        }
-                                        playlistList.add(
-                                            MediaData.Playlist(
-                                                "Local",
-                                                name,
-                                                playlistImage.toString(),
-                                                changed = "", created = "", duration = 0, songCount = 0,
-                                                songs = listOf(songToAddToPlaylist.value)
-                                            )
-                                        )
-                                        println("Added Playlist: $name")
-                                        coroutineScope.launch {
-                                            SettingsManager(context).saveLocalPlaylists()
-                                        }
-                                        setShowDialog(false)
-                                        showAddSongToPlaylistDialog.value = false
-                                    }
-                                } catch (_: Exception) {
-                                    // DO NOTHING
-                                }
+                                coroutineScope.launch { createPlaylist(name, context) }
+                                setShowDialog(false)
+                                showAddSongToPlaylistDialog.value = false
                                 setShowDialog(false)
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -362,17 +323,8 @@ fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
 
                         Button(
                             onClick = {
-                                try {
-                                    if (NavidromeManager.checkActiveServers())
-                                        coroutineScope.launch { deleteNavidromePlaylist(playlistToDelete.value.navidromeID) }
-                                    else {
-                                        playlistList.remove(playlistToDelete.value)
-                                        coroutineScope.launch {
-                                            SettingsManager(context).saveLocalPlaylists()
-                                        }
-                                    }
-                                } catch (_: Exception) {
-                                    // DO NOTHING
+                                coroutineScope.launch {
+                                    deletePlaylist(playlistToDelete.value.navidromeID, context)
                                 }
                                 setShowDialog(false)
                             },

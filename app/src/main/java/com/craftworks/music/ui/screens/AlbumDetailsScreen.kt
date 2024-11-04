@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -52,10 +54,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastFilter
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -63,36 +63,45 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.songsList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.navidrome.getNavidromeAlbumSongs
+import com.craftworks.music.providers.getAlbum
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.BottomSpacer
+import com.craftworks.music.ui.elements.GenrePill
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 var selectedAlbum by mutableStateOf<MediaData.Album?>(MediaData.Album(navidromeID = "", parent = "", album = "", title = "", name = "", songCount = 0, duration = 0, artistId = "", artist = "", coverArt = ""))
 
 @OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalFoundationApi
-@Preview(showBackground = true, showSystemUi = true, locale = "it")
 @Composable
 fun AlbumDetails(
+    selectedAlbumId: String = "",
+    selectedAlbumImage: Uri = Uri.EMPTY,
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
-    var albumSongs by remember { mutableStateOf<List<MediaData.Song>>(emptyList()) }
-
+    var currentAlbum by remember {
+        mutableStateOf(
+            MediaData.Album(
+                navidromeID = selectedAlbumId,
+                parent = "",
+                coverArt = "",
+                songCount = 0,
+                duration = 0,
+                artist = "",
+                artistId = ""
+            )
+        )
+    }
     val requester = FocusRequester()
 
     val context = LocalContext.current
@@ -101,29 +110,11 @@ fun AlbumDetails(
         requester.requestFocus()
     }
 
-    LaunchedEffect(selectedAlbum?.songs) {
-        albumSongs = selectedAlbum?.songs!!
-
-        if (selectedAlbum?.songs?.isNotEmpty() == true) return@LaunchedEffect
-
-        if (NavidromeManager.checkActiveServers()) {
-            selectedAlbum?.navidromeID?.let { albumId ->
-                withContext(Dispatchers.IO){
-                    selectedAlbum?.songs = getNavidromeAlbumSongs(albumId)
-                }
-            }
-            albumSongs = selectedAlbum?.songs!!
-        }
-        else {
-            selectedAlbum?.songs = songsList.fastFilter { it.album == selectedAlbum?.album }
-        }
+    LaunchedEffect(selectedAlbumId) {
+        currentAlbum = getAlbum(selectedAlbumId) ?: currentAlbum
     }
 
-//    val otherSongsFromSameArtist = songsList.filter { it.artist == selectedAlbum?.artist }.toMutableList()
-//    otherSongsFromSameArtist.removeAll(albumSongs)
-
     Column(modifier = Modifier
-        //.background(MaterialTheme.colorScheme.background)
         .fillMaxWidth()
         .padding(
             start = leftPadding,
@@ -137,12 +128,11 @@ fun AlbumDetails(
     ) {
         Box (modifier = Modifier
             .padding(horizontal = 12.dp)
-            .height(192.dp)
+            .height(224.dp)
             .fillMaxWidth()) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(selectedAlbum?.coverArt)
-                    .allowHardware(false)
+                    .data(selectedAlbumImage)
                     .size(256)
                     .crossfade(true)
                     .build(),
@@ -176,45 +166,42 @@ fun AlbumDetails(
             }
             // Album Name and Artist
             Column(modifier = Modifier.align(Alignment.BottomCenter)){
-                selectedAlbum?.name?.let {
-                    Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                        lineHeight = 32.sp,
-                    )
-                }
+                Text(
+                    text = currentAlbum.name ?: "",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    lineHeight = 32.sp,
+                )
                 Row (modifier = Modifier.fillMaxWidth() ,horizontalArrangement = Arrangement.Center) {
-                    selectedAlbum?.artist?.let {artistName ->
-                        Text(
-                            text = "$artistName • ",
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                            textAlign = TextAlign.Center,
-//                            modifier = Modifier.clickable {
-//                                selectedArtist = artistList.firstOrNull { it.name == artistName }
-//                                    ?: return@clickable
-//                                navHostController.navigate(Screen.AristDetails.route) {
-//                                    launchSingleTop = true
-//                                }
-//                            }
-                        )
-                    }
-                    var albumDuration = 0
-                    for (song in albumSongs){
-                        albumDuration += song.duration
-                    }
                     Text(
-                        text = formatMilliseconds(albumDuration),
+                        text = "${currentAlbum.artist.substringBefore(",")} • ",
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = formatMilliseconds(currentAlbum.duration),
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Normal,
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         textAlign = TextAlign.Center
                     )
+                }
+
+                // Genres
+                if (!currentAlbum.genres.isNullOrEmpty()) {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        items(currentAlbum.genres ?: emptyList()) { genre ->
+                            genre.name?.let { GenrePill(it) }
+                        }
+                    }
                 }
             }
         }
@@ -228,9 +215,14 @@ fun AlbumDetails(
             verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = {
-                    SongHelper.currentSong = albumSongs[0]
-                    SongHelper.currentList = albumSongs
-                    albumSongs[0].media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
+                    SongHelper.currentSong = currentAlbum.songs!![0]
+                    SongHelper.currentList = currentAlbum.songs!!
+                    SongHelper.playStream(
+                        context,
+                        Uri.parse(currentAlbum.songs!![0].media),
+                        false,
+                        mediaController
+                    )
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -251,10 +243,15 @@ fun AlbumDetails(
                     shuffleSongs.value = true
                     mediaController?.shuffleModeEnabled = true
 
-                    val random = albumSongs.indices.random()
-                    SongHelper.currentSong = albumSongs[random]
-                    SongHelper.currentList = albumSongs
-                    albumSongs[random].media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
+                    val random = currentAlbum.songs!!.indices.random()
+                    SongHelper.currentSong = currentAlbum.songs!![random]
+                    SongHelper.currentList = currentAlbum.songs!!
+                    SongHelper.playStream(
+                        context,
+                        Uri.parse(currentAlbum.songs!![random].media),
+                        false,
+                        mediaController
+                    )
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -273,52 +270,20 @@ fun AlbumDetails(
             .padding(start = 12.dp, end = 12.dp, top = 0.dp)
             .wrapContentHeight()
         ) {
-            /*
-            SongsHorizontalColumn(albumSongs, onSongSelected = { song ->
-                playingSong.selectedSong = song
-                SongHelper.currentList = albumSongs
-                songState = true })*/
             Column(
                 modifier = Modifier
                     .wrapContentHeight()
                     .fillMaxWidth()
             ) {
-                for(song in albumSongs){
+                for(song in currentAlbum.songs!!){
                     HorizontalSongCard(song = song, onClick = {
                         SongHelper.currentSong = song
-                        SongHelper.currentList = albumSongs
+                        SongHelper.currentList = currentAlbum.songs!!
                         song.media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
                     })
                 }
             }
         }
-
-        /*
-        // More songs from Artist
-        if (otherSongsFromSameArtist.isNotEmpty()){
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(256.dp)
-                    .padding(top = 12.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.Label_MoreSongsFrom) + " " + selectedAlbum?.artist,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
-                SongsRow(songsList = otherSongsFromSameArtist, onSongSelected = { song ->
-                    SongHelper.currentSong = song
-                    SongHelper.currentList = otherSongsFromSameArtist
-                    song.media?.let { SongHelper.playStream(Uri.parse(it), false, mediaController)}
-                })
-            }
-        }
-        */
 
         if(showAddSongToPlaylistDialog.value)
             AddSongToPlaylist(setShowDialog =  { showAddSongToPlaylistDialog.value = it } )

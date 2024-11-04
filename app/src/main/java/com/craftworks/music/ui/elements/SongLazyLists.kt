@@ -154,7 +154,8 @@ fun AlbumGrid(
     onAlbumSelected: (album: MediaData.Album) -> Unit,
     isSearch: Boolean? = false,
     sort: String? = "alphabeticalByName",
-    viewModel: AlbumScreenViewModel = viewModel()){
+    viewModel: AlbumScreenViewModel = viewModel(),
+){
 
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
@@ -196,14 +197,13 @@ fun AlbumGrid(
         }
     }
 }
+
 @ExperimentalFoundationApi
 @Composable
 fun AlbumRow(albums: List<MediaData.Album>, mediaController: MediaController?, onAlbumSelected: (album: MediaData.Album) -> Unit){
-    //if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION){
     LazyRow(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
-            //start = 6.dp,end = 6.dp,
             top = 32.dp,
             end = 12.dp
         )
