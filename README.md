@@ -17,17 +17,16 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 
 ## W.I.P
 
-- Better Android TV Support.
-- Revamp save-load system to be more reliable.
-- UI changes
+- Better Android Auto Support.
+- Better Local File Support.
 
 ## Known Issues
 
 - Could crash when connecting to a Navidrome server on a particularly slow connection.
+- Download song button doesn't work.
 
 ## Roadmap
 
-- Better Android Auto Support.
 - Jellyfin (Music) Support.
 
 
