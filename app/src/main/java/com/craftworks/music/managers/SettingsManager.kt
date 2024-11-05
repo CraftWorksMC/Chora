@@ -9,9 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
-import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import kotlinx.coroutines.flow.Flow
@@ -151,17 +149,6 @@ class SettingsManager(
         }
     }
     //endregion
-
-    val localProviders:  Flow<MutableList<LocalProvider>> = context.dataStore.data.map { preferences ->
-        Json.decodeFromString<List<LocalProvider>>(preferences[LOCAL_PROVIDERS] ?: "[]").toMutableList()
-    }
-
-    suspend fun saveLocalProviders() {
-        val localListJson = Json.encodeToString(localProviderList)
-        context.dataStore.edit { preferences ->
-            preferences[LOCAL_PROVIDERS] = localListJson
-        }
-    }
 
     val localRadios:  Flow<MutableList<MediaData.Radio>> = context.dataStore.data.map { preferences ->
         Json.decodeFromString<List<MediaData.Radio>>(preferences[LOCAL_RADIOS] ?: "[]").toMutableList()

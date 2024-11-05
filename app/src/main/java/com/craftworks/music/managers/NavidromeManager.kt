@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.data.localProviderList
+import com.craftworks.music.managers.LocalProviderManager.getAllFolders
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.showNoProviderDialog
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -74,7 +74,7 @@ object NavidromeManager {
         sharedPreferences = context.getSharedPreferences("NavidromePrefs", Context.MODE_PRIVATE)
         loadServers()
 
-        if (getAllServers().isEmpty() && localProviderList.isEmpty()) showNoProviderDialog.value = true
+        if (getAllServers().isEmpty() && getAllFolders().isEmpty()) showNoProviderDialog.value = true
 
         setSyncingStatus(false)
     }

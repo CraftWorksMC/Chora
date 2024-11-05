@@ -40,20 +40,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
-import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.data.localProviderList
-import com.craftworks.music.data.selectedLocalProvider
+import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.ui.viewmodels.GlobalViewModels
 
 @Preview
 @Composable
-fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), context: Context = LocalContext.current){
-
-    val coroutineScope = rememberCoroutineScope()
-
+fun LocalProviderCard(local: String = "", context: Context = LocalContext.current){
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
         .height(64.dp)
@@ -80,7 +74,7 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
                 modifier = Modifier
             )
             Text(
-                text = local.directory,
+                text = local,
                 color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
                 fontWeight = FontWeight.Normal,
                 fontSize = MaterialTheme.typography.labelMedium.fontSize,
@@ -89,8 +83,7 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
 
         // Delete Button
         Button(
-            onClick = {
-                localProviderList.remove(local) },
+            onClick = { LocalProviderManager.removeFolder(local) },
             shape = CircleShape,
             modifier = Modifier
                 .size(32.dp),
@@ -107,26 +100,22 @@ fun LocalProviderCard(local: LocalProvider = LocalProvider("/music", true), cont
             )
         }
         // Enabled Checkbox
-        var enabled by remember { mutableStateOf(false) }
-        enabled = localProviderList[localProviderList.indexOf(local)].enabled
-
-        Checkbox(
-            checked = enabled,
-            onCheckedChange = {enabled = it
-                val index = localProviderList.indexOf(local)
-
-                localProviderList[localProviderList.indexOf(local)] = localProviderList[localProviderList.indexOf(local)].copy(enabled = it)
-
-                selectedLocalProvider.intValue = index
-
-                if (enabled){
-                    if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
-                        getSongsOnDevice(context)
-                }
-                else if (NavidromeManager.checkActiveServers())
-                        GlobalViewModels.refreshAll()
-            }
-        )
+//        var enabled by remember { mutableStateOf(false) }
+//        enabled = true
+//
+//        Checkbox(
+//            checked = enabled,
+//            onCheckedChange = {enabled = it
+//                LocalProviderManager.addServer(local.directory)
+//
+//                if (enabled){
+//                    if (LocalProviderManager.checkActiveFolders())
+//                        getSongsOnDevice(context)
+//                }
+//                else if (NavidromeManager.checkActiveServers())
+//                        GlobalViewModels.refreshAll()
+//            }
+//        )
     }
 }
 
@@ -204,10 +193,6 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","htt
                 }
                 // Update checked
                 checked = (server.id == NavidromeManager.getCurrentServer()?.id)
-                // Get device songs when changing toggle.
-                if (selectedLocalProvider.intValue >= 0 && selectedLocalProvider.intValue < localProviderList.size && localProviderList.size > 0)
-                    if (localProviderList[selectedLocalProvider.intValue].enabled)
-                        getSongsOnDevice(context)
             }
         )
     }

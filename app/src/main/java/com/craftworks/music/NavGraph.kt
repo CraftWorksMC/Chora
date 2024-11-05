@@ -30,9 +30,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.localProviderList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
+import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.bottomSpacerHeightDp
@@ -78,7 +78,6 @@ fun SetupNavGraph(
 
     val context = LocalContext.current
 
-    localProviderList = SettingsManager(context).localProviders.collectAsState(mutableListOf()).value
     playlistList = SettingsManager(context).localPlaylists.collectAsState(mutableListOf()).value
     radioList = SettingsManager(context).localRadios.collectAsState(mutableListOf()).value
 
@@ -90,6 +89,7 @@ fun SetupNavGraph(
         GlobalViewModels.registerViewModel(playlistViewModel)
 
         NavidromeManager.init(context)
+        LocalProviderManager.init(context)
 
         GlobalViewModels.refreshAll()
     }

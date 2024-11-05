@@ -167,7 +167,7 @@ fun AlbumDetails(
             // Album Name and Artist
             Column(modifier = Modifier.align(Alignment.BottomCenter)){
                 Text(
-                    text = currentAlbum.name ?: "",
+                    text = currentAlbum.name ?: "Unknown",
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,

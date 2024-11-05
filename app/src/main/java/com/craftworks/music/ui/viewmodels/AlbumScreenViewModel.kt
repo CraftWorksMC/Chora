@@ -3,8 +3,6 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.albumList
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.getAlbums
 import com.craftworks.music.providers.searchAlbum
 import kotlinx.coroutines.async
@@ -21,13 +19,9 @@ class AlbumScreenViewModel : ViewModel(), ReloadableViewModel {
     override fun reloadData() {
         viewModelScope.launch {
             coroutineScope {
-                if (NavidromeManager.checkActiveServers()) {
-                    val allAlbumsDeferred = async { getAlbums("alphabeticalByName", 20) }
+                val allAlbumsDeferred = async { getAlbums("alphabeticalByName", 20) }
 
-                    _allAlbums.value = allAlbumsDeferred.await()
-                } else {
-                    _allAlbums.value = albumList.sortedBy { it.name }
-                }
+                _allAlbums.value = allAlbumsDeferred.await()
             }
         }
     }

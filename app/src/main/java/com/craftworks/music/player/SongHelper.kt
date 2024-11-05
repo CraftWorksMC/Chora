@@ -15,6 +15,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.data.MediaData
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.sliderPos
 import kotlinx.coroutines.CoroutineScope
@@ -103,7 +104,7 @@ class SongHelper {
                     for (song in currentList) {
 
                         //Assign transcoding to media
-                        if (transcodingValue != "No Transcoding")
+                        if (transcodingValue != "No Transcoding" && NavidromeManager.checkActiveServers())
                             song.media += "&format=mp3&maxBitRate=${transcodingValue}"
 
                         val mediaMetadata = MediaMetadata.Builder()

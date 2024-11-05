@@ -3,14 +3,13 @@ package com.craftworks.music.ui.playing
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
-import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,17 +44,18 @@ fun NowPlayingContent(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = rememberManagedMediaController().value
 ) {
-    SideEffect {
-        Log.d("RECOMPOSITION", "NowPlaying Root")
+//    SideEffect {
+//        Log.d("RECOMPOSITION", "NowPlaying Root")
+//    }
+
+    val colors = remember {
+        mutableStateListOf(Color.Gray, Color.Red, Color.Blue, Color.Cyan)
     }
 
-    var colors by remember {
-        mutableStateOf(listOf(Color.Gray, Color.Red, Color.Blue, Color.Cyan))
-    }
     LaunchedEffect(SongHelper.currentSong.imageUrl) {
         if (SongHelper.currentSong.imageUrl.isBlank()) return@LaunchedEffect
         launch {
-            colors = extractColorsFromUri(SongHelper.currentSong.imageUrl, context)
+            colors.addAll(extractColorsFromUri(SongHelper.currentSong.imageUrl, context))
             println("Generated new colors: ${colors[0].toArgb()}")
         }
     }
@@ -77,7 +77,7 @@ fun NowPlayingContent(
         (colors[0].customLuminance() + colors[1].customLuminance()) / 2 < 0.5f
     }
 
-    println("Luminance: ${(colors[0].customLuminance() + colors[1].customLuminance()) / 2}")
+    //println("Luminance: ${(colors[0].customLuminance() + colors[1].customLuminance()) / 2}")
 
     NowPlaying_Background(colors ,mediaController)
 

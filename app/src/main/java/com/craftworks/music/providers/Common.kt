@@ -8,13 +8,14 @@ import com.craftworks.music.data.albumList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedArtist
+import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.providers.local.LocalProvider
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.ui.elements.dialogs.playlistToDelete
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
-import com.craftworks.music.ui.screens.selectedAlbum
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -29,6 +30,11 @@ suspend fun getAlbums(
     if (NavidromeManager.checkActiveServers()) {
         deferredAlbums.add(async {
             sendNavidromeGETRequest("getAlbumList.view?type=$sort&size=$size&offset=$offset&f=json").filterIsInstance<MediaData.Album>()
+        })
+    }
+    if (LocalProviderManager.checkActiveFolders()) {
+        deferredAlbums.add(async {
+            LocalProvider.getInstance().getLocalAlbums(sort)
         })
     }
 
@@ -56,7 +62,7 @@ suspend fun getAlbum(albumId: String): MediaData.Album? = coroutineScope {
         }
         deferredAlbum.await()
     } else {
-        selectedAlbum
+        LocalProvider.getInstance().getLocalAlbum(albumId)
     }
 }
 
@@ -88,6 +94,11 @@ suspend fun getSongs(
     if (NavidromeManager.checkActiveServers()) {
         deferredSongs.add(async {
             sendNavidromeGETRequest("search3.view?query=$query&songCount=$songCount&songOffset=$songOffset&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaData.Song>()
+        })
+    }
+    if (LocalProviderManager.checkActiveFolders()) {
+        deferredSongs.add(async {
+            LocalProvider.getInstance().getLocalSongs()
         })
     }
 

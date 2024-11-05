@@ -53,14 +53,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.craftworks.music.R
-import com.craftworks.music.data.LocalProvider
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.localProviderList
-import com.craftworks.music.data.selectedLocalProvider
+import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.providers.local.getSongsOnDevice
 import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.ui.elements.bounceClick
@@ -170,18 +166,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                         onClick = {
                             coroutineScope.launch {
                                 try {
-                                    val localProvider = LocalProvider(dir, true)
-
-                                    if (!localProviderList.contains(localProvider)) {
-                                        localProviderList.add(localProvider)
-                                    }
-
-                                    selectedLocalProvider.intValue =
-                                        localProviderList.indexOf(localProvider)
-
-                                    getSongsOnDevice(context)
-                                    SettingsManager(context).saveLocalProviders()
-
+                                    LocalProviderManager.addFolder(dir)
                                     setShowDialog(false)
                                 } catch (_: Exception) {
                                     // DO NOTHING

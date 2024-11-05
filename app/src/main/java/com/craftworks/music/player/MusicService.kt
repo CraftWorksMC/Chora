@@ -26,6 +26,7 @@ import androidx.media3.session.SessionError
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.lyrics.LyricsManager
+import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.getAlbum
 import com.craftworks.music.providers.getAlbums
@@ -223,6 +224,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         override fun onPostConnect(session: MediaSession, controller: MediaSession.ControllerInfo) {
             serviceIOScope.launch {
                 NavidromeManager.init(this@ChoraMediaLibraryService)
+                LocalProviderManager.init(this@ChoraMediaLibraryService)
 
                 getHomeScreenItems()
                 this@ChoraMediaLibraryService.session?.notifyChildrenChanged("nodeHOME", aHomeScreenItems.size, null)
