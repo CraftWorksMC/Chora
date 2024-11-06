@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaItem.RequestMetadata
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -221,14 +222,14 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     }
 
     private inner class LibrarySessionCallback : MediaLibrarySession.Callback {
-
         override fun onPostConnect(session: MediaSession, controller: MediaSession.ControllerInfo) {
             serviceIOScope.launch {
                 println("ONPOSTCONNTECT MUSIC SERVICE!")
                 NavidromeManager.init(this@ChoraMediaLibraryService)
                 LocalProviderManager.init(this@ChoraMediaLibraryService)
 
-                getHomeScreenItems()
+                if (session.isAutoCompanionController(controller))
+                    getHomeScreenItems()
 
                 GlobalViewModels.refreshAll()
 
@@ -246,12 +247,22 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             startPositionMs: Long
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
             // We need to use URI from requestMetaData because of https://github.com/androidx/media/issues/282
+
+            val currentTracklist =
+                if (SongHelper.currentTracklist.find { it.mediaId == mediaItems[0].mediaId } != null)
+                    SongHelper.currentTracklist
+                else {
+                    SongHelper.currentTracklist = mediaItems
+                    mediaItems
+                }
+
             val updatedMediaItems: List<MediaItem> =
-                SongHelper.currentTracklist.map { mediaItem ->
+                currentTracklist.map { mediaItem ->
                     MediaItem.Builder()
                         .setMediaId(mediaItem.mediaId)
                         .setMediaMetadata(mediaItem.mediaMetadata)
                         .setUri(mediaItem.mediaId)
+                        .setRequestMetadata(mediaItem.requestMetadata)
                         .build()
                 }
             val updatedStartIndex =
@@ -389,11 +400,37 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     putBoolean("isRadio", false)
                 }).build()
 
+        val requestMetadata = RequestMetadata.Builder().setMediaUri(Uri.parse(song.media)).build()
+
         Log.d("AA", "Added ${mediaMetadata.title} to album")
         return MediaItem.Builder()
             .setMediaId(song.media.toString())
-            .setUri(song.media)
-            .setMediaMetadata(mediaMetadata).build()
+            .setUri(Uri.parse(song.media))
+            .setMediaMetadata(mediaMetadata)
+            .setRequestMetadata(requestMetadata)
+            .build()
+    }
+    fun mediaItemToSong(mediaItem: MediaItem): MediaData.Song {
+        val mediaMetadata = mediaItem.mediaMetadata
+        val extras = mediaMetadata.extras
+
+        return MediaData.Song(
+            navidromeID = extras?.getString("navidromeID") ?: "",
+            title = mediaMetadata.title.toString(),
+            artist = mediaMetadata.artist.toString(),
+            album = mediaMetadata.albumTitle.toString(),
+            imageUrl = mediaMetadata.artworkUri.toString(),
+            year = mediaMetadata.releaseYear ?: 0,
+            duration = extras?.getInt("duration") ?: 0,
+            format = extras?.getString("format") ?: "",
+            bitrate = extras?.getInt("bitrate"),
+            media = mediaItem.mediaId.toString(),
+            path = "",
+            parent = "",
+            dateAdded = "",
+            bpm = 0,
+            albumId = ""
+        )
     }
 
     private fun radioToMediaItem(radio: MediaData.Radio): MediaItem {
@@ -465,6 +502,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     //region getChildren
     private fun getHomeScreenItems() : MutableList<MediaItem> {
+        println("GETTING ANDROID AUTO SCREEN ITEMS")
         runBlocking {
             if (aHomeScreenItems.isEmpty()) {
                 val recentlyPlayedAlbums = async { getAlbums("recent", 6) }.await()
