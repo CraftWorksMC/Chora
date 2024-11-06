@@ -88,7 +88,7 @@ sealed class MediaData {
         var navidromeID : String,
         val name : String,
         //val coverArt : String? = "",
-        val artistImageUrl : String? = "",
+        val artistImageUrl : String? = null,
         val albumCount : Int? = 0,
         var description : String = "",
         var starred : String? = "",

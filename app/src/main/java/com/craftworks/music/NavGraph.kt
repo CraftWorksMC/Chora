@@ -32,8 +32,6 @@ import androidx.navigation.navArgument
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.bottomSpacerHeightDp
 import com.craftworks.music.ui.playing.NowPlayingContent
@@ -70,16 +68,16 @@ fun SetupNavGraph(
             paddingValues.calculateBottomPadding()
         else 0.dp
 
+    val context = LocalContext.current
+
+    playlistList = SettingsManager(context).localPlaylists.collectAsState(mutableListOf()).value
+    radioList = SettingsManager(context).localRadios.collectAsState(mutableListOf()).value
+
     val homeViewModel = remember { HomeScreenViewModel() }
     val albumViewModel = remember { AlbumScreenViewModel() }
     val songsViewModel = remember { SongsScreenViewModel() }
     val artistsViewModel = remember { ArtistsScreenViewModel() }
     val playlistViewModel = remember { PlaylistScreenViewModel() }
-
-    val context = LocalContext.current
-
-    playlistList = SettingsManager(context).localPlaylists.collectAsState(mutableListOf()).value
-    radioList = SettingsManager(context).localRadios.collectAsState(mutableListOf()).value
 
     LaunchedEffect(Unit) {
         GlobalViewModels.registerViewModel(homeViewModel)
@@ -88,10 +86,10 @@ fun SetupNavGraph(
         GlobalViewModels.registerViewModel(artistsViewModel)
         GlobalViewModels.registerViewModel(playlistViewModel)
 
-        NavidromeManager.init(context)
-        LocalProviderManager.init(context)
+        //NavidromeManager.init(context)
+        //LocalProviderManager.init(context)
 
-        GlobalViewModels.refreshAll()
+        //GlobalViewModels.refreshAll()
     }
 
     SharedTransitionLayout {

@@ -21,7 +21,6 @@ class LocalProvider private constructor() {
     companion object {
         @Volatile
         private var instance: LocalProvider? = null
-        private const val LOCAL_PREFIX = "Local_"
 
         fun getInstance(): LocalProvider {
             return instance ?: synchronized(this) {
@@ -63,8 +62,10 @@ class LocalProvider private constructor() {
                 val cursor: Cursor? = contentResolver.query(
                     uri,
                     projection,
-                    "${MediaStore.Audio.Media.DATA} LIKE ?",
-                    //arrayOf("%$dir%"),
+                    //"${MediaStore.Audio.Media.DATA} LIKE ?",
+                    "${MediaStore.Audio.Media.DATA} LIKE ?" +
+                            " OR ${MediaStore.Audio.Media.DATA} LIKE ?"
+                                .repeat(LocalProviderManager.getAllFolders().size - 1),
                     LocalProviderManager.getAllFolders().map {
                         "%$it%"
                     }.toTypedArray(),
@@ -275,61 +276,66 @@ class LocalProvider private constructor() {
                     val bitrateColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.BITRATE)
                     val genreColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.GENRE)
 
-                    val thisId = cursor.getLong(idColumn)
-                    val thisPath = cursor.getString(pathColumn)
-                    val thisTitle = cursor.getString(titleColumn)
-                    val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
-                    val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
-                    val thisArtistId = cursor.getStringOrNull(artistIdColumn) ?: "Unknown"
-                    val thisFormat = cursor.getString(formatColumn)
-                    val thisDateAdded = cursor.getString(dateAddedColumn) ?: ""
-                    val thisTrack = cursor.getIntOrNull(trackIndex) ?: 0
-                    val thisYear = cursor.getIntOrNull(yearColumn) ?: 0
-                    val thisDuration = cursor.getIntOrNull(durationColumn) ?: 0
-                    val thisBitrate = cursor.getIntOrNull(bitrateColumn) ?: 0
-                    val thisGenre = cursor.getStringOrNull(genreColumn) ?: ""
+                    do {
+                        val thisId = cursor.getLong(idColumn)
+                        val thisPath = cursor.getString(pathColumn)
+                        val thisTitle = cursor.getString(titleColumn)
+                        val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
+                        val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
+                        val thisArtistId = cursor.getStringOrNull(artistIdColumn) ?: "Unknown"
+                        val thisFormat = cursor.getString(formatColumn)
+                        val thisDateAdded = cursor.getString(dateAddedColumn) ?: ""
+                        val thisTrack = cursor.getIntOrNull(trackIndex) ?: 0
+                        val thisYear = cursor.getIntOrNull(yearColumn) ?: 0
+                        val thisDuration = cursor.getIntOrNull(durationColumn) ?: 0
+                        val thisBitrate = cursor.getIntOrNull(bitrateColumn) ?: 0
+                        val thisGenre = cursor.getStringOrNull(genreColumn) ?: ""
 
-                    val contentUri: Uri =
-                        ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, thisId)
+                        val contentUri: Uri =
+                            ContentUris.withAppendedId(
+                                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                thisId
+                            )
 
-                    val imageUri: String = try {
-                        "content://media/external/audio/media/$thisId/albumart"
-                    } catch (_: FileNotFoundException) {
-                        println("No Album Art!")
-                    }.toString()
+                        val imageUri: String = try {
+                            "content://media/external/audio/media/$thisId/albumart"
+                        } catch (_: FileNotFoundException) {
+                            println("No Album Art!")
+                        }.toString()
 
-                    Log.d("LOCAL PROVIDER", "Added song: $thisTitle")
+                        Log.d("LOCAL PROVIDER", "Added song: $thisTitle")
 
-                    val genres = mutableListOf<Genre>()
-                    thisGenre.split(",").forEach{
-                        genres.add(Genre(it))
-                    }
+                        val genres = mutableListOf<Genre>()
+                        thisGenre.split(",").forEach {
+                            genres.add(Genre(it))
+                        }
 
-                    songs.add(
-                        MediaData.Song(
-                            navidromeID = "Local_$thisId",
-                            parent = "",
-                            title = thisTitle,
-                            album = thisAlbum,
-                            artist = thisArtist,
-                            imageUrl = imageUri,
-                            format = thisFormat.split("/").last(),
-                            dateAdded = thisDateAdded,
-                            albumId = "Local_$albumId",
-                            bpm = 0,
-                            path = thisPath,
-                            media = contentUri.toString(),
+                        songs.add(
+                            MediaData.Song(
+                                navidromeID = "Local_$thisId",
+                                parent = "",
+                                title = thisTitle,
+                                album = thisAlbum,
+                                artist = thisArtist,
+                                imageUrl = imageUri,
+                                format = thisFormat.split("/").last(),
+                                dateAdded = thisDateAdded,
+                                albumId = "Local_$albumId",
+                                bpm = 0,
+                                path = thisPath,
+                                media = contentUri.toString(),
 
-                            track = thisTrack,
-                            year = thisYear,
-                            contentType = thisFormat,
-                            duration = thisDuration / 1000,
-                            bitrate = thisBitrate / 1000,
-                            artistId = "Local_$thisArtistId",
-                            genre = thisGenre,
-                            genres = genres
+                                track = thisTrack,
+                                year = thisYear,
+                                contentType = thisFormat,
+                                duration = thisDuration / 1000,
+                                bitrate = thisBitrate / 1000,
+                                artistId = "Local_$thisArtistId",
+                                genre = thisGenre,
+                                genres = genres
+                            )
                         )
-                    )
+                    }while (cursor.moveToNext())
                 }
             }
 
@@ -366,7 +372,9 @@ class LocalProvider private constructor() {
             val cursor: Cursor? = contentResolver.query(
                 uri,
                 projection,
-                "${MediaStore.Audio.Media.DATA} LIKE ?",
+                "${MediaStore.Audio.Media.DATA} LIKE ?" +
+                        " OR ${MediaStore.Audio.Media.DATA} LIKE ?"
+                            .repeat(LocalProviderManager.getAllFolders().size - 1),
                 LocalProviderManager.getAllFolders().map {
                     "%$it%"
                 }.toTypedArray(),
@@ -398,62 +406,67 @@ class LocalProvider private constructor() {
                     val bitrateColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.BITRATE)
                     val genreColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.GENRE)
 
-                    val thisId = cursor.getLong(idColumn)
-                    val thisAlbumId = cursor.getStringOrNull(albumIdColumn) ?: ""
-                    val thisPath = cursor.getString(pathColumn)
-                    val thisTitle = cursor.getString(titleColumn)
-                    val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
-                    val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
-                    val thisArtistId = cursor.getStringOrNull(artistIdColumn) ?: "Unknown"
-                    val thisFormat = cursor.getString(formatColumn)
-                    val thisDateAdded = cursor.getString(dateAddedColumn) ?: ""
-                    val thisTrack = cursor.getIntOrNull(trackIndex) ?: 0
-                    val thisYear = cursor.getIntOrNull(yearColumn) ?: 0
-                    val thisDuration = cursor.getIntOrNull(durationColumn) ?: 0
-                    val thisBitrate = cursor.getIntOrNull(bitrateColumn) ?: 0
-                    val thisGenre = cursor.getStringOrNull(genreColumn) ?: ""
+                    do {
+                        val thisId = cursor.getLong(idColumn)
+                        val thisAlbumId = cursor.getStringOrNull(albumIdColumn) ?: ""
+                        val thisPath = cursor.getString(pathColumn)
+                        val thisTitle = cursor.getString(titleColumn)
+                        val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
+                        val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
+                        val thisArtistId = cursor.getStringOrNull(artistIdColumn) ?: "Unknown"
+                        val thisFormat = cursor.getString(formatColumn)
+                        val thisDateAdded = cursor.getString(dateAddedColumn) ?: ""
+                        val thisTrack = cursor.getIntOrNull(trackIndex) ?: 0
+                        val thisYear = cursor.getIntOrNull(yearColumn) ?: 0
+                        val thisDuration = cursor.getIntOrNull(durationColumn) ?: 0
+                        val thisBitrate = cursor.getIntOrNull(bitrateColumn) ?: 0
+                        val thisGenre = cursor.getStringOrNull(genreColumn) ?: ""
 
-                    val contentUri: Uri =
-                        ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, thisId)
+                        val contentUri: Uri =
+                            ContentUris.withAppendedId(
+                                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                thisId
+                            )
 
-                    val imageUri: String = try {
-                        "content://media/external/audio/media/$thisId/albumart"
-                    } catch (_: FileNotFoundException) {
-                        println("No Album Art!")
-                    }.toString()
+                        val imageUri: String = try {
+                            "content://media/external/audio/media/$thisId/albumart"
+                        } catch (_: FileNotFoundException) {
+                            println("No Album Art!")
+                        }.toString()
 
-                    Log.d("LOCAL PROVIDER", "Added song to all songs list: $thisTitle")
+                        Log.d("LOCAL PROVIDER", "Added song to all songs list: $thisTitle")
 
-                    val genres = mutableListOf<Genre>()
-                    thisGenre.split(",").forEach{
-                        genres.add(Genre(it))
-                    }
+                        val genres = mutableListOf<Genre>()
+                        thisGenre.split(",").forEach {
+                            genres.add(Genre(it))
+                        }
 
-                    songs.add(
-                        MediaData.Song(
-                            navidromeID = "Local_$thisId",
-                            parent = "",
-                            title = thisTitle,
-                            album = thisAlbum,
-                            artist = thisArtist,
-                            imageUrl = imageUri,
-                            format = thisFormat.split("/").last(),
-                            dateAdded = thisDateAdded,
-                            albumId = "Local_$thisAlbumId",
-                            bpm = 0,
-                            path = thisPath,
-                            media = contentUri.toString(),
+                        songs.add(
+                            MediaData.Song(
+                                navidromeID = "Local_$thisId",
+                                parent = "",
+                                title = thisTitle,
+                                album = thisAlbum,
+                                artist = thisArtist,
+                                imageUrl = imageUri,
+                                format = thisFormat.split("/").last(),
+                                dateAdded = thisDateAdded,
+                                albumId = "Local_$thisAlbumId",
+                                bpm = 0,
+                                path = thisPath,
+                                media = contentUri.toString(),
 
-                            track = thisTrack,
-                            year = thisYear,
-                            contentType = thisFormat,
-                            duration = thisDuration / 1000,
-                            bitrate = thisBitrate / 1000,
-                            artistId = "Local_$thisArtistId",
-                            genre = thisGenre,
-                            genres = genres
+                                track = thisTrack,
+                                year = thisYear,
+                                contentType = thisFormat,
+                                duration = thisDuration / 1000,
+                                bitrate = thisBitrate / 1000,
+                                artistId = "Local_$thisArtistId",
+                                genre = thisGenre,
+                                genres = genres
+                            )
                         )
-                    )
+                    }while (cursor.moveToNext())
                 }
             }
 
@@ -465,33 +478,57 @@ class LocalProvider private constructor() {
     fun getLocalArtists(): List<MediaData.Artist> {
         val artists = mutableListOf<MediaData.Artist>()
         applicationContext?.let { context ->
+            val contentResolver: ContentResolver = context.contentResolver
+            val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
             val projection = arrayOf(
                 MediaStore.Audio.Artists._ID,
                 MediaStore.Audio.Artists.ARTIST,
-                MediaStore.Audio.Artists.NUMBER_OF_ALBUMS,
-                MediaStore.Audio.Artists.NUMBER_OF_TRACKS
             )
 
-            context.contentResolver.query(
-                MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
+            val cursor: Cursor? = contentResolver.query(
+                uri,
                 projection,
-                null,
-                null,
-                MediaStore.Audio.Artists.ARTIST
-            )?.use { cursor ->
-                while (cursor.moveToNext()) {
-                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists._ID))
-                    artists.add(
-                        MediaData.Artist(
-                            navidromeID = "Local_$id",
-                            name = cursor.getStringOrNull(cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST)) ?: "Unknown",
-                            description = "",
+                "${MediaStore.Audio.Media.DATA} LIKE ?" +
+                        " OR ${MediaStore.Audio.Media.DATA} LIKE ?"
+                            .repeat(LocalProviderManager.getAllFolders().size - 1),
+                LocalProviderManager.getAllFolders().map {
+                    "%$it%"
+                }.toTypedArray(),
+                null
+            )
 
-                            albumCount = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS))
+            when {
+                cursor == null -> {
+                    // query failed, handle error.
+                }
+
+                !cursor.moveToFirst() -> {
+                    // no media on the device
+                }
+
+                else -> {
+                    val idColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Artists._ID)
+                    val nameColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)
+
+                    do {
+                        val thisId = cursor.getLong(idColumn)
+                        val thisName = cursor.getString(nameColumn) ?: "Unknown"
+
+                        Log.d("LOCAL PROVIDER", "Added artist: $thisName")
+
+                        artists.add(
+                            MediaData.Artist(
+                                navidromeID = "Local_$thisId",
+                                name = thisName,
+                                description = "",
+                                artistImageUrl = null
+                            )
                         )
-                    )
+                    }while (cursor.moveToNext())
                 }
             }
+
+            cursor?.close()
         }
         return artists
     }

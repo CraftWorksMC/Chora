@@ -34,6 +34,7 @@ import com.craftworks.music.providers.getPlaylistDetails
 import com.craftworks.music.providers.getPlaylists
 import com.craftworks.music.providers.getRadios
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
+import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -223,10 +224,14 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         override fun onPostConnect(session: MediaSession, controller: MediaSession.ControllerInfo) {
             serviceIOScope.launch {
+                println("ONPOSTCONNTECT MUSIC SERVICE!")
                 NavidromeManager.init(this@ChoraMediaLibraryService)
                 LocalProviderManager.init(this@ChoraMediaLibraryService)
 
                 getHomeScreenItems()
+
+                GlobalViewModels.refreshAll()
+
                 this@ChoraMediaLibraryService.session?.notifyChildrenChanged("nodeHOME", aHomeScreenItems.size, null)
             }
             super.onPostConnect(session, controller)

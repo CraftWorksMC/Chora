@@ -14,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -52,11 +51,11 @@ fun NowPlayingContent(
         mutableStateListOf(Color.Gray, Color.Red, Color.Blue, Color.Cyan)
     }
 
-    LaunchedEffect(SongHelper.currentSong.imageUrl) {
+    LaunchedEffect(SongHelper.currentSong) {
         if (SongHelper.currentSong.imageUrl.isBlank()) return@LaunchedEffect
         launch {
             colors.addAll(extractColorsFromUri(SongHelper.currentSong.imageUrl, context))
-            println("Generated new colors: ${colors[0].toArgb()}")
+            println("Generated new colors: ${colors[0].value}")
         }
     }
 

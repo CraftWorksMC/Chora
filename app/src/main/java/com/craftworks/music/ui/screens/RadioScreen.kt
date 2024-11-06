@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,10 +53,12 @@ import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.RadiosGrid
 import com.craftworks.music.ui.elements.dialogs.AddRadioDialog
 import com.craftworks.music.ui.elements.dialogs.ModifyRadioDialog
+import kotlinx.coroutines.launch
 
 var showRadioAddDialog = mutableStateOf(false)
 var showRadioModifyDialog = mutableStateOf(false)
 var selectedRadioIndex = mutableIntStateOf(0)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)
@@ -65,9 +68,7 @@ fun RadioScreen(
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
-    LaunchedEffect(Unit) {
-        getRadios()
-    }
+    val coroutineScope = rememberCoroutineScope()
 
     val context = LocalContext.current
 
@@ -75,7 +76,16 @@ fun RadioScreen(
     var isRefreshing by remember { mutableStateOf(false) }
 
     val onRefresh: () -> Unit = {
-        isRefreshing = false
+        coroutineScope.launch {
+            isRefreshing = true
+            radioList = getRadios().toMutableList()
+            isRefreshing = false
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (radioList.isEmpty())
+            onRefresh.invoke()
     }
 
     PullToRefreshBox(

@@ -1,10 +1,10 @@
 package com.craftworks.music.data
 
-import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import kotlinx.serialization.Serializable
 
 // Universal Lyric object
-@Immutable
+@Stable
 data class Lyric(
     val timestamp: Int,
     val content: String

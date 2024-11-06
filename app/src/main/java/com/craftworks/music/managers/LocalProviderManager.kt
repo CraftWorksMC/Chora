@@ -10,7 +10,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 object LocalProviderManager {
-    private val folders = mutableListOf<String>("/Music/")
+    private val folders = mutableListOf<String>()
 
     fun addFolder(folder: String) {
         Log.d("NAVIDROME", "Added server $folder")

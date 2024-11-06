@@ -54,15 +54,16 @@ suspend fun getAlbums(
 //}
 
 suspend fun getAlbum(albumId: String): MediaData.Album? = coroutineScope {
-    if (NavidromeManager.checkActiveServers()) {
+    if (albumId.startsWith("Local_")){
+        LocalProvider.getInstance().getLocalAlbum(albumId)
+    }
+    else {
         val deferredAlbum = async {
-            sendNavidromeGETRequest("getAlbum.view?id=$albumId&f=json")
+            sendNavidromeGETRequest("getAlbum.view?id=${albumId.removePrefix("Local_")}&f=json")
                 .filterIsInstance<MediaData.Album>()
                 .firstOrNull() ?: throw IllegalStateException("Cannot get album data")
         }
         deferredAlbum.await()
-    } else {
-        LocalProvider.getInstance().getLocalAlbum(albumId)
     }
 }
 
@@ -113,6 +114,11 @@ suspend fun getArtists(): List<MediaData.Artist> = coroutineScope {
     if (NavidromeManager.checkActiveServers()) {
         deferredArtists.add(async {
             sendNavidromeGETRequest("getArtists.view?size=100&f=json").filterIsInstance<MediaData.Artist>()
+        })
+    }
+    if (LocalProviderManager.checkActiveFolders()) {
+        deferredArtists.add(async {
+            LocalProvider.getInstance().getLocalArtists()
         })
     }
 
@@ -169,6 +175,7 @@ suspend fun getRadios(): List<MediaData.Radio> = coroutineScope {
             sendNavidromeGETRequest("getInternetRadioStations.view?f=json").filterIsInstance<MediaData.Radio>()
         })
     }
+    deferredRadios.add(async { radioList })
 
     deferredRadios.awaitAll().flatten()
 }
@@ -221,6 +228,7 @@ suspend fun getPlaylists(): List<MediaData.Playlist> = coroutineScope {
             sendNavidromeGETRequest("getPlaylists.view?f=json").filterIsInstance<MediaData.Playlist>()
         })
     }
+    deferredPlaylists.add(async { playlistList })
 
     deferredPlaylists.awaitAll().flatten()
 }

@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,10 +77,10 @@ fun PlaylistScreen(
     var isRefreshing by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
+
     val onRefresh: () -> Unit = {
         coroutineScope.launch {
             isRefreshing = true
-            playlistList.clear()
 
             viewModel.reloadData()
 
@@ -91,6 +92,11 @@ fun PlaylistScreen(
             }
             isRefreshing = false
         }
+    }
+
+    LaunchedEffect(playlistList) {
+        if (playlistList.isEmpty())
+            onRefresh.invoke()
     }
 
     PullToRefreshBox(

@@ -34,6 +34,10 @@ class PlaylistScreenViewModel : ViewModel(), ReloadableViewModel {
         }
     }
 
+    fun addLocalPlaylists(playlist: List<MediaData.Playlist>) {
+        _allPlaylists.value += playlist
+    }
+
     fun fetchPlaylistDetails(playlistId: String) {
         if (!NavidromeManager.checkActiveServers()) return
 
