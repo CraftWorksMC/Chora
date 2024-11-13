@@ -78,7 +78,6 @@ import com.craftworks.music.ui.theme.MusicPlayerTheme
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-
 var sliderPos = mutableIntStateOf(0)
 var repeatSong = mutableStateOf(false)
 var shuffleSongs = mutableStateOf(false)

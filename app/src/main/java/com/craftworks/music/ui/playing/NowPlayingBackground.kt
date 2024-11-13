@@ -78,7 +78,8 @@ fun NowPlaying_Background(
         "Static Blur"   -> StaticBlurBG(colorPalette)
         "Animated Blur" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && colorPalette.size >= 2) AnimatedGradientBG(
             color1 = colorPalette[0],
-            color2 = colorPalette.elementAtOrNull(1) ?: Color.Gray // Sometimes palette doesn't generate all colors
+            color2 = colorPalette.elementAtOrNull(1) ?: Color.Gray, // Sometimes palette doesn't generate all colors
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
         )
     }
 }
@@ -153,7 +154,7 @@ private fun StaticBlurBG(
 fun AnimatedGradientBG(
     color1: Color  = Color.Red,
     color2: Color = Color.Black,
-    modifier: Modifier = Modifier.fillMaxSize()
+    modifier: Modifier = Modifier
 ) {
     Log.d("RECOMPOSITION", "Recomposing Animated Gradient")
 
@@ -162,10 +163,25 @@ fun AnimatedGradientBG(
     uniform float iTime;
     uniform float3 color1;
     uniform float3 color2;
+    
+    // ACES Filmic Tone Mapping Function
+    float3 ACESFilm(float3 x) {
+        float a = 2.51;
+        float b = 0.03;
+        float c = 2.43;
+        float d = 0.59;
+        float e = 0.14;
+        return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+    }
+    
+    float3 reinhardToneMapping(float3 color) {
+        float luminance = dot(color, float3(0.2126, 0.7152, 0.0722));
+        return color / (color + 1.0);
+    }
 
     half4 main(vec2 fragCoord) {
         float mr = min(iResolution.x, iResolution.y);
-        vec2 uv = (fragCoord * 0.75 - iResolution.xy) / mr;
+        vec2 uv = (fragCoord * 0.5 - iResolution.xy) / mr;
 
         float d = -iTime * 0.5;
         float a = 0.0;
@@ -177,6 +193,10 @@ fun AnimatedGradientBG(
         
         float mixFactor = (cos(uv.x * d) + sin(uv.y * a)) * 0.5 + 0.5;
         float3 col = mix(color1, color2, mixFactor);
+        
+        col = reinhardToneMapping(col);
+        
+        //col = ACESFilm(col);
         
         return half4(col, 1.0);
     }

@@ -8,12 +8,15 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -27,6 +30,7 @@ import androidx.palette.graphics.Palette
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import kotlinx.coroutines.launch
@@ -47,20 +51,25 @@ fun NowPlayingContent(
 //        Log.d("RECOMPOSITION", "NowPlaying Root")
 //    }
 
+    val backgroundStyle by SettingsManager(context).npBackgroundFlow.collectAsState("Static Blur")
+    var backgroundDarkMode by remember { mutableStateOf(false) }
+
+    if (backgroundStyle == "Plain")
+        backgroundDarkMode = isSystemInDarkTheme()
+
     val colors = remember {
-        mutableStateListOf(Color.Gray, Color.Red, Color.Blue, Color.Cyan)
+        mutableStateListOf(Color.Gray, Color.White)
     }
 
-    LaunchedEffect(SongHelper.currentSong) {
-        if (SongHelper.currentSong.imageUrl.isBlank()) return@LaunchedEffect
+    LaunchedEffect(SongHelper.currentSong.imageUrl) {
+        if (SongHelper.currentSong.imageUrl.isBlank() || backgroundStyle == "Plain" ) return@LaunchedEffect
         launch {
+            colors.clear()
             colors.addAll(extractColorsFromUri(SongHelper.currentSong.imageUrl, context))
-            println("Generated new colors: ${colors[0].value}")
+            println("Generated new colors: ${colors[0].red}, ${colors[0].green}, ${colors[0].blue}")
+            backgroundDarkMode = (colors[0].customLuminance() + colors[1].customLuminance()) / 2 < 0.5f
         }
     }
-
-    var backgroundDarkMode by remember { mutableStateOf(false) }
-    backgroundDarkMode = isSystemInDarkTheme()
 
     val iconTextColor = remember(backgroundDarkMode) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -70,10 +79,6 @@ fun NowPlayingContent(
             if (backgroundDarkMode) Color.White
             else Color.Black
         }
-    }
-
-    backgroundDarkMode = remember(colors) {
-        (colors[0].customLuminance() + colors[1].customLuminance()) / 2 < 0.5f
     }
 
     //println("Luminance: ${(colors[0].customLuminance() + colors[1].customLuminance()) / 2}")
@@ -119,5 +124,5 @@ suspend fun extractColorsFromUri(uri: String, context: Context): List<Color> {
             palette.dominantSwatch?.rgb?.let { Color(it) },
             palette.lightMutedSwatch?.rgb?.let { Color(it) },
         )
-    } ?: listOf(Color.Blue, Color.Red, Color.Cyan, Color.Magenta)
+    } ?: listOf()
 }
