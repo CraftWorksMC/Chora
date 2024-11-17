@@ -61,8 +61,6 @@ fun NowPlayingLandscape(
     navHostController: NavHostController = rememberNavController(),
     iconColor: Color = Color.Black
 ){
-    Log.d("RECOMPOSITION", "NowPlaying Portrait")
-
     // use dark or light colors for icons and text based on the album art luminance.
     val iconTextColor by animateColorAsState(
         targetValue = iconColor,
@@ -84,8 +82,6 @@ fun NowPlayingLandscape(
                     Modifier.focusable(false).fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Log.d("RECOMPOSITION", "Album cover or lyrics")
-
                     /* Album Cover + Lyrics */
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
@@ -117,7 +113,6 @@ fun NowPlayingLandscape(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top
             ) {
-                Log.d("RECOMPOSITION", "Titles and artist")
                 SongHelper.currentSong.title.let {
                     Text(
                         text = it,

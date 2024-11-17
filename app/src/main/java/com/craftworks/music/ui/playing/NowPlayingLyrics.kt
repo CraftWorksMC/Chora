@@ -64,10 +64,6 @@ fun LyricsView(
     mediaController: MediaController?,
     paddingValues: PaddingValues = PaddingValues(),
 ) {
-    SideEffect {
-        Log.d("RECOMPOSITION", "Recomposed Lyrics View")
-    }
-
     val lyrics by LyricsManager.Lyrics.collectAsState()
     val useBlur by SettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
 
@@ -178,10 +174,6 @@ fun SyncedLyricItem(
     visibleItemsInfo: List<LazyListItemInfo>,
     color: Color,
 ) {
-    SideEffect {
-        println("Recomposing Synced Lyrics Item $index")
-    }
-
     val lyricAlpha: Float by animateFloatAsState(
         if (currentLyricIndex == index) 1f else 0.5f,
         label = "Current Lyric Alpha",

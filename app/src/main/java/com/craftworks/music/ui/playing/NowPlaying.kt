@@ -47,10 +47,6 @@ fun NowPlayingContent(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = rememberManagedMediaController().value
 ) {
-//    SideEffect {
-//        Log.d("RECOMPOSITION", "NowPlaying Root")
-//    }
-
     val backgroundStyle by SettingsManager(context).npBackgroundFlow.collectAsState("Static Blur")
     var backgroundDarkMode by remember { mutableStateOf(false) }
 
@@ -80,8 +76,6 @@ fun NowPlayingContent(
             else Color.Black
         }
     }
-
-    //println("Luminance: ${(colors[0].customLuminance() + colors[1].customLuminance()) / 2}")
 
     NowPlaying_Background(colors ,mediaController)
 

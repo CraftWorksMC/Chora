@@ -94,7 +94,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
-        this@MainActivity.startService(serviceIntent)
+        this@MainActivity.startForegroundService(serviceIntent)
         handleSearchIntent(intent)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)

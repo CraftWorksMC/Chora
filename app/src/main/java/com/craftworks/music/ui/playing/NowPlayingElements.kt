@@ -219,11 +219,6 @@ fun PreviousSongButton(color: Color, mediaController: MediaController?, size: Dp
 @Stable
 @Composable
 fun PlayPauseButtonUpdating(color: Color, mediaController: MediaController?, size: Dp){
-
-    SideEffect {
-        Log.d("RECOMPOSITION", "PlayPauseButtonUpdating")
-    }
-
     val playerStatus = remember {
         mutableStateOf(
             if (mediaController?.isLoading == true) "loading"

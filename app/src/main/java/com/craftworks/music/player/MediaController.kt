@@ -114,7 +114,7 @@ fun rememberManagedMediaController(
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> controllerManager.initialize()
-                Lifecycle.Event.ON_STOP -> controllerManager.release()
+                Lifecycle.Event.ON_DESTROY -> controllerManager.release()
                 else -> {}
             }
         }

@@ -1,7 +1,6 @@
 [versions]
-# ...
 activityCompose = "1.9.3"
-composeBom = "2024.10.01"
+composeBom = "2024.11.00"
 coreKtx = "1.15.0"
 espressoCore = "3.6.1"
 githubComposefadingedges = "1.0.4"
@@ -18,9 +17,10 @@ media3Exoplayer = "1.4.1"
 media3Session = "1.4.1"
 media3Ui = "1.4.1"
 mediarouter = "1.7.0"
-navigationCompose = "2.8.3"
+navigationCompose = "2.8.4"
 paletteKtx = "1.0.0"
 preferenceKtx = "1.2.1"
+
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }

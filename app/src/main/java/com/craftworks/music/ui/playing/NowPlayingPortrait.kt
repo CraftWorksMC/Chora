@@ -60,8 +60,6 @@ fun NowPlayingPortrait(
     navHostController: NavHostController = rememberNavController(),
     iconColor: Color = Color.Black
 ){
-    Log.d("RECOMPOSITION", "NowPlaying Portrait")
-
     // use dark or light colors for icons and text based on the album art luminance.
     val iconTextColor = animateColorAsState(
         targetValue = iconColor,
@@ -76,9 +74,6 @@ fun NowPlayingPortrait(
     Column {
         // Top padding (for mini-player)
         Spacer(Modifier.height(24.dp))
-
-        // Album Art + Info
-        Log.d("RECOMPOSITION", "Album cover or lyrics")
 
         /* Album Cover + Lyrics */
         AnimatedContent(
@@ -128,7 +123,6 @@ fun NowPlayingPortrait(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top
         ) {
-            Log.d("RECOMPOSITION", "Titles and artist")
             Text(
                 text = currentSong.title,
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,

@@ -63,7 +63,7 @@ fun NowPlaying_Background(
         }
 
         mediaController?.addListener(listener)
-        Log.d("RECOMPOSITION", "Registered new listener for mediaController!")
+        Log.d("RECOMPOSITION", "Registered new listener for mediaController in NowPlaying_Background!")
 
         onDispose {
             mediaController?.removeListener(listener)
@@ -76,10 +76,10 @@ fun NowPlaying_Background(
     when (backgroundStyle){
         "Plain"         -> PlainBG()
         "Static Blur"   -> StaticBlurBG(colorPalette)
-        "Animated Blur" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && colorPalette.size >= 2) AnimatedGradientBG(
-            color1 = colorPalette[0],
-            color2 = colorPalette.elementAtOrNull(1) ?: Color.Gray, // Sometimes palette doesn't generate all colors
-            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+        "Animated Blur" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) AnimatedGradientBG(
+            color1 = colorPalette.elementAtOrNull(0) ?: Color.Black,
+            color2 = colorPalette.elementAtOrNull(1) ?: Color.Black, // Sometimes palette doesn't generate all colors
+            modifier = Modifier.fillMaxSize()
         )
     }
 }
@@ -156,8 +156,6 @@ fun AnimatedGradientBG(
     color2: Color = Color.Black,
     modifier: Modifier = Modifier
 ) {
-    Log.d("RECOMPOSITION", "Recomposing Animated Gradient")
-
     val shaderCode = """
     uniform float2 iResolution;
     uniform float iTime;
