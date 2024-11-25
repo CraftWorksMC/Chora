@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="Theme_System">Sistema</string>
     <string name="Dialog_Media_Source">Fonte Media</string>
     <string name="Source_Local">Cartella Locale</string>
     <string name="Label_Local_Directory">Percorso</string>
@@ -70,4 +71,7 @@
     <string name="Notification_Download_Failure">Uh oh, qualcosa è andato storto nel scaricare questa canzone.</string>
     <string name="Setting_NowPlayingLyricsBlur">Sfocatura Testi</string>
     <string name="Setting_Transcoding_Wifi">Bitrate Massimo (WiFi)</string>
+    <string name="Dialog_Theme">Tema</string>
+    <string name="Theme_Dark">Scuro</string>
+    <string name="Theme_Light">Chiaro</string>
 </resources>

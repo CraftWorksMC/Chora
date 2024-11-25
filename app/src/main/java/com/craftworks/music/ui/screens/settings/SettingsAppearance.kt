@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens.settings
 
 import android.content.res.Configuration
+import android.content.res.Resources.Theme
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -60,6 +61,7 @@ import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
 import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
+import com.craftworks.music.ui.elements.dialogs.ThemeDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import kotlinx.coroutines.launch
 
@@ -71,6 +73,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     var showBackgroundDialog by remember { mutableStateOf(false) }
+    var showThemesDialog by remember { mutableStateOf(false) }
     var showNavbarItemsDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
@@ -78,9 +81,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 
     val focusRequester = FocusRequester()
 
-    LaunchedEffect (Unit) {
-        focusRequester.requestFocus()
-    }
+//    LaunchedEffect (Unit) {
+//        focusRequester.requestFocus()
+//    }
 
     Column(
         modifier = Modifier
@@ -217,6 +220,60 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 }
             }
 
+            //Theme
+            Row (verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(vertical = 6.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable {
+                        showThemesDialog = true
+                    }
+                    .focusRequester(focusRequester)
+                    .focusProperties { left = FocusRequester.Cancel }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.s_a_palette),
+                    contentDescription = "Background Style Icon",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .size(32.dp)
+                )
+                Column {
+                    Text(
+                        text = stringResource(R.string.Dialog_Theme),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.fillMaxSize(),
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start
+                    )
+                    val selectedTheme by SettingsManager(context).appTheme.collectAsState(SettingsManager.Companion.AppTheme.SYSTEM.name)
+
+                    val themes = listOf(
+                        SettingsManager.Companion.AppTheme.DARK.name,
+                        SettingsManager.Companion.AppTheme.LIGHT.name,
+                        SettingsManager.Companion.AppTheme.SYSTEM.name
+                    )
+
+                    val themeStrings = listOf(
+                        R.string.Theme_Dark, R.string.Theme_Light, R.string.Theme_System
+                    )
+                    Text(
+                        text = stringResource(
+                            id = themeStrings[themes.indexOf(selectedTheme)]
+                        ),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
+                        modifier = Modifier.fillMaxSize(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start
+                    )
+                }
+            }
+
             //Navbar Items
             val navBarItemsEnabled = LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION
 
@@ -284,43 +341,6 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 }
             )
 
-            /*
-            Row(verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(vertical = 6.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .selectable(
-                        selected = showMoreInfo.value,
-                        onClick = {
-                            coroutineScope.launch {
-                                SettingsManager(context).setShowMoreInfo(!showMoreInfo.value)
-                            }
-                        },
-                        role = Role.RadioButton
-                    )
-            ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
-                    contentDescription = "Settings Icon",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .size(32.dp)
-                )
-                Text(
-                    text = stringResource(R.string.Setting_MoreInfo),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Start
-                )
-                Switch(checked = showMoreInfo.value, onCheckedChange = {})
-            }
-            */
-
             //More Song Info
             val nowPlayingLyricsBlur = SettingsManager(context).nowPlayingLyricsBlurFlow.collectAsState(true)
 
@@ -333,43 +353,6 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     }
                 }
             )
-
-            /*
-            Row(verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(vertical = 6.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .selectable(
-                        selected = nowPlayingLyricsBlur.value,
-                        onClick = {
-                            coroutineScope.launch {
-                                SettingsManager(context).setNowPlayingLyricsBlur(!nowPlayingLyricsBlur.value)
-                            }
-                        },
-                        role = Role.RadioButton
-                    )
-            ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
-                    contentDescription = "Settings Icon",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .size(32.dp)
-                )
-                Text(
-                    text = stringResource(R.string.Setting_NowPlayingLyricsBlur),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Start
-                )
-                Switch(checked = nowPlayingLyricsBlur.value, onCheckedChange = {})
-            }
-            */
 
             //Show Navidrome Logo
             val showNavidromeLogo = SettingsManager(context).showNavidromeLogoFlow.collectAsState(true)
@@ -384,47 +367,14 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 }
             )
 
-/*
-            Row(verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(vertical = 6.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .selectable(
-                        selected = showNavidromeLogo.value,
-                        onClick = {
-                            coroutineScope.launch {
-                                SettingsManager(context).setNowPlayingLyricsBlur(!showNavidromeLogo.value)
-                            }
-                        },
-                        role = Role.RadioButton
-                    )
-            ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
-                    contentDescription = "Settings Icon",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .size(32.dp)
-                )
-                Text(
-                    text = stringResource(R.string.Setting_NavidromeLogo),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Start
-                )
-                Switch(checked = showNavidromeLogo.value, onCheckedChange = {})
-            }
-*/
             BottomSpacer()
         }
 
         if(showBackgroundDialog)
             BackgroundDialog(setShowDialog = { showBackgroundDialog = it })
+
+        if(showThemesDialog)
+            ThemeDialog(setShowDialog = { showThemesDialog = it })
 
         if(showNavbarItemsDialog)
             NavbarItemsDialog(setShowDialog = { showNavbarItemsDialog = it })

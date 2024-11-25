@@ -29,12 +29,15 @@ class SettingsManager(
         private val SHOW_MORE_INFO_KEY = booleanPreferencesKey("show_more_info")
         private val NOW_PLAYING_LYRIC_BLUR_KEY = booleanPreferencesKey("now_playing_lyrics_blur")
         private val BOTTOM_NAV_ITEMS_KEY = stringPreferencesKey("bottom_nav_order")
+        private val APP_THEME = stringPreferencesKey("theme")
+        enum class AppTheme {
+            LIGHT, DARK, SYSTEM
+        }
 
         private val TRANSCODING_BITRATE_WIFI_KEY = stringPreferencesKey("transcoding_bitrate_wifi")
         private val TRANSCODING_BITRATE_DATA_KEY = stringPreferencesKey("transcoding_bitrate_data")
         private val SCROBBLE_PERCENT_KEY = intPreferencesKey("scrobble_percent")
 
-        private val LOCAL_PROVIDERS = stringPreferencesKey("local_providers")
         private val LOCAL_RADIOS = stringPreferencesKey("radios_list")
         private val LOCAL_PLAYLISTS = stringPreferencesKey("playlists_list")
     }
@@ -114,6 +117,16 @@ class SettingsManager(
     suspend fun setBottomNavItems(items: List<BottomNavItem>) {
         context.dataStore.edit { preferences ->
             preferences[BOTTOM_NAV_ITEMS_KEY] = Json.encodeToString(items)
+        }
+    }
+
+    val appTheme: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[APP_THEME] ?: "SYSTEM"
+    }
+
+    suspend fun setAppTheme(theme: AppTheme) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_THEME] = theme.name
         }
     }
     //endregion

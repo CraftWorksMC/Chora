@@ -22,6 +22,7 @@
         <!-- Playlists -->
     <string name="Action_CreatePlaylist">Créer une playlist</string>
         <!-- Provider Dialog -->
+    <string name="Theme_System">Système</string>
     <string name="Dialog_Media_Source">Source de médias</string>
     <string name="No_Providers_Splash">Aucune source de médias pour le moment. Pour commencer la lecture, ajoutez-en une !</string>
     <string name="Source_Local">Fichiers locaux</string>
@@ -86,4 +87,7 @@
     <string name="Notification_Download_Failure">Oh oh, quelque chose s\'est mal passé lors du téléchargement de cette chanson.</string>
     <string name="Setting_NowPlayingLyricsBlur">Flou du texte</string>
     <string name="Setting_Transcoding_Wifi">Max Bitrate (WiFi)</string>
+    <string name="Dialog_Theme">Thème</string>
+    <string name="Theme_Dark">Sombre</string>
+    <string name="Theme_Light">Clair</string>
 </resources>

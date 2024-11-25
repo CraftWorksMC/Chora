@@ -6,6 +6,12 @@
         <string name="Background_Blur">Blurred</string>
         <string name="Background_Anim">Animated</string>
 
+    <!-- App Theme Dialog -->
+    <string name="Dialog_Theme">Theme</string>
+        <string name="Theme_Dark">Dark</string>
+        <string name="Theme_Light">Light</string>
+        <string name="Theme_System">System</string>
+
     <!-- Provider Dialog -->
     <string name="Dialog_Media_Source">Media Source</string>
         <string name="No_Providers_Splash">You haven\'t added a media provider yet. Add one now to start listening to some tunes!</string>

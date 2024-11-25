@@ -1,5 +1,10 @@
 package com.craftworks.music.ui.elements.dialogs
 
+import android.app.UiModeManager
+import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -72,6 +77,12 @@ fun PreviewBackgroundDialog(){
 fun PreviewNavbarItemsDialog(){
     NavbarItemsDialog(setShowDialog = { })
 }
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewThemeDialog(){
+    ThemeDialog(setShowDialog = { })
+}
 //endregion
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
@@ -88,8 +99,6 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
     val backgroundTypeStrings = listOf(
         R.string.Background_Plain, R.string.Background_Blur, R.string.Background_Anim
     )
-
-    val coroutineScope = rememberCoroutineScope()
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Column(
@@ -137,6 +146,102 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                     )
                     Text(
                         text = stringResource(id = backgroundTypeStrings[index]),
+                        fontWeight = FontWeight.Normal,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@Composable
+fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
+    val context = LocalContext.current
+
+    val selectedTheme by SettingsManager(context).appTheme.collectAsState(SettingsManager.Companion.AppTheme.SYSTEM.name)
+
+    val themes = listOf(
+        SettingsManager.Companion.AppTheme.DARK,
+        SettingsManager.Companion.AppTheme.LIGHT,
+        SettingsManager.Companion.AppTheme.SYSTEM
+    )
+
+    val themeStrings = listOf(
+        R.string.Theme_Dark, R.string.Theme_Light, R.string.Theme_System
+    )
+
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Column(
+            modifier = Modifier
+                .shadow(12.dp, RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(24.dp)
+                .dialogFocusable()
+                .selectableGroup()
+        ) {
+            Text(
+                text = stringResource(R.string.Dialog_Theme),
+                fontWeight = FontWeight.SemiBold,
+                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            for ((index, option) in themes.withIndex()) {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .selectable(
+                            selected = (option.name == selectedTheme),
+                            onClick = {
+                                runBlocking {
+                                    SettingsManager(context).setAppTheme(option)
+                                    val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+
+                                    when (option) {
+                                        SettingsManager.Companion.AppTheme.DARK -> {
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                                                uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_YES)
+                                            else
+                                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                                        }
+                                        SettingsManager.Companion.AppTheme.LIGHT -> {
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                                                uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_NO)
+                                            else
+                                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                                        }
+                                        SettingsManager.Companion.AppTheme.SYSTEM -> {
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                                                uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_AUTO)
+                                            else
+                                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                                        }
+                                    }
+                                }
+                                setShowDialog(false)
+                            },
+                            role = Role.RadioButton
+                        ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = option.name == selectedTheme,
+                        onClick = {
+                            runBlocking {
+                                SettingsManager(context).setAppTheme(option)
+                            }
+                            setShowDialog(false)
+                        },
+                        modifier = Modifier.bounceClick()
+                    )
+                    Text(
+                        text = stringResource(id = themeStrings[index]),
                         fontWeight = FontWeight.Normal,
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         color = MaterialTheme.colorScheme.onBackground,
