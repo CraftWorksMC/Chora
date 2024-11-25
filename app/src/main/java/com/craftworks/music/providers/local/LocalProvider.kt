@@ -82,16 +82,16 @@ class LocalProvider private constructor() {
                     }
 
                     else -> {
-                        val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                        val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-                        val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+                        val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums._ID)
+                        val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)
+                        val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)
                         //val dateAddedColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
                         //val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
 
                         do {
                             val thisId = cursor.getLongOrNull(idColumn) ?: 0
-                            val thisAlbum = cursor.getString(albumColumn)
-                            val thisArtist = cursor.getString(artistColumn)
+                            val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
+                            val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
                             //val thisDateAdded = cursor.getString(dateAddedColumn)
                             //val thisYear = cursor.getInt(yearColumn)
 
@@ -169,7 +169,7 @@ class LocalProvider private constructor() {
                 else -> {
                     val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
                     val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-                    val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+                    val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)
                     val artistIdColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST_ID)
                     val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
 

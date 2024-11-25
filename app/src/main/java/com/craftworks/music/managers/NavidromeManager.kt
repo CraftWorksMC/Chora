@@ -42,17 +42,19 @@ object NavidromeManager {
         saveServers()
     }
 
-    fun setCurrentServer(id: String) {
-        if (id in servers) {
-            currentServerId = id
-        } else {
-            throw IllegalArgumentException("Server with id $id not found")
-        }
+    fun setCurrentServer(id: String?) {
+//        if (id in servers) {
+//            currentServerId = id
+//        } else {
+//            throw IllegalArgumentException("Server with id $id not found")
+//        }
+
+        currentServerId = id
         saveServers()
     }
 
     fun checkActiveServers(): Boolean {
-        return servers.keys.isNotEmpty() || currentServerId != null
+        return servers.keys.isNotEmpty() && currentServerId != null
     }
 
     fun getAllServers(): List<NavidromeProvider> = servers.values.toList()

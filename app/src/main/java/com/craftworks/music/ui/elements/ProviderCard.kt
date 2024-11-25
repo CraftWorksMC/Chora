@@ -191,8 +191,12 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","htt
                     NavidromeManager.setCurrentServer(server.id)
                     GlobalViewModels.refreshAll()
                 }
+                else {
+                    NavidromeManager.setCurrentServer(null)
+                    GlobalViewModels.refreshAll()
+                }
                 // Update checked
-                checked = (server.id == NavidromeManager.getCurrentServer()?.id)
+                //checked = (server.id == NavidromeManager.getCurrentServer()?.id)
             }
         )
     }
