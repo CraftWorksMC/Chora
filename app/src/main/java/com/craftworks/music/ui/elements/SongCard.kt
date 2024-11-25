@@ -34,14 +34,17 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,10 +56,12 @@ import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.radioList
 import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
 import com.craftworks.music.ui.screens.selectedRadioIndex
 import com.craftworks.music.ui.screens.showRadioModifyDialog
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Stable
@@ -138,6 +143,8 @@ fun SongsCard(song: MediaItem, onClick: () -> Unit){
 
 @Composable
 fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
+    val context = LocalContext.current
+
     Card(
         onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
         shape = RoundedCornerShape(12.dp),
@@ -156,7 +163,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                 .height(72.dp), verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
+                model = ImageRequest.Builder(context)
                     .data(song.imageUrl)
                     .crossfade(true)
                     .size(64)
@@ -232,6 +239,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                     )
                 }
 
+                val coroutineScope = rememberCoroutineScope()
                 DropdownMenu(
                     modifier = Modifier,
                     expanded = expanded,
@@ -256,6 +264,23 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                             Icon(
                                 imageVector = Icons.Rounded.Add,
                                 contentDescription = "Add To Playlist Icon"
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(stringResource(R.string.Action_Download))
+                        },
+                        onClick = {
+                            coroutineScope.launch {
+                                downloadNavidromeSong(context, song)
+                            }
+                            expanded = false
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
+                                contentDescription = "Download Icon"
                             )
                         }
                     )

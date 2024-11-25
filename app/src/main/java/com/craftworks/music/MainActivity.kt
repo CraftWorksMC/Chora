@@ -94,8 +94,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
-        this@MainActivity.startForegroundService(serviceIntent)
-        handleSearchIntent(intent)
+        this@MainActivity.startService(serviceIntent)
+        //handleSearchIntent(intent)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -196,11 +196,15 @@ class MainActivity : ComponentActivity() {
             requestPermissionLauncher.launch(
                 android.Manifest.permission.READ_MEDIA_AUDIO
             )
+            requestPermissionLauncher.launch(
+                android.Manifest.permission.POST_NOTIFICATIONS
+            )
         } else {
             requestPermissionLauncher.launch(
                 android.Manifest.permission.READ_EXTERNAL_STORAGE
             )
         }
+
 
         // SAVE SETTINGS ON APP EXIT
         registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
@@ -220,23 +224,23 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
-        super.onNewIntent(intent, caller)
-        handleSearchIntent(intent)
-    }
+//    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
+//        super.onNewIntent(intent, caller)
+//        handleSearchIntent(intent)
+//    }
 
-    @androidx.annotation.OptIn(UnstableApi::class)
-    private fun handleSearchIntent(intent: Intent) {
-        if (intent.action == "android.media.action.MEDIA_PLAY_FROM_SEARCH") {
-            val query = intent.getStringExtra("query")
-
-            val mediaLibraryService = ChoraMediaLibraryService()
-
-            query?.let { searchQuery ->
-                //mediaLibraryService.searchAndPlayMedia(searchQuery)
-            }
-        }
-    }
+//    @androidx.annotation.OptIn(UnstableApi::class)
+//    private fun handleSearchIntent(intent: Intent) {
+//        if (intent.action == "android.media.action.MEDIA_PLAY_FROM_SEARCH") {
+//            val query = intent.getStringExtra("query")
+//
+//            val mediaLibraryService = ChoraMediaLibraryService()
+//
+//            query?.let { searchQuery ->
+//                //mediaLibraryService.searchAndPlayMedia(searchQuery)
+//            }
+//        }
+//    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

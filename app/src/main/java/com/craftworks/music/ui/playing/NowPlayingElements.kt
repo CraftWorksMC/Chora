@@ -377,7 +377,7 @@ fun DownloadButton(color: Color, size: Dp) {
         Button(
             onClick = {
                 coroutineScope.launch {
-                    downloadNavidromeSong(context)
+                    downloadNavidromeSong(context, SongHelper.currentSong)
                 }
             },
             enabled = NavidromeManager.checkActiveServers(),

@@ -83,11 +83,13 @@
     <string name="Option_No_Transcoding">Pas de transcodage</string>
     <string name="Notification_Download_Name">Notification de téléchargement</string>
     <string name="Notification_Download_Desc">Notifications pour l\'état du téléchargement</string>
-    <string name="Notification_Download_Success">Chanson téléchargée avec succès !</string>
-    <string name="Notification_Download_Failure">Oh oh, quelque chose s\'est mal passé lors du téléchargement de cette chanson.</string>
+    <string name="Notification_Download_Progress">Téléchargement</string>
+    <string name="Notification_Download_Success">téléchargée avec succès !</string>
+    <string name="Notification_Download_Failure">Oh oh, quelque chose s\'est mal passé lors du téléchargement de</string>
     <string name="Setting_NowPlayingLyricsBlur">Flou du texte</string>
     <string name="Setting_Transcoding_Wifi">Max Bitrate (WiFi)</string>
     <string name="Dialog_Theme">Thème</string>
     <string name="Theme_Dark">Sombre</string>
     <string name="Theme_Light">Clair</string>
+    <string name="Action_Download">Téléchargement</string>
 </resources>

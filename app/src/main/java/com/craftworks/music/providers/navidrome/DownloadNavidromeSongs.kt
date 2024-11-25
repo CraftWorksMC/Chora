@@ -3,7 +3,10 @@ package com.craftworks.music.providers.navidrome
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Environment
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -12,6 +15,7 @@ import androidx.media3.common.util.NotificationUtil.IMPORTANCE_LOW
 import androidx.media3.common.util.NotificationUtil.createNotificationChannel
 import androidx.media3.common.util.UnstableApi
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.managers.NavidromeManager.getCurrentServer
 import com.craftworks.music.player.SongHelper
 import kotlinx.coroutines.Dispatchers
@@ -20,17 +24,25 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.net.URL
+import kotlin.io.path.exists
 
 @OptIn(UnstableApi::class)
-suspend fun downloadNavidromeSong(context: Context) {
-
+suspend fun downloadNavidromeSong(
+    context: Context,
+    song: MediaData.Song
+) {
     val channelId = "download_channel"
-    createNotificationChannel(context, channelId, 0, 0, IMPORTANCE_LOW)
+    createNotificationChannel(
+        context,
+        channelId,
+        R.string.Notification_Download_Name,
+        R.string.Notification_Download_Desc,
+        IMPORTANCE_LOW
+    )
 
     val notificationBuilder = NotificationCompat.Builder(context, channelId)
         .setSmallIcon(android.R.drawable.stat_sys_download)
-        .setContentTitle("Downloading file")
-        .setContentText("Download in progress")
+        .setContentTitle(context.getString(R.string.Notification_Download_Progress) + " ${song.title} - ${song.artist}")
         .setPriority(NotificationCompat.PRIORITY_LOW)
         .setOnlyAlertOnce(true)
         .setProgress(100, 0, true)
@@ -40,16 +52,8 @@ suspend fun downloadNavidromeSong(context: Context) {
             context,
             Manifest.permission.POST_NOTIFICATIONS
         ) != PackageManager.PERMISSION_GRANTED
-    ) {
-        // TODO: Consider calling
-        //    ActivityCompat#requestPermissions
-        // here to request the missing permissions, and then overriding
-        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-        //                                          int[] grantResults)
-        // to handle the case where the user grants the permission. See the documentation
-        // for ActivityCompat#requestPermissions for more details.
-        return
-    }
+    ) return
+
     notificationManager.notify(1, notificationBuilder.build())
 
 
@@ -59,17 +63,26 @@ suspend fun downloadNavidromeSong(context: Context) {
         val passwordSalt = generateSalt(8)
         val passwordHash = md5Hash(server.password + passwordSalt)
 
-        val url = URL("${server.url}/rest/download.view?/id=${SongHelper.currentSong.navidromeID}&u=${server.username}&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
+        val url = URL("${server.url}/rest/download.view?id=${song.navidromeID}&u=${server.username}&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
+
+        println("DOWNLOADING FROM: $url")
 
         try {
             val inputStream: InputStream = url.openStream()
 
-            val outputFile = File("/Music/${SongHelper.currentSong.title} - ${SongHelper.currentSong.artist}.${SongHelper.currentSong.format}")
+            val musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+            if (!musicDir.exists()) {
+                musicDir.mkdirs()
+            }
+
+            val fileName = "${song.title} - ${song.artist}.${song.format}"
+            val outputFile = File(musicDir, fileName)
             val fileOutputStream = FileOutputStream(outputFile)
 
-            val buffer = ByteArray(4096)
+            val buffer = ByteArray(8192)
             var totalBytesRead = 0L
             var bytesRead: Int
+
             val fileSize = url.openConnection().contentLength
 
             // Read from the input stream and write to the file output stream
@@ -88,16 +101,42 @@ suspend fun downloadNavidromeSong(context: Context) {
             inputStream.close()
 
             println("Download completed: ${outputFile.absolutePath}")
-            Toast.makeText(context, context.getString(R.string.Notification_Download_Success), Toast.LENGTH_SHORT).show()
+
+            withContext(Dispatchers.Main) {
+//                notificationBuilder
+//                    .setSmallIcon(android.R.drawable.stat_sys_download_done)
+//                    .setContentTitle("${song.title} - ${song.artist} " + context.getString(R.string.Notification_Download_Success))
+//                    .setPriority(NotificationCompat.PRIORITY_LOW)
+//                    .setAutoCancel(true)
+//                    .setProgress(0, 0, false)
+//
+//                notificationManager.notify(1, notificationBuilder.build())
+
+                notificationManager.cancel(1)
+
+                Toast.makeText(
+                    context,
+                    song.title + " " + context.getString(R.string.Notification_Download_Success),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
 
         } catch (e: Exception) {
             e.printStackTrace()
 
             // Show failure notification
             notificationBuilder
-                .setContentText(context.getString(R.string.Notification_Download_Failure))
+                .setContentText(context.getString(R.string.Notification_Download_Failure) + " " + song.title)
                 .setProgress(0, 0, false)
             notificationManager.notify(1, notificationBuilder.build())
+
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.Notification_Download_Failure) + " " + song.title,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
 
             println("Download failed: ${e.message}")
         }
