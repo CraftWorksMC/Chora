@@ -415,6 +415,6 @@ private fun SettingsSwitch(
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Start
         )
-        Switch(checked = selected, onCheckedChange = {})
+        Switch(checked = selected, onCheckedChange = { toggleEvent() })
     }
 }

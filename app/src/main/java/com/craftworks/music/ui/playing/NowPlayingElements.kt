@@ -387,7 +387,9 @@ fun DownloadButton(color: Color, size: Dp) {
                 .bounceClick(),
             contentPadding = PaddingValues(0.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent
+                containerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                disabledContentColor = color.copy(alpha = 0.25f)
             )
         ) {
             Icon(

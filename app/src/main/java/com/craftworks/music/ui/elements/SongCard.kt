@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +57,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.radioList
 import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
@@ -149,7 +151,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
         onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
             disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
             disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
@@ -268,6 +270,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                         }
                     )
                     DropdownMenuItem(
+                        enabled = NavidromeManager.checkActiveServers(),
                         text = {
                             Text(stringResource(R.string.Action_Download))
                         },

@@ -48,80 +48,75 @@ class LocalProvider private constructor() {
             }
         }
 
-        //for (dir in LocalProviderManager.getAllFolders()){
-            applicationContext?.let { context ->
-                val contentResolver: ContentResolver = context.contentResolver
-                val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                val projection = arrayOf(
-                    MediaStore.Audio.Media._ID,
-                    MediaStore.Audio.Albums.ALBUM,
-                    MediaStore.Audio.Albums.ARTIST,
-                    //MediaStore.Audio.Media.DATE_ADDED,
-                    //MediaStore.Audio.Media.YEAR
-                )
-                val cursor: Cursor? = contentResolver.query(
-                    uri,
-                    projection,
-                    //"${MediaStore.Audio.Media.DATA} LIKE ?",
-                    "${MediaStore.Audio.Media.DATA} LIKE ?" +
-                            " OR ${MediaStore.Audio.Media.DATA} LIKE ?"
-                                .repeat(LocalProviderManager.getAllFolders().size - 1),
-                    LocalProviderManager.getAllFolders().map {
-                        "%$it%"
-                    }.toTypedArray(),
-                    sortOrder
-                )
+        applicationContext?.let { context ->
+            val contentResolver: ContentResolver = context.contentResolver
+            val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+            val projection = arrayOf(
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Albums.ALBUM,
+                MediaStore.Audio.Albums.ARTIST,
+            )
+            val cursor: Cursor? = contentResolver.query(
+                uri,
+                projection,
+                "${MediaStore.Audio.Media.DATA} LIKE ?" +
+                        " OR ${MediaStore.Audio.Media.DATA} LIKE ?"
+                            .repeat(LocalProviderManager.getAllFolders().size - 1),
+                LocalProviderManager.getAllFolders().map {
+                    "%$it%"
+                }.toTypedArray(),
+                sortOrder
+            )
 
-                when {
-                    cursor == null -> {
-                        // query failed, handle error.
-                    }
-
-                    !cursor.moveToFirst() -> {
-                        // no media on the device
-                    }
-
-                    else -> {
-                        val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums._ID)
-                        val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)
-                        val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)
-                        //val dateAddedColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
-                        //val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
-
-                        do {
-                            val thisId = cursor.getLongOrNull(idColumn) ?: 0
-                            val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
-                            val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
-                            //val thisDateAdded = cursor.getString(dateAddedColumn)
-                            //val thisYear = cursor.getInt(yearColumn)
-
-                            val imageUri: String = try {
-                                "content://media/external/audio/media/$thisId/albumart"
-                            } catch (_: FileNotFoundException) {
-                                println("No Album Art!")
-                            }.toString()
-
-                            val album = MediaData.Album(
-                                navidromeID = "Local_$thisId",
-                                name = thisAlbum,
-                                album = thisAlbum,
-                                title = thisAlbum,
-                                artist = thisArtist,
-                                coverArt = imageUri,
-                                songCount = 0,
-                                duration = 0,
-                                artistId = "",
-                            )
-
-                            if (!albums.contains(album))
-                                albums.add(album)
-                        } while (cursor.moveToNext())
-                    }
+            when {
+                cursor == null -> {
+                    // query failed, handle error.
                 }
 
-                cursor?.close()
+                !cursor.moveToFirst() -> {
+                    // no media on the device
+                }
+
+                else -> {
+                    val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums._ID)
+                    val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)
+                    val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)
+                    //val dateAddedColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
+                    //val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
+
+                    do {
+                        val thisId = cursor.getLongOrNull(idColumn) ?: 0
+                        val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
+                        val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
+                        //val thisDateAdded = cursor.getString(dateAddedColumn)
+                        //val thisYear = cursor.getInt(yearColumn)
+
+                        val imageUri: String = try {
+                            "content://media/external/audio/media/$thisId/albumart"
+                        } catch (_: FileNotFoundException) {
+                            println("No Album Art!")
+                        }.toString()
+
+                        val album = MediaData.Album(
+                            navidromeID = "Local_$thisId",
+                            name = thisAlbum,
+                            album = thisAlbum,
+                            title = thisAlbum,
+                            artist = thisArtist,
+                            coverArt = imageUri,
+                            songCount = 0,
+                            duration = 0,
+                            artistId = "",
+                        )
+
+                        if (!albums.contains(album))
+                            albums.add(album)
+                    } while (cursor.moveToNext())
+                }
             }
-        //}
+
+            cursor?.close()
+        }
 
         return albums
     }
