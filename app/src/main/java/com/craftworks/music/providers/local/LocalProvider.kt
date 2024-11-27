@@ -4,7 +4,9 @@ import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.core.database.getIntOrNull
@@ -31,6 +33,14 @@ class LocalProvider private constructor() {
 
     fun init(context: Context) {
         applicationContext = context.applicationContext
+
+        scanLocalFiles()
+    }
+
+    fun scanLocalFiles() {
+        MediaScannerConnection.scanFile(
+            applicationContext, arrayOf(Environment.getExternalStorageDirectory().path), null
+        ) { _, _ -> Log.i("Scan For Files", "Media Scan Completed") }
     }
 
     //region Albums

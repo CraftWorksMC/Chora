@@ -380,7 +380,7 @@ fun DownloadButton(color: Color, size: Dp) {
                     downloadNavidromeSong(context, SongHelper.currentSong)
                 }
             },
-            enabled = NavidromeManager.checkActiveServers(),
+            enabled = !SongHelper.currentSong.navidromeID.startsWith("Local_"),
             shape = CircleShape,
             modifier = Modifier
                 .height(size)
@@ -389,12 +389,12 @@ fun DownloadButton(color: Color, size: Dp) {
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent,
                 disabledContainerColor = Color.Transparent,
-                disabledContentColor = color.copy(alpha = 0.25f)
+                disabledContentColor = Color.Transparent
             )
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
-                tint = color.copy(alpha = 0.5f),
+                tint = if (SongHelper.currentSong.navidromeID.startsWith("Local_")) color.copy(alpha = 0.25f) else color.copy(alpha = 0.5f),
                 contentDescription = "Download Song",
                 modifier = Modifier
                     .height(size)

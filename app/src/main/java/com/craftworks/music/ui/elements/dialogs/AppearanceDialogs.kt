@@ -60,6 +60,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.bounceClick
+import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import sh.calvin.reorderable.ReorderableItem
@@ -235,6 +236,28 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
                         onClick = {
                             runBlocking {
                                 SettingsManager(context).setAppTheme(option)
+                                val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+
+                                when (option) {
+                                    SettingsManager.Companion.AppTheme.DARK -> {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                                            uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_YES)
+                                        else
+                                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                                    }
+                                    SettingsManager.Companion.AppTheme.LIGHT -> {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                                            uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_NO)
+                                        else
+                                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                                    }
+                                    SettingsManager.Companion.AppTheme.SYSTEM -> {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                                            uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_AUTO)
+                                        else
+                                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                                    }
+                                }
                             }
                             setShowDialog(false)
                         },

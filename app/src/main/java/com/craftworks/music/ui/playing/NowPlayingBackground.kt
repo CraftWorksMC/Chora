@@ -115,7 +115,6 @@ private fun StaticBlurBG(
     }
 
     Canvas(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        // Draw all gradients in a single pass
         drawRect(
             Brush.radialGradient(
                 colors = listOf(animatedColors[0], Color.Transparent),
@@ -161,49 +160,34 @@ fun AnimatedGradientBG(
     uniform float iTime;
     uniform float3 color1;
     uniform float3 color2;
-    
-    // ACES Filmic Tone Mapping Function
-    float3 ACESFilm(float3 x) {
-        float a = 2.51;
-        float b = 0.03;
-        float c = 2.43;
-        float d = 0.59;
-        float e = 0.14;
-        return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
-    }
-    
-    float3 reinhardToneMapping(float3 color) {
-        float luminance = dot(color, float3(0.2126, 0.7152, 0.0722));
-        return color / (color + 1.0);
-    }
+    uniform float3 color3;
 
     half4 main(vec2 fragCoord) {
         float mr = min(iResolution.x, iResolution.y);
-        vec2 uv = (fragCoord * 0.5 - iResolution.xy) / mr;
+        vec2 uv = (fragCoord * 2 - iResolution.xy) / mr;
 
         float d = -iTime * 0.5;
         float a = 0.0;
-        for (float i = 0.0; i < 8.0; ++i) {
+        for (float i = 0.0; i < 4; ++i) {
             a += cos(i - d - a * uv.x);
             d += sin(uv.y * i + a);
         }
         d += iTime * 0.5;
         
-        float mixFactor = (cos(uv.x * d) + sin(uv.y * a)) * 0.5 + 0.5;
-        float3 col = mix(color1, color2, mixFactor);
+        //float mixFactor = (cos(uv.x * d) + sin(uv.y * a)) * 0.5 + 0.5;
+        //float3 col = mix(color1, color2, mixFactor);
+
+        vec3 col = vec3(cos(uv * vec2(d, a)).x * 0.6 + 0.4, cos(a + d) * 0.5 + 0.5, 0.0);
+        float blendValue = (col.x + col.y) * 0.5;
         
-        col = reinhardToneMapping(col);
-        
-        //col = ACESFilm(col);
+        col = mix(color1, color2, blendValue);
+        col = mix(col, color3, smoothstep(0.0, 1.0, sin(d) * 0.5 + 0.5));
         
         return half4(col, 1.0);
     }
 """
 
     var time by remember { mutableFloatStateOf(0f) }
-
-//    val currentColor1 by rememberUpdatedState(color1)
-//    val currentColor2 by rememberUpdatedState(color2)
 
     val currentColor1 by animateColorAsState(
         targetValue = color1,

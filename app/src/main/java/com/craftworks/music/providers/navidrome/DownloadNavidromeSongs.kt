@@ -4,9 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Environment
-import android.util.Log
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -17,14 +15,13 @@ import androidx.media3.common.util.UnstableApi
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.managers.NavidromeManager.getCurrentServer
-import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.local.LocalProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.net.URL
-import kotlin.io.path.exists
 
 @OptIn(UnstableApi::class)
 suspend fun downloadNavidromeSong(
@@ -119,10 +116,13 @@ suspend fun downloadNavidromeSong(
                     song.title + " " + context.getString(R.string.Notification_Download_Success),
                     Toast.LENGTH_SHORT
                 ).show()
+
+                LocalProvider.getInstance().scanLocalFiles();
             }
 
         } catch (e: Exception) {
             e.printStackTrace()
+
 
             // Show failure notification
             notificationBuilder

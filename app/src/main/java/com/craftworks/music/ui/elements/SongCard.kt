@@ -270,7 +270,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                         }
                     )
                     DropdownMenuItem(
-                        enabled = NavidromeManager.checkActiveServers(),
+                        enabled = !song.navidromeID.startsWith("Local_"),
                         text = {
                             Text(stringResource(R.string.Action_Download))
                         },
