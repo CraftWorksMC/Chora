@@ -70,7 +70,6 @@ fun AlbumScreen(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,
     viewModel: AlbumScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-    animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
@@ -85,8 +84,6 @@ fun AlbumScreen(
         viewModel.reloadData()
         isRefreshing = false
     }
-
-    val allAlbumsList by viewModel.allAlbums.collectAsState()
 
     PullToRefreshBox(
         state = state,
@@ -169,7 +166,7 @@ fun AlbumScreen(
                 }
             }
 
-            AlbumGrid(allAlbumsList,
+            AlbumGrid(
                 mediaController,
                 onAlbumSelected = { album ->
                     val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")

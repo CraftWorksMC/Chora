@@ -21,9 +21,11 @@ class SongsScreenViewModel : ViewModel(), ReloadableViewModel {
             }
         }
     }
-    suspend fun getMoreSongs(size: Int){
-        val songOffset = _allSongs.value.size
-        _allSongs.value += getSongs(songCount = size, songOffset = songOffset)
+    fun getMoreSongs(size: Int){
+        viewModelScope.launch {
+            val songOffset = _allSongs.value.size
+            _allSongs.value += getSongs(songCount = size, songOffset = songOffset)
+        }
         //_allSongs.value += sendNavidromeGETRequest("search3.view?query=''&songCount=$size&songOffset=$songOffset&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaData.Song>()
     }
 

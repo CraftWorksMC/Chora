@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -103,12 +104,10 @@ fun SongsHorizontalColumn(
 ){
     var isSongSelected by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
 
     // Load more songs at scroll
     if (NavidromeManager.checkActiveServers() && isSearch == false){
         LaunchedEffect(listState) {
-
             if (songsList.size % 100 != 0) return@LaunchedEffect
 
             snapshotFlow {
@@ -120,10 +119,8 @@ fun SongsHorizontalColumn(
             }
                 .filter { it }
                 .collect {
-                    coroutineScope.launch {
-                        if (viewModel == null) return@launch
-                        viewModel.getMoreSongs(100)
-                    }
+                    if (viewModel == null) return@collect
+                    viewModel.getMoreSongs(100)
                 }
         }
     }
@@ -149,16 +146,16 @@ fun SongsHorizontalColumn(
 @ExperimentalFoundationApi
 @Composable
 fun AlbumGrid(
-    albums: List<MediaData.Album>,
+    //albums: List<MediaData.Album>,
     mediaController: MediaController?,
     onAlbumSelected: (album: MediaData.Album) -> Unit,
     isSearch: Boolean? = false,
     sort: String? = "alphabeticalByName",
     viewModel: AlbumScreenViewModel = viewModel(),
 ){
-
     val gridState = rememberLazyGridState()
-    val coroutineScope = rememberCoroutineScope()
+
+    val albums by viewModel.allAlbums.collectAsStateWithLifecycle()
 
     if (NavidromeManager.checkActiveServers() && isSearch == false) {
         LaunchedEffect(gridState) {
@@ -173,9 +170,7 @@ fun AlbumGrid(
             }
                 .filter { it }
                 .collect {
-                    coroutineScope.launch {
-                        viewModel.getMoreAlbums(sort, 100)
-                    }
+                    viewModel.getMoreAlbums(sort, 100)
                 }
         }
     }

@@ -33,9 +33,11 @@ suspend fun getAlbums(
         })
     }
     if (LocalProviderManager.checkActiveFolders()) {
-        deferredAlbums.add(async {
-            LocalProvider.getInstance().getLocalAlbums(sort)
-        })
+        if (offset == 0) {
+            deferredAlbums.add(async {
+                LocalProvider.getInstance().getLocalAlbums(sort)
+            })
+        }
     }
 
     deferredAlbums.awaitAll().flatten()
@@ -92,14 +94,16 @@ suspend fun getSongs(
 
     println("Getting deferred album songs")
 
+    if (LocalProviderManager.checkActiveFolders()) {
+        if (songOffset == 0) {
+            deferredSongs.add(async {
+                LocalProvider.getInstance().getLocalSongs()
+            })
+        }
+    }
     if (NavidromeManager.checkActiveServers()) {
         deferredSongs.add(async {
             sendNavidromeGETRequest("search3.view?query=$query&songCount=$songCount&songOffset=$songOffset&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaData.Song>()
-        })
-    }
-    if (LocalProviderManager.checkActiveFolders()) {
-        deferredSongs.add(async {
-            LocalProvider.getInstance().getLocalSongs()
         })
     }
 

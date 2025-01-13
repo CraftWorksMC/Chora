@@ -204,7 +204,7 @@ fun ArtistDetails(
             }
         }
 
-        // Play and shuffle buttons
+        /* Play and shuffle buttons
         Row (modifier = Modifier
             .fillMaxWidth()
             .height(64.dp),
@@ -249,8 +249,9 @@ fun ArtistDetails(
                 }
             }
         }
+        */
 
-        /* RECENTLY ADDED ALBUMS */
+        /* ALBUMS LIST */
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -264,7 +265,6 @@ fun ArtistDetails(
                 modifier = Modifier.padding(start = 12.dp)
             )
 
-            /* SONGS ROW */
             AlbumRow(albums = artist?.album.orEmpty(), mediaController, onAlbumSelected = { album ->
                 val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
                 navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
@@ -274,7 +274,7 @@ fun ArtistDetails(
             )
         }
 
-        // Songs List
+        /* Songs List
         Column(modifier = Modifier
             .padding(start = 12.dp, end = 12.dp, top = 0.dp)
             .wrapContentHeight()
@@ -300,6 +300,7 @@ fun ArtistDetails(
                 }
             }
         }
+        */
 
         BottomSpacer()
     }

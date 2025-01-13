@@ -26,9 +26,12 @@ class AlbumScreenViewModel : ViewModel(), ReloadableViewModel {
         }
     }
 
-    suspend fun getMoreAlbums(sort: String? = "alphabeticalByName" , size: Int){
-        val albumOffset = _allAlbums.value.size
-        _allAlbums.value += getAlbums(sort, size, albumOffset)
+    fun getMoreAlbums(sort: String? = "alphabeticalByName" , size: Int){
+        viewModelScope.launch {
+            val albumOffset = _allAlbums.value.size
+            val newAlbums = getAlbums(sort, size, albumOffset)
+            _allAlbums.value += newAlbums
+        }
     }
 
     suspend fun search(query: String){
