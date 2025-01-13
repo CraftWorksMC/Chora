@@ -34,6 +34,7 @@ import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import kotlinx.coroutines.launch
+import kotlin.collections.elementAtOrNull
 
 var lyricsOpen by mutableStateOf(false)
 
@@ -63,7 +64,8 @@ fun NowPlayingContent(
             colors.clear()
             colors.addAll(extractColorsFromUri(SongHelper.currentSong.imageUrl, context))
             println("Generated new colors: ${colors[0].red}, ${colors[0].green}, ${colors[0].blue}")
-            backgroundDarkMode = (colors[0].customLuminance() + colors[1].customLuminance()) / 2 < 0.5f
+            //backgroundDarkMode = (colors[0].customLuminance() + colors[1].customLuminance()) / 2 < 0.5f
+            backgroundDarkMode = (colors.elementAtOrNull(2) ?: colors[0]).customLuminance() <= 0.5f
         }
     }
 

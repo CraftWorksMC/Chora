@@ -36,6 +36,7 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import com.craftworks.music.managers.SettingsManager
 import kotlinx.coroutines.launch
+import kotlin.collections.elementAtOrNull
 
 @Preview
 @Stable
@@ -78,7 +79,8 @@ fun NowPlaying_Background(
         "Static Blur"   -> StaticBlurBG(colorPalette)
         "Animated Blur" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) AnimatedGradientBG(
             color1 = colorPalette.elementAtOrNull(0) ?: Color.Black,
-            color2 = colorPalette.elementAtOrNull(1) ?: Color.Black, // Sometimes palette doesn't generate all colors
+            color2 = colorPalette.elementAtOrNull(1) ?: Color.Black,
+            color3 = colorPalette.elementAtOrNull(2) ?: Color.Black, // Sometimes palette doesn't generate all colors
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -97,18 +99,16 @@ private fun PlainBG() {
 @Stable
 @Composable
 private fun StaticBlurBG(
-    colors: List<Color>
+    colors: List<Color?>
 ) {
     Log.d("RECOMPOSITION", "Recomposing Static Blur BG")
 
-    if (colors.size < 4) {
-        println("Colors list is less than 4 colors! weird...")
+    if (colors.isEmpty())
         return
-    }
 
     val animatedColors = colors.map { color ->
         animateColorAsState(
-            targetValue = color,
+            targetValue = color ?: MaterialTheme.colorScheme.background,
             animationSpec = tween(durationMillis = 1500),
             label = "Animated Colors"
         ).value
@@ -117,28 +117,28 @@ private fun StaticBlurBG(
     Canvas(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         drawRect(
             Brush.radialGradient(
-                colors = listOf(animatedColors[0], Color.Transparent),
+                colors = listOf(animatedColors.elementAtOrNull(0) ?: Color.Black, Color.Transparent),
                 center = Offset(size.width * 0.05f, size.height / 2),
                 radius = size.width * 2
             )
         )
         drawRect(
             Brush.radialGradient(
-                colors = listOf(animatedColors[1], Color.Transparent),
+                colors = listOf(animatedColors.elementAtOrNull(1) ?: animatedColors.firstNotNullOf { it }, Color.Transparent),
                 center = Offset(0f, size.height),
                 radius = size.height
             )
         )
         drawRect(
             Brush.radialGradient(
-                colors = listOf(animatedColors[2], Color.Transparent),
+                colors = listOf(animatedColors.elementAtOrNull(2) ?: animatedColors.firstNotNullOf { it }, Color.Transparent),
                 center = Offset(size.width * 1.1f, size.height * 0.1f),
                 radius = size.height
             )
         )
         drawRect(
             Brush.radialGradient(
-                colors = listOf(animatedColors[3], Color.Transparent),
+                colors = listOf(animatedColors.elementAtOrNull(3) ?: animatedColors.firstNotNullOf { it }, Color.Transparent),
                 center = Offset(size.width, size.height * 0.9f),
                 radius = size.height
             )
@@ -151,9 +151,10 @@ private fun StaticBlurBG(
 @Stable
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 fun AnimatedGradientBG(
-    color1: Color  = Color.Red,
+    color1: Color  = Color.Blue,
     color2: Color = Color.Black,
-    modifier: Modifier = Modifier
+    color3: Color = Color.Cyan,
+    modifier: Modifier = Modifier.fillMaxSize()
 ) {
     val shaderCode = """
     uniform float2 iResolution;
@@ -201,6 +202,12 @@ fun AnimatedGradientBG(
         label = "Smooth color transition"
     )
 
+    val currentColor3 by animateColorAsState(
+        targetValue = color3,
+        animationSpec = tween(durationMillis = 1000),
+        label = "Smooth color transition"
+    )
+
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         scope.launch {
@@ -232,6 +239,12 @@ fun AnimatedGradientBG(
             currentColor2.red,
             currentColor2.green,
             currentColor2.blue
+        )
+        shader.setFloatUniform(
+            "color3",
+            currentColor3.red,
+            currentColor3.green,
+            currentColor3.blue
         )
         drawRect(
             brush = ShaderBrush(shader),

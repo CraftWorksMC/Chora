@@ -156,7 +156,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 super.onMediaItemTransition(mediaItem, reason)
 
                 if (NavidromeManager.checkActiveServers())
-                    serviceMainScope.launch { markNavidromeSongAsPlayed(SongHelper.currentSong) }
+                    serviceIOScope.launch { markNavidromeSongAsPlayed(SongHelper.currentSong) }
 
                 serviceIOScope.launch {
                     val song = MediaData.Song(

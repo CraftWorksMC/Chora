@@ -22,7 +22,7 @@ object LyricsManager {
         // If that fails, try LRCLIB.net.
         // If we turned it off or we cannot find lyrics, then return "No Lyrics Found"
 
-        var foundNavidromePlainLyrics:Boolean by mutableStateOf(false)
+        var foundNavidromePlainLyrics by mutableStateOf(false)
 
         if (NavidromeManager.checkActiveServers()) {
             getNavidromeSyncedLyrics().takeIf { it.isNotEmpty() }?.let {

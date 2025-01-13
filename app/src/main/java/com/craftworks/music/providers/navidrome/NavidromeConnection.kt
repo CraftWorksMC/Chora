@@ -115,7 +115,7 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
                 requestMethod = "GET"
                 instanceFollowRedirects = true // Might fix issues with reverse proxies.
 
-                Log.d("NAVIDROME", "\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+                Log.d("NAVIDROME", "\nSent 'GET' request to URL : ${url.host}; Response Code : $responseCode")
 
                 if (responseCode != 200){
                     Log.d("NAVIDROME", responseCode.toString())
