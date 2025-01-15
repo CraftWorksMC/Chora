@@ -38,16 +38,21 @@ class PlaylistScreenViewModel : ViewModel(), ReloadableViewModel {
         _allPlaylists.value += playlist
     }
 
-    fun fetchPlaylistDetails(playlistId: String) {
+    fun fetchPlaylistDetails() {
         if (!NavidromeManager.checkActiveServers()) return
 
         viewModelScope.launch {
             coroutineScope {
-                val selectedPlaylistDeferred = async { getPlaylistDetails(playlistId) }
+                val selectedPlaylistDeferred = async { getPlaylistDetails(_selectedPlaylist.value?.navidromeID.toString()) }
 
-                _selectedPlaylist.value = selectedPlaylistDeferred.await()
+                //_selectedPlaylist.value = selectedPlaylistDeferred.await()
 
-                com.craftworks.music.ui.screens.selectedPlaylist = _selectedPlaylist.value!!
+                _selectedPlaylist.value = _selectedPlaylist.value?.copy(
+                    songs = selectedPlaylistDeferred.await()?.songs,
+                    coverArt = selectedPlaylistDeferred.await()?.coverArt
+                )
+
+                //com.craftworks.music.ui.screens.selectedPlaylist = _selectedPlaylist.value!!
             }
         }
     }

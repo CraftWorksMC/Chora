@@ -72,7 +72,6 @@ class SongHelper {
         var minPercentageScrobble = mutableIntStateOf(75)
 
         fun playStream(context: Context, url: Uri, isRadio: Boolean ? = false, mediaController: MediaController? = null) {
-
             CoroutineScope(Dispatchers.IO).launch {
                 if (mediaController?.isConnected == false) return@launch
 
@@ -105,7 +104,7 @@ class SongHelper {
 
                         //Assign transcoding to media
                         if (transcodingValue != "No Transcoding" && NavidromeManager.checkActiveServers())
-                            song.media += "&format=mp3&maxBitRate=${transcodingValue}"
+                            song.media += "&maxBitRate=${transcodingValue}"
 
                         val mediaMetadata = MediaMetadata.Builder()
                             .setIsPlayable(true)
@@ -132,7 +131,7 @@ class SongHelper {
                         currentTracklist.add(mediaItem)
                     }
 
-                    val currentTrackIndex = currentTracklist.indexOfFirst { it.mediaId.substringBefore("&format=mp3") == url.toString() }
+                    val currentTrackIndex = currentTracklist.indexOfFirst { it.mediaId.substringBefore("&maxBitRate=") == url.toString() }
 
                     withContext(Dispatchers.Main) {
                         mediaController?.setMediaItems(currentTracklist, currentTrackIndex, 0)

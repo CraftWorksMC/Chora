@@ -49,16 +49,6 @@ import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 import kotlinx.coroutines.launch
 
-var selectedPlaylist by mutableStateOf(
-    MediaData.Playlist(
-        navidromeID = "Local",
-        name = "Awesome Playlist",
-        coverArt = "",
-        created = "", changed = "",
-        duration = 42, songCount = 5
-    )
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = false)
@@ -131,10 +121,10 @@ fun PlaylistScreen(
             HorizontalLineWithNavidromeCheck()
 
             PlaylistGrid(playlists, onPlaylistSelected = { playlist ->
+                viewModel.setCurrentPlaylist(playlist)
                 navHostController.navigate(Screen.PlaylistDetails.route) {
                     launchSingleTop = true
                 }
-                selectedPlaylist = playlist
             })
 
             if(showDeletePlaylistDialog.value)

@@ -2,6 +2,7 @@ package com.craftworks.music.providers
 
 import android.util.Log
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -41,8 +42,8 @@ fun parseIcecastMetadata(json: String){
         title = sourceObject.optString("title").split(" - ").last()
         println(title)
     }
+    println("Radio title: $title")
     SongHelper.currentSong = SongHelper.currentSong.copy(
-        title = title,
-        artist = SongHelper.currentSong.artist,
-        year = SongHelper.currentSong.year)
+        title = title
+    )
 }

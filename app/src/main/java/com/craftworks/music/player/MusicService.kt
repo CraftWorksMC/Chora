@@ -65,7 +65,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 .setIsBrowsable(false)
                 .setIsPlayable(false)
                 .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
-                //.setTitle("MyMusicAppRootWhichIsNotVisibleToControllers")
                 .build()
         )
         .build()
@@ -204,8 +203,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         session = MediaLibrarySession.Builder(this, player, LibrarySessionCallback())
             .setId("AutoSession")
             .build()
-
-        // Get home screen items by default
 
         Log.d("AA", "Initialized MediaLibraryService.")
     }

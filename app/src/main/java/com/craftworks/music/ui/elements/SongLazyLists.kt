@@ -77,7 +77,8 @@ fun SongsRow(songsList: List<MediaData.Song>, onSongSelected: (song: MediaData.S
                 .build()
             //endregion
 
-            SongsCard(song = songMediaItem, onClick = {
+            SongsCard(
+                song = songMediaItem, onClick = {
                 isSongSelected = true
                 onSongSelected(song)
                 //markSongAsPlayed(song)

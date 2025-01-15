@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
@@ -80,14 +81,14 @@ fun PlaylistDetails(
 
     val requester = FocusRequester()
 
-    LaunchedEffect(Unit) {
+    val playlist = viewModel.selectedPlaylist.collectAsStateWithLifecycle().value
+
+    LaunchedEffect(playlist?.navidromeID) {
         requester.requestFocus()
-        viewModel.fetchPlaylistDetails(selectedPlaylist.navidromeID)
+        viewModel.fetchPlaylistDetails()
     }
 
-    /* RADIO ICON + TEXT */
     Column(modifier = Modifier
-        //.background(MaterialTheme.colorScheme.background)
         .fillMaxWidth()
         .padding(start = leftPadding,
             top = WindowInsets.statusBars
@@ -102,7 +103,7 @@ fun PlaylistDetails(
             .fillMaxWidth()) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(selectedPlaylist.coverArt)
+                    .data(playlist?.coverArt)
                     .allowHardware(false)
                     .size(256)
                     .crossfade(true)
@@ -138,7 +139,7 @@ fun PlaylistDetails(
             // Playlist name
             Column(modifier = Modifier.align(Alignment.BottomCenter)){
                 Text(
-                    text = selectedPlaylist.name,
+                    text = playlist?.name.toString(),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
@@ -147,7 +148,7 @@ fun PlaylistDetails(
                     lineHeight = 32.sp,
                 )
                 var playlistDuration = 0
-                for (song in selectedPlaylist.songs.orEmpty()){
+                for (song in playlist?.songs.orEmpty()){
                     playlistDuration += song.duration
                 }
                 Text(
@@ -170,9 +171,9 @@ fun PlaylistDetails(
             verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = {
-                    SongHelper.currentSong = selectedPlaylist.songs?.get(0) ?: return@Button
-                    SongHelper.currentList = selectedPlaylist.songs.orEmpty()
-                    selectedPlaylist.songs?.get(0)?.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
+                    SongHelper.currentSong = playlist?.songs?.get(0) ?: return@Button
+                    SongHelper.currentList = playlist.songs.orEmpty()
+                    playlist.songs?.get(0)?.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -193,10 +194,10 @@ fun PlaylistDetails(
                     shuffleSongs.value = true
                     mediaController?.shuffleModeEnabled = true
 
-                    val random = selectedPlaylist.songs?.indices?.random()
-                    SongHelper.currentSong = random?.let { selectedPlaylist.songs?.get(it) } ?: return@Button
-                    SongHelper.currentList = selectedPlaylist.songs.orEmpty()
-                    selectedPlaylist.songs?.get(random)?.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
+                    val random = playlist?.songs?.indices?.random()
+                    SongHelper.currentSong = random?.let { playlist.songs?.get(it) } ?: return@Button
+                    SongHelper.currentList = playlist.songs.orEmpty()
+                    playlist.songs?.get(random)?.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -211,10 +212,10 @@ fun PlaylistDetails(
         }
 
         Column(modifier = Modifier.padding(12.dp, top = 0.dp)) {
-            selectedPlaylist.songs?.let {
+            playlist?.songs?.let {
                 SongsHorizontalColumn(it, onSongSelected = { song ->
                     SongHelper.currentSong = song
-                    SongHelper.currentList = selectedPlaylist.songs.orEmpty()
+                    SongHelper.currentList = playlist.songs.orEmpty()
                     song.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
                 })
             }

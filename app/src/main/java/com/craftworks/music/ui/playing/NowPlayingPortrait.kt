@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.playing
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -40,14 +39,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.ui.screens.showMoreInfo
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
 @Preview(showSystemUi = false, device = "spec:parent=pixel_8_pro",
@@ -70,6 +70,8 @@ fun NowPlayingPortrait(
     val currentSong by remember {
         derivedStateOf { SongHelper.currentSong }
     }
+
+    val showMoreInfo = SettingsManager(LocalContext.current).showMoreInfoFlow.collectAsStateWithLifecycle(true)
 
     Column {
         // Top padding (for mini-player)

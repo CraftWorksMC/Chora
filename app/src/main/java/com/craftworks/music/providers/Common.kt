@@ -245,7 +245,7 @@ suspend fun getPlaylistDetails(
     if (NavidromeManager.checkActiveServers()) {
         deferredPlaylist = async {
             sendNavidromeGETRequest("getPlaylist.view?id=$id&f=json").filterIsInstance<MediaData.Playlist>()
-                .firstOrNull() ?: throw IllegalStateException("No artist details returned")
+                .firstOrNull() ?: throw IllegalStateException("No playlist details returned")
         }
         deferredPlaylist.await()
     } else {
@@ -254,7 +254,9 @@ suspend fun getPlaylistDetails(
 }
 
 suspend fun createPlaylist(playlistName: String, context: Context) {
-    if (NavidromeManager.checkActiveServers()) sendNavidromeGETRequest("createPlaylist.view?name=$playlistName")
+    if (NavidromeManager.checkActiveServers()) {
+        sendNavidromeGETRequest("createPlaylist.view?name=$playlistName&songId=${songToAddToPlaylist.value.navidromeID}")
+    }
     else {
         val playlistImage: Uri = localPlaylistImageGenerator(
             listOf(songToAddToPlaylist.value), context

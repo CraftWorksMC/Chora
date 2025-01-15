@@ -81,10 +81,6 @@ fun PlaybackProgressSlider(
     color: Color = MaterialTheme.colorScheme.onBackground,
     mediaController: MediaController? = null,
 ) {
-//    SideEffect {
-//        Log.d("RECOMPOSITION", "Recomposing playback progress slider")
-//    }
-
     var currentValue by remember { mutableIntStateOf(0) }
 
     val animatedValue by animateFloatAsState(
@@ -192,7 +188,6 @@ fun PlaybackProgressSlider(
 
 @Composable
 fun PreviousSongButton(color: Color, mediaController: MediaController?, size: Dp) {
-
     Button(
         onClick = {
             if (SongHelper.currentSong.isRadio == true) return@Button

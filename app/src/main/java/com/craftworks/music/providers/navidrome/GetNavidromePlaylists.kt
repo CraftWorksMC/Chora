@@ -3,7 +3,6 @@ package com.craftworks.music.providers.navidrome
 import android.util.Log
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.playlistList
-import com.craftworks.music.ui.screens.selectedPlaylist
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -58,7 +57,7 @@ fun parseNavidromePlaylistJSON(
         jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
     )
 
-    val mediaDataPlaylist = selectedPlaylist
+    val mediaDataPlaylist = subsonicResponse.playlist
 
     // Generate password salt and hash
     val passwordSalt = generateSalt(8)
@@ -69,9 +68,7 @@ fun parseNavidromePlaylistJSON(
         it.media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora"
     }
 
-    mediaDataPlaylist.songs = subsonicResponse.playlist?.songs
+    Log.d("NAVIDROME", "Added Metadata to ${mediaDataPlaylist?.name}")
 
-    Log.d("NAVIDROME", "Added Metadata to ${mediaDataPlaylist.name}")
-
-    return mediaDataPlaylist
+    return mediaDataPlaylist!!
 }
