@@ -137,11 +137,13 @@ class SongHelper {
                         mediaController?.setMediaItems(currentTracklist, currentTrackIndex, 0)
                         mediaController?.seekToDefaultPosition(currentTrackIndex)
                         mediaController?.prepare()
+
                         mediaController?.play()
 
                         println("Index: $currentTrackIndex, playlist size: ${mediaController?.mediaItemCount}")
                     }
-                } else {
+                }
+                else {
                     val radioMetadata = MediaMetadata.Builder()
                         .setIsPlayable(true)
                         .setIsBrowsable(false)
