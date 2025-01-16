@@ -79,7 +79,6 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 
 var sliderPos = mutableIntStateOf(0)
-var repeatSong = mutableStateOf(false)
 var shuffleSongs = mutableStateOf(false)
 
 var showNoProviderDialog = mutableStateOf(false)

@@ -10,6 +10,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -114,13 +115,24 @@ fun LyricsView(
             if (targetIndex != currentLyricIndex.intValue) {
                 currentLyricIndex.intValue = targetIndex
 
-                delay(500)
-
                 coroutineScope.launch {
-                    state.animateScrollToItem(
-                        index = targetIndex,
-                        scrollOffset = -scrollOffset
-                    )
+                    // If the next item is visible, animate smoothly to it using FastOutSlowIn Easing
+                    // else use animateScrollToItem.
+                    if (visibleItemsInfo.any { it.index == targetIndex }) {
+                        val currentItem = visibleItemsInfo.firstOrNull { it.index == currentLyricIndex.intValue }
+
+                        val scrollBy = (currentItem?.offset ?: 0) + (currentItem?.size ?: 0) - scrollOffset
+
+                        state.animateScrollBy(
+                            value = scrollBy.toFloat(),
+                            animationSpec = tween(1200, 0, FastOutSlowInEasing)
+                        )
+                    }
+                    else
+                        state.animateScrollToItem(
+                            index = targetIndex,
+                            scrollOffset = -scrollOffset
+                        )
                 }
             }
         }

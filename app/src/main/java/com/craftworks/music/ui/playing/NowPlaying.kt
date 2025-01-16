@@ -33,7 +33,10 @@ import coil.request.SuccessResult
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.collections.elementAtOrNull
 
 var lyricsOpen by mutableStateOf(false)
@@ -54,19 +57,20 @@ fun NowPlayingContent(
     if (backgroundStyle == "Plain")
         backgroundDarkMode = isSystemInDarkTheme()
 
-    val colors = remember {
-        mutableStateListOf(Color.Gray, Color.White)
+    var colors by remember(SongHelper.currentSong.imageUrl) {
+        mutableStateOf<List<Color>>(listOf(Color.Gray, Color.White))
     }
 
     LaunchedEffect(SongHelper.currentSong.imageUrl) {
         if (SongHelper.currentSong.imageUrl.isBlank() || backgroundStyle == "Plain" ) return@LaunchedEffect
-        launch {
-            colors.clear()
-            colors.addAll(extractColorsFromUri(SongHelper.currentSong.imageUrl, context))
-            println("Generated new colors: ${colors[0].red}, ${colors[0].green}, ${colors[0].blue}")
-            //backgroundDarkMode = (colors[0].customLuminance() + colors[1].customLuminance()) / 2 < 0.5f
-            backgroundDarkMode = (colors.elementAtOrNull(2) ?: colors[0]).customLuminance() <= 0.5f
+        colors = withContext(Dispatchers.IO) {
+            async {
+                extractColorsFromUri(SongHelper.currentSong.imageUrl, context)
+            }.await().toMutableList()
         }
+
+        println("Generated new colors!")
+        backgroundDarkMode = (colors.elementAtOrNull(2) ?: colors[0]).customLuminance() <= 0.5f
     }
 
     val iconTextColor = remember(backgroundDarkMode) {

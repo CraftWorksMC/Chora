@@ -53,7 +53,6 @@ import java.io.ByteArrayOutputStream
 
 @UnstableApi
 class ChoraMediaLibraryService : MediaLibraryService() {
-
     //region Vars
     lateinit var player: Player
     var session: MediaLibrarySession? = null
@@ -154,43 +153,45 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
 
-                if (NavidromeManager.checkActiveServers())
-                    serviceIOScope.launch { markNavidromeSongAsPlayed(SongHelper.currentSong) }
-
                 serviceIOScope.launch {
-                    val song = MediaData.Song(
-                        title = mediaItem?.mediaMetadata?.title.toString(),
-                        artist = mediaItem?.mediaMetadata?.artist.toString(),
-                        duration = mediaItem?.mediaMetadata?.extras?.getInt("duration") ?: 0,
-                        imageUrl = mediaItem?.mediaMetadata?.artworkUri.toString(),
-                        year = mediaItem?.mediaMetadata?.releaseYear,
-                        album = mediaItem?.mediaMetadata?.albumTitle.toString(),
-                        format = mediaItem?.mediaMetadata?.extras?.getString("format").toString(),
-                        bitrate = mediaItem?.mediaMetadata?.extras?.getInt("bitrate"),
-                        navidromeID = mediaItem?.mediaMetadata?.extras?.getString("NavidromeID").toString(),
-                        isRadio = mediaItem?.mediaMetadata?.extras?.getBoolean("isRadio"),
-                        albumId = "",
-                        bpm = 0,
-                        contentType = "music",
-                        dateAdded = "",
-                        timesPlayed = 0,
-                        genre = "",
-                        parent = "",
-                        sortName = "",
-                        comment = "",
-                        lastPlayed = "",
-                        isVideo = false,
-                        genres = listOf(),
-                        isDir = false,
-                        mediaType = "song",
-                        path = "",
-                        size = 0,
-                        type = "song"
-                    )
-                    SongHelper.currentSong = song
+                    if (NavidromeManager.checkActiveServers())
+                        async { markNavidromeSongAsPlayed(SongHelper.currentSong) }
+
+
+                    SongHelper.currentSong = async {
+                        MediaData.Song(
+                            title = mediaItem?.mediaMetadata?.title.toString(),
+                            artist = mediaItem?.mediaMetadata?.artist.toString(),
+                            duration = mediaItem?.mediaMetadata?.extras?.getInt("duration") ?: 0,
+                            imageUrl = mediaItem?.mediaMetadata?.artworkUri.toString(),
+                            year = mediaItem?.mediaMetadata?.releaseYear,
+                            album = mediaItem?.mediaMetadata?.albumTitle.toString(),
+                            format = mediaItem?.mediaMetadata?.extras?.getString("format").toString(),
+                            bitrate = mediaItem?.mediaMetadata?.extras?.getInt("bitrate"),
+                            navidromeID = mediaItem?.mediaMetadata?.extras?.getString("NavidromeID").toString(),
+                            isRadio = mediaItem?.mediaMetadata?.extras?.getBoolean("isRadio"),
+                            albumId = "",
+                            bpm = 0,
+                            contentType = "music",
+                            dateAdded = "",
+                            timesPlayed = 0,
+                            genre = "",
+                            parent = "",
+                            sortName = "",
+                            comment = "",
+                            lastPlayed = "",
+                            isVideo = false,
+                            genres = listOf(),
+                            isDir = false,
+                            mediaType = "song",
+                            path = "",
+                            size = 0,
+                            type = "song"
+                        )
+                    }.await()
 
                     if (SongHelper.currentSong.isRadio == false)
-                        LyricsManager.getLyrics()
+                        async { LyricsManager.getLyrics() }
                 }
             }
 

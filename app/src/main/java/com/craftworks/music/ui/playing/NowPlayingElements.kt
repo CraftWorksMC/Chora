@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -62,15 +61,14 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.formatMilliseconds
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
-import com.craftworks.music.repeatSong
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 
@@ -91,18 +89,19 @@ fun PlaybackProgressSlider(
     val focused = remember { mutableStateOf(false) }
 
     LaunchedEffect(mediaController) {
-        while (true) {
-            delay(1000)
-            if (mediaController?.isPlaying == true) {
-                sliderPos.intValue = mediaController.currentPosition.toInt()
-                currentValue = mediaController.currentPosition.toInt()
+        mediaController?.let {
+            while (isActive) {
+                if (it.isPlaying) {
+                    val position = it.currentPosition.toInt()
+                    currentValue = position
+                }
+                delay(1000)
             }
         }
     }
 
-    Column(Modifier
-            .focusable(false)
-            //.indication(interactionSource, LocalIndication.current)
+    Column(
+        Modifier.focusable(false)
     ) {
         Slider(
             enabled = (SongHelper.currentSong.isRadio == false),
@@ -432,9 +431,8 @@ fun RepeatButton(
 ) {
     Button(
         onClick = {
-            repeatSong.value = !repeatSong.value
             mediaController?.repeatMode =
-                if (repeatSong.value)
+                if (mediaController.repeatMode == Player.REPEAT_MODE_OFF)
                     Player.REPEAT_MODE_ONE
                 else
                     Player.REPEAT_MODE_OFF
@@ -448,7 +446,7 @@ fun RepeatButton(
 
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.round_repeat_28),
-            tint = color.copy(if (repeatSong.value) 1f else 0.5f),
+            tint = color.copy(if (mediaController?.repeatMode == Player.REPEAT_MODE_ONE) 1f else 0.5f),
             contentDescription = "Toggle Repeat",
             modifier = Modifier
                 .height(size)
