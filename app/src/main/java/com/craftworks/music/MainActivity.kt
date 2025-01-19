@@ -13,12 +13,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -75,6 +85,10 @@ import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.playing.NowPlayingMiniPlayer
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.theme.MusicPlayerTheme
+import com.gigamole.composefadingedges.FadingEdgesGravity
+import com.gigamole.composefadingedges.content.FadingEdgesContentType
+import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
+import com.gigamole.composefadingedges.verticalFadingEdges
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -307,53 +321,67 @@ fun AnimatedBottomNavBar(
             }
         }
     } else {
+        val lazyColumnState = rememberLazyListState()
         NavigationRail {
-            orderedNavItems.forEach { item ->
-                if (!item.enabled) return@forEach
-                NavigationRailItem(
-                    selected = item.screenRoute == backStackEntry?.destination?.route,
-                    onClick = {
-                        if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationRailItem
-                        navController.navigate(item.screenRoute) {
-                            launchSingleTop = true
-                            //restoreState = true
-                            popUpTo(navController.graph.findStartDestination().id)
+            LazyColumn(
+                state = lazyColumnState,
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .verticalFadingEdges(
+                        FadingEdgesContentType.Dynamic.Lazy.List(FadingEdgesScrollConfig.Dynamic(), lazyColumnState),
+                        FadingEdgesGravity.All,
+                        64.dp
+                    )
+            ) {
+                items(orderedNavItems) { item ->
+                    if (!item.enabled) return@items
+                    NavigationRailItem(
+                        selected = item.screenRoute == backStackEntry?.destination?.route,
+                        onClick = {
+                            if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationRailItem
+                            navController.navigate(item.screenRoute) {
+                                launchSingleTop = true
+                                //restoreState = true
+                                popUpTo(navController.graph.findStartDestination().id)
 //                            {
 //                                saveState = true
 //                            }
-                        }
-                        coroutineScope.launch {
-                            if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
-                        }
-                    },
-                    label = { Text(text = item.title) },
-                    alwaysShowLabel = false,
-                    icon = {
-                        Icon(ImageVector.vectorResource(item.icon), contentDescription = item.title)
-                    },
-                )
-            }
-            NavigationRailItem(
-                selected = Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route,
-                onClick = {
-                    if (Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route) return@NavigationRailItem
-                    navController.navigate(Screen.NowPlayingLandscape.route) {
-                        launchSingleTop = true
-                        popUpTo(navController.graph.findStartDestination().id)
-                    }
-                    coroutineScope.launch {
-                        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
-                    }
-                },
-                label = { Text(text = "Playing") },
-                alwaysShowLabel = false,
-                icon = {
-                    Icon(
-                        ImageVector.vectorResource(R.drawable.s_m_playback),
-                        contentDescription = "Playing"
+                            }
+                            coroutineScope.launch {
+                                if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
+                            }
+                        },
+                        label = { Text(text = item.title) },
+                        alwaysShowLabel = false,
+                        icon = {
+                            Icon(ImageVector.vectorResource(item.icon), contentDescription = item.title)
+                        },
                     )
-                },
-            )
+                }
+                item {
+                    NavigationRailItem(
+                        selected = Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route,
+                        onClick = {
+                            if (Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route) return@NavigationRailItem
+                            navController.navigate(Screen.NowPlayingLandscape.route) {
+                                launchSingleTop = true
+                                popUpTo(navController.graph.findStartDestination().id)
+                            }
+                            coroutineScope.launch {
+                                if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
+                            }
+                        },
+                        label = { Text(text = "Playing") },
+                        alwaysShowLabel = false,
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.s_m_playback),
+                                contentDescription = "Playing"
+                            )
+                        },
+                    )
+                }
+            }
         }
     }
 }

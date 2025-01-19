@@ -72,11 +72,10 @@ fun NowPlayingLandscape(
     Row (
         Modifier.padding(start = 80.dp)
     ) {
-
-        Column(Modifier.weight(1f).widthIn(min = 512.dp)) {
-            // Top padding (for mini-player)
-            Spacer(Modifier.height(24.dp))
-
+        Column(
+            Modifier.weight(1f).widthIn(min = 512.dp).fillMaxHeight(),
+            verticalArrangement = Arrangement.SpaceEvenly,
+        ) {
             // Album Art
             if (LocalConfiguration.current.screenHeightDp.dp > 512.dp){
                 Column(
@@ -129,22 +128,20 @@ fun NowPlayingLandscape(
                     )
                 }
 
-                if (SettingsManager(LocalContext.current).showMoreInfoFlow.collectAsState(true).value){
-                    SongHelper.currentSong.artist.let { artistName ->
-                        Text(
-                            text = artistName + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                            fontWeight = FontWeight.Normal,
-                            color = iconTextColor,
-                            maxLines = 1,
-                            softWrap = false,
-                            textAlign = TextAlign.Start,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
-                        )
-                    }
+                SongHelper.currentSong.artist.let { artistName ->
+                    Text(
+                        text = artistName + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.Normal,
+                        color = iconTextColor,
+                        maxLines = 1,
+                        softWrap = false,
+                        textAlign = TextAlign.Start,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+                    )
                 }
 
                 Spacer(Modifier.height(8.dp))
