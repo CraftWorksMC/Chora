@@ -213,21 +213,23 @@ class MainActivity : ComponentActivity() {
 
 
         // SAVE SETTINGS ON APP EXIT
-        registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) { }
-            override fun onActivityStarted(activity: Activity) { }
-            override fun onActivityResumed(activity: Activity) { }
-            override fun onActivityPaused(activity: Activity) { }
-            override fun onActivityPreStopped(activity: Activity) { }
-            override fun onActivityStopped(activity: Activity) { }
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) { }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+                override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) { }
+                override fun onActivityStarted(activity: Activity) { }
+                override fun onActivityResumed(activity: Activity) { }
+                override fun onActivityPaused(activity: Activity) { }
+                override fun onActivityPreStopped(activity: Activity) { }
+                override fun onActivityStopped(activity: Activity) { }
+                override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) { }
 
-            @androidx.annotation.OptIn(UnstableApi::class)
-            override fun onActivityDestroyed(activity: Activity) {
-                ChoraMediaLibraryService().onDestroy()
-                println("Destroyed, Goodbye :(")
-            }
-        })
+                @androidx.annotation.OptIn(UnstableApi::class)
+                override fun onActivityDestroyed(activity: Activity) {
+                    ChoraMediaLibraryService().onDestroy()
+                    println("Destroyed, Goodbye :(")
+                }
+            })
+        }
     }
 
 //    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {

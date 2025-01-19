@@ -36,7 +36,7 @@
         android:appCategory="audio"
         android:enableOnBackInvokedCallback="true"
 
-        tools:targetApi="31"
+        tools:targetApi="35"
         tools:ignore="UnusedAttribute">
 
         <meta-data android:name="com.google.android.gms.car.application"

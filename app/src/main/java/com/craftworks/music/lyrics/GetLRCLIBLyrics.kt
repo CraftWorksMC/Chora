@@ -9,7 +9,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.net.URL
 import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import javax.net.ssl.HttpsURLConnection
 
 suspend fun getLrcLibLyrics(): List<Lyric> {
@@ -18,9 +17,9 @@ suspend fun getLrcLibLyrics(): List<Lyric> {
     withContext(Dispatchers.IO) {
         val url = URL(
             "https://lrclib.net/api/get?" +
-                    "artist_name=${URLEncoder.encode(SongHelper.currentSong.artist, StandardCharsets.UTF_8.toString())}&" +
-                    "track_name=${URLEncoder.encode(SongHelper.currentSong.title, StandardCharsets.UTF_8.toString())}&" +
-                    "album_name=${URLEncoder.encode(SongHelper.currentSong.album, StandardCharsets.UTF_8.toString())}" +
+                    "artist_name=${URLEncoder.encode(SongHelper.currentSong.artist, "UTF-8")}&" +
+                    "track_name=${URLEncoder.encode(SongHelper.currentSong.title, "UTF-8")}&" +
+                    "album_name=${URLEncoder.encode(SongHelper.currentSong.album, "UTF-8")}" +
                     "&duration=${SongHelper.currentSong.duration}"
         )
 
