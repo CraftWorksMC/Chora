@@ -1,18 +1,15 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,14 +19,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,13 +44,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -71,11 +64,8 @@ import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.songsList
-import com.craftworks.music.player.SongHelper
-import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.BottomSpacer
-import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 import java.net.URLEncoder
@@ -91,13 +81,13 @@ fun ArtistDetails(
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val artist by viewModel.selectedArtist.collectAsState()
 
-    val context = LocalContext.current
+    LocalContext.current
 
     LaunchedEffect(selectedArtist.name) {
         viewModel.fetchArtistDetails(selectedArtist.navidromeID)
     }
 
-    val artistSongs = songsList.filter { it.artist.contains(selectedArtist.name) }
+    songsList.filter { it.artist.contains(selectedArtist.name) }
 
     //val artistAlbums = viewModel.selectedArtist.value?.album ?: emptyList()
 

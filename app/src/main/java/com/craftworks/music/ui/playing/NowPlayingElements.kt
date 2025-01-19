@@ -31,8 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -249,7 +247,7 @@ fun PlayPauseButtonUpdating(color: Color, mediaController: MediaController?, siz
 
     Button(
         onClick = {
-            mediaController?.playWhenReady = !(mediaController?.playWhenReady ?: true)
+            mediaController?.playWhenReady = mediaController?.playWhenReady == false
         },
         shape = CircleShape,
         modifier = Modifier
@@ -319,50 +317,45 @@ fun NextSongButton(color: Color, mediaController: MediaController?, size: Dp) {
 fun LyricsButton(color: Color = Color.Black, size: Dp = 64.dp){
     val lyrics by LyricsManager.Lyrics.collectAsStateWithLifecycle()
 
-//    Box(
-//        modifier = Modifier
-//            .clip(RoundedCornerShape(12.dp)),
-//        contentAlignment = Alignment.Center
-//    )
-//    {
-        Button(
-            onClick = { lyricsOpen = !lyricsOpen },
-            shape = RoundedCornerShape(12.dp),
-            modifier = // Disable bounce click if no lyrics are present
-            if (lyrics.isNotEmpty())
-                Modifier.bounceClick().height(size + 6.dp)
-            else
-                Modifier.height(size + 6.dp),
-            contentPadding = PaddingValues(6.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-                contentColor = color.copy(0.5f),
-                disabledContentColor = color.copy(0.25f)
-            ),
-            enabled = lyrics.isNotEmpty()
-        ) {
-            Crossfade(targetState = lyricsOpen, label = "Lyrics Icon Crossfade") { open ->
-                when (open) {
-                    true -> Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
-                        contentDescription = "Close Lyrics",
-                        modifier = Modifier
-                            .height(size)
-                            .size(size)
-                    )
+    Button(
+        onClick = { lyricsOpen = !lyricsOpen },
+        shape = RoundedCornerShape(12.dp),
+        modifier = // Disable bounce click if no lyrics are present
+        if (lyrics.isNotEmpty())
+            Modifier
+                .bounceClick()
+                .height(size + 6.dp)
+        else
+            Modifier.height(size + 6.dp),
+        contentPadding = PaddingValues(6.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            contentColor = color.copy(0.5f),
+            disabledContentColor = color.copy(0.25f)
+        ),
+        enabled = lyrics.isNotEmpty()
+    ) {
+        Crossfade(targetState = lyricsOpen, label = "Lyrics Icon Crossfade") { open ->
+            when (open) {
+                true -> Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
+                    contentDescription = "Close Lyrics",
+                    modifier = Modifier
+                        .height(size)
+                        .size(size)
+                )
 
-                    false -> Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.lyrics_inactive),
-                        contentDescription = "View Lyrics",
-                        modifier = Modifier
-                            .height(size)
-                            .size(size)
-                    )
-                }
+                false -> Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.lyrics_inactive),
+                    contentDescription = "View Lyrics",
+                    modifier = Modifier
+                        .height(size)
+                        .size(size)
+                )
             }
         }
-//    }
+    }
 }
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -380,7 +373,9 @@ fun DownloadButton(color: Color, size: Dp) {
         enabled = !SongHelper.currentSong.navidromeID.startsWith("Local_"),
         shape = RoundedCornerShape(12.dp),
         modifier = if (!SongHelper.currentSong.navidromeID.startsWith("Local_")) // Disable bounce click if song is local
-            Modifier.bounceClick().height(size + 6.dp)
+            Modifier
+                .bounceClick()
+                .height(size + 6.dp)
         else
             Modifier.height(size + 6.dp),
         contentPadding = PaddingValues(6.dp),

@@ -3,7 +3,6 @@ package com.craftworks.music.ui.elements.dialogs
 import android.app.UiModeManager
 import android.content.Context
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -60,7 +59,6 @@ import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.bounceClick
-import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import sh.calvin.reorderable.ReorderableItem
@@ -439,4 +437,3 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
         }
     }
 }
-

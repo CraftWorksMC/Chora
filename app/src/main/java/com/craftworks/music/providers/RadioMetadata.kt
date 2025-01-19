@@ -2,7 +2,6 @@ package com.craftworks.music.providers
 
 import android.util.Log
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader

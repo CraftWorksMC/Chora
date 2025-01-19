@@ -1,6 +1,5 @@
 package com.craftworks.music.providers.navidrome
 
-import androidx.compose.ui.semantics.getOrNull
 import com.craftworks.music.data.Lyric
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.toLyric

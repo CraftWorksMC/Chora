@@ -117,7 +117,7 @@ class SongHelper {
                             .setExtras(Bundle().apply {
                                 putInt("duration", song.duration)
                                 putString("NavidromeID", song.navidromeID)
-                                putBoolean("isRadio", song.isRadio ?: false)
+                                putBoolean("isRadio", song.isRadio == true)
                                 putString("format", song.format)
                                 putInt("bitrate", song.bitrate ?: 0)
                             })

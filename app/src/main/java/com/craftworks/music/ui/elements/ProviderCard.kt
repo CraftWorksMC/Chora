@@ -126,7 +126,7 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","htt
     allowSelfSignedCert = true
 ), context: Context = LocalContext.current){
 
-    val coroutineScope = rememberCoroutineScope()
+    rememberCoroutineScope()
 
     Row(modifier = Modifier
         .padding(bottom = 12.dp)

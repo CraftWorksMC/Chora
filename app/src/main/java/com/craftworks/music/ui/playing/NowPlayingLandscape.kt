@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.playing
 
-import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -26,7 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +48,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.lyrics.LyricsManager
-import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 

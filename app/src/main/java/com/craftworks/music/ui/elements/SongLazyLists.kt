@@ -24,7 +24,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -43,7 +42,6 @@ import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.launch
 
 //region Songs
 @Composable
@@ -67,7 +65,7 @@ fun SongsRow(songsList: List<MediaData.Song>, onSongSelected: (song: MediaData.S
                     putInt("duration", song.duration)
                     putString("MoreInfo", "${song.format} • ${song.bitrate}")
                     putString("NavidromeID", song.navidromeID)
-                    putBoolean("isRadio", song.isRadio ?: false)
+                    putBoolean("isRadio", song.isRadio == true)
                 })
                 .build()
             val songMediaItem = MediaItem.Builder()

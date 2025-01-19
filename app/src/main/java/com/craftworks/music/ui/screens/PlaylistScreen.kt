@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.providers.local.localPlaylistImageGenerator

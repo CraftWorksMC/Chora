@@ -64,7 +64,7 @@ class SettingsManager(
     }
 
     val showMoreInfoFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[SHOW_MORE_INFO_KEY] ?: true
+        preferences[SHOW_MORE_INFO_KEY] != false
     }
 
     suspend fun setShowMoreInfo(showMoreInfo: Boolean) {
@@ -74,7 +74,7 @@ class SettingsManager(
     }
 
     val nowPlayingLyricsBlurFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[NOW_PLAYING_LYRIC_BLUR_KEY] ?: true
+        preferences[NOW_PLAYING_LYRIC_BLUR_KEY] != false
     }
 
     suspend fun setNowPlayingLyricsBlur(blur: Boolean) {
@@ -84,7 +84,7 @@ class SettingsManager(
     }
 
     val showNavidromeLogoFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[SHOW_NAVIDROME_KEY] ?: true
+        preferences[SHOW_NAVIDROME_KEY] != false
     }
 
     suspend fun setShowNavidromeLogo(showNavidromeLogo: Boolean) {

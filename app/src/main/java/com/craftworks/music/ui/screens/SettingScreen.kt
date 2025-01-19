@@ -47,9 +47,6 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 
-var username = mutableStateOf("Username")
-var showMoreInfo = mutableStateOf(true)
-
 @Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
 )
