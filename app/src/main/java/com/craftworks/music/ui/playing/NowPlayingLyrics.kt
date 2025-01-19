@@ -109,7 +109,7 @@ fun LyricsView(
     LaunchedEffect(currentPosition.intValue, lyrics) {
         if (mediaController?.isPlaying == true) {
             val newCurrentLyricIndex = lyrics.indexOfFirst { it.timestamp > currentPosition.intValue }
-                .takeIf { it >= 0 } ?: 0
+                .takeIf { it >= 0 } ?: lyrics.size
 
             val targetIndex = (newCurrentLyricIndex - 1).coerceAtLeast(0)
 
