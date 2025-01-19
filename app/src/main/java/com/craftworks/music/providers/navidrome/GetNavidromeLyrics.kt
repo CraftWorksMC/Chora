@@ -1,5 +1,6 @@
 package com.craftworks.music.providers.navidrome
 
+import androidx.compose.ui.semantics.getOrNull
 import com.craftworks.music.data.Lyric
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.toLyric
@@ -21,10 +22,8 @@ data class SyncedLyrics(
 )
 
 suspend fun getNavidromePlainLyrics(): List<Lyric> {
-    return listOf(
-        sendNavidromeGETRequest("getLyrics.view?artist=${SongHelper.currentSong.artist}&title=${SongHelper.currentSong.title}&f=json")
-            .filterIsInstance<MediaData.PlainLyrics>()[0].toLyric()
-    )
+    // Get plain lyrics from navidrome, if it doesn't exist, return an empty list
+    return sendNavidromeGETRequest("getLyrics.view?artist=${SongHelper.currentSong.artist}&title=${SongHelper.currentSong.title}&f=json").filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.content.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
 }
 
 suspend fun getNavidromeSyncedLyrics(): List<Lyric> {
@@ -59,4 +58,3 @@ fun parseNavidromeSyncedLyricsJSON(
 
     return mediaDataSyncedLyrics
 }
-

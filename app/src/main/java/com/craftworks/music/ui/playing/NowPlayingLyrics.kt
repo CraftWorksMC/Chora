@@ -76,6 +76,7 @@ fun LyricsView(
     paddingValues: PaddingValues = PaddingValues(),
 ) {
     val lyrics by LyricsManager.Lyrics.collectAsState()
+
     val useBlur by SettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
 
     // State holding the current position
@@ -158,19 +159,6 @@ fun LyricsView(
         horizontalAlignment = Alignment.CenterHorizontally,
         state = state,
     ) {
-        // Loading spinner thingy
-        if (lyrics[0].content.isEmpty() && lyrics.size == 1) {
-            item {
-                Box(modifier = Modifier.height(64.dp)) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .size(32.dp), strokeCap = StrokeCap.Round
-                    )
-                }
-            }
-        }
-
         // Synced Lyrics
         if (lyrics.size > 1) {
             item {
@@ -201,9 +189,9 @@ fun LyricsView(
                 }
             }
         }
-
         // plain lyrics
-        else if (lyrics[0].timestamp == -1) {
+        else if (lyrics.isNotEmpty()) {
+            println("Added plain lyrics item. ${lyrics[0]}")
             item {
                 Text(
                     text = lyrics[0].content,

@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -192,7 +193,7 @@ fun NowPlayingLandscape(
             }
         }
 
-        val lyrics by LyricsManager.Lyrics.collectAsState()
+        val lyrics by LyricsManager.Lyrics.collectAsStateWithLifecycle()
 
         if (LocalConfiguration.current.screenHeightDp.dp < 512.dp){
             Crossfade(
@@ -239,7 +240,7 @@ fun NowPlayingLandscape(
         }
         else {
             if (SongHelper.currentSong.isRadio == false &&
-                !(lyrics[0].content == "No Lyrics Found" && lyrics.size == 1)
+                lyrics.isNotEmpty()
             ) {
                 Box(Modifier.weight(0.75f).fillMaxHeight()){
                     LyricsView(

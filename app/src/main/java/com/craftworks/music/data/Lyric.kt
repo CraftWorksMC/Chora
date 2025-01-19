@@ -1,5 +1,6 @@
 package com.craftworks.music.data
 
+import android.util.Log
 import androidx.compose.runtime.Stable
 import kotlinx.serialization.Serializable
 
@@ -40,7 +41,8 @@ fun MediaData.StructuredLyrics.toLyrics(): List<Lyric> {
 }
 
 fun LrcLibLyrics.toLyrics(): List<Lyric> {
-    if (instrumental) return listOf(Lyric(-1, ""))
+    if (instrumental) return listOf()
+
     else if (syncedLyrics.toString() != "null") {
         val result = mutableListOf<Lyric>()
 
@@ -52,12 +54,15 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
             result.add(Lyric(time.toInt(), lyricText))
         }
 
+        Log.d("LYRICS", "Got LRCLIB synced lyrics: $result")
         return result
     }
-    else if (plainLyrics.toString() != "null")
+    else if (plainLyrics.toString() != "null") {
+        Log.d("LYRICS", "Got LRCLIB plain lyrics: $plainLyrics")
         return listOf(Lyric(-1, plainLyrics.toString()))
+    }
     else
-        return listOf(Lyric(-1, "No Lyrics Found"))
+        return listOf()
 }
 
 //endregion

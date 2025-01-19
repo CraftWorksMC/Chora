@@ -8,6 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.net.URL
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import javax.net.ssl.HttpsURLConnection
 
 suspend fun getLrcLibLyrics(): List<Lyric> {
@@ -16,9 +18,9 @@ suspend fun getLrcLibLyrics(): List<Lyric> {
     withContext(Dispatchers.IO) {
         val url = URL(
             "https://lrclib.net/api/get?" +
-                    "artist_name=${SongHelper.currentSong.artist.replace(" ", "+")}&" +
-                    "track_name=${SongHelper.currentSong.title.replace(" ", "+")}&" +
-                    "album_name=${SongHelper.currentSong.album.replace(" ", "+")}" +
+                    "artist_name=${URLEncoder.encode(SongHelper.currentSong.artist, StandardCharsets.UTF_8.toString())}&" +
+                    "track_name=${URLEncoder.encode(SongHelper.currentSong.title, StandardCharsets.UTF_8.toString())}&" +
+                    "album_name=${URLEncoder.encode(SongHelper.currentSong.album, StandardCharsets.UTF_8.toString())}" +
                     "&duration=${SongHelper.currentSong.duration}"
         )
 
@@ -37,7 +39,7 @@ suspend fun getLrcLibLyrics(): List<Lyric> {
                 println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")
 
                 if (responseCode == 404) {
-                    lyrics = listOf(Lyric(-1, "No Lyrics Found"))
+                    lyrics = listOf()
                     return@withContext
                 }
 
@@ -49,7 +51,7 @@ suspend fun getLrcLibLyrics(): List<Lyric> {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            lyrics = listOf(Lyric(-1, e.localizedMessage?.toString() ?: "Unknown Error"))
+            lyrics = listOf()
         }
     }
 

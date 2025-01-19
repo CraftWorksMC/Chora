@@ -31,6 +31,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,11 +58,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.shuffleSongs
@@ -311,31 +315,37 @@ fun NextSongButton(color: Color, mediaController: MediaController?, size: Dp) {
 }
 
 @Composable
-fun LyricsButton(color: Color, size: Dp){
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp)),
-        contentAlignment = Alignment.Center
-    )
-    {
+@Preview
+fun LyricsButton(color: Color = Color.Black, size: Dp = 64.dp){
+    val lyrics by LyricsManager.Lyrics.collectAsStateWithLifecycle()
+
+//    Box(
+//        modifier = Modifier
+//            .clip(RoundedCornerShape(12.dp)),
+//        contentAlignment = Alignment.Center
+//    )
+//    {
         Button(
             onClick = { lyricsOpen = !lyricsOpen },
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
-                .height(size)
-                .bounceClick(),
-            contentPadding = PaddingValues(0.dp),
+            modifier = // Disable bounce click if no lyrics are present
+            if (lyrics.isNotEmpty())
+                Modifier.bounceClick().height(size + 6.dp)
+            else
+                Modifier.height(size + 6.dp),
+            contentPadding = PaddingValues(6.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent
-            )
+                containerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                contentColor = color.copy(0.5f),
+                disabledContentColor = color.copy(0.25f)
+            ),
+            enabled = lyrics.isNotEmpty()
         ) {
             Crossfade(targetState = lyricsOpen, label = "Lyrics Icon Crossfade") { open ->
                 when (open) {
                     true -> Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
-                        tint = color.copy(
-                            alpha = 0.5f
-                        ),
                         contentDescription = "Close Lyrics",
                         modifier = Modifier
                             .height(size)
@@ -344,9 +354,6 @@ fun LyricsButton(color: Color, size: Dp){
 
                     false -> Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.lyrics_inactive),
-                        tint = color.copy(
-                            alpha = 0.5f
-                        ),
                         contentDescription = "View Lyrics",
                         modifier = Modifier
                             .height(size)
@@ -355,7 +362,7 @@ fun LyricsButton(color: Color, size: Dp){
                 }
             }
         }
-    }
+//    }
 }
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -364,37 +371,33 @@ fun DownloadButton(color: Color, size: Dp) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    Box(
-        modifier = Modifier.clip(RoundedCornerShape(12.dp)),
-        contentAlignment = Alignment.Center
+    Button(
+        onClick = {
+            coroutineScope.launch {
+                downloadNavidromeSong(context, SongHelper.currentSong)
+            }
+        },
+        enabled = !SongHelper.currentSong.navidromeID.startsWith("Local_"),
+        shape = RoundedCornerShape(12.dp),
+        modifier = if (!SongHelper.currentSong.navidromeID.startsWith("Local_")) // Disable bounce click if song is local
+            Modifier.bounceClick().height(size + 6.dp)
+        else
+            Modifier.height(size + 6.dp),
+        contentPadding = PaddingValues(6.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            contentColor = color.copy(alpha = 0.5f),
+            disabledContentColor = color.copy(alpha = 0.25f)
+        )
     ) {
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    downloadNavidromeSong(context, SongHelper.currentSong)
-                }
-            },
-            enabled = !SongHelper.currentSong.navidromeID.startsWith("Local_"),
-            shape = CircleShape,
+        Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
+            contentDescription = "Download Song",
             modifier = Modifier
                 .height(size)
-                .bounceClick(),
-            contentPadding = PaddingValues(0.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-                disabledContentColor = Color.Transparent
-            )
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
-                tint = if (SongHelper.currentSong.navidromeID.startsWith("Local_")) color.copy(alpha = 0.25f) else color.copy(alpha = 0.5f),
-                contentDescription = "Download Song",
-                modifier = Modifier
-                    .height(size)
-                    .size(size)
-            )
-        }
+                .size(size)
+        )
     }
 }
 
