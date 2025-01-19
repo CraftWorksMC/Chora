@@ -129,7 +129,8 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                                 }
                                 setShowDialog(false)
                             },
-                            role = Role.RadioButton
+                            role = Role.RadioButton,
+                            enabled = option == "Animated Blur" && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
                         ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -141,10 +142,14 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                             }
                             setShowDialog(false)
                         },
-                        modifier = Modifier.bounceClick()
+                        modifier = Modifier.bounceClick(),
+                        enabled = option == "Animated Blur" && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
                     )
                     Text(
-                        text = stringResource(id = backgroundTypeStrings[index]),
+                        text = stringResource(id = backgroundTypeStrings[index]) +
+                                if (option == "Animated Blur" && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+                                    " (Android 13+)"
+                                else "",
                         fontWeight = FontWeight.Normal,
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         color = MaterialTheme.colorScheme.onBackground,

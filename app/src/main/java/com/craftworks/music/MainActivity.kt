@@ -211,7 +211,6 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-
         // SAVE SETTINGS ON APP EXIT
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
