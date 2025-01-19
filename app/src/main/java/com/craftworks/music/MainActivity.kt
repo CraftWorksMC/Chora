@@ -37,6 +37,7 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -56,6 +57,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
@@ -177,6 +179,23 @@ class MainActivity : ComponentActivity() {
                                         navHostController = navController,
                                         mediaController = mediaController.value
                                     )
+
+                                    val currentView = LocalView.current
+                                    DisposableEffect(scaffoldState.bottomSheetState.currentValue) {
+                                        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
+                                            currentView.keepScreenOn = true
+                                            Log.d("NOW-PLAYING", "KeepScreenOn: True")
+                                        }
+                                        else {
+                                            currentView.keepScreenOn = false
+                                            Log.d("NOW-PLAYING", "KeepScreenOn: False")
+                                        }
+
+                                        onDispose {
+                                            currentView.keepScreenOn = false
+                                            Log.d("NOW-PLAYING", "KeepScreenOn: False")
+                                        }
+                                    }
                                 }
                             }) {
                         }

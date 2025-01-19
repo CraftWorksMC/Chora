@@ -130,7 +130,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                                 setShowDialog(false)
                             },
                             role = Role.RadioButton,
-                            enabled = option == "Animated Blur" && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+                            enabled = !(option == "Animated Blur" && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
                         ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -143,7 +143,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                             setShowDialog(false)
                         },
                         modifier = Modifier.bounceClick(),
-                        enabled = option == "Animated Blur" && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+                        enabled = !(option == "Animated Blur" && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
                     )
                     Text(
                         text = stringResource(id = backgroundTypeStrings[index]) +

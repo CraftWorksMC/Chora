@@ -1,7 +1,9 @@
 package com.craftworks.music.ui.playing
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.selection.selectableGroup
@@ -101,47 +104,75 @@ fun NowPlayingLandscape(
                 }
             }
 
-            /* Song Title + Artist*/
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp)
-                    .padding(horizontal = 32.dp),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Top
-            ) {
-                SongHelper.currentSong.title.let {
-                    Text(
-                        text = it,
-                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                        fontWeight = FontWeight.SemiBold,
-                        color = iconTextColor,
-                        maxLines = 1, overflow = TextOverflow.Visible,
-                        softWrap = false,
-                        textAlign = TextAlign.Start,
+            /* Image (When lyrics open) + Song Title + Artist*/
+            Row {
+                AnimatedVisibility(
+                    visible = lyricsOpen && LocalConfiguration.current.screenHeightDp.dp < 512.dp,
+                    modifier = Modifier
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(SongHelper.currentSong.imageUrl)
+                            .allowHardware(false)
+                            .size(256)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Album Cover Art",
+                        placeholder = painterResource(R.drawable.placeholder),
+                        fallback = painterResource(R.drawable.placeholder),
+                        contentScale = ContentScale.FillWidth,
+                        alignment = Alignment.Center,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+                            .padding(start = 24.dp, end = 12.dp)
+                            .height(64.dp)
+                            .aspectRatio(1f)
+                            .shadow(4.dp, RoundedCornerShape(6.dp), clip = true)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
                     )
                 }
 
-                SongHelper.currentSong.artist.let { artistName ->
-                    Text(
-                        text = artistName + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.Normal,
-                        color = iconTextColor,
-                        maxLines = 1,
-                        softWrap = false,
-                        textAlign = TextAlign.Start,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
-                    )
-                }
+                if (LocalConfiguration.current.screenHeightDp.dp < 512.dp)
+                    Spacer(Modifier.animateContentSize().width(if (lyricsOpen) 0.dp else 24.dp))
 
-                Spacer(Modifier.height(8.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    SongHelper.currentSong.title.let {
+                        Text(
+                            text = it,
+                            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                            fontWeight = FontWeight.SemiBold,
+                            color = iconTextColor,
+                            maxLines = 1, overflow = TextOverflow.Visible,
+                            softWrap = false,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+                        )
+                    }
+
+                    SongHelper.currentSong.artist.let { artistName ->
+                        Text(
+                            text = artistName + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
+                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                            fontWeight = FontWeight.Normal,
+                            color = iconTextColor,
+                            maxLines = 1,
+                            softWrap = false,
+                            textAlign = TextAlign.Start,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+                }
             }
 
             //Spacer(Modifier.height(24.dp))

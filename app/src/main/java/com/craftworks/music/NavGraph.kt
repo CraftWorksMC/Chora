@@ -2,6 +2,7 @@ package com.craftworks.music
 
 import android.content.res.Configuration
 import android.net.Uri
+import android.util.Log
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -13,12 +14,14 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
@@ -192,7 +195,20 @@ fun SetupNavGraph(
                 NowPlayingContent(
                     LocalContext.current, navController, mediaController
                 )
+
+                // Keep screen on
+                val currentView = LocalView.current
+                DisposableEffect(Unit) {
+                    currentView.keepScreenOn = true
+                    Log.d("NOW-PLAYING", "KeepScreenOn: True")
+                    onDispose {
+                        currentView.keepScreenOn = false
+                        Log.d("NOW-PLAYING", "KeepScreenOn: False")
+                    }
+                }
             }
+            else
+                navController.popBackStack()
         }
     }
 }
