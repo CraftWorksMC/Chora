@@ -210,23 +210,28 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val requestPermissionLauncher =
-            registerForActivityResult(
-                ActivityResultContracts.RequestPermission()
-            ) { isGranted: Boolean ->
-                Log.d("PERMISSIONS", "Is 'READ_MEDIA_AUDIO' permission granted? $isGranted")
+        val requestPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            permissions.entries.forEach { permission ->
+                Log.d(
+                    "PERMISSIONS", "Is '${permission.key}' permission granted? ${permission.value}"
+                )
             }
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissionLauncher.launch(
-                android.Manifest.permission.READ_MEDIA_AUDIO
-            )
-            requestPermissionLauncher.launch(
-                android.Manifest.permission.POST_NOTIFICATIONS
+                arrayOf(
+                    android.Manifest.permission.READ_MEDIA_AUDIO,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                )
             )
         } else {
             requestPermissionLauncher.launch(
-                android.Manifest.permission.READ_EXTERNAL_STORAGE
+                arrayOf(
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE
+                )
             )
         }
 
@@ -341,9 +346,9 @@ fun AnimatedBottomNavBar(
                 modifier = Modifier
                     .wrapContentHeight()
                     .verticalFadingEdges(
-                        FadingEdgesContentType.Dynamic.Lazy.List(FadingEdgesScrollConfig.Dynamic(), lazyColumnState),
-                        FadingEdgesGravity.All,
-                        64.dp
+                        FadingEdgesContentType.Dynamic.Lazy.List(
+                            FadingEdgesScrollConfig.Dynamic(), lazyColumnState
+                        ), FadingEdgesGravity.All, 64.dp
                     )
             ) {
                 items(orderedNavItems) { item ->
