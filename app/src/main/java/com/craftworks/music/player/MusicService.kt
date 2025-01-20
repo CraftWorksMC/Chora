@@ -43,7 +43,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayOutputStream
 
 /*
@@ -472,7 +471,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         }
 
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 75, stream)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 75, stream)
         return stream.toByteArray()
     }
 
@@ -501,7 +500,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     //region getChildren
     private fun getHomeScreenItems() : MutableList<MediaItem> {
         println("GETTING ANDROID AUTO SCREEN ITEMS")
-        runBlocking {
+        serviceIOScope.launch {
             if (aHomeScreenItems.isEmpty()) {
                 val recentlyPlayedAlbums = async { getAlbums("recent", 6) }.await()
                 val mostPlayedAlbums = async { getAlbums("frequent", 6) }.await()
@@ -532,7 +531,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     }
 
     private fun getRadioItems() : MutableList<MediaItem> {
-        runBlocking {
+        serviceIOScope.launch {
             if (aRadioScreenItems.isEmpty()) {
                 getRadios().forEach { radio ->
                     aRadioScreenItems.add(radioToMediaItem(radio))
@@ -544,7 +543,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     }
 
     private fun getPlaylistItems() : MutableList<MediaItem> {
-        runBlocking {
+        serviceIOScope.launch {
             if (aPlaylistScreenItems.isEmpty()) {
                 val playlists = async { getPlaylists() }.await()
                 playlists.forEach { playlist ->
@@ -557,7 +556,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     }
 
     private fun getFolderItems(parentId: String) : MutableList<MediaItem> {
-        runBlocking {
+        serviceIOScope.launch {
             aFolderSongs.clear()
             val folderId = parentId.removePrefix("folder_")
             when {

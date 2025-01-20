@@ -314,7 +314,10 @@ fun NextSongButton(color: Color, mediaController: MediaController?, size: Dp) {
 
 @Composable
 @Preview
-fun LyricsButton(color: Color = Color.Black, size: Dp = 64.dp){
+fun LyricsButton(
+    color: Color = Color.Black,
+    size: Dp = 64.dp
+){
     val lyrics by LyricsManager.Lyrics.collectAsStateWithLifecycle()
 
     Button(

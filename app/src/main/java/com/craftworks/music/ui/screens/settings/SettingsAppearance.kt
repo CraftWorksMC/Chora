@@ -79,10 +79,6 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 
     val focusRequester = FocusRequester()
 
-//    LaunchedEffect (Unit) {
-//        focusRequester.requestFocus()
-//    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()

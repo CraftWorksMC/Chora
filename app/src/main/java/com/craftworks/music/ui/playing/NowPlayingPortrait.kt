@@ -50,7 +50,7 @@ import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
-@Preview(showSystemUi = false, device = "spec:parent=pixel_8_pro",
+@Preview(showSystemUi = false, device = "id:pixel_2",
     wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true
 )
@@ -74,7 +74,7 @@ fun NowPlayingPortrait(
     val showMoreInfo = SettingsManager(LocalContext.current).showMoreInfoFlow.collectAsStateWithLifecycle(true)
 
     Column {
-        // Top padding (for mini-player)
+        // Top padding
         Spacer(Modifier.height(24.dp))
 
         /* Album Cover + Lyrics */
@@ -82,7 +82,7 @@ fun NowPlayingPortrait(
             lyricsOpen,
             label = "Crossfade between lyrics",
             modifier = Modifier
-                .heightIn(min = 320.dp, max = 420.dp)
+                .heightIn(min = 256.dp, max = 420.dp)
                 .fillMaxWidth(),
         ) {
             if (it) {
@@ -171,8 +171,6 @@ fun NowPlayingPortrait(
             }
         }
 
-
-
         PlaybackProgressSlider(iconTextColor.value, mediaController)
 
         //region Buttons
@@ -217,5 +215,6 @@ fun NowPlayingPortrait(
         }
         //endregion
 
+        Spacer(Modifier.height(64.dp))
     }
 }
