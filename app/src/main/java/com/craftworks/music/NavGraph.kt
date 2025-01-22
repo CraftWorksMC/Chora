@@ -207,10 +207,11 @@ fun SetupNavGraph(
                     }
                 }
             }
-            else
+            else{
                 navController.navigate(Screen.Home.route) {
                     launchSingleTop = true
                 }
+            }
         }
     }
 }

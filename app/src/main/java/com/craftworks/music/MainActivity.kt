@@ -253,6 +253,7 @@ class MainActivity : ComponentActivity() {
                 @androidx.annotation.OptIn(UnstableApi::class)
                 override fun onActivityDestroyed(activity: Activity) {
                     ChoraMediaLibraryService().onDestroy()
+                    this@MainActivity.stopService(serviceIntent)
                     println("Destroyed, Goodbye :(")
                 }
             })
