@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
@@ -103,7 +104,7 @@ class MediaControllerManager private constructor(context: Context) : RememberObs
  */
 @Composable
 fun rememberManagedMediaController(
-    lifecycle: Lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    lifecycle: Lifecycle = LocalLifecycleOwner.current.lifecycle
 ): State<MediaController?> {
     // Application context is used to prevent memory leaks
     val appContext = LocalContext.current.applicationContext

@@ -208,7 +208,9 @@ fun SetupNavGraph(
                 }
             }
             else
-                navController.popBackStack()
+                navController.navigate(Screen.Home.route) {
+                    launchSingleTop = true
+                }
         }
     }
 }

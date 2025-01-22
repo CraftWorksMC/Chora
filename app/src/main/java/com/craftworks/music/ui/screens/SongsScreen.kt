@@ -39,7 +39,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -74,7 +73,6 @@ fun SongsScreen(
 
     var isSearchFieldOpen by remember { mutableStateOf(false) }
     var searchFilter by remember { mutableStateOf("") }
-    //var selectedSortOption by remember { mutableStateOf("Name (A-Z)") }
 
     val allSongsList by viewModel.allSongs.collectAsState()
 
@@ -133,7 +131,8 @@ fun SongsScreen(
             AnimatedVisibility(
                 visible = isSearchFieldOpen,
                 enter = expandVertically(),
-                exit = shrinkVertically()) {
+                exit = shrinkVertically()
+            ) {
                 Box(modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
@@ -146,6 +145,7 @@ fun SongsScreen(
                             if (it.isBlank()){
                                 coroutineScope.launch {
                                     viewModel.reloadData()
+                                    isSearchFieldOpen = false
                                 }
                             } },
                         label = { Text(stringResource(R.string.Action_Search)) },
@@ -159,9 +159,9 @@ fun SongsScreen(
                                 }
                             }
                         ),
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
                             .focusRequester(focusRequester))
 
                     LaunchedEffect(isSearchFieldOpen) {
@@ -174,13 +174,6 @@ fun SongsScreen(
             }
 
             Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-
-//            LaunchedEffect(searchFilter) {
-//                if (searchFilter.isNotBlank() && NavidromeManager.checkActiveServers()){
-//                    songsList.clear()
-//                }
-//            }
-
                 SongsHorizontalColumn(songList = allSongsList, onSongSelected = { song ->
                     SongHelper.currentSong = song
                     SongHelper.currentList = allSongsList.sortedBy { song.title }

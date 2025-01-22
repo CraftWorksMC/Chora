@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
+import androidx.core.math.MathUtils.clamp
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -26,6 +27,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionError
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.ReplayGain
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
@@ -44,6 +46,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+import kotlin.math.pow
 
 /*
     Thanks to Yurowitz on StackOverflow for this! Used it as a template.
@@ -152,42 +155,17 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
 
+                // Apply ReplayGain
+                if (mediaItem?.mediaMetadata?.extras?.getFloat("replayGain") != null) {
+                    player.volume = clamp((10f.pow(((mediaItem.mediaMetadata.extras?.getFloat("replayGain") ?: 0f) / 20f))), 0f, 1f)
+                    Log.d("REPLAY GAIN", "Setting ReplayGain to ${player.volume}")
+                }
+
+                SongHelper.currentSong = mediaItemToSong(mediaItem)
+
                 serviceIOScope.launch {
                     if (NavidromeManager.checkActiveServers())
                         async { markNavidromeSongAsPlayed(SongHelper.currentSong) }
-
-
-                    SongHelper.currentSong = async {
-                        MediaData.Song(
-                            title = mediaItem?.mediaMetadata?.title.toString(),
-                            artist = mediaItem?.mediaMetadata?.artist.toString(),
-                            duration = mediaItem?.mediaMetadata?.extras?.getInt("duration") ?: 0,
-                            imageUrl = mediaItem?.mediaMetadata?.artworkUri.toString(),
-                            year = mediaItem?.mediaMetadata?.releaseYear,
-                            album = mediaItem?.mediaMetadata?.albumTitle.toString(),
-                            format = mediaItem?.mediaMetadata?.extras?.getString("format").toString(),
-                            bitrate = mediaItem?.mediaMetadata?.extras?.getInt("bitrate"),
-                            navidromeID = mediaItem?.mediaMetadata?.extras?.getString("NavidromeID").toString(),
-                            isRadio = mediaItem?.mediaMetadata?.extras?.getBoolean("isRadio"),
-                            albumId = "",
-                            bpm = 0,
-                            contentType = "music",
-                            dateAdded = "",
-                            timesPlayed = 0,
-                            genre = "",
-                            parent = "",
-                            sortName = "",
-                            comment = "",
-                            lastPlayed = "",
-                            isVideo = false,
-                            genres = listOf(),
-                            isDir = false,
-                            mediaType = "song",
-                            path = "",
-                            size = 0,
-                            type = "song"
-                        )
-                    }.await()
 
                     if (SongHelper.currentSong.isRadio == false)
                         async { LyricsManager.getLyrics() }
@@ -395,6 +373,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     putString("format", song.format)
                     song.bitrate?.let { putInt("bitrate", it) }
                     putBoolean("isRadio", false)
+                    if (song.replayGain?.trackGain != null)
+                        putFloat("replayGain", song.replayGain.trackGain)
                 }).build()
 
         val requestMetadata = RequestMetadata.Builder().setMediaUri(Uri.parse(song.media)).build()
@@ -407,21 +387,25 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             .setRequestMetadata(requestMetadata)
             .build()
     }
-    fun mediaItemToSong(mediaItem: MediaItem): MediaData.Song {
-        val mediaMetadata = mediaItem.mediaMetadata
-        val extras = mediaMetadata.extras
+    fun mediaItemToSong(mediaItem: MediaItem?): MediaData.Song {
+        val mediaMetadata = mediaItem?.mediaMetadata
+        val extras = mediaMetadata?.extras
 
         return MediaData.Song(
             navidromeID = extras?.getString("navidromeID") ?: "",
-            title = mediaMetadata.title.toString(),
-            artist = mediaMetadata.artist.toString(),
-            album = mediaMetadata.albumTitle.toString(),
-            imageUrl = mediaMetadata.artworkUri.toString(),
-            year = mediaMetadata.releaseYear ?: 0,
+            title = mediaMetadata?.title.toString(),
+            artist = mediaMetadata?.artist.toString(),
+            album = mediaMetadata?.albumTitle.toString(),
+            imageUrl = mediaMetadata?.artworkUri.toString(),
+            year = mediaMetadata?.releaseYear ?: 0,
             duration = extras?.getInt("duration") ?: 0,
             format = extras?.getString("format") ?: "",
             bitrate = extras?.getInt("bitrate"),
-            media = mediaItem.mediaId.toString(),
+            media = mediaItem?.mediaId.toString(),
+            replayGain = ReplayGain(
+                trackGain = extras?.getFloat("replayGain") ?: 0f
+            ),
+            isRadio = extras?.getBoolean("isRadio"),
             path = "",
             parent = "",
             dateAdded = "",

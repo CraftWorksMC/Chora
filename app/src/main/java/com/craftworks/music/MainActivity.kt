@@ -72,8 +72,7 @@ import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.Screen
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
-import com.craftworks.music.player.SongHelper
-import com.craftworks.music.player.rememberManagedMediaController
+import com.craftworks.music.player.MediaControllerManager
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
 import com.craftworks.music.ui.playing.NowPlayingContent
@@ -107,27 +106,38 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val scaffoldState = BottomSheetScaffoldState(
-            bottomSheetState = SheetState(
-                skipPartiallyExpanded = false,
-                initialValue = SheetValue.PartiallyExpanded,
-                skipHiddenState = true,
-                density = Density(this)
-            ),
-            snackbarHostState = SnackbarHostState()
-        )
+//        val scaffoldState = BottomSheetScaffoldState(
+//            bottomSheetState = SheetState(
+//                skipPartiallyExpanded = false,
+//                initialValue = SheetValue.PartiallyExpanded,
+//                skipHiddenState = true,
+//                density = Density(this)
+//            ),
+//            snackbarHostState = SnackbarHostState()
+//        )
 
         setContent {
             MusicPlayerTheme {
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
                 navController = rememberNavController()
-                val mediaController = rememberManagedMediaController()
+                //val mediaController = rememberManagedMediaController()
+                val mediaController = MediaControllerManager.getInstance(applicationContext).controller
 
                 println("Recomposing EVERYTHING!!!!! VERY BAD")
 
                 // Set background color to colorScheme.background
                 window.decorView.setBackgroundColor(
                     MaterialTheme.colorScheme.background.toArgb()
+                )
+
+                val scaffoldState = BottomSheetScaffoldState(
+                    bottomSheetState = SheetState(
+                        skipPartiallyExpanded = false,
+                        initialValue = SheetValue.PartiallyExpanded,
+                        skipHiddenState = true,
+                        density = Density(this)
+                    ),
+                    snackbarHostState = SnackbarHostState()
                 )
 
                 Scaffold(
@@ -148,16 +158,7 @@ class MainActivity : ComponentActivity() {
                         BottomSheetScaffold(
                             sheetContainerColor = Color.Transparent,
                             containerColor = Color.Transparent,
-                            sheetPeekHeight =
-                            if (SongHelper.currentSong.title == "" &&
-                                SongHelper.currentSong.duration == 0 &&
-                                SongHelper.currentSong.imageUrl == ""
-                            )
-                                0.dp // Hide Mini-player if empty
-                            else if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) {
-                                72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues()
-                                    .calculateBottomPadding()
-                            } else 72.dp,
+                            sheetPeekHeight = 72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
                             sheetShadowElevation = 4.dp,
                             sheetShape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
                             sheetDragHandle = { },
@@ -325,7 +326,7 @@ fun AnimatedBottomNavBar(
                         if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationBarItem
                         navController.navigate(item.screenRoute) {
                             launchSingleTop = true
-                            popUpTo(navController.graph.findStartDestination().id)
+                            //popUpTo(navController.graph.findStartDestination().id)
                         }
                         coroutineScope.launch {
                             if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
@@ -383,7 +384,7 @@ fun AnimatedBottomNavBar(
                             if (Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route) return@NavigationRailItem
                             navController.navigate(Screen.NowPlayingLandscape.route) {
                                 launchSingleTop = true
-                                popUpTo(navController.graph.findStartDestination().id)
+                                //popUpTo(navController.graph.findStartDestination().id)
                             }
                             coroutineScope.launch {
                                 if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()

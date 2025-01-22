@@ -26,18 +26,9 @@ class SongsScreenViewModel : ViewModel(), ReloadableViewModel {
             val songOffset = _allSongs.value.size
             _allSongs.value += getSongs(songCount = size, songOffset = songOffset)
         }
-        //_allSongs.value += sendNavidromeGETRequest("search3.view?query=''&songCount=$size&songOffset=$songOffset&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaData.Song>()
     }
 
     suspend fun search(query: String){
-        _allSongs.value += getSongs(query, 500)
-//        if (NavidromeManager.checkActiveServers()){
-//            _allSongs.value = sendNavidromeGETRequest("search3.view?query=${query}&songCount=500&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaData.Song>()
-//        } else{
-//            _allSongs.value = _allSongs.value.fastFilter {
-//                        it.title.lowercase().contains(query.lowercase()) ||
-//                        it.artist.lowercase().contains(query.lowercase())
-//            }
-//        }
+        _allSongs.value = getSongs(query, 500)
     }
 }

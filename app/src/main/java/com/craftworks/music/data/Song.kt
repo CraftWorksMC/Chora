@@ -12,5 +12,6 @@ data class Genre(
 @Serializable
 data class ReplayGain(
     val trackGain: Float? = 0f,
-    val trackPeak: Float? = 0f,
-    val albumPeak: Float? = 0f)
+    //val trackPeak: Float? = 0f,
+    //val albumPeak: Float? = 0f
+)

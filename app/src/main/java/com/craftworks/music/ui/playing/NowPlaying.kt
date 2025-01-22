@@ -32,6 +32,7 @@ import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlin.collections.elementAtOrNull
 
@@ -99,7 +100,7 @@ fun Color.customLuminance(): Float {
     return 0.2126f * red + 0.7152f * green + 0.0722f * blue
 }
 
-suspend fun extractColorsFromUri(uri: String, context: Context): List<Color> {
+suspend fun extractColorsFromUri(uri: String, context: Context): List<Color> = coroutineScope {
     val loader = ImageLoader(context)
     val request = ImageRequest.Builder(context)
         .size(64)
@@ -110,7 +111,7 @@ suspend fun extractColorsFromUri(uri: String, context: Context): List<Color> {
     val result = (loader.execute(request) as? SuccessResult)?.drawable
     val bitmap = result?.toBitmap()
 
-    return bitmap?.let { bitmapImage ->
+    bitmap?.let { bitmapImage ->
         val palette = Palette.Builder(bitmapImage).generate()
         listOfNotNull(
             palette.mutedSwatch?.rgb?.let { Color(it) },
