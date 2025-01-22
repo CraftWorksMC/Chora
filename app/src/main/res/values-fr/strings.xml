@@ -92,4 +92,5 @@
     <string name="Theme_Dark">Sombre</string>
     <string name="Theme_Light">Clair</string>
     <string name="Action_Download">Téléchargement</string>
+    <string name="Label_Radio_Add_To_Navidrome">Ajouter au Navidrome</string>
 </resources>

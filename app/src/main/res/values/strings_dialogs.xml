@@ -35,6 +35,7 @@
         <string name="Label_Radio_Name">Radio Name:</string>
         <string name="Label_Radio_URL">Radio URL:</string>
         <string name="Label_Radio_Homepage">Radio Homepage URL:</string>
+        <string name="Label_Radio_Add_To_Navidrome">Add to Navidrome</string>
 
     <!-- Playlists -->
     <string name="Dialog_New_Playlist">New Playlist</string>

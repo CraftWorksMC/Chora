@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -31,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.createRadio
 import com.craftworks.music.providers.deleteRadio
 import com.craftworks.music.providers.modifyRadio
@@ -67,6 +71,10 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
     var radioName by remember { mutableStateOf("") }
     var radioUrl by remember { mutableStateOf("") }
     var radioPage by remember { mutableStateOf("") }
+
+    var addToNavidrome by remember { mutableStateOf(
+        NavidromeManager.checkActiveServers()
+    ) }
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
@@ -127,6 +135,32 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                         singleLine = true
                     )
 
+                    if (NavidromeManager.checkActiveServers()) {
+                        Row (
+                            modifier = Modifier.selectable(
+                                selected = addToNavidrome,
+                                onClick = {
+                                    addToNavidrome = !addToNavidrome
+                                },
+                                role = Role.Checkbox,
+                            ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = addToNavidrome,
+                                onCheckedChange = { addToNavidrome = it }
+                            )
+
+                            Text(
+                                text = stringResource(R.string.Label_Radio_Add_To_Navidrome),
+                                fontWeight = FontWeight.Normal,
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
@@ -139,7 +173,8 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                                         radioName,
                                         radioUrl,
                                         radioPage,
-                                        context
+                                        context,
+                                        addToNavidrome
                                     )
                                 }
 

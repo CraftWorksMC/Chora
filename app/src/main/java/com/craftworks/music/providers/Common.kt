@@ -184,8 +184,8 @@ suspend fun getRadios(): List<MediaData.Radio> = coroutineScope {
     deferredRadios.awaitAll().flatten()
 }
 
-suspend fun createRadio(name:String, url:String, homePage:String, context: Context) {
-    if (NavidromeManager.checkActiveServers())
+suspend fun createRadio(name:String, url:String, homePage:String, context: Context, addToNavidrome: Boolean) {
+    if (addToNavidrome && NavidromeManager.checkActiveServers())
         sendNavidromeGETRequest("createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage")
     else {
         radioList.add(
@@ -200,7 +200,7 @@ suspend fun createRadio(name:String, url:String, homePage:String, context: Conte
     }
 }
 suspend fun modifyRadio(radio: MediaData.Radio) {
-    if (NavidromeManager.checkActiveServers())
+    if (NavidromeManager.checkActiveServers() && radio.navidromeID != "Local")
         sendNavidromeGETRequest("updateInternetRadioStation.view?name=${radio.name}&streamUrl=${radio.media}&homepageUrl=${radio.homePageUrl}&id=${radio.navidromeID}")
     else {
         radioList.remove(radio)
@@ -214,7 +214,7 @@ suspend fun modifyRadio(radio: MediaData.Radio) {
     }
 }
 suspend fun deleteRadio(radio: MediaData.Radio, context: Context){
-    if (NavidromeManager.checkActiveServers())
+    if (NavidromeManager.checkActiveServers() && radio.navidromeID != "Local")
         sendNavidromeGETRequest("deleteInternetRadioStation.view?id=${radio.navidromeID}")
     else{
         radioList.remove(radio)

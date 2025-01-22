@@ -14,6 +14,7 @@
     <string name="Label_Radio_Name">Nome Radio:</string>
     <string name="Label_Radio_URL">URL Radio:</string>
     <string name="Label_Radio_Homepage">Sito della Radio</string>
+    <string name="Label_Radio_Add_To_Navidrome">Aggiungi a Navidrome</string>
     <string name="Dialog_New_Playlist">Nuova Playlist</string>
     <string name="Dialog_Delete_Playlist">Cancella Playlist</string>
     <string name="Dialog_Add_To_Playlist">Aggiungi / Alla Playlist</string>
