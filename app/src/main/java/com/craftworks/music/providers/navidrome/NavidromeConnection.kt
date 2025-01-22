@@ -61,11 +61,19 @@ data class SubsonicResponse(
 )
 
 suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
-    val parsedData = mutableListOf<MediaData>()
+    // Check if data is in the cache
+    val cachedData = NavidromeCache.get(endpoint)
+    if (cachedData != null) {
+        Log.d("NAVIDROME", "Returning data from cache for endpoint: $endpoint")
+        setSyncingStatus(false)
+        return cachedData
+    }
 
+    val parsedData = mutableListOf<MediaData>()
     val server = getCurrentServer() ?: throw IllegalArgumentException("Could not get current server.")
 
     setSyncingStatus(true)
+
     withContext(Dispatchers.IO) {
         // Generate a random password salt and MD5 hash.
         // This is kinda slow, but needed.
@@ -161,7 +169,7 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
                 }
                 inputStream.close()
             }
-        } // Peak code right here, try catch EVERYTHING.
+        } // Peak coding right here, try catch EVERYTHING.
         catch (e: ConnectException) {
             navidromeStatus.value = "Network Unreachable"
             Log.d("NAVIDROME", "Exception: $e")
@@ -191,6 +199,8 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
         }
     }
 
+    // Add data to cache and return it
+    NavidromeCache.put(endpoint, parsedData)
     return parsedData
 }
 

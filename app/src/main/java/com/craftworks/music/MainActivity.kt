@@ -73,6 +73,7 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.MediaControllerManager
+import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
 import com.craftworks.music.ui.playing.NowPlayingContent
@@ -158,7 +159,9 @@ class MainActivity : ComponentActivity() {
                         BottomSheetScaffold(
                             sheetContainerColor = Color.Transparent,
                             containerColor = Color.Transparent,
-                            sheetPeekHeight = 72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+                            sheetPeekHeight = if (SongHelper.currentSong.title.isBlank() || SongHelper.currentSong.artist.isBlank()) 0.dp
+                            else 72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues()
+                                .calculateBottomPadding(),
                             sheetShadowElevation = 4.dp,
                             sheetShape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
                             sheetDragHandle = { },

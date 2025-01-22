@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
@@ -78,10 +79,10 @@ fun HomeScreen(
 
     val context = LocalContext.current
 
-    val recentlyPlayedAlbums by viewModel.recentlyPlayedAlbums.collectAsState()
-    val recentAlbums by viewModel.recentAlbums.collectAsState()
-    val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsState()
-    val shuffledAlbums by viewModel.shuffledAlbums.collectAsState()
+    val recentlyPlayedAlbums by viewModel.recentlyPlayedAlbums.collectAsStateWithLifecycle()
+    val recentAlbums by viewModel.recentAlbums.collectAsStateWithLifecycle()
+    val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsStateWithLifecycle()
+    val shuffledAlbums by viewModel.shuffledAlbums.collectAsStateWithLifecycle()
 
     val state = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
