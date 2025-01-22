@@ -89,10 +89,7 @@ fun ArtistDetails(
 
     songsList.filter { it.artist.contains(selectedArtist.name) }
 
-    //val artistAlbums = viewModel.selectedArtist.value?.album ?: emptyList()
-
     Column(modifier = Modifier
-        //.background(MaterialTheme.colorScheme.background)
         .fillMaxWidth()
         .padding(
             start = leftPadding,

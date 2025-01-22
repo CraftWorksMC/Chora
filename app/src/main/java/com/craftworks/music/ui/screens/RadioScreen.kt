@@ -89,7 +89,6 @@ fun RadioScreen(
     }
 
     PullToRefreshBox(
-        //modifier = Modifier.background(MaterialTheme.colorScheme.background),
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh

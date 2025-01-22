@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,7 +31,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -89,14 +87,12 @@ fun ArtistsScreen(
     }
 
     PullToRefreshBox(
-        //modifier = Modifier.background(MaterialTheme.colorScheme.background),
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh
     ) {
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
                 .padding(
                     start = leftPadding,
                     top = WindowInsets.statusBars

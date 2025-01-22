@@ -2,7 +2,6 @@ package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -83,7 +82,6 @@ fun PlaylistScreen(
     }
 
     PullToRefreshBox(
-        modifier = Modifier.background(MaterialTheme.colorScheme.background),
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh

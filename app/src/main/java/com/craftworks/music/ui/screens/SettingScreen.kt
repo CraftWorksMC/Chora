@@ -56,7 +56,6 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     Column(modifier = Modifier
-        //.background(MaterialTheme.colorScheme.background)
         .fillMaxSize()
         .padding(
             start = leftPadding,

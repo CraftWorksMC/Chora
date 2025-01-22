@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -89,15 +88,11 @@ fun SongsScreen(
     }
 
     PullToRefreshBox(
-        modifier = Modifier,
-            //.fillMaxSize()
-            //.background(MaterialTheme.colorScheme.background),
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh
     ) {
         Column(modifier = Modifier
-            .background(MaterialTheme.colorScheme.background)
             .fillMaxWidth()
             .padding(
                 start = leftPadding,
