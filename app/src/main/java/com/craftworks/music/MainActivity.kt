@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -58,6 +57,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
@@ -86,6 +86,7 @@ import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollCon
 import com.gigamole.composefadingedges.verticalFadingEdges
 import kotlinx.coroutines.launch
 import java.util.Locale
+import kotlin.system.exitProcess
 
 var sliderPos = mutableIntStateOf(0)
 var shuffleSongs = mutableStateOf(false)
@@ -349,7 +350,7 @@ fun AnimatedBottomNavBar(
             LazyColumn(
                 state = lazyColumnState,
                 modifier = Modifier
-                    .wrapContentHeight()
+                    .weight(1f)
                     .verticalFadingEdges(
                         FadingEdgesContentType.Dynamic.Lazy.List(
                             FadingEdgesScrollConfig.Dynamic(), lazyColumnState
@@ -404,6 +405,24 @@ fun AnimatedBottomNavBar(
                         },
                     )
                 }
+            }
+            // Show the exit button only on TV
+            if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) {
+                NavigationRailItem(
+                    selected = false,
+                    onClick = {
+                        (context as Activity).finish()
+                        exitProcess(0)
+                    },
+                    label = { Text(stringResource(R.string.Action_Exit)) },
+                    alwaysShowLabel = false,
+                    icon = {
+                        Icon(
+                            ImageVector.vectorResource(R.drawable.round_power_settings_new_24),
+                            contentDescription = "Exit App"
+                        )
+                    },
+                )
             }
         }
     }

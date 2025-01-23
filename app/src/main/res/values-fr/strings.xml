@@ -20,6 +20,7 @@
     <string name="Action_Login">Se connecter</string>
     <string name="Action_Go">C\'est parti !</string>
         <!-- Playlists -->
+    <string name="Action_Exit">Fermer</string>
     <string name="Action_CreatePlaylist">Créer une playlist</string>
         <!-- Provider Dialog -->
     <string name="Theme_System">Système</string>

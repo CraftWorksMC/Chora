@@ -16,6 +16,8 @@
     <string name="Action_Login">Login</string>
     <string name="Action_Go">Let\'s Go!</string>
 
+    <string name="Action_Exit">Exit</string>
+
     <!-- Playlists -->
     <string name="Action_CreatePlaylist">Create Playlist</string>
 
