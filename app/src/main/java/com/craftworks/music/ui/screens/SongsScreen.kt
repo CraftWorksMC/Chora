@@ -30,7 +30,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
@@ -74,7 +74,7 @@ fun SongsScreen(
     var isSearchFieldOpen by remember { mutableStateOf(false) }
     var searchFilter by remember { mutableStateOf("") }
 
-    val allSongsList by viewModel.allSongs.collectAsState()
+    val allSongsList by viewModel.allSongs.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -171,7 +171,7 @@ fun SongsScreen(
 
             Column(modifier = Modifier.padding(horizontal = 12.dp)) {
                 SongsHorizontalColumn(songList = allSongsList, onSongSelected = { song ->
-                    SongHelper.currentSong = song
+                    //SongHelper.currentSong = song
                     SongHelper.currentList = allSongsList.sortedBy { song.title }
                     song.media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController) } },
                     searchFilter.isNotBlank(),

@@ -17,7 +17,6 @@ import androidx.media3.session.MediaController
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.sliderPos
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -97,7 +96,7 @@ class SongHelper {
 
                 println("TRANSCODING VALUE = $transcodingValue")
 
-                sliderPos.intValue = 0
+                //sliderPos.intValue = 0
 
                 if (isRadio == false) {
                     for (song in currentList) {
@@ -116,7 +115,7 @@ class SongHelper {
                             .setReleaseYear(song.year)
                             .setExtras(Bundle().apply {
                                 putInt("duration", song.duration)
-                                putString("NavidromeID", song.navidromeID)
+                                putString("navidromeID", song.navidromeID)
                                 putBoolean("isRadio", song.isRadio == true)
                                 putString("format", song.format)
                                 putInt("bitrate", song.bitrate ?: 0)
@@ -154,7 +153,7 @@ class SongHelper {
                         .setReleaseYear(currentSong.year)
                         .setExtras(Bundle().apply {
                             putInt("duration", currentSong.duration)
-                            putString("NavidromeID", currentSong.navidromeID)
+                            putString("navidromeID", currentSong.navidromeID)
                             putBoolean("isRadio", true)
                             putString("format", currentSong.format)
                             putInt("bitrate", currentSong.bitrate ?: 0)

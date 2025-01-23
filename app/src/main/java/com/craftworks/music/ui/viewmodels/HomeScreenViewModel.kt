@@ -27,10 +27,10 @@ class HomeScreenViewModel : ViewModel(), ReloadableViewModel {
     override fun reloadData() {
         viewModelScope.launch {
             coroutineScope {
-                val recentlyPlayedDeferred = async { getAlbums("recent", 20) }
-                val recentDeferred = async { getAlbums("newest", 20) }
-                val mostPlayedDeferred = async { getAlbums("frequent", 20) }
-                val shuffledDeferred = async { getAlbums("random", 20) }
+                val recentlyPlayedDeferred = async { getAlbums("recent", 20, 0, true) }
+                val recentDeferred = async { getAlbums("newest", 20, 0, true) }
+                val mostPlayedDeferred = async { getAlbums("frequent", 20, 0, true) }
+                val shuffledDeferred = async { getAlbums("random", 20, 0, true) }
 
                 _recentlyPlayedAlbums.value = recentlyPlayedDeferred.await()
                 _recentAlbums.value = recentDeferred.await()

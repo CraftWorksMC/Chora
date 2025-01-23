@@ -295,7 +295,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) 
                             onClick = {
                                 if (radioName.isBlank() && radioUrl.isBlank()) return@Button
                                 coroutineScope.launch {
-                                    modifyRadio(radio)
+                                    modifyRadio(radio, context)
                                 }
                                 setShowDialog(false)
                             },

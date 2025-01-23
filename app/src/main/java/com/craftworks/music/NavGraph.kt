@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -24,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -32,7 +32,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
-import com.craftworks.music.data.radioList
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.bottomSpacerHeightDp
 import com.craftworks.music.ui.playing.NowPlayingContent
@@ -71,8 +70,7 @@ fun SetupNavGraph(
 
     val context = LocalContext.current
 
-    playlistList = SettingsManager(context).localPlaylists.collectAsState(mutableListOf()).value
-    radioList = SettingsManager(context).localRadios.collectAsState(mutableListOf()).value
+    playlistList = SettingsManager(context).localPlaylists.collectAsStateWithLifecycle(mutableListOf()).value
 
     val homeViewModel = remember { HomeScreenViewModel() }
     val albumViewModel = remember { AlbumScreenViewModel() }
@@ -86,9 +84,6 @@ fun SetupNavGraph(
         GlobalViewModels.registerViewModel(songsViewModel)
         GlobalViewModels.registerViewModel(artistsViewModel)
         GlobalViewModels.registerViewModel(playlistViewModel)
-
-        //NavidromeManager.init(context)
-        //LocalProviderManager.init(context)
 
         //GlobalViewModels.refreshAll()
     }

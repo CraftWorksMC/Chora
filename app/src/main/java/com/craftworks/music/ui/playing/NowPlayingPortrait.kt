@@ -160,7 +160,7 @@ fun NowPlayingPortrait(
                         if (currentSong.navidromeID.startsWith("Local_"))
                             stringResource(R.string.Source_Local)
                         else
-                            stringResource(R.string.Source_Navidrome)
+                            stringResource(R.string.Source_Navidrome) + " #${currentSong.navidromeID}"
                     } ",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Light,

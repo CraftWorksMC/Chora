@@ -169,7 +169,7 @@ class SettingsManager(
     }
 
     suspend fun saveLocalRadios() {
-        val radiosListJson = Json.encodeToString(radioList)
+        val radiosListJson = Json.encodeToString(radioList.filter { it.navidromeID == "Local" })
         context.dataStore.edit { preferences ->
             preferences[LOCAL_RADIOS] = radiosListJson
         }
@@ -180,7 +180,7 @@ class SettingsManager(
     }
 
     suspend fun saveLocalPlaylists(){
-        val playlistJson = Json.encodeToString(playlistList)
+        val playlistJson = Json.encodeToString(playlistList.filter { it.navidromeID.startsWith("Local_") })
         context.dataStore.edit { preferences ->
             preferences[LOCAL_PLAYLISTS] = playlistJson
         }

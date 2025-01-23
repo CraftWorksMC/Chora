@@ -215,7 +215,7 @@ fun AlbumDetails(
             verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = {
-                    SongHelper.currentSong = currentAlbum.songs!![0]
+                    //SongHelper.currentSong = currentAlbum.songs!![0]
                     SongHelper.currentList = currentAlbum.songs!!
                     SongHelper.playStream(
                         context,
@@ -244,7 +244,7 @@ fun AlbumDetails(
                     mediaController?.shuffleModeEnabled = true
 
                     val random = currentAlbum.songs!!.indices.random()
-                    SongHelper.currentSong = currentAlbum.songs!![random]
+                    //SongHelper.currentSong = currentAlbum.songs!![random]
                     SongHelper.currentList = currentAlbum.songs!!
                     SongHelper.playStream(
                         context,
@@ -277,7 +277,7 @@ fun AlbumDetails(
             ) {
                 for(song in currentAlbum.songs!!){
                     HorizontalSongCard(song = song, onClick = {
-                        SongHelper.currentSong = song
+                        //SongHelper.currentSong = song
                         SongHelper.currentList = currentAlbum.songs!!
                         song.media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
                     })

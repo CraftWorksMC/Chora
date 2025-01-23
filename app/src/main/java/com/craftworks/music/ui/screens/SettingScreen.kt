@@ -52,7 +52,6 @@ import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 )
 @Composable
 fun SettingScreen(navHostController: NavHostController = rememberNavController()) {
-    //val context = LocalContext.current.applicationContext
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     Column(modifier = Modifier

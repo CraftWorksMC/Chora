@@ -22,7 +22,6 @@ fun getIcecastMetadata(urlString: String): String {
         while (reader.readLine().also { line = it } != null) {
             response.append(line)
         }
-        reader.close()
         Log.d("ICECAST", "Getting IceCast Radio Metadata")
         parseIcecastMetadata(response.toString())
         return response.toString()
@@ -35,14 +34,16 @@ fun parseIcecastMetadata(json: String){
     val jsonObject = JSONObject(json)
     val sourceArray = jsonObject.getJSONObject("icestats").getJSONArray("source")
 
-    var title = ""
     for (i in 0 until sourceArray.length()) {
         val sourceObject = sourceArray.getJSONObject(i)
-        title = sourceObject.optString("title").split(" - ").last()
-        println(title)
+        if (sourceObject.getString("mount") == "/radio") {
+            val title = sourceObject.optString("title")
+            val bitRate = sourceObject.optString("ice-bitrate")
+            Log.d("ICECAST", "Title: $title")
+            SongHelper.currentSong = SongHelper.currentSong.copy(
+                title = title,
+                bitrate = bitRate.toInt()
+            )
+        }
     }
-    println("Radio title: $title")
-    SongHelper.currentSong = SongHelper.currentSong.copy(
-        title = title
-    )
 }

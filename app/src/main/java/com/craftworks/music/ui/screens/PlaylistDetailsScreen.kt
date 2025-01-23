@@ -104,14 +104,13 @@ fun PlaylistDetails(
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(playlist?.coverArt)
-                    .allowHardware(false)
                     .size(256)
                     .crossfade(true)
                     .build(),
                 placeholder = painterResource(R.drawable.placeholder),
                 fallback = painterResource(R.drawable.placeholder),
                 contentScale = ContentScale.FillWidth,
-                contentDescription = "Album Image",
+                contentDescription = "Playlist cover art",
                 modifier = Modifier
                     .fillMaxWidth()
                     .fadingEdge(imageFadingEdge)
@@ -171,9 +170,9 @@ fun PlaylistDetails(
             verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = {
-                    SongHelper.currentSong = playlist?.songs?.get(0) ?: return@Button
-                    SongHelper.currentList = playlist.songs.orEmpty()
-                    playlist.songs?.get(0)?.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
+                    //SongHelper.currentSong = playlist?.songs?.get(0) ?: return@Button
+                    SongHelper.currentList = playlist?.songs.orEmpty()
+                    playlist?.songs?.get(0)?.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -194,10 +193,10 @@ fun PlaylistDetails(
                     shuffleSongs.value = true
                     mediaController?.shuffleModeEnabled = true
 
-                    val random = playlist?.songs?.indices?.random()
-                    SongHelper.currentSong = random?.let { playlist.songs?.get(it) } ?: return@Button
-                    SongHelper.currentList = playlist.songs.orEmpty()
-                    playlist.songs?.get(random)?.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
+                    val random = playlist?.songs?.indices?.random() ?: 0
+                    //SongHelper.currentSong = random?.let { playlist.songs?.get(it) } ?: return@Button
+                    SongHelper.currentList = playlist?.songs.orEmpty()
+                    playlist?.songs?.get(random)?.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -214,7 +213,7 @@ fun PlaylistDetails(
         Column(modifier = Modifier.padding(12.dp, top = 0.dp)) {
             playlist?.songs?.let {
                 SongsHorizontalColumn(it, onSongSelected = { song ->
-                    SongHelper.currentSong = song
+                    //SongHelper.currentSong = song
                     SongHelper.currentList = playlist.songs.orEmpty()
                     song.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
                 })

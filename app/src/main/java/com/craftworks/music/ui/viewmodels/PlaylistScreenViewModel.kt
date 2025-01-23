@@ -45,14 +45,10 @@ class PlaylistScreenViewModel : ViewModel(), ReloadableViewModel {
             coroutineScope {
                 val selectedPlaylistDeferred = async { getPlaylistDetails(_selectedPlaylist.value?.navidromeID.toString()) }
 
-                //_selectedPlaylist.value = selectedPlaylistDeferred.await()
-
                 _selectedPlaylist.value = _selectedPlaylist.value?.copy(
                     songs = selectedPlaylistDeferred.await()?.songs,
                     coverArt = selectedPlaylistDeferred.await()?.coverArt
                 )
-
-                //com.craftworks.music.ui.screens.selectedPlaylist = _selectedPlaylist.value!!
             }
         }
     }

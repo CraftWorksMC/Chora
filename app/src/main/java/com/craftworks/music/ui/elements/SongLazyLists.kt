@@ -38,7 +38,6 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import kotlinx.coroutines.flow.filter
@@ -133,7 +132,7 @@ fun SongsHorizontalColumn(
         items(songList) { song ->
             HorizontalSongCard(song = song, onClick = {
                 isSongSelected = true
-                sliderPos.intValue = 0
+                //sliderPos.intValue = 0
                 onSongSelected(song)
             })
         }
@@ -260,7 +259,7 @@ fun RadiosGrid(radioList: List<MediaData.Radio>, onSongSelected: (song: MediaDat
                 radio = radio,
                 onClick = {
                 isSongSelected = true
-                sliderPos.intValue = 0
+                //sliderPos.intValue = 0
                 onSongSelected(song)
             })
         }

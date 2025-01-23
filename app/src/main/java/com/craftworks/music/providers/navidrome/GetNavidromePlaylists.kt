@@ -67,6 +67,7 @@ fun parseNavidromePlaylistJSON(
         it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora"
         it.media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora"
     }
+    subsonicResponse.playlist?.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${subsonicResponse.playlist.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora"
 
     Log.d("NAVIDROME", "Added Metadata to ${mediaDataPlaylist?.name}")
 

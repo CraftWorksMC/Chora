@@ -60,10 +60,13 @@ data class SubsonicResponse(
     val lyricsList: LyricsList? = null
 )
 
-suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
+suspend fun sendNavidromeGETRequest(
+    endpoint: String,
+    ignoreCachedResponse: Boolean = false
+) : List<MediaData> {
     // Check if data is in the cache
     val cachedData = NavidromeCache.get(endpoint)
-    if (cachedData != null) {
+    if (cachedData != null && ignoreCachedResponse == false) {
         Log.d("NAVIDROME", "Returning data from cache for endpoint: $endpoint")
         setSyncingStatus(false)
         return cachedData
@@ -152,9 +155,9 @@ suspend fun sendNavidromeGETRequest(endpoint: String) : List<MediaData> {
                             // Playlists
                             endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
                             endpoint.startsWith("getPlaylist.") -> parsedData.addAll(listOf(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password)))
-                            endpoint.startsWith("updatePlaylist") -> getPlaylists()
-                            endpoint.startsWith("createPlaylist") -> getPlaylists()
-                            endpoint.startsWith("deletePlaylist") -> getPlaylists()
+                            endpoint.startsWith("updatePlaylist") -> getPlaylists(true) // Ignore cache
+                            endpoint.startsWith("createPlaylist") -> getPlaylists(true) // Ignore cache
+                            endpoint.startsWith("deletePlaylist") -> getPlaylists(true) // Ignore cache
 
                             // Radios
                             endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))

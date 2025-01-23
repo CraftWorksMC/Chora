@@ -78,7 +78,7 @@ fun RadioScreen(
     val onRefresh: () -> Unit = {
         coroutineScope.launch {
             isRefreshing = true
-            radioList = getRadios().toMutableList()
+            radioList = getRadios(context, true).toMutableList()
             isRefreshing = false
         }
     }
@@ -139,7 +139,7 @@ fun RadioScreen(
                 if (song.media.toString().endsWith("m3u8"))
                     return@RadiosGrid
 
-                SongHelper.currentSong = song
+                //SongHelper.currentSong = song
                 SongHelper.currentList = listOf()
                 song.media?.let { SongHelper.playStream(context, Uri.parse(it), true, mediaController) }
                 // Get Metadata

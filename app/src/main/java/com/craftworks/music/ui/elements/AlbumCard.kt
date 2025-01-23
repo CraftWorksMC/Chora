@@ -146,7 +146,7 @@ private fun playSelectedAlbum(
         // Try to play song
         if (currentAlbum?.songs.isNullOrEmpty()) return@launch
 
-        SongHelper.currentSong = currentAlbum?.songs?.get(0)!!
+        //SongHelper.currentSong = currentAlbum?.songs?.get(0)!!
         SongHelper.currentList = currentAlbum.songs ?: emptyList()
         SongHelper.playStream(
             context,

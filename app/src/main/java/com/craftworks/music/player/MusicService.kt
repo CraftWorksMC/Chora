@@ -161,14 +161,14 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     Log.d("REPLAY GAIN", "Setting ReplayGain to ${player.volume}")
                 }
 
-                SongHelper.currentSong = mediaItemToSong(mediaItem)
-
                 serviceIOScope.launch {
-                    if (NavidromeManager.checkActiveServers())
-                        async { markNavidromeSongAsPlayed(SongHelper.currentSong) }
+                    if (NavidromeManager.checkActiveServers() && !SongHelper.currentSong.navidromeID.startsWith("Local"))
+                        async { markNavidromeSongAsPlayed(SongHelper.currentSong.navidromeID) }
 
                     if (SongHelper.currentSong.isRadio == false)
                         async { LyricsManager.getLyrics() }
+
+                    SongHelper.currentSong = mediaItemToSong(mediaItem)
                 }
             }
 
@@ -517,7 +517,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     private fun getRadioItems() : MutableList<MediaItem> {
         serviceIOScope.launch {
             if (aRadioScreenItems.isEmpty()) {
-                getRadios().forEach { radio ->
+                getRadios(baseContext).forEach { radio ->
                     aRadioScreenItems.add(radioToMediaItem(radio))
                 }
             }

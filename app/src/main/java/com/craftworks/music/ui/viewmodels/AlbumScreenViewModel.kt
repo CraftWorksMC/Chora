@@ -19,7 +19,7 @@ class AlbumScreenViewModel : ViewModel(), ReloadableViewModel {
     override fun reloadData() {
         viewModelScope.launch {
             coroutineScope {
-                val allAlbumsDeferred = async { getAlbums("alphabeticalByName", 20) }
+                val allAlbumsDeferred = async { getAlbums("alphabeticalByName", 20, 0, true) }
 
                 _allAlbums.value = allAlbumsDeferred.await()
             }

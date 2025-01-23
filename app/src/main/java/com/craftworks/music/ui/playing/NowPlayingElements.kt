@@ -96,6 +96,7 @@ fun PlaybackProgressSlider(
                 if (it.isPlaying) {
                     val position = it.currentPosition.toInt()
                     currentValue = position
+                    sliderPos.intValue = position
                 }
                 delay(1000)
             }

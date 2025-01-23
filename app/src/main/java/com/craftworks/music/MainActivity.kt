@@ -159,7 +159,7 @@ class MainActivity : ComponentActivity() {
                         BottomSheetScaffold(
                             sheetContainerColor = Color.Transparent,
                             containerColor = Color.Transparent,
-                            sheetPeekHeight = if (SongHelper.currentSong.title.isBlank() || SongHelper.currentSong.artist.isBlank()) 0.dp
+                            sheetPeekHeight = if (SongHelper.currentSong.title == "" && SongHelper.currentSong.duration == 0 && SongHelper.currentSong.imageUrl == "") 0.dp
                             else 72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues()
                                 .calculateBottomPadding(),
                             sheetShadowElevation = 4.dp,

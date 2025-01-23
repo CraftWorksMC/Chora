@@ -20,16 +20,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.craftworks.music.R
 import com.craftworks.music.managers.NavidromeManager
 
 @Composable
 @Preview
 fun HorizontalLineWithNavidromeCheck() {
-    val navidromeStatus by NavidromeManager.serverStatus.collectAsState()
+    val navidromeStatus by NavidromeManager.serverStatus.collectAsStateWithLifecycle()
     val showError by remember { derivedStateOf { navidromeStatus } }
 
-    val syncingStatus by NavidromeManager.syncStatus.collectAsState()
+    val syncingStatus by NavidromeManager.syncStatus.collectAsStateWithLifecycle()
     val showSync by remember { derivedStateOf { syncingStatus } }
 
     // Error Container

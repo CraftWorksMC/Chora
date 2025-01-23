@@ -20,16 +20,20 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 
 // region Albums
 suspend fun getAlbums(
-    sort: String? = "alphabeticalByName", size: Int? = 100, offset: Int? = 0
+    sort: String? = "alphabeticalByName",
+    size: Int? = 100,
+    offset: Int? = 0,
+    ignoreCachedResponse: Boolean = false
 ): List<MediaData.Album> = coroutineScope {
     val deferredAlbums = mutableListOf<Deferred<List<MediaData.Album>>>()
 
     if (NavidromeManager.checkActiveServers()) {
         deferredAlbums.add(async {
-            sendNavidromeGETRequest("getAlbumList.view?type=$sort&size=$size&offset=$offset&f=json").filterIsInstance<MediaData.Album>()
+            sendNavidromeGETRequest("getAlbumList.view?type=$sort&size=$size&offset=$offset&f=json", ignoreCachedResponse).filterIsInstance<MediaData.Album>()
         })
     }
     if (LocalProviderManager.checkActiveFolders()) {
@@ -42,18 +46,6 @@ suspend fun getAlbums(
 
     deferredAlbums.awaitAll().flatten()
 }
-
-//suspend fun getAlbumSongs(albumId: String): List<MediaData.Song> = coroutineScope {
-//    val deferredAlbumSongs = mutableListOf<Deferred<List<MediaData.Song>>>()
-//
-//    if (NavidromeManager.checkActiveServers()) {
-//        deferredAlbumSongs.add(async {
-//            sendNavidromeGETRequest("getAlbum.view?id=$albumId&f=json").filterIsInstance<MediaData.Song>()
-//        })
-//    }
-//
-//    deferredAlbumSongs.awaitAll().flatten()
-//}
 
 suspend fun getAlbum(albumId: String): MediaData.Album? = coroutineScope {
     if (albumId.startsWith("Local_")){
@@ -171,22 +163,27 @@ suspend fun searchArtist(
 //endregion
 
 //region Radios
-suspend fun getRadios(): List<MediaData.Radio> = coroutineScope {
+suspend fun getRadios(context: Context, ignoreCachedResponse: Boolean = false): List<MediaData.Radio> = coroutineScope {
     val deferredRadios = mutableListOf<Deferred<List<MediaData.Radio>>>()
 
     if (NavidromeManager.checkActiveServers()) {
         deferredRadios.add(async {
-            sendNavidromeGETRequest("getInternetRadioStations.view?f=json").filterIsInstance<MediaData.Radio>()
+            sendNavidromeGETRequest("getInternetRadioStations.view?f=json", ignoreCachedResponse).filterIsInstance<MediaData.Radio>()
         })
     }
-    deferredRadios.add(async { radioList })
+
+    deferredRadios.add(async {
+        SettingsManager(context).localRadios.first()
+    })
 
     deferredRadios.awaitAll().flatten()
 }
 
 suspend fun createRadio(name:String, url:String, homePage:String, context: Context, addToNavidrome: Boolean) {
-    if (addToNavidrome && NavidromeManager.checkActiveServers())
-        sendNavidromeGETRequest("createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage")
+    if (addToNavidrome && NavidromeManager.checkActiveServers()) {
+        sendNavidromeGETRequest("createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePage", true) // Always ignore cache when adding radios
+        getRadios(context, true)
+    }
     else {
         radioList.add(
             MediaData.Radio(
@@ -199,9 +196,14 @@ suspend fun createRadio(name:String, url:String, homePage:String, context: Conte
         SettingsManager(context).saveLocalRadios()
     }
 }
-suspend fun modifyRadio(radio: MediaData.Radio) {
-    if (NavidromeManager.checkActiveServers() && radio.navidromeID != "Local")
-        sendNavidromeGETRequest("updateInternetRadioStation.view?name=${radio.name}&streamUrl=${radio.media}&homepageUrl=${radio.homePageUrl}&id=${radio.navidromeID}")
+suspend fun modifyRadio(radio: MediaData.Radio, context: Context) {
+    if (NavidromeManager.checkActiveServers() && radio.navidromeID != "Local") {
+        sendNavidromeGETRequest(
+            "updateInternetRadioStation.view?name=${radio.name}&streamUrl=${radio.media}&homepageUrl=${radio.homePageUrl}&id=${radio.navidromeID}",
+            true // Always ignore cache when modifying radios
+        )
+        getRadios(context, true)
+    }
     else {
         radioList.remove(radio)
         radioList.add(
@@ -214,9 +216,11 @@ suspend fun modifyRadio(radio: MediaData.Radio) {
     }
 }
 suspend fun deleteRadio(radio: MediaData.Radio, context: Context){
-    if (NavidromeManager.checkActiveServers() && radio.navidromeID != "Local")
-        sendNavidromeGETRequest("deleteInternetRadioStation.view?id=${radio.navidromeID}")
-    else{
+    if (NavidromeManager.checkActiveServers() && radio.navidromeID != "Local") {
+        sendNavidromeGETRequest("deleteInternetRadioStation.view?id=${radio.navidromeID}", true) // Always ignore cache when deleting radios
+        getRadios(context, true)
+    }
+    else {
         radioList.remove(radio)
         SettingsManager(context).saveLocalRadios()
     }
@@ -224,12 +228,12 @@ suspend fun deleteRadio(radio: MediaData.Radio, context: Context){
 //endregion
 
 //region Playlists
-suspend fun getPlaylists(): List<MediaData.Playlist> = coroutineScope {
+suspend fun getPlaylists(ignoreCachedResponse: Boolean = false): List<MediaData.Playlist> = coroutineScope {
     val deferredPlaylists = mutableListOf<Deferred<List<MediaData.Playlist>>>()
 
     if (NavidromeManager.checkActiveServers()) {
         deferredPlaylists.add(async {
-            sendNavidromeGETRequest("getPlaylists.view?f=json").filterIsInstance<MediaData.Playlist>()
+            sendNavidromeGETRequest("getPlaylists.view?f=json", ignoreCachedResponse).filterIsInstance<MediaData.Playlist>()
         })
     }
     deferredPlaylists.add(async { playlistList })
@@ -238,13 +242,14 @@ suspend fun getPlaylists(): List<MediaData.Playlist> = coroutineScope {
 }
 
 suspend fun getPlaylistDetails(
-    id: String
+    id: String,
+    ignoreCachedResponse: Boolean = false
 ): MediaData.Playlist? = coroutineScope {
     val deferredPlaylist: Deferred<MediaData.Playlist>
 
     if (NavidromeManager.checkActiveServers()) {
         deferredPlaylist = async {
-            sendNavidromeGETRequest("getPlaylist.view?id=$id&f=json").filterIsInstance<MediaData.Playlist>()
+            sendNavidromeGETRequest("getPlaylist.view?id=$id&f=json", ignoreCachedResponse).filterIsInstance<MediaData.Playlist>()
                 .firstOrNull() ?: throw IllegalStateException("No playlist details returned")
         }
         deferredPlaylist.await()
@@ -255,7 +260,7 @@ suspend fun getPlaylistDetails(
 
 suspend fun createPlaylist(playlistName: String, context: Context) {
     if (NavidromeManager.checkActiveServers()) {
-        sendNavidromeGETRequest("createPlaylist.view?name=$playlistName&songId=${songToAddToPlaylist.value.navidromeID}")
+        sendNavidromeGETRequest("createPlaylist.view?name=$playlistName&songId=${songToAddToPlaylist.value.navidromeID}", true) // Always ignore cache when creating playlists
     }
     else {
         val playlistImage: Uri = localPlaylistImageGenerator(
@@ -278,7 +283,7 @@ suspend fun createPlaylist(playlistName: String, context: Context) {
 }
 suspend fun deletePlaylist(playlistID: String, context: Context){
     if (NavidromeManager.checkActiveServers())
-        sendNavidromeGETRequest("deletePlaylist.view?id=$playlistID")
+        sendNavidromeGETRequest("deletePlaylist.view?id=$playlistID", true) // Always ignore cache when deleting playlists
     else{
         playlistList.remove(playlistToDelete.value)
         SettingsManager(context).saveLocalPlaylists()
@@ -286,7 +291,7 @@ suspend fun deletePlaylist(playlistID: String, context: Context){
 }
 suspend fun addSongToPlaylist(playlist: MediaData.Playlist, songID: String, context: Context){
     if (NavidromeManager.checkActiveServers())
-        sendNavidromeGETRequest("updatePlaylist.view?playlistId=${playlist.navidromeID}&songIdToAdd=$songID")
+        sendNavidromeGETRequest("updatePlaylist.view?playlistId=${playlist.navidromeID}&songIdToAdd=$songID", true) // Always ignore cache when modifying playlists
     else {
         playlist.songs = playlist.songs?.plus(songToAddToPlaylist.value)
         SettingsManager(context).saveLocalPlaylists()
