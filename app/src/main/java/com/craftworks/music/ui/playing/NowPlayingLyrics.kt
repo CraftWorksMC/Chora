@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.playing
 
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -38,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -77,6 +79,9 @@ fun LyricsView(
 
     val scrollOffset = dpToPx(128)
 
+    val configuration = LocalConfiguration.current
+    val appViewHeightDp = configuration.screenHeightDp.dp
+
     // Update the current playback position every second
     LaunchedEffect(mediaController, lyrics) {
         while (true) {
@@ -114,7 +119,7 @@ fun LyricsView(
 
                         state.animateScrollBy(
                             value = scrollBy.toFloat(),
-                            animationSpec = tween(1200, 0, FastOutSlowInEasing)
+                            animationSpec = tween(500, 0, FastOutSlowInEasing)
                         )
                     }
                     else
@@ -122,6 +127,25 @@ fun LyricsView(
                             index = targetIndex,
                             scrollOffset = -(currentItem?.size ?: 0)
                         )
+                }
+            }
+        }
+    }
+
+    // Plain lyrics scrolling
+    LaunchedEffect(mediaController, lyrics) {
+        if (lyrics.size == 1) {
+            while (true) {
+                if (mediaController?.isPlaying == true) {
+                    val totalDuration = mediaController.duration / 1000f // duration in seconds
+                    val scrollRate = state.layoutInfo.viewportSize.height / totalDuration
+
+                    coroutineScope.launch {
+                        state.animateScrollBy(scrollRate * 2.5f, tween(500, 0, LinearEasing))
+                    }
+                    delay(500)
+                } else {
+                    delay(500)
                 }
             }
         }
@@ -143,15 +167,15 @@ fun LyricsView(
                 FadingEdgesGravity.All,
                 96.dp
             ),
-        verticalArrangement = Arrangement.Top,
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         state = state,
     ) {
+        item {
+            Spacer(modifier = Modifier.height(appViewHeightDp / 3))
+        }
         // Synced Lyrics
         if (lyrics.size > 1) {
-            item {
-                Spacer(Modifier.height(64.dp))
-            }
             itemsIndexed(
                 lyrics,
                 key = { index, lyric -> "${index}:${lyric.content}" }
@@ -192,6 +216,9 @@ fun LyricsView(
                 )
             }
         }
+        item {
+            Spacer(modifier = Modifier.height(appViewHeightDp / 3))
+        }
     }
 }
 
@@ -208,7 +235,7 @@ fun SyncedLyricItem(
     val lyricAlpha: Float by animateFloatAsState(
         targetValue = if (currentLyricIndex == index) 1f else 0.5f,
         label = "Current Lyric Alpha",
-        animationSpec = tween(1200, 0, FastOutSlowInEasing)
+        animationSpec = tween(500, 0, FastOutSlowInEasing)
     )
 
     val lyricBlur: Dp by animateDpAsState(
@@ -216,13 +243,13 @@ fun SyncedLyricItem(
             index, currentLyricIndex, visibleItemsInfo
         ) else 0.dp,
         label = "Lyric Blur",
-        animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing)
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
     )
 
     val scale by animateFloatAsState(
         targetValue = if (currentLyricIndex == index) 1f else 0.9f,
         label = "Lyric Scale Animation",
-        animationSpec = tween(1200, 0, FastOutSlowInEasing)
+        animationSpec = tween(500, 0, FastOutSlowInEasing)
     )
 
     Box(modifier = Modifier
