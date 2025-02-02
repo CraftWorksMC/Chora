@@ -1,14 +1,17 @@
 package com.craftworks.music.data
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateListOf
 import kotlinx.serialization.Serializable
 
 var songsList: MutableList<MediaData.Song> = mutableStateListOf()
 
+@Immutable
 @Serializable
 data class Genre(
     val name: String? = "")
 
+@Immutable
 @Serializable
 data class ReplayGain(
     val trackGain: Float? = 0f,

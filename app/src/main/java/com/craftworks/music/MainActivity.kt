@@ -108,16 +108,6 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-//        val scaffoldState = BottomSheetScaffoldState(
-//            bottomSheetState = SheetState(
-//                skipPartiallyExpanded = false,
-//                initialValue = SheetValue.PartiallyExpanded,
-//                skipHiddenState = true,
-//                density = Density(this)
-//            ),
-//            snackbarHostState = SnackbarHostState()
-//        )
-
         setContent {
             MusicPlayerTheme {
                 // BOTTOM NAVIGATION + NOW-PLAYING UI
@@ -132,15 +122,17 @@ class MainActivity : ComponentActivity() {
                     MaterialTheme.colorScheme.background.toArgb()
                 )
 
-                val scaffoldState = BottomSheetScaffoldState(
-                    bottomSheetState = SheetState(
-                        skipPartiallyExpanded = false,
-                        initialValue = SheetValue.PartiallyExpanded,
-                        skipHiddenState = true,
-                        density = Density(this)
-                    ),
-                    snackbarHostState = SnackbarHostState()
-                )
+                val scaffoldState = remember {
+                    BottomSheetScaffoldState(
+                        bottomSheetState = SheetState(
+                            skipPartiallyExpanded = false,
+                            initialValue = SheetValue.PartiallyExpanded,
+                            skipHiddenState = true,
+                            density = Density(this)
+                        ),
+                        snackbarHostState = SnackbarHostState()
+                    )
+                }
 
                 Scaffold(
                     bottomBar = {
@@ -260,24 +252,6 @@ class MainActivity : ComponentActivity() {
             })
         }
     }
-
-//    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
-//        super.onNewIntent(intent, caller)
-//        handleSearchIntent(intent)
-//    }
-
-//    @androidx.annotation.OptIn(UnstableApi::class)
-//    private fun handleSearchIntent(intent: Intent) {
-//        if (intent.action == "android.media.action.MEDIA_PLAY_FROM_SEARCH") {
-//            val query = intent.getStringExtra("query")
-//
-//            val mediaLibraryService = ChoraMediaLibraryService()
-//
-//            query?.let { searchQuery ->
-//                //mediaLibraryService.searchAndPlayMedia(searchQuery)
-//            }
-//        }
-//    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

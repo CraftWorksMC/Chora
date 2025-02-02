@@ -31,7 +31,12 @@ class ArtistsScreenViewModel : ViewModel(), ReloadableViewModel {
         _allArtists.value = searchArtist(query)
     }
 
-    fun fetchArtistDetails(artistId: String) {
+    fun setSelectedArtist(artist: MediaData.Artist) {
+        _selectedArtist.value = artist
+        fetchArtistDetails(artist.navidromeID)
+    }
+
+    private fun fetchArtistDetails(artistId: String) {
         viewModelScope.launch {
             _selectedArtist.value = getArtistDetails(artistId)
 

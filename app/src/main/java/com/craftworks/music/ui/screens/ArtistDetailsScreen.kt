@@ -32,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,13 +80,7 @@ fun ArtistDetails(
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val artist by viewModel.selectedArtist.collectAsStateWithLifecycle()
 
-    LocalContext.current
-
-    LaunchedEffect(selectedArtist.name) {
-        viewModel.fetchArtistDetails(selectedArtist.navidromeID)
-    }
-
-    songsList.filter { it.artist.contains(selectedArtist.name) }
+    songsList.filter { it.artist.contains(artist?.name ?: "") }
 
     Column(modifier = Modifier
         .fillMaxWidth()
