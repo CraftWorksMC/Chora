@@ -6,10 +6,10 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 
 ## Features
 
-- Subsonic Integration.
+- Subsonic/Navidrome support.
 - Transcoding.
 - Material 3 UI.
-- Offline Mode.
+- Offline Mode [Download songs from server].
 - Internet Radio. [Metadata IceCast only]
 - Synced And Unsynced Lyrics. [From lrclib.net]
 - Navidrome and Local playlists.
@@ -17,18 +17,16 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 
 ## W.I.P
 
-- Better Android Auto Support.
-- Better Local File Support.
+- Plain lyrics auto-scrolling.
 
 ## Known Issues
 
-- Could crash when connecting to a Navidrome server on a particularly slow connection.
-- Download song button doesn't work.
+- After changing some settings, all the data is cleared from screens and need to be manually refreshed.
+- After selecting a radio, selecting an album always plays the first song.
 
 ## Roadmap
 
 - Jellyfin (Music) Support.
-
 
 ## Screenshots
 <p align="center">
