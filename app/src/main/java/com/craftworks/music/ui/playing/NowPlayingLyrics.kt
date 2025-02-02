@@ -75,7 +75,7 @@ fun LyricsView(
     val coroutineScope = rememberCoroutineScope()
     val visibleItemsInfo by remember { derivedStateOf { state.layoutInfo.visibleItemsInfo } }
 
-    val scrollOffset = dpToPx(64)
+    val scrollOffset = dpToPx(128)
 
     // Update the current playback position every second
     LaunchedEffect(mediaController, lyrics) {
@@ -107,9 +107,9 @@ fun LyricsView(
                 coroutineScope.launch {
                     // If the next item is visible, animate smoothly to it using FastOutSlowIn Easing
                     // else use animateScrollToItem.
-                    if (visibleItemsInfo.any { it.index == targetIndex }) {
-                        val currentItem = visibleItemsInfo.firstOrNull { it.index == currentLyricIndex.intValue }
+                    val currentItem = visibleItemsInfo.firstOrNull { it.index == currentLyricIndex.intValue }
 
+                    if (visibleItemsInfo.any { it.index == targetIndex }) {
                         val scrollBy = (currentItem?.offset ?: 0) + (currentItem?.size ?: 0) - scrollOffset
 
                         state.animateScrollBy(
@@ -120,7 +120,7 @@ fun LyricsView(
                     else
                         state.animateScrollToItem(
                             index = targetIndex,
-                            scrollOffset = -scrollOffset
+                            scrollOffset = -(currentItem?.size ?: 0)
                         )
                 }
             }
@@ -171,7 +171,7 @@ fun LyricsView(
                     coroutineScope.launch {
                         state.animateScrollToItem(
                             index = index,
-                            scrollOffset = -scrollOffset
+                            scrollOffset = -scrollOffset + (visibleItemsInfo.firstOrNull { it.index == index }?.size ?: 0)
                         )
                     }
                 }
