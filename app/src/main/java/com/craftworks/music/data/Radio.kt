@@ -2,6 +2,7 @@ package com.craftworks.music.data
 
 import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 
 data class Radio (
     val name: String,
@@ -11,4 +12,4 @@ data class Radio (
     val navidromeID: String? = "",
 )
 
-var radioList:MutableList<MediaData.Radio> = mutableStateListOf()
+var radioList:SnapshotStateList<MediaData.Radio> = mutableStateListOf()

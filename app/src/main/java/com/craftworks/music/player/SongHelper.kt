@@ -15,7 +15,6 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -98,83 +97,47 @@ class SongHelper {
 
                 //sliderPos.intValue = 0
 
-                if (isRadio == false) {
-                    for (song in currentList) {
+                for (song in currentList) {
+                    //Assign transcoding to media
+                    if (transcodingValue != "No Transcoding" && !song.navidromeID.startsWith("Local_"))
+                        song.media += "&maxBitRate=${transcodingValue}"
 
-                        //Assign transcoding to media
-                        if (transcodingValue != "No Transcoding" && NavidromeManager.checkActiveServers())
-                            song.media += "&maxBitRate=${transcodingValue}"
-
-                        val mediaMetadata = MediaMetadata.Builder()
-                            .setIsPlayable(true)
-                            .setIsBrowsable(false)
-                            .setTitle(song.title)
-                            .setArtist(song.artist)
-                            .setAlbumTitle(song.album)
-                            .setArtworkUri(Uri.parse(song.imageUrl))
-                            .setReleaseYear(song.year)
-                            .setExtras(Bundle().apply {
-                                putInt("duration", song.duration)
-                                putString("navidromeID", song.navidromeID)
-                                putBoolean("isRadio", song.isRadio == true)
-                                putString("format", song.format)
-                                putInt("bitrate", song.bitrate ?: 0)
-                            })
-                            .build()
-                        val mediaItem = MediaItem.Builder()
-                            .setMediaId(song.media.toString())
-                            .setUri(song.media.toString())
-                            .setMediaMetadata(mediaMetadata)
-                            .build()
-
-                        currentTracklist.add(mediaItem)
-                    }
-
-                    val currentTrackIndex = currentTracklist.indexOfFirst { it.mediaId.substringBefore("&maxBitRate=") == url.toString() }
-
-                    withContext(Dispatchers.Main) {
-                        mediaController?.setMediaItems(currentTracklist, currentTrackIndex, 0)
-                        mediaController?.seekToDefaultPosition(currentTrackIndex)
-                        mediaController?.prepare()
-
-                        mediaController?.play()
-
-                        println("Index: $currentTrackIndex, playlist size: ${mediaController?.mediaItemCount}")
-                    }
-                }
-                else {
-                    val radioMetadata = MediaMetadata.Builder()
+                    val mediaMetadata = MediaMetadata.Builder()
                         .setIsPlayable(true)
                         .setIsBrowsable(false)
-                        .setTitle(currentSong.title)
-                        .setArtist(currentSong.artist)
-                        .setAlbumTitle(currentSong.album)
-                        .setArtworkUri(Uri.parse(currentSong.imageUrl))
-                        .setReleaseYear(currentSong.year)
+                        .setTitle(song.title)
+                        .setArtist(song.artist)
+                        .setAlbumTitle(song.album)
+                        .setArtworkUri(Uri.parse(song.imageUrl))
+                        .setReleaseYear(song.year)
                         .setExtras(Bundle().apply {
-                            putInt("duration", currentSong.duration)
-                            putString("navidromeID", currentSong.navidromeID)
-                            putBoolean("isRadio", true)
-                            putString("format", currentSong.format)
-                            putInt("bitrate", currentSong.bitrate ?: 0)
+                            putInt("duration", song.duration)
+                            putString("navidromeID", song.navidromeID)
+                            putBoolean("isRadio", false)
+                            putString("format", song.format)
+                            putInt("bitrate", song.bitrate ?: 0)
                         })
                         .build()
-                    val radioItem = MediaItem.Builder()
-                        .setUri(url)
-                        .setMediaId(url.toString())
-                        .setMediaMetadata(radioMetadata)
+                    val mediaItem = MediaItem.Builder()
+                        .setMediaId(song.media.toString())
+                        .setUri(song.media.toString())
+                        .setMediaMetadata(mediaMetadata)
                         .build()
 
-                    currentTracklist = mutableListOf(radioItem)
+                    currentTracklist.add(mediaItem)
+                }
 
-                    withContext(Dispatchers.Main) {
-                        mediaController?.setMediaItem(radioItem)
-                        mediaController?.seekToDefaultPosition()
-                        mediaController?.prepare()
-                        mediaController?.play()
+                val currentTrackIndex =
+                    currentTracklist.indexOfFirst { it.mediaId.substringBefore("&maxBitRate=") == url.toString() }
 
-                        println("listening to radio")
-                    }
+                withContext(Dispatchers.Main) {
+                    mediaController?.setMediaItems(currentTracklist, currentTrackIndex, 0)
+                    mediaController?.seekToDefaultPosition(currentTrackIndex)
+                    mediaController?.prepare()
+
+                    mediaController?.play()
+
+                    println("Index: $currentTrackIndex, playlist size: ${mediaController?.mediaItemCount}")
                 }
             }
         }

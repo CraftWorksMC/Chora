@@ -10,11 +10,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,15 +50,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
+import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.radioList
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.getIcecastMetadata
 import com.craftworks.music.providers.getRadios
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
-import com.craftworks.music.ui.elements.RadiosGrid
+import com.craftworks.music.ui.elements.RadioCard
 import com.craftworks.music.ui.elements.dialogs.AddRadioDialog
 import com.craftworks.music.ui.elements.dialogs.ModifyRadioDialog
+import com.gitlab.mvysny.konsumexml.year
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 var showRadioAddDialog = mutableStateOf(false)
 var showRadioModifyDialog = mutableStateOf(false)
@@ -66,7 +74,8 @@ var selectedRadioIndex = mutableIntStateOf(0)
 fun RadioScreen(
     mediaController: MediaController? = null
 ) {
-    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
+    val leftPadding =
+        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -78,7 +87,8 @@ fun RadioScreen(
     val onRefresh: () -> Unit = {
         coroutineScope.launch {
             isRefreshing = true
-            radioList = getRadios(context, true).toMutableList()
+            radioList.clear()
+            radioList.addAll(getRadios(context, true))
             isRefreshing = false
         }
     }
@@ -94,20 +104,26 @@ fun RadioScreen(
         onRefresh = onRefresh
     ) {
         /* RADIO ICON + TEXT */
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = leftPadding,
-                top = WindowInsets.statusBars
-                    .asPaddingValues()
-                    .calculateTopPadding()
-            )) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = leftPadding,
+                    top = WindowInsets.statusBars
+                        .asPaddingValues()
+                        .calculateTopPadding()
+                )
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.rounded_radio),
                     contentDescription = "Songs Icon",
                     tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(48.dp))
+                    modifier = Modifier.size(48.dp)
+                )
                 Text(
                     text = stringResource(R.string.radios),
                     color = MaterialTheme.colorScheme.onBackground,
@@ -135,30 +151,96 @@ fun RadioScreen(
 
             HorizontalLineWithNavidromeCheck()
 
-            RadiosGrid(radioList, onSongSelected = { song ->
-                if (song.media.toString().endsWith("m3u8"))
-                    return@RadiosGrid
+            /*
+            val coroutineScope = rememberCoroutineScope()
+            RadiosGrid(radioList, onRadioSelected = { song ->
+                Log.d("ICECAST", "SELECTED RADIO: $song")
 
                 //SongHelper.currentSong = song
-                SongHelper.currentList = listOf()
-                song.media?.let { SongHelper.playStream(context, Uri.parse(it), true, mediaController) }
+                SongHelper.currentList = listOf(song)
+                song.media?.let {
+                    SongHelper.playStream(
+                        context,
+                        Uri.parse(it),
+                        true,
+                        mediaController
+                    )
+                }
                 // Get Metadata
                 val icecastUrl = "${song.media}/status-json.xsl"
                 Log.d("ICECAST", "Getting Icecast Metadata")
-                Thread{
+                Thread {
                     try {
                         val metadata = getIcecastMetadata(icecastUrl)
                         println(metadata)
-                    }catch (e: Exception){
+                    } catch (e: Exception) {
                         Log.d("ICECAST", "Exception: $e")
                     }
                 }.start()
             })
+            */
+
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(128.dp),
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .fillMaxHeight(),
+            ) {
+                items(radioList) { radio ->
+                    Log.d("ICECAST", "ADDED RADIO: $radio")
+
+                    val songItem = MediaData.Song(
+                        title = radio.name,
+                        imageUrl = "android.resource://com.craftworks.music/" + R.drawable.radioplaceholder,
+                        artist = radio.name,
+                        media = radio.media,
+                        duration = 0,
+                        album = "Internet Radio",
+                        year = Calendar.getInstance().year,
+                        isRadio = true,
+                        albumId = "",
+                        dateAdded = "",
+                        format = "MP3",
+                        path = "",
+                        parent = "",
+                        bpm = 0,
+                        navidromeID = radio.navidromeID,
+                        size = 0
+                    )
+
+                    RadioCard(
+                        radio = radio,
+                        onClick = {
+                            //SongHelper.currentSong = song
+                            SongHelper.currentList = listOf(songItem)
+                            Log.d("ICECAST", "Set currentList to: $songItem")
+                            SongHelper.playStream(
+                                context,
+                                Uri.parse(radio.media),
+                                true,
+                                mediaController
+                            )
+                            // Get Metadata
+                            val icecastUrl = "${radio.media}/status-json.xsl"
+                            Log.d("ICECAST", "Getting Icecast Metadata")
+                            try {
+                                val metadata = getIcecastMetadata(icecastUrl)
+                                println(metadata)
+                            } catch (e: Exception) {
+                                Log.d("ICECAST", "Exception: $e")
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 
-    if(showRadioAddDialog.value)
-        AddRadioDialog(setShowDialog =  { showRadioAddDialog.value = it } )
-    if(showRadioModifyDialog.value)
-        ModifyRadioDialog(setShowDialog = { showRadioModifyDialog.value = it }, radio = radioList[selectedRadioIndex.intValue])
+    if (showRadioAddDialog.value)
+        AddRadioDialog(setShowDialog = { showRadioAddDialog.value = it })
+    if (showRadioModifyDialog.value)
+        ModifyRadioDialog(
+            setShowDialog = { showRadioModifyDialog.value = it },
+            radio = radioList[selectedRadioIndex.intValue]
+        )
 }

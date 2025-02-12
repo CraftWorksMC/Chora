@@ -235,8 +235,8 @@ fun ArtistsGrid(artists: List<MediaData.Artist>,
 //region Radios
 @ExperimentalFoundationApi
 @Composable
-fun RadiosGrid(radioList: List<MediaData.Radio>, onSongSelected: (song: MediaData.Song) -> Unit){
-    var isSongSelected by remember { mutableStateOf(false) }
+fun RadiosGrid(radioList: List<MediaData.Radio>, onRadioSelected: (song: MediaData.Song) -> Unit){
+    //var isSongSelected by remember { mutableStateOf(false) }
     LazyVerticalGrid(
         columns = GridCells.Adaptive(128.dp),
         modifier = Modifier
@@ -253,15 +253,16 @@ fun RadiosGrid(radioList: List<MediaData.Radio>, onSongSelected: (song: MediaDat
                 album = "Internet Radio",
                 year = 2024,
                 isRadio = true,
-                albumId = "", dateAdded = "", format = "MP3", path = "", parent = "", bpm = 0, navidromeID = "Radio", size = 0)
+                albumId = "", dateAdded = "", format = "MP3", path = "", parent = "", bpm = 0, navidromeID = radio.navidromeID, size = 0)
 
             RadioCard(
                 radio = radio,
                 onClick = {
-                isSongSelected = true
+                //isSongSelected = true
                 //sliderPos.intValue = 0
-                onSongSelected(song)
-            })
+                onRadioSelected(song)
+                }
+            )
         }
     }
 }

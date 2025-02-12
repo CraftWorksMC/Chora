@@ -222,7 +222,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             startPositionMs: Long
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
             // We need to use URI from requestMetaData because of https://github.com/androidx/media/issues/282
-
             val currentTracklist =
                 if (SongHelper.currentTracklist.find { it.mediaId == mediaItems[0].mediaId } != null)
                     SongHelper.currentTracklist
@@ -372,7 +371,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     putInt("duration", song.duration)
                     putString("format", song.format)
                     song.bitrate?.let { putInt("bitrate", it) }
-                    putBoolean("isRadio", false)
+                    putBoolean("isRadio", song.isRadio == true)
                     if (song.replayGain?.trackGain != null)
                         putFloat("replayGain", song.replayGain.trackGain)
                 }).build()
