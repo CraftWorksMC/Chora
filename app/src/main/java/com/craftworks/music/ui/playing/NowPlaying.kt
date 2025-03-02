@@ -3,7 +3,10 @@ package com.craftworks.music.ui.playing
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
@@ -13,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -67,7 +71,7 @@ fun NowPlayingContent(
         }
 
         println("Generated new colors!")
-        backgroundDarkMode = (colors.elementAtOrNull(2) ?: Color.Black).customLuminance() <= 0.5f
+        backgroundDarkMode = (colors.elementAtOrNull(2) ?: Color.Black).customLuminance() <= 0.6f
     }
 
     val iconTextColor = remember(backgroundDarkMode) {
@@ -81,6 +85,14 @@ fun NowPlayingContent(
     }
 
     NowPlaying_Background(colors ,mediaController)
+
+    // Apply a back or white overlay to the background for improved contrast on the animated bg
+    if (backgroundStyle == "Animated Blur")
+        Box(
+            modifier = Modifier.fillMaxSize().background(
+                if (backgroundDarkMode) Color.Black.copy(0.2f) else Color.White.copy(0.2f)
+            )
+        )
 
     if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) ||
         LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE){

@@ -224,8 +224,8 @@ fun AnimatedGradientBG(
     Canvas(modifier = modifier) {
         shader.setFloatUniform(
             "iResolution",
-            size.width,
-            size.height
+            size.width * 2,
+            size.height * 2
         )
         shader.setFloatUniform("iTime", time)
         shader.setFloatUniform(
