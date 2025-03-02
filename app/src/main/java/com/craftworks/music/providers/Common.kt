@@ -89,7 +89,10 @@ suspend fun getSongs(
     if (LocalProviderManager.checkActiveFolders()) {
         if (songOffset == 0) {
             deferredSongs.add(async {
-                LocalProvider.getInstance().getLocalSongs()
+                if (query?.isNotBlank() == true)
+                    LocalProvider.getInstance().getLocalSongs().fastFilter { it.title.contains(query, ignoreCase = true) }
+                else
+                    LocalProvider.getInstance().getLocalSongs()
             })
         }
     }

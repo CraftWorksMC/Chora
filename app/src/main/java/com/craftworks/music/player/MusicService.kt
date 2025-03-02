@@ -37,6 +37,7 @@ import com.craftworks.music.providers.getAlbums
 import com.craftworks.music.providers.getPlaylistDetails
 import com.craftworks.music.providers.getPlaylists
 import com.craftworks.music.providers.getRadios
+import com.craftworks.music.providers.getSongs
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
 import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import com.google.common.collect.ImmutableList
@@ -185,10 +186,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 }
 
                 serviceIOScope.launch {
-                    if (NavidromeManager.checkActiveServers() && !SongHelper.currentSong.navidromeID.startsWith(
-                            "Local"
-                        )
-                    )
+                    if (NavidromeManager.checkActiveServers() && !SongHelper.currentSong.navidromeID.startsWith("Local"))
                         async { markNavidromeSongAsPlayed(SongHelper.currentSong.navidromeID) }
 
                     if (SongHelper.currentSong.isRadio == false)
@@ -300,7 +298,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params))
         }
 
-
         @OptIn(UnstableApi::class)
         override fun onGetChildren(
             session: MediaLibrarySession,
@@ -312,15 +309,15 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
             return Futures.immediateFuture(
                 try {
-                    val items = when {
-                        parentId == "nodeROOT" -> rootHierarchy
-                        parentId == "nodeHOME" -> getHomeScreenItems()
-                        parentId == "nodeRADIOS" -> getRadioItems()
-                        parentId == "nodePLAYLISTS" -> getPlaylistItems()
-                        parentId.startsWith("folder_") -> getFolderItems(parentId)
-                        else -> emptyList()
-                    }
-                    LibraryResult.ofItemList(items, params)
+                    LibraryResult.ofItemList(
+                        when {
+                            parentId == "nodeROOT" -> rootHierarchy
+                            parentId == "nodeHOME" -> getHomeScreenItems()
+                            parentId == "nodeRADIOS" -> getRadioItems()
+                            parentId == "nodePLAYLISTS" -> getPlaylistItems()
+                            parentId.startsWith("folder_") -> getFolderItems(parentId)
+                            else -> emptyList()
+                        }, params)
                 } catch (_: Exception) {
                     LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
                 }
@@ -424,7 +421,43 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             return settable
         }
 
+        override fun onGetSearchResult(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            query: String,
+            page: Int,
+            pageSize: Int,
+            params: LibraryParams?
+        ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+            println("onGetSearchResult called!!! query: $query")
+            return Futures.immediateFuture(
+                LibraryResult.ofItemList(
+                    runBlocking {
+                        println("Getting songs for AA search...")
+                        getSongs(query).map { songToMediaItem(it) }
+                    },
+                    LibraryParams.Builder().build()
+                )
+            )
+        }
 
+        override fun onSearch(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            query: String,
+            params: LibraryParams?
+        ): ListenableFuture<LibraryResult<Void>> {
+            println("onSearch!!!")
+
+            session.notifySearchResultChanged(
+                browser,
+                query,
+                runBlocking { getSongs(query).size },
+                LibraryParams.Builder().build()
+            )
+
+            return Futures.immediateFuture(LibraryResult.ofVoid())
+        }
     }
 
     override fun onDestroy() {
@@ -596,7 +629,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     //region getChildren
     private fun getHomeScreenItems(): MutableList<MediaItem> {
         println("GETTING ANDROID AUTO SCREEN ITEMS")
-        serviceIOScope.launch {
+        runBlocking {
             if (aHomeScreenItems.isEmpty()) {
                 val recentlyPlayedAlbums = async { getAlbums("recent", 6) }.await()
                 val mostPlayedAlbums = async { getAlbums("frequent", 6) }.await()
@@ -627,7 +660,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     }
 
     private fun getRadioItems(): MutableList<MediaItem> {
-        serviceIOScope.launch {
+        runBlocking {
             if (aRadioScreenItems.isEmpty()) {
                 getRadios(baseContext).forEach { radio ->
                     aRadioScreenItems.add(radioToMediaItem(radio))
@@ -639,7 +672,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     }
 
     private fun getPlaylistItems(): MutableList<MediaItem> {
-        serviceIOScope.launch {
+        runBlocking {
             if (aPlaylistScreenItems.isEmpty()) {
                 val playlists = async { getPlaylists() }.await()
                 playlists.forEach { playlist ->
@@ -652,7 +685,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     }
 
     private fun getFolderItems(parentId: String): MutableList<MediaItem> {
-        serviceIOScope.launch {
+        runBlocking {
             aFolderSongs.clear()
             val folderId = parentId.removePrefix("folder_")
             when {
