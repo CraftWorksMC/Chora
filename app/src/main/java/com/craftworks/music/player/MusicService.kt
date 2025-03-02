@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.compose.ui.util.fastFilter
 import androidx.core.content.ContextCompat
 import androidx.core.math.MathUtils.clamp
 import androidx.media3.common.AudioAttributes
@@ -39,6 +40,7 @@ import com.craftworks.music.providers.getPlaylists
 import com.craftworks.music.providers.getRadios
 import com.craftworks.music.providers.getSongs
 import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
+import com.craftworks.music.providers.searchAlbum
 import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
@@ -452,7 +454,12 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             session.notifySearchResultChanged(
                 browser,
                 query,
-                runBlocking { getSongs(query).size },
+                runBlocking {
+                    getSongs(query).size +
+                            searchAlbum(query).size +
+                            getRadios(this@ChoraMediaLibraryService).fastFilter { it.name.contains(query) }.size +
+                            getPlaylists().fastFilter { it.name.contains(query) }.size
+                },
                 LibraryParams.Builder().build()
             )
 
