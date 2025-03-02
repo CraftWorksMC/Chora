@@ -13,8 +13,8 @@ android {
         applicationId = "com.craftworks.music"
         minSdk = 23
         targetSdk = 35
-        versionCode = 261
-        versionName = "1.26.1"
+        versionCode = 262
+        versionName = "1.26.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
