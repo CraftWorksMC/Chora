@@ -34,6 +34,7 @@ android {
         }
         debug {
             isDebuggable = true
+            isProfileable = true
         }
     }
     compileOptions {

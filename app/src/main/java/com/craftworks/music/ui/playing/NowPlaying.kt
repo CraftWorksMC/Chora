@@ -67,7 +67,7 @@ fun NowPlayingContent(
         }
 
         println("Generated new colors!")
-        backgroundDarkMode = (colors.elementAtOrNull(2) ?: colors[0]).customLuminance() <= 0.5f
+        backgroundDarkMode = (colors.elementAtOrNull(2) ?: Color.Black).customLuminance() <= 0.5f
     }
 
     val iconTextColor = remember(backgroundDarkMode) {

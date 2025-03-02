@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -61,7 +60,12 @@ import java.net.URLDecoder
 fun SetupNavGraph(
     navController: NavHostController,
     paddingValues: PaddingValues,
-    mediaController: MediaController?
+    mediaController: MediaController?,
+    homeViewModel: HomeScreenViewModel,
+    albumViewModel: AlbumScreenViewModel,
+    songsViewModel: SongsScreenViewModel,
+    artistsViewModel: ArtistsScreenViewModel,
+    playlistViewModel: PlaylistScreenViewModel
 ){
     val bottomPadding: Dp =
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT)
@@ -72,11 +76,6 @@ fun SetupNavGraph(
 
     playlistList = SettingsManager(context).localPlaylists.collectAsStateWithLifecycle(mutableListOf()).value
 
-    val homeViewModel = remember { HomeScreenViewModel() }
-    val albumViewModel = remember { AlbumScreenViewModel() }
-    val songsViewModel = remember { SongsScreenViewModel() }
-    val artistsViewModel = remember { ArtistsScreenViewModel() }
-    val playlistViewModel = remember { PlaylistScreenViewModel() }
 
     LaunchedEffect(Unit) {
         GlobalViewModels.registerViewModel(homeViewModel)

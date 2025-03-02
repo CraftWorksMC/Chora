@@ -1,4 +1,5 @@
 package com.craftworks.music.managers
+
 import android.content.Context
 import android.os.Build
 import androidx.datastore.core.DataStore
@@ -6,17 +7,24 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaSession
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
+import com.craftworks.music.data.toMediaItem
+import com.craftworks.music.data.toSong
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.collections.map
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -41,6 +49,10 @@ class SettingsManager(
 
         private val LOCAL_RADIOS = stringPreferencesKey("radios_list")
         private val LOCAL_PLAYLISTS = stringPreferencesKey("playlists_list")
+
+        private val MEDIA_RESUMPTION_PLAYLIST = stringPreferencesKey("media_resumption_playlist")
+        private val MEDIA_RESUMPTION_INDEX = intPreferencesKey("media_resumption_index")
+        private val MEDIA_RESUMPTION_TIME = longPreferencesKey("media_resumption_timestamp")
     }
 
     //region Appearance Settings
@@ -164,7 +176,7 @@ class SettingsManager(
     }
     //endregion
 
-    val localRadios:  Flow<MutableList<MediaData.Radio>> = context.dataStore.data.map { preferences ->
+    val localRadios: Flow<MutableList<MediaData.Radio>> = context.dataStore.data.map { preferences ->
         Json.decodeFromString<List<MediaData.Radio>>(preferences[LOCAL_RADIOS] ?: "[]").toMutableList()
     }
 
@@ -175,7 +187,7 @@ class SettingsManager(
         }
     }
 
-    val localPlaylists:  Flow<MutableList<MediaData.Playlist>> = context.dataStore.data.map { preferences ->
+    val localPlaylists: Flow<MutableList<MediaData.Playlist>> = context.dataStore.data.map { preferences ->
         Json.decodeFromString<List<MediaData.Playlist>>(preferences[LOCAL_PLAYLISTS] ?: "[]").toMutableList()
     }
 
@@ -185,4 +197,26 @@ class SettingsManager(
             preferences[LOCAL_PLAYLISTS] = playlistJson
         }
     }
+
+    //region Playback Resumption
+    @UnstableApi
+    suspend fun setPlaybackResumption(playlist: List<MediaItem>, currentPos: Int, currentTime: Long) {
+        println(Json.encodeToString(playlist.map { it.toSong() }))
+        context.dataStore.edit { preferences ->
+            preferences[MEDIA_RESUMPTION_PLAYLIST] = Json.encodeToString(playlist.map { it.toSong() })
+            preferences[MEDIA_RESUMPTION_INDEX] = currentPos
+            preferences[MEDIA_RESUMPTION_TIME] = currentTime
+        }
+    }
+
+    @UnstableApi
+    val playbackResumptionPlaylistWithStartPosition: Flow<MediaSession.MediaItemsWithStartPosition> = context.dataStore.data.map { preferences ->
+        println(preferences[MEDIA_RESUMPTION_PLAYLIST])
+        MediaSession.MediaItemsWithStartPosition(
+            Json.decodeFromString<List<MediaData.Song>>(preferences[MEDIA_RESUMPTION_PLAYLIST] ?: "[]").map {it.toMediaItem()},
+            preferences[MEDIA_RESUMPTION_INDEX] ?: 0,
+            preferences[MEDIA_RESUMPTION_TIME] ?: 0L
+        )
+    }
+    //endregion
 }

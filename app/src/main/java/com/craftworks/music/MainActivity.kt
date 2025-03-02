@@ -80,6 +80,11 @@ import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.playing.NowPlayingMiniPlayer
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.theme.MusicPlayerTheme
+import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
+import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
+import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
+import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
+import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import com.gigamole.composefadingedges.FadingEdgesGravity
 import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
@@ -104,9 +109,22 @@ class MainActivity : ComponentActivity() {
 
         val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
         this@MainActivity.startService(serviceIntent)
+
         //handleSearchIntent(intent)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        val homeViewModel = HomeScreenViewModel()
+        val albumViewModel = AlbumScreenViewModel()
+        val songsViewModel = SongsScreenViewModel()
+        val artistsViewModel = ArtistsScreenViewModel()
+        val playlistViewModel = PlaylistScreenViewModel()
+
+        homeViewModel.reloadData()
+        albumViewModel.reloadData()
+        songsViewModel.reloadData()
+        artistsViewModel.reloadData()
+        playlistViewModel.reloadData()
 
         setContent {
             MusicPlayerTheme {
@@ -141,7 +159,16 @@ class MainActivity : ComponentActivity() {
                     contentColor = MaterialTheme.colorScheme.onBackground,
                     containerColor = Color.Transparent // So we can use transparent here. this eliminates 1 level of overdraw.
                 ) { paddingValues ->
-                    SetupNavGraph(navController, paddingValues, mediaController.value)
+                    SetupNavGraph(
+                        navController,
+                        paddingValues,
+                        mediaController.value,
+                        homeViewModel,
+                        albumViewModel,
+                        songsViewModel,
+                        artistsViewModel,
+                        playlistViewModel
+                    )
 
                     Log.d("RECOMPOSITION", "Recomposing scaffold!")
 
@@ -245,7 +272,8 @@ class MainActivity : ComponentActivity() {
 
                 @androidx.annotation.OptIn(UnstableApi::class)
                 override fun onActivityDestroyed(activity: Activity) {
-                    ChoraMediaLibraryService().onDestroy()
+                    ChoraMediaLibraryService.getInstance()?.saveState()
+
                     this@MainActivity.stopService(serviceIntent)
                     println("Destroyed, Goodbye :(")
                 }
