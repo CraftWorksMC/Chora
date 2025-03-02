@@ -62,7 +62,7 @@ class LocalProvider private constructor() {
             val contentResolver: ContentResolver = context.contentResolver
             val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
             val projection = arrayOf(
-                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.ALBUM_ID,
                 MediaStore.Audio.Albums.ALBUM,
                 MediaStore.Audio.Albums.ARTIST,
             )
@@ -71,7 +71,7 @@ class LocalProvider private constructor() {
                 projection,
                 "${MediaStore.Audio.Media.DATA} LIKE ?" +
                         " OR ${MediaStore.Audio.Media.DATA} LIKE ?"
-                            .repeat(LocalProviderManager.getAllFolders().size - 1),
+                            .repeat(LocalProviderManager.getAllFolders().size),
                 LocalProviderManager.getAllFolders().map {
                     "%$it%"
                 }.toTypedArray(),
@@ -88,7 +88,7 @@ class LocalProvider private constructor() {
                 }
 
                 else -> {
-                    val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums._ID)
+                    val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM_ID)
                     val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)
                     val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)
                     //val dateAddedColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)

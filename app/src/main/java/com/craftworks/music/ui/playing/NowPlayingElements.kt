@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.playing
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.focusable
@@ -72,7 +71,6 @@ import com.craftworks.music.ui.elements.moveClick
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
@@ -146,16 +144,16 @@ fun PlaybackProgressSlider(
                 thumbColor = color
             ),
             interactionSource = interactionSource,
-            thumb = {
-                AnimatedVisibility(
-                    focused.value
-                ) {
-                    SliderDefaults.Thumb(
-                        interactionSource = interactionSource,
-                        colors = SliderDefaults.colors().copy(thumbColor = color)
-                    )
-                }
-            }
+//            thumb = {
+//                AnimatedVisibility(
+//                    focused.value
+//                ) {
+//                    SliderDefaults.Thumb(
+//                        interactionSource = interactionSource,
+//                        colors = SliderDefaults.colors().copy(thumbColor = color)
+//                    )
+//                }
+//            }
         )
 
         // Time thingies

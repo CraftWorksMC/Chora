@@ -416,6 +416,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
                         player.seekTo(it.startIndex, it.startPositionMs)
 
+                        SongHelper.currentTracklist = it.mediaItems
+
                         Log.d("RESUMPTION", "Set playlist: ${it.mediaItems.map {it.mediaMetadata.title}} at index ${it.startIndex} with position ${it.startPositionMs}")
                     }
                 }

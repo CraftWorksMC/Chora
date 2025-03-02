@@ -44,7 +44,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:launchMode="singleTop"
+            android:launchMode="singleInstance"
             android:exported="true"
             android:theme="@style/Theme.MusicPlayer"
             android:hardwareAccelerated="true"
