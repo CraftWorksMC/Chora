@@ -53,7 +53,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -62,7 +61,6 @@ import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.selectedArtist
-import com.craftworks.music.data.songsList
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
@@ -75,12 +73,15 @@ import java.net.URLEncoder
 fun ArtistDetails(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,
-    viewModel: ArtistsScreenViewModel = viewModel()
+    viewModel: ArtistsScreenViewModel = ArtistsScreenViewModel()
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
+
     val artist by viewModel.selectedArtist.collectAsStateWithLifecycle()
 
-    songsList.filter { it.artist.contains(artist?.name ?: "") }
+//    LaunchedEffect(artist) {
+//        artist?.navidromeID?.let { viewModel.fetchArtistDetails(it) }
+//    }
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -168,7 +169,7 @@ fun ArtistDetails(
             .clickable {
                 expanded = !expanded
             }){
-            artist?.description?.let { description -> // Use let for null safety
+            artist?.description?.let { description ->
                 if (description.isNotBlank()) {
                     Text(
                         text = description,

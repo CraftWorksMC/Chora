@@ -21,7 +21,7 @@ class AlbumScreenViewModel : ViewModel(), ReloadableViewModel {
             coroutineScope {
                 val allAlbumsDeferred = async { getAlbums("alphabeticalByName", 20, 0, true) }
 
-                _allAlbums.value = allAlbumsDeferred.await()
+                _allAlbums.value = allAlbumsDeferred.await().sortedByDescending { it.navidromeID.startsWith("Local_") }
             }
         }
     }

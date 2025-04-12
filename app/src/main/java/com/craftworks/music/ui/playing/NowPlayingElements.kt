@@ -432,7 +432,7 @@ fun RepeatButton(
     Button(
         onClick = {
             mediaController?.repeatMode =
-                if (mediaController.repeatMode == Player.REPEAT_MODE_OFF)
+                if (mediaController?.repeatMode == Player.REPEAT_MODE_OFF)
                     Player.REPEAT_MODE_ONE
                 else
                     Player.REPEAT_MODE_OFF

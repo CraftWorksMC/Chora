@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +42,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -62,6 +69,7 @@ import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
 import com.craftworks.music.ui.elements.dialogs.ThemeDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -360,6 +368,52 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     }
                 }
             )
+
+            // Lyrics Animation Speed
+            val lyricsAnimationSpeed = SettingsManager(context).lyricsAnimationSpeedFlow.collectAsState(1200)
+            val interactionSource = remember { MutableInteractionSource() }
+            Column {
+                Text(
+                    text = stringResource(R.string.Setting_LyricsAnimationSpeed),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.fillMaxSize(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Start
+                )
+                Slider(
+                    modifier = Modifier
+                        //.semantics { contentDescription = "Lyrics Animation Speed" }
+                        .onKeyEvent { keyEvent ->
+                            when {
+                                keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyDown -> {
+                                    runBlocking {
+                                        SettingsManager(context).setLyricsAnimationSpeed((lyricsAnimationSpeed.value + 300).coerceAtMost(2400))
+                                    }
+                                    true
+                                }
+                                keyEvent.key == Key.DirectionLeft && keyEvent.type == KeyEventType.KeyDown -> {
+                                    runBlocking {
+                                        SettingsManager(context).setLyricsAnimationSpeed((lyricsAnimationSpeed.value - 300).coerceAtLeast(600))
+                                    }
+                                    true
+                                }
+                                else -> false
+                            }
+                        },
+                    interactionSource = interactionSource,
+                    value = lyricsAnimationSpeed.value.toFloat(),
+                    steps = 4,
+                    onValueChange = {
+                        runBlocking {
+                            SettingsManager(context).setLyricsAnimationSpeed(it.toInt())
+                        }
+                    },
+                    valueRange = 600f..2400f
+                )
+            }
 
             BottomSpacer()
         }

@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
@@ -108,7 +109,7 @@ class SongHelper {
                         .setTitle(song.title)
                         .setArtist(song.artist)
                         .setAlbumTitle(song.album)
-                        .setArtworkUri(Uri.parse(song.imageUrl))
+                        .setArtworkUri(song.imageUrl.toUri())
                         .setReleaseYear(song.year)
                         .setExtras(Bundle().apply {
                             putInt("duration", song.duration)
@@ -127,7 +128,7 @@ class SongHelper {
                     currentTracklist.add(mediaItem)
                 }
 
-                val currentTrackIndex =
+                var currentTrackIndex =
                     currentTracklist.indexOfFirst { it.mediaId.substringBefore("&maxBitRate=") == url.toString() }
 
                 withContext(Dispatchers.Main) {

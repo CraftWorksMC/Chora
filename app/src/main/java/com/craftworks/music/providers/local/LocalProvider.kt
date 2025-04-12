@@ -46,9 +46,9 @@ class LocalProvider private constructor() {
     //region Albums
     fun getLocalAlbums(sort: String?): List<MediaData.Album> {
         Log.d("LOCAL PROVIDER", "Getting All Albums!")
-        val albums = mutableListOf<MediaData.Album>()
+        val albums = mutableSetOf<MediaData.Album>() // Use a Set to avoid duplicates
 
-        val sortOrder = when(sort) {
+        val sortOrder = when (sort) {
             "alphabeticalByName" -> "${MediaStore.Audio.Albums.ALBUM} DESC"
             "recent" -> "${MediaStore.Audio.Media.DATE_MODIFIED} DESC"
             "newest" -> "${MediaStore.Audio.Media.DATE_ADDED} DESC"
@@ -62,19 +62,19 @@ class LocalProvider private constructor() {
             val contentResolver: ContentResolver = context.contentResolver
             val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
             val projection = arrayOf(
-                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.IS_MUSIC,
                 MediaStore.Audio.Albums.ALBUM,
                 MediaStore.Audio.Albums.ARTIST,
             )
             val cursor: Cursor? = contentResolver.query(
                 uri,
                 projection,
-                "${MediaStore.Audio.Media.DATA} LIKE ?" +
+                "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND " +
+                        "${MediaStore.Audio.Media.DATA} LIKE ?" +
                         " OR ${MediaStore.Audio.Media.DATA} LIKE ?"
                             .repeat(LocalProviderManager.getAllFolders().size),
-                LocalProviderManager.getAllFolders().map {
-                    "%$it%"
-                }.toTypedArray(),
+                LocalProviderManager.getAllFolders().map { "%$it%" }.toTypedArray(),
                 sortOrder
             )
 
@@ -88,18 +88,14 @@ class LocalProvider private constructor() {
                 }
 
                 else -> {
-                    val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM_ID)
+                    val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums._ID)
                     val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)
                     val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)
-                    //val dateAddedColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
-                    //val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
 
                     do {
                         val thisId = cursor.getLongOrNull(idColumn) ?: 0
                         val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
                         val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
-                        //val thisDateAdded = cursor.getString(dateAddedColumn)
-                        //val thisYear = cursor.getInt(yearColumn)
 
                         val imageUri: String = try {
                             "content://media/external/audio/media/$thisId/albumart"
@@ -119,8 +115,7 @@ class LocalProvider private constructor() {
                             artistId = "",
                         )
 
-                        if (!albums.contains(album))
-                            albums.add(album)
+                        albums.add(album) // Add to the Set (duplicates will be ignored)
                     } while (cursor.moveToNext())
                 }
             }
@@ -128,7 +123,7 @@ class LocalProvider private constructor() {
             cursor?.close()
         }
 
-        return albums
+        return albums.toList() // Convert the Set back to a List before returning
     }
 
     fun getLocalAlbum(albumId: String): MediaData.Album? {

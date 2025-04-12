@@ -6,6 +6,8 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.providers.getArtistDetails
 import com.craftworks.music.providers.getArtists
 import com.craftworks.music.providers.searchArtist
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,11 +38,10 @@ class ArtistsScreenViewModel : ViewModel(), ReloadableViewModel {
         fetchArtistDetails(artist.navidromeID)
     }
 
-    private fun fetchArtistDetails(artistId: String) {
-        viewModelScope.launch {
+    fun fetchArtistDetails(artistId: String) {
+        CoroutineScope(Dispatchers.IO).launch {
             _selectedArtist.value = getArtistDetails(artistId)
-
-            println("${_selectedArtist.value} + ${com.craftworks.music.data.selectedArtist}")
+            println("New Artist: ${_selectedArtist.value} \n Selected Artist: ${com.craftworks.music.data.selectedArtist}")
         }
     }
 }

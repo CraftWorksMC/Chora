@@ -4,11 +4,16 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,7 +23,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,7 +36,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,6 +51,7 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.songsList
 import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import kotlinx.coroutines.flow.filter
@@ -93,6 +107,8 @@ fun SongsRow(songsList: List<MediaData.Song>, onSongSelected: (song: MediaData.S
         }
     }
 }
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongsHorizontalColumn(
     songList: List<MediaData.Song>,
@@ -102,6 +118,8 @@ fun SongsHorizontalColumn(
 ){
     var isSongSelected by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+
+    val showDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
     // Load more songs at scroll
     if (NavidromeManager.checkActiveServers() && isSearch == false){
@@ -129,12 +147,42 @@ fun SongsHorizontalColumn(
             .fillMaxWidth(),
         state = listState
     ) {
-        items(songList) { song ->
-            HorizontalSongCard(song = song, onClick = {
-                isSongSelected = true
-                //sliderPos.intValue = 0
-                onSongSelected(song)
-            })
+        // Group songs by their source (Local or Navidrome)
+        val groupedSongs = songList.groupBy { song ->
+            if (song.navidromeID.startsWith("Local_")) "Local" else "Navidrome"
+        }
+
+        groupedSongs.forEach { (groupName, songsInGroup) ->
+            if (showDividers && groupedSongs.size > 1) {
+                stickyHeader {
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .height(1.dp)
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                    )
+                    Text(
+                        text = when (groupName) {
+                            "Navidrome" -> stringResource(R.string.Source_Navidrome)
+                            "Local" -> stringResource(R.string.Source_Local)
+                            else -> ""
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background) // Add background color for visibility
+                            .padding(8.dp)
+                    )
+                }
+            }
+            items(songsInGroup) { song ->
+                HorizontalSongCard(song = song, onClick = {
+                    isSongSelected = true
+                    onSongSelected(song)
+                })
+            }
         }
     }
 }
@@ -154,6 +202,7 @@ fun AlbumGrid(
     val gridState = rememberLazyGridState()
 
     val albums by viewModel.allAlbums.collectAsStateWithLifecycle()
+    val showDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
     if (NavidromeManager.checkActiveServers() && isSearch == false) {
         LaunchedEffect(gridState) {
@@ -193,7 +242,11 @@ fun AlbumGrid(
 
 @ExperimentalFoundationApi
 @Composable
-fun AlbumRow(albums: List<MediaData.Album>, mediaController: MediaController?, onAlbumSelected: (album: MediaData.Album) -> Unit){
+fun AlbumRow(
+    albums: List<MediaData.Album>,
+    mediaController: MediaController?,
+    onAlbumSelected: (album: MediaData.Album) -> Unit
+){
     LazyRow(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -201,8 +254,45 @@ fun AlbumRow(albums: List<MediaData.Album>, mediaController: MediaController?, o
             end = 12.dp
         )
     ) {
+        /*
         items(albums) {album ->
             AlbumCard(album = album,
+                mediaController = mediaController,
+                onClick = {
+                    onAlbumSelected(album)
+                })
+        }
+        */
+
+        itemsIndexed(albums) { index, album ->
+            // Show divider between local and navidrome albums
+            if (SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true).value) {
+                val dividerIndex = albums.indexOfFirst { it.navidromeID.startsWith("Local_") }
+                if (index == dividerIndex && index != albums.lastIndex && index != 0) {
+                    Row(
+                        modifier = Modifier.padding(12.dp, 12.dp, 0.dp, 0.dp),
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        VerticalDivider(
+                            modifier = Modifier
+                                .height(172.dp)
+                                .width(1.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                        )
+                        Text(
+                            text = stringResource(R.string.Source_Local),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .rotateVertically(),
+                        )
+                    }
+                }
+            }
+
+            AlbumCard(
+                album = album,
                 mediaController = mediaController,
                 onClick = {
                     onAlbumSelected(album)

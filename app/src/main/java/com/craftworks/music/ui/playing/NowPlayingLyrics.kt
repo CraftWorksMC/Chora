@@ -65,7 +65,9 @@ fun LyricsView(
 ) {
     val lyrics by LyricsManager.Lyrics.collectAsState()
 
+
     val useBlur by SettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
+    val lyricsAnimationSpeed by SettingsManager(LocalContext.current).lyricsAnimationSpeedFlow.collectAsState(100)
 
     // State holding the current position
     val currentPosition = remember { mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0) }
@@ -85,7 +87,7 @@ fun LyricsView(
                 currentPosition.intValue = position
 
                 // Calculate delay until next update based on lyrics timing
-                val delay = getNextUpdateDelay(position, lyrics)
+                val delay = getNextUpdateDelay(position + lyricsAnimationSpeed, lyrics)
                 delay(delay)
             } else {
                 delay(500)
@@ -114,7 +116,7 @@ fun LyricsView(
 
                         state.animateScrollBy(
                             value = scrollBy.toFloat(),
-                            animationSpec = tween(1200, 0, FastOutSlowInEasing)
+                            animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
                         )
                     }
                     else
@@ -162,7 +164,8 @@ fun LyricsView(
                     currentLyricIndex = currentLyricIndex.intValue,
                     useBlur = useBlur,
                     visibleItemsInfo = visibleItemsInfo,
-                    color = color
+                    color = color,
+                    lyricsAnimationSpeed = lyricsAnimationSpeed
                 ) {
                     mediaController?.seekTo(lyric.timestamp.toLong())
                     currentPosition.intValue = lyric.timestamp
@@ -203,7 +206,8 @@ fun SyncedLyricItem(
     useBlur: Boolean,
     visibleItemsInfo: List<LazyListItemInfo>,
     color: Color,
-    onClick: () -> Unit = {}
+    lyricsAnimationSpeed: Int = 1200,
+    onClick: () -> Unit = {},
 ) {
     val lyricAlpha: Float by animateFloatAsState(
         targetValue = if (currentLyricIndex == index) 1f else 0.5f,
@@ -216,13 +220,13 @@ fun SyncedLyricItem(
             index, currentLyricIndex, visibleItemsInfo
         ) else 0.dp,
         label = "Lyric Blur",
-        animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing)
+        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
     )
 
     val scale by animateFloatAsState(
         targetValue = if (currentLyricIndex == index) 1f else 0.9f,
         label = "Lyric Scale Animation",
-        animationSpec = tween(1200, 0, FastOutSlowInEasing)
+        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
     )
 
     Box(modifier = Modifier

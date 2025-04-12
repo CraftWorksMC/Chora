@@ -17,7 +17,7 @@ object LyricsManager {
     private val _Lyrics = MutableStateFlow(listOf<Lyric>())
     val Lyrics: StateFlow<List<Lyric>> = _Lyrics.asStateFlow()
 
-    private val useLrcLib: Boolean = true
+    var useLrcLib by mutableStateOf(true)
 
     suspend fun getLyrics() {
         // Try getting lyrics through navidrome, first synced then plain.

@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -49,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
@@ -96,9 +96,7 @@ fun SongsScreen(
             .fillMaxWidth()
             .padding(
                 start = leftPadding,
-                top = WindowInsets.statusBars
-                    .asPaddingValues()
-                    .calculateTopPadding()
+                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
             )) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
@@ -170,12 +168,17 @@ fun SongsScreen(
             }
 
             Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-                SongsHorizontalColumn(songList = allSongsList, onSongSelected = { song ->
-                    //SongHelper.currentSong = song
-                    SongHelper.currentList = allSongsList.sortedBy { song.title }
-                    song.media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController) } },
-                    searchFilter.isNotBlank(),
-                    viewModel)
+                SongsHorizontalColumn(
+                    songList = allSongsList, onSongSelected = { song ->
+                        //SongHelper.currentSong = song
+                        SongHelper.currentList = allSongsList.sortedBy { song.title }
+                        song.media?.let {
+                            SongHelper.playStream(
+                                context, it.toUri(), false, mediaController
+                            )
+                        }
+                    }, searchFilter.isNotBlank(), viewModel
+                )
             }
         }
     }

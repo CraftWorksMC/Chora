@@ -31,6 +31,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
+import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.bottomSpacerHeightDp
 import com.craftworks.music.ui.playing.NowPlayingContent
@@ -75,7 +76,7 @@ fun SetupNavGraph(
     val context = LocalContext.current
 
     playlistList = SettingsManager(context).localPlaylists.collectAsStateWithLifecycle(mutableListOf()).value
-
+    LyricsManager.useLrcLib = SettingsManager(context).lrcLibLyricsFlow.collectAsStateWithLifecycle(true).value
 
     LaunchedEffect(Unit) {
         GlobalViewModels.registerViewModel(homeViewModel)

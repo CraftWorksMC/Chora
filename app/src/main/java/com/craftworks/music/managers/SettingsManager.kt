@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.collections.map
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -42,6 +41,10 @@ class SettingsManager(
         enum class AppTheme {
             LIGHT, DARK, SYSTEM
         }
+        private val SHOW_PROVIDER_DIVIDERS = booleanPreferencesKey("provider_dividers")
+        private val LYRICS_ANIMATION_SPEED = intPreferencesKey("lyrics_animation_speed")
+
+        private val LRCLIB_LYRICS = booleanPreferencesKey("lrclib_lyrics_enabled")
 
         private val TRANSCODING_BITRATE_WIFI_KEY = stringPreferencesKey("transcoding_bitrate_wifi")
         private val TRANSCODING_BITRATE_DATA_KEY = stringPreferencesKey("transcoding_bitrate_data")
@@ -142,6 +145,40 @@ class SettingsManager(
             preferences[APP_THEME] = theme.name
         }
     }
+
+    val showProviderDividersFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[SHOW_NAVIDROME_KEY] != false
+    }
+
+    suspend fun setShowProviderDividers(showDividers: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[SHOW_PROVIDER_DIVIDERS] = showDividers
+        }
+    }
+
+    val lyricsAnimationSpeedFlow: Flow<Int> = context.dataStore.data.map {  preferences ->
+        preferences[LYRICS_ANIMATION_SPEED] ?: 100
+    }
+
+    suspend fun setLyricsAnimationSpeed(speed: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[LYRICS_ANIMATION_SPEED] = speed
+        }
+    }
+    //endregion
+
+    //region Media Providers
+
+    val lrcLibLyricsFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[LRCLIB_LYRICS] != false
+    }
+
+    suspend fun setUseLrcLib(useLrcLib: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[LRCLIB_LYRICS] = useLrcLib
+        }
+    }
+
     //endregion
 
     //region Playback Settings

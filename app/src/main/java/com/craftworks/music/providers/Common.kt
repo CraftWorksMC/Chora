@@ -36,6 +36,7 @@ suspend fun getAlbums(
             sendNavidromeGETRequest("getAlbumList.view?type=$sort&size=$size&offset=$offset&f=json", ignoreCachedResponse).filterIsInstance<MediaData.Album>()
         })
     }
+
     if (LocalProviderManager.checkActiveFolders()) {
         if (offset == 0) {
             deferredAlbums.add(async {

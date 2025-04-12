@@ -45,6 +45,7 @@ import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
+import com.craftworks.music.ui.elements.LRCLIBProviderCard
 import com.craftworks.music.ui.elements.LocalProviderCard
 import com.craftworks.music.ui.elements.NavidromeProviderCard
 import com.craftworks.music.ui.elements.dialogs.CreateMediaProviderDialog
@@ -110,6 +111,8 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 .weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally
         ){
+            LRCLIBProviderCard(context)
+
             // Local Providers First
             for (local in LocalProviderManager.getAllFolders()){
                 LocalProviderCard(local, context)

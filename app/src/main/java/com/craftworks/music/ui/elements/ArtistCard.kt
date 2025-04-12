@@ -49,7 +49,7 @@ fun ArtistCard(artist: MediaData.Artist, onClick: () -> Unit) {
                 .size(256)
                 .build(),
             fallback = painterResource(R.drawable.rounded_artist_24),
-            contentScale = ContentScale.FillWidth,
+            contentScale = ContentScale.Crop,
             contentDescription = "Album Image",
             modifier = Modifier
                 .fillMaxWidth()
