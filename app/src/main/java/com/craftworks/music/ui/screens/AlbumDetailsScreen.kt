@@ -2,6 +2,7 @@ package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
 import android.net.Uri
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -67,6 +69,7 @@ import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.getAlbum
+import com.craftworks.music.providers.navidrome.setNavidromeStar
 import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.GenrePill
@@ -74,6 +77,7 @@ import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
+import kotlinx.coroutines.launch
 
 var selectedAlbum by mutableStateOf<MediaData.Album?>(MediaData.Album(navidromeID = "", parent = "", album = "", title = "", name = "", songCount = 0, duration = 0, artistId = "", artist = "", coverArt = ""))
 
@@ -102,16 +106,19 @@ fun AlbumDetails(
             )
         )
     }
+    var isStarred by remember { mutableStateOf(currentAlbum.starred.isNullOrEmpty()) }
     val requester = FocusRequester()
 
     val context = LocalContext.current
 
+    val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         requester.requestFocus()
     }
 
     LaunchedEffect(selectedAlbumId) {
         currentAlbum = getAlbum(selectedAlbumId) ?: currentAlbum
+        isStarred = currentAlbum.starred.isNullOrEmpty()
     }
 
     Column(modifier = Modifier
@@ -202,6 +209,47 @@ fun AlbumDetails(
                             genre.name?.let { GenrePill(it) }
                         }
                     }
+                }
+            }
+
+            // Star/unstar button
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        setNavidromeStar(
+                            star = isStarred,
+                            albumId = currentAlbum.navidromeID
+                        )
+                        // Reload album data to update cache
+                        currentAlbum = getAlbum(selectedAlbumId, true) ?: currentAlbum
+                        isStarred = !isStarred
+                    }
+                },
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 12.dp, end = 12.dp)
+                    .size(32.dp),
+                contentPadding = PaddingValues(4.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground)
+            ) {
+                Crossfade(
+                    targetState = isStarred
+                ) {
+                    if (it) Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.round_favorite_border_24),
+                        contentDescription = "Star Album",
+                        modifier = Modifier
+                            .height(28.dp)
+                            .size(28.dp)
+                    )
+                    else Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
+                        contentDescription = "Unstar Album",
+                        modifier = Modifier
+                            .height(28.dp)
+                            .size(28.dp)
+                    )
                 }
             }
         }

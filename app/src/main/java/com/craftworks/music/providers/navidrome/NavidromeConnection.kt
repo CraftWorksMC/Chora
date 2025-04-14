@@ -166,6 +166,11 @@ suspend fun sendNavidromeGETRequest(
                             endpoint.startsWith("getLyrics.") -> parsedData.addAll(listOf(parseNavidromePlainLyricsJSON(responseContent)))
                             endpoint.startsWith("getLyricsBySongId.") -> parsedData.addAll(parseNavidromeSyncedLyricsJSON(responseContent))
 
+
+                            // Star and unstar
+                            endpoint.startsWith("star") -> { setSyncingStatus(false) }
+                            endpoint.startsWith("unstar") -> { setSyncingStatus(false) }
+
                             else -> { setSyncingStatus(false) }
                         }
                     }

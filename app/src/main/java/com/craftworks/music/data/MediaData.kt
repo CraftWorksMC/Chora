@@ -78,6 +78,8 @@ sealed class MediaData {
         val genre : String? = "",
         val genres : List<Genre>? = listOf(),
 
+        val starred: String? = null,
+
         @SerialName("song")
         var songs: List<Song>? = listOf()
     ) : MediaData()

@@ -48,13 +48,13 @@ suspend fun getAlbums(
     deferredAlbums.awaitAll().flatten()
 }
 
-suspend fun getAlbum(albumId: String): MediaData.Album? = coroutineScope {
+suspend fun getAlbum(albumId: String, ignoreCachedResponse: Boolean = false): MediaData.Album? = coroutineScope {
     if (albumId.startsWith("Local_")){
         LocalProvider.getInstance().getLocalAlbum(albumId)
     }
     else {
         val deferredAlbum = async {
-            sendNavidromeGETRequest("getAlbum.view?id=${albumId.removePrefix("Local_")}&f=json")
+            sendNavidromeGETRequest("getAlbum.view?id=${albumId.removePrefix("Local_")}&f=json", ignoreCachedResponse)
                 .filterIsInstance<MediaData.Album>()
                 .firstOrNull() ?: throw IllegalStateException("Cannot get album data")
         }
