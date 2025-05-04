@@ -1,7 +1,7 @@
 package com.craftworks.music.ui.elements
 
 import android.net.Uri
-import android.util.Log
+import android.os.Bundle
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -54,10 +54,11 @@ import androidx.media3.common.MediaItem
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.radioList
+import com.craftworks.music.data.toSong
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
+import com.craftworks.music.providers.navidrome.setNavidromeStar
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
 import com.craftworks.music.ui.screens.selectedRadioIndex
@@ -67,87 +68,89 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class)
 @Stable
 @Composable
-fun SongsCard(song: MediaItem, onClick: () -> Unit){
-                Card(
-                    modifier = Modifier
-                        .padding(12.dp, 48.dp, 0.dp, 0.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .combinedClickable(
-                            onClick = {
-                                onClick(); Log.d(
-                                "Play",
-                                "Clicked Song: " + song.mediaMetadata.title
-                            )
-                            },
-                            onLongClick = {
-                                if (song.mediaMetadata.extras?.getBoolean("isRadio") == false) return@combinedClickable
-                                showRadioModifyDialog.value = true
-                                selectedRadioIndex.intValue =
-                                    radioList.indexOf(radioList.firstOrNull { it.name == song.mediaMetadata.artist && it.media == song.mediaId })
-                            },
-                            onLongClickLabel = "Modify Radio"
-                        ),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        contentColor = MaterialTheme.colorScheme.onBackground,
-                        disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
+fun SongsCard(song: MediaItem, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .padding(12.dp, 48.dp, 0.dp, 0.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = {
+                    if (song.mediaMetadata.extras?.getBoolean("isRadio") == false) return@combinedClickable
+                    showRadioModifyDialog.value = true
+                    selectedRadioIndex.intValue =
+                        radioList.indexOf(radioList.firstOrNull { it.name == song.mediaMetadata.artist && it.media == song.mediaId })
+                },
+                onLongClickLabel = "Modify Radio"
+            ),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+            disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .width(128.dp)
+                .height(172.dp)
+        ) {
+
+            AsyncImage(
+                model =
+                    if (song.mediaMetadata.artworkUri == Uri.EMPTY && song.mediaMetadata.extras?.getBoolean(
+                            "isRadio"
+                        ) == true
                     )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .width(128.dp)
-                            .height(172.dp)
-                    ) {
+                        R.drawable.rounded_cell_tower_24
+                    else song.mediaMetadata.artworkUri,
+                placeholder = painterResource(R.drawable.placeholder),
+                fallback = painterResource(R.drawable.placeholder),
+                contentScale = ContentScale.FillHeight,
+                contentDescription = "Album Image",
+                modifier = Modifier
+                    .height(128.dp)
+                    .width(128.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp))
+            )
 
-                        AsyncImage(
-                            model =
-                            if (song.mediaMetadata.artworkUri == Uri.EMPTY && song.mediaMetadata.extras?.getBoolean("isRadio") == true)
-                                R.drawable.rounded_cell_tower_24
-                            else song.mediaMetadata.artworkUri,
-                            placeholder = painterResource(R.drawable.placeholder),
-                            fallback = painterResource(R.drawable.placeholder),
-                            contentScale = ContentScale.FillHeight,
-                            contentDescription = "Album Image",
-                            modifier = Modifier
-                                .height(128.dp)
-                                .width(128.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp))
-                        )
+            Spacer(modifier = Modifier.height(4.dp))
 
-                        Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = song.mediaMetadata.title.toString(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
 
-                        Text(
-                            text = song.mediaMetadata.title.toString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.fillMaxWidth(),
-                            maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Text(
-                            text = song.mediaMetadata.artist.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
-                            modifier = Modifier.fillMaxWidth(),
-                            maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
+            Text(
+                text = song.mediaMetadata.artist.toString(),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
 }
 
 @Composable
-fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
+fun HorizontalSongCard(
+    song: MediaItem,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     val context = LocalContext.current
 
     Card(
-        onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
+        onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.Transparent,
@@ -155,9 +158,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
             disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
             disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ),
-        modifier = Modifier
-            .padding(0.dp, 0.dp, 0.dp, 12.dp)
-            .clip(RoundedCornerShape(12.dp))
+        modifier = modifier
     ) {
         Row(
             modifier = Modifier
@@ -165,7 +166,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(context)
-                    .data(song.imageUrl)
+                    .data(song.mediaMetadata.artworkUri)
                     .crossfade(true)
                     .size(64)
                     .build(),
@@ -187,7 +188,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                     .weight(1f)
             ) {
                 Text(
-                    text = song.title,
+                    text = song.mediaMetadata.title.toString(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -197,7 +198,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                 )
 
                 Text(
-                    text = song.artist + " • " + song.year,
+                    text = song.mediaMetadata.artist.toString() + if (song.mediaMetadata.releaseYear != 0) " • " + song.mediaMetadata.releaseYear else "",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
@@ -206,8 +207,10 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                     textAlign = TextAlign.Start
                 )
             }
-            val formattedDuration by remember(song.duration) {
-                derivedStateOf { formatMilliseconds(song.duration) }
+            val formattedDuration by remember(song.mediaMetadata.durationMs) {
+                derivedStateOf {
+                    formatMilliseconds((song.mediaMetadata.durationMs?.div(1000))?.toInt() ?: 0)
+                }
             }
             Text(
                 text = formattedDuration,
@@ -258,7 +261,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                         onClick = {
                             println("Add Song To Playlist")
                             showAddSongToPlaylistDialog.value = true
-                            songToAddToPlaylist.value = song
+                            songToAddToPlaylist.value = song.toSong()
                             expanded = false
                         },
                         leadingIcon = {
@@ -269,13 +272,13 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                         }
                     )
                     DropdownMenuItem(
-                        enabled = !song.navidromeID.startsWith("Local_"),
+                        enabled = !song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_"),
                         text = {
                             Text(stringResource(R.string.Action_Download))
                         },
                         onClick = {
                             coroutineScope.launch {
-                                downloadNavidromeSong(context, song)
+                                downloadNavidromeSong(context, song.toSong())
                             }
                             expanded = false
                         },
@@ -283,6 +286,36 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                             Icon(
                                 imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
                                 contentDescription = "Download Icon"
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        enabled = !song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_"),
+                        text = {
+                            Text(if (song.mediaMetadata.extras?.getString("starred").isNullOrEmpty()) "Star" else "Unstar")
+                        },
+                        onClick = {
+                            coroutineScope.launch {
+                                setNavidromeStar(
+                                    !song.mediaMetadata.extras?.getString("starred").isNullOrEmpty(),
+                                    song.mediaMetadata.extras?.getString("navidromeID")!!
+                                )
+                            }
+                            song.mediaMetadata.buildUpon().setExtras(
+                                Bundle().apply {
+                                    putString("starred", System.currentTimeMillis().toString())
+                                }
+                            ).build()
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(
+                                    if (song.mediaMetadata.extras?.getString("starred").isNullOrEmpty())
+                                        R.drawable.round_favorite_border_24
+                                    else
+                                        R.drawable.round_favorite_24
+                                ),
+                                contentDescription = "Star/Unstar Icon"
                             )
                         }
                     )

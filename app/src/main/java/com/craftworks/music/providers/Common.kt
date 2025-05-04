@@ -3,6 +3,7 @@ package com.craftworks.music.providers
 import android.content.Context
 import android.net.Uri
 import androidx.compose.ui.util.fastFilter
+import androidx.media3.common.MediaItem
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.playlistList
@@ -28,12 +29,12 @@ suspend fun getAlbums(
     size: Int? = 100,
     offset: Int? = 0,
     ignoreCachedResponse: Boolean = false
-): List<MediaData.Album> = coroutineScope {
-    val deferredAlbums = mutableListOf<Deferred<List<MediaData.Album>>>()
+): List<MediaItem> = coroutineScope {
+    val deferredAlbums = mutableListOf<Deferred<List<MediaItem>>>()
 
     if (NavidromeManager.checkActiveServers()) {
         deferredAlbums.add(async {
-            sendNavidromeGETRequest("getAlbumList.view?type=$sort&size=$size&offset=$offset&f=json", ignoreCachedResponse).filterIsInstance<MediaData.Album>()
+            sendNavidromeGETRequest("getAlbumList.view?type=$sort&size=$size&offset=$offset&f=json", ignoreCachedResponse).filterIsInstance<MediaItem>()
         })
     }
 
@@ -48,15 +49,14 @@ suspend fun getAlbums(
     deferredAlbums.awaitAll().flatten()
 }
 
-suspend fun getAlbum(albumId: String, ignoreCachedResponse: Boolean = false): MediaData.Album? = coroutineScope {
+suspend fun getAlbum(albumId: String, ignoreCachedResponse: Boolean = false): List<MediaItem>? = coroutineScope {
     if (albumId.startsWith("Local_")){
         LocalProvider.getInstance().getLocalAlbum(albumId)
     }
     else {
         val deferredAlbum = async {
-            sendNavidromeGETRequest("getAlbum.view?id=${albumId.removePrefix("Local_")}&f=json", ignoreCachedResponse)
-                .filterIsInstance<MediaData.Album>()
-                .firstOrNull() ?: throw IllegalStateException("Cannot get album data")
+            sendNavidromeGETRequest("getAlbum.view?id=${albumId}&f=json", ignoreCachedResponse)
+                .filterIsInstance<MediaItem>()
         }
         deferredAlbum.await()
     }
@@ -64,12 +64,12 @@ suspend fun getAlbum(albumId: String, ignoreCachedResponse: Boolean = false): Me
 
 suspend fun searchAlbum(
     query: String? = ""
-) : List<MediaData.Album> = coroutineScope {
-    val deferredAlbums = mutableListOf<Deferred<List<MediaData.Album>>>()
+) : List<MediaItem> = coroutineScope {
+    val deferredAlbums = mutableListOf<Deferred<List<MediaItem>>>()
 
     if (NavidromeManager.checkActiveServers()) {
         deferredAlbums.add(async {
-            sendNavidromeGETRequest("search3.view?query=$query&songCount=0&songOffset=0&artistCount=0&albumCount=100&f=json").filterIsInstance<MediaData.Album>()
+            sendNavidromeGETRequest("search3.view?query=$query&songCount=0&songOffset=0&artistCount=0&albumCount=100&f=json").filterIsInstance<MediaItem>()
         })
     }
 
@@ -82,16 +82,14 @@ suspend fun getSongs(
     query: String? = "",
     songCount: Int? = 100,
     songOffset: Int? = 0
-) : List<MediaData.Song> = coroutineScope {
-    val deferredSongs = mutableListOf<Deferred<List<MediaData.Song>>>()
-
-    println("Getting deferred album songs")
+) : List<MediaItem> = coroutineScope {
+    val deferredSongs = mutableListOf<Deferred<List<MediaItem>>>()
 
     if (LocalProviderManager.checkActiveFolders()) {
         if (songOffset == 0) {
             deferredSongs.add(async {
                 if (query?.isNotBlank() == true)
-                    LocalProvider.getInstance().getLocalSongs().fastFilter { it.title.contains(query, ignoreCase = true) }
+                    LocalProvider.getInstance().getLocalSongs().fastFilter { it.mediaMetadata.title?.contains(query, ignoreCase = true) == true }
                 else
                     LocalProvider.getInstance().getLocalSongs()
             })
@@ -99,12 +97,32 @@ suspend fun getSongs(
     }
     if (NavidromeManager.checkActiveServers()) {
         deferredSongs.add(async {
-            sendNavidromeGETRequest("search3.view?query=$query&songCount=$songCount&songOffset=$songOffset&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaData.Song>()
+            sendNavidromeGETRequest("search3.view?query=$query&songCount=$songCount&songOffset=$songOffset&artistCount=0&albumCount=0&f=json").filterIsInstance<MediaItem>()
         })
     }
 
     deferredSongs.awaitAll().flatten()
 }
+
+//suspend fun getSong(
+//    songId: String
+//) : MediaData.Song? = coroutineScope {
+//    when {
+//        songId.startsWith("Local_") -> {
+//            async {
+//                LocalProvider.getInstance().getLocalSongs().firstOrNull { it.navidromeID == songId }
+//            }.await()
+//        }
+//
+//        NavidromeManager.checkActiveServers() -> {
+//            async {
+//                sendNavidromeGETRequest("getSong.view?id=$songId&f=json", true).filterIsInstance<MediaData.Song>().firstOrNull()
+//            }.await()
+//        }
+//
+//        else -> null
+//    }
+//}
 //endregion
 
 //region Artists

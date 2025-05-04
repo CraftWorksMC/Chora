@@ -1,11 +1,10 @@
 package com.craftworks.music.data
 
-import android.net.Uri
 import android.os.Bundle
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateListOf
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaItem.RequestMetadata
 import androidx.media3.common.MediaMetadata
 import kotlinx.serialization.Serializable
 
@@ -30,27 +29,26 @@ fun MediaData.Song.toMediaItem(): MediaItem {
             .setTitle(this@toMediaItem.title)
             .setArtist(this@toMediaItem.artist)
             .setAlbumTitle(this@toMediaItem.album)
-            .setArtworkUri(Uri.parse(this@toMediaItem.imageUrl))
+            .setArtworkUri(this@toMediaItem.imageUrl.toUri())
             .setReleaseYear(this@toMediaItem.year)
+            .setRecordingYear(this@toMediaItem.year) // Recording Year is kept, releaseYear gets set to 'null' by ExoPlayer.
             .setIsBrowsable(false).setIsPlayable(true)
             .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+            .setDurationMs(this@toMediaItem.duration.times(1000).toLong())
             .setExtras(Bundle().apply {
                 putString("navidromeID", this@toMediaItem.navidromeID)
                 putInt("duration", this@toMediaItem.duration)
                 putString("format", this@toMediaItem.format)
-                this@toMediaItem.bitrate?.let { putInt("bitrate", it) }
+                putLong("bitrate", this@toMediaItem.bitrate?.toLong() ?: 0)
                 putBoolean("isRadio", this@toMediaItem.isRadio == true)
                 if (this@toMediaItem.replayGain?.trackGain != null)
                     putFloat("replayGain", this@toMediaItem.replayGain.trackGain)
             }).build()
 
-    val requestMetadata = RequestMetadata.Builder().setMediaUri(Uri.parse(this@toMediaItem.media)).build()
-
     return MediaItem.Builder()
         .setMediaId(this@toMediaItem.media.toString())
-        .setUri(Uri.parse(this@toMediaItem.media))
+        .setUri(this@toMediaItem.media?.toUri())
         .setMediaMetadata(mediaMetadata)
-        .setRequestMetadata(requestMetadata)
         .build()
 }
 
@@ -67,7 +65,7 @@ fun MediaItem.toSong(): MediaData.Song {
         year = mediaMetadata.releaseYear ?: 0,
         duration = extras?.getInt("duration") ?: 0,
         format = extras?.getString("format") ?: "",
-        bitrate = extras?.getInt("bitrate"),
+        bitrate = extras?.getLong("bitrate")?.toInt(),
         media = this@toSong.mediaId.toString(),
         replayGain = ReplayGain(
             trackGain = extras?.getFloat("replayGain") ?: 0f

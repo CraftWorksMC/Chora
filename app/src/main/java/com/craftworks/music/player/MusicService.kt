@@ -1,19 +1,14 @@
 package com.craftworks.music.player
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.ui.util.fastFilter
-import androidx.core.content.ContextCompat
 import androidx.core.math.MathUtils.clamp
+import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaItem.RequestMetadata
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -28,7 +23,7 @@ import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionError
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.ReplayGain
+import com.craftworks.music.data.toMediaItem
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
@@ -53,7 +48,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
 import kotlin.math.pow
 
 /*
@@ -147,7 +141,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         instance = this
 
-        Log.d("AA", "onCreate: Android Auto")
+        Log.d("AA", "onCreate Android Auto")
 
         if (session == null)
             initializePlayer()
@@ -157,7 +151,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     @OptIn(UnstableApi::class)
     fun initializePlayer() {
-
         player = ExoPlayer.Builder(this)
             .setSeekParameters(SeekParameters.EXACT)
             .setWakeMode(
@@ -187,15 +180,28 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     Log.d("REPLAY GAIN", "Setting ReplayGain to ${player.volume}")
                 }
 
-                serviceIOScope.launch {
-                    if (NavidromeManager.checkActiveServers() && !SongHelper.currentSong.navidromeID.startsWith("Local"))
-                        async { markNavidromeSongAsPlayed(SongHelper.currentSong.navidromeID) }
-
-                    if (SongHelper.currentSong.isRadio == false)
-                        async { LyricsManager.getLyrics() }
-
-                    SongHelper.currentSong = mediaItemToSong(mediaItem)
+                serviceMainScope.launch {
+                    if (NavidromeManager.checkActiveServers() && !SongHelper.currentSong.navidromeID.startsWith(
+                            "Local"
+                        )
+                    ) {
+                        async {
+                            markNavidromeSongAsPlayed(
+                                SongHelper.currentSong.navidromeID,
+                                player.currentPosition.toFloat(),
+                                player.duration.toFloat()
+                            )
+                        }
+                    }
                 }
+
+                serviceIOScope.launch {
+                    if (mediaItem?.mediaMetadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION)
+                        async { LyricsManager.getLyrics(mediaItem?.mediaMetadata) }
+                }
+//                    mediaItem?.toSong()?.let {
+//                        SongHelper.currentSong = it
+//                    }
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -210,18 +216,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         Log.d("AA", "Initialized MediaLibraryService.")
     }
-
-//    override fun onTaskRemoved(rootIntent: Intent?) {
-//        saveState()
-//
-//        Log.d("AA", "On task removed called.")
-//
-//        // Check if the player is not ready to play or there are no items in the media queue
-//        if (!player.playWhenReady || player.mediaItemCount == 0 || player.playbackState == Player.STATE_ENDED) {
-//            Log.d("AA", "Stopping service.")
-//            stopSelf()
-//        }
-//    }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
         return session
@@ -252,16 +246,19 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         override fun onSetMediaItems(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
-            mediaItems: MutableList<MediaItem>,
+            mediaItems: List<MediaItem>,
             startIndex: Int,
             startPositionMs: Long
         ): ListenableFuture<MediaItemsWithStartPosition> {
             // We need to use URI from requestMetaData because of https://github.com/androidx/media/issues/282
+            val updatedStartIndex = SongHelper.currentTracklist.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
+
             val currentTracklist =
-                if (SongHelper.currentTracklist.find { it.mediaId == mediaItems[0].mediaId } != null)
+                if (updatedStartIndex != -1) {
                     SongHelper.currentTracklist
+                }
                 else {
-                    SongHelper.currentTracklist = mediaItems
+                    SongHelper.currentTracklist = mediaItems.toMutableList()
                     mediaItems
                 }
 
@@ -271,17 +268,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                         .setMediaId(mediaItem.mediaId)
                         .setMediaMetadata(mediaItem.mediaMetadata)
                         .setUri(mediaItem.mediaId)
-                        .setRequestMetadata(mediaItem.requestMetadata)
                         .build()
                 }
-            val updatedStartIndex =
-                if (SongHelper.currentSong.isRadio == false)
-                    updatedMediaItems.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
-                else {
-                    0
-                }
-
-            Log.d("AA", "updatedStartIndex: $updatedStartIndex")
 
             return super.onSetMediaItems(
                 mediaSession,
@@ -291,6 +279,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 startPositionMs
             )
         }
+
 
         override fun onGetLibraryRoot(
             session: MediaLibrarySession,
@@ -312,13 +301,21 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             return Futures.immediateFuture(
                 try {
                     LibraryResult.ofItemList(
-                        when {
-                            parentId == "nodeROOT" -> rootHierarchy
-                            parentId == "nodeHOME" -> getHomeScreenItems()
-                            parentId == "nodeRADIOS" -> getRadioItems()
-                            parentId == "nodePLAYLISTS" -> getPlaylistItems()
-                            parentId.startsWith("folder_") -> getFolderItems(parentId)
-                            else -> emptyList()
+                        when (parentId) {
+                            "nodeROOT" -> rootHierarchy
+                            "nodeHOME" -> getHomeScreenItems()
+                            "nodeRADIOS" -> getRadioItems()
+                            "nodePLAYLISTS" -> getPlaylistItems()
+                            else -> {
+                                val mediaItem =
+                                    aHomeScreenItems.find { it.mediaId == parentId }
+                                        ?: aPlaylistScreenItems.find { it.mediaId == parentId }
+                                getFolderItems(
+                                    parentId,
+                                    mediaItem?.mediaMetadata?.mediaType
+                                        ?: MediaMetadata.MEDIA_TYPE_ALBUM
+                                )
+                            }
                         }, params)
                 } catch (_: Exception) {
                     LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
@@ -366,39 +363,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             return Futures.immediateFuture(LibraryResult.ofVoid())
         }
 
-        /*
-        override fun onPlaybackResumption(
-            mediaSession: MediaSession,
-            controller: MediaSession.ControllerInfo
-        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-            if (SongHelper.currentTracklist.isNotEmpty()) {
-                serviceMainScope.launch {
-                    withContext(Dispatchers.Main) {
-                        player.setMediaItems(SongHelper.currentTracklist)
-                        player.prepare()
-                        player.playWhenReady = true
-
-                        // Find current item index
-                        val currentIndex = SongHelper.currentTracklist.indexOfFirst {
-                            it.mediaId == SongHelper.currentSong.media
-                        }
-
-                        if (currentIndex != -1) {
-                            player.seekTo(currentIndex, mediaSession.player.currentPosition)
-                        } else {
-                            player.seekToDefaultPosition()
-                        }
-                    }
-                }
-                true
-            } else {
-                false
-            }
-
-            return super.onPlaybackResumption(mediaSession, controller)
-        }
-        */
-
         override fun onPlaybackResumption(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo
@@ -418,7 +382,10 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
                         SongHelper.currentTracklist = it.mediaItems
 
-                        Log.d("RESUMPTION", "Set playlist: ${it.mediaItems.map {it.mediaMetadata.title}} at index ${it.startIndex} with position ${it.startPositionMs}")
+                        Log.d(
+                            "RESUMPTION",
+                            "Set playlist: ${it.mediaItems.map { it.mediaMetadata.title }} at index ${it.startIndex} with position ${it.startPositionMs}"
+                        )
                     }
                 }
             }
@@ -433,12 +400,11 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             pageSize: Int,
             params: LibraryParams?
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
-            println("onGetSearchResult called!!! query: $query")
             return Futures.immediateFuture(
                 LibraryResult.ofItemList(
                     runBlocking {
-                        println("Getting songs for AA search...")
-                        getSongs(query).map { songToMediaItem(it) }
+                        SongHelper.currentTracklist = getSongs(query).toMutableList()
+                        SongHelper.currentTracklist
                     },
                     LibraryParams.Builder().build()
                 )
@@ -459,7 +425,11 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 runBlocking {
                     getSongs(query).size +
                             searchAlbum(query).size +
-                            getRadios(this@ChoraMediaLibraryService).fastFilter { it.name.contains(query) }.size +
+                            getRadios(this@ChoraMediaLibraryService).fastFilter {
+                                it.name.contains(
+                                    query
+                                )
+                            }.size +
                             getPlaylists().fastFilter { it.name.contains(query) }.size
                 },
                 LibraryParams.Builder().build()
@@ -478,112 +448,36 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     fun saveState() {
         runBlocking {
-            Log.d("AA", "Saving state! Playlist: ${SongHelper.currentTracklist.map { it.mediaMetadata.title }}, current index: ${player.currentMediaItemIndex}, current position: ${player.currentPosition}")
+            Log.d(
+                "AA",
+                "Saving state! Playlist: ${SongHelper.currentTracklist.map { it.mediaMetadata.title }}, current index: ${player.currentMediaItemIndex}, current position: ${player.currentPosition}"
+            )
 
-            SettingsManager(applicationContext).setPlaybackResumption(SongHelper.currentTracklist, player.currentMediaItemIndex, player.currentPosition)
+            SettingsManager(applicationContext).setPlaybackResumption(
+                SongHelper.currentTracklist,
+                player.currentMediaItemIndex,
+                player.currentPosition
+            )
         }
     }
 
     //region Convert to media items
-    private fun albumToMediaItem(album: MediaData.Album): MediaItem {
-        val mediaMetadata = MediaMetadata.Builder()
-            .setTitle(album.title)
-            .setArtist(album.artist)
-            .setAlbumTitle(album.album)
-            .setAlbumArtist(album.artist)
-            .setArtworkUri(Uri.parse(album.coverArt))
-            .setReleaseYear(album.year)
-            .setIsBrowsable(true)
-            .setIsPlayable(false)
-            .setMediaType(MediaMetadata.MEDIA_TYPE_ALBUM)
-            .setExtras(Bundle().apply {
-                putString("navidromeID", album.navidromeID)
-                putInt("Duration", album.duration)
-            })
-            .build()
-
-        Log.d("AA", "Added ${mediaMetadata.title} to recently played albums")
-        return MediaItem.Builder()
-            .setMediaId("folder_album_" + album.navidromeID)
-            .setMediaMetadata(mediaMetadata)
-            .build()
-    }
-
-    private fun songToMediaItem(song: MediaData.Song): MediaItem {
-        val mediaMetadata =
-            MediaMetadata.Builder()
-                .setTitle(song.title)
-                .setArtist(song.artist)
-                .setAlbumTitle(song.album)
-                .setArtworkUri(Uri.parse(song.imageUrl))
-                .setReleaseYear(song.year)
-                .setIsBrowsable(false).setIsPlayable(true)
-                .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                .setExtras(Bundle().apply {
-                    putString("navidromeID", song.navidromeID)
-                    putInt("duration", song.duration)
-                    putString("format", song.format)
-                    song.bitrate?.let { putInt("bitrate", it) }
-                    putBoolean("isRadio", song.isRadio == true)
-                    if (song.replayGain?.trackGain != null)
-                        putFloat("replayGain", song.replayGain.trackGain)
-                }).build()
-
-        val requestMetadata = RequestMetadata.Builder().setMediaUri(Uri.parse(song.media)).build()
-
-        Log.d("AA", "Added ${mediaMetadata.title} to album")
-        return MediaItem.Builder()
-            .setMediaId(song.media.toString())
-            .setUri(Uri.parse(song.media))
-            .setMediaMetadata(mediaMetadata)
-            .setRequestMetadata(requestMetadata)
-            .build()
-    }
-
-    fun mediaItemToSong(mediaItem: MediaItem?): MediaData.Song {
-        val mediaMetadata = mediaItem?.mediaMetadata
-        val extras = mediaMetadata?.extras
-
-        return MediaData.Song(
-            navidromeID = extras?.getString("navidromeID") ?: "",
-            title = mediaMetadata?.title.toString(),
-            artist = mediaMetadata?.artist.toString(),
-            album = mediaMetadata?.albumTitle.toString(),
-            imageUrl = mediaMetadata?.artworkUri.toString(),
-            year = mediaMetadata?.releaseYear ?: 0,
-            duration = extras?.getInt("duration") ?: 0,
-            format = extras?.getString("format") ?: "",
-            bitrate = extras?.getInt("bitrate"),
-            media = mediaItem?.mediaId.toString(),
-            replayGain = ReplayGain(
-                trackGain = extras?.getFloat("replayGain") ?: 0f
-            ),
-            isRadio = extras?.getBoolean("isRadio"),
-            path = "",
-            parent = "",
-            dateAdded = "",
-            bpm = 0,
-            albumId = ""
-        )
-    }
-
     private fun radioToMediaItem(radio: MediaData.Radio): MediaItem {
         val mediaMetadata =
             MediaMetadata.Builder()
                 .setTitle(radio.name)
-                .setArtworkData(
-                    drawableToByteArray(R.drawable.radioplaceholder),
-                    MediaMetadata.PICTURE_TYPE_FRONT_COVER
+                .setArtist(radio.name)
+                .setArtworkUri(
+                    ("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder).toUri()
                 )
                 .setIsPlayable(true)
                 .setIsBrowsable(false)
-                .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
                 .setExtras(Bundle().apply {
                     putString("navidromeID", radio.navidromeID)
                     putBoolean("isRadio", true)
                 }).build()
 
-        Log.d("AA", "Added ${mediaMetadata.title} to radio list")
         return MediaItem.Builder()
             .setMediaId(radio.media)
             .setUri(radio.media)
@@ -591,33 +485,11 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             .build()
     }
 
-    private fun drawableToByteArray(drawableId: Int): ByteArray {
-        val drawable = ContextCompat.getDrawable(applicationContext, drawableId)
-        val bitmap = when (drawable) {
-            is BitmapDrawable -> drawable.bitmap
-            else -> {
-                val bitmap = Bitmap.createBitmap(
-                    drawable!!.intrinsicWidth,
-                    drawable.intrinsicHeight,
-                    Bitmap.Config.RGB_565
-                )
-                val canvas = Canvas(bitmap)
-                drawable.setBounds(0, 0, canvas.width, canvas.height)
-                drawable.draw(canvas)
-                bitmap
-            }
-        }
-
-        val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 75, stream)
-        return stream.toByteArray()
-    }
-
     private fun playlistToMediaItem(playlist: MediaData.Playlist): MediaItem {
         val mediaMetadata = MediaMetadata.Builder()
             .setTitle(playlist.name)
             .setSubtitle(playlist.comment)
-            .setArtworkUri(Uri.parse(playlist.coverArt))
+            .setArtworkUri(playlist.coverArt?.toUri())
             .setIsBrowsable(true)
             .setIsPlayable(false)
             .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
@@ -629,7 +501,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         Log.d("AA", "Added ${mediaMetadata.title} to recently played albums")
         return MediaItem.Builder()
-            .setMediaId("folder_playlist_" + playlist.navidromeID)
+            .setMediaId(playlist.navidromeID)
             .setMediaMetadata(mediaMetadata)
             .build()
     }
@@ -644,24 +516,25 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 val mostPlayedAlbums = async { getAlbums("frequent", 6) }.await()
 
                 recentlyPlayedAlbums.forEach { album ->
-                    val mediaItem = albumToMediaItem(album).apply {
-                        this.mediaMetadata.extras?.putString(
-                            MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE,
-                            //this@ChoraMediaLibraryService.getString(R.string.recently_played)
-                            "Recently Played"
-                        )
-                    }
-                    aHomeScreenItems.add(mediaItem)
+                    aHomeScreenItems.add(
+                        album.apply {
+                            this.mediaMetadata.extras?.putString(
+                                MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE,
+                                this@ChoraMediaLibraryService.getString(R.string.recently_played)
+                            )
+                        }
+                    )
                 }
 
                 mostPlayedAlbums.forEach { album ->
-                    val mediaItem = albumToMediaItem(album).apply {
-                        this.mediaMetadata.extras?.putString(
-                            MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE,
-                            this@ChoraMediaLibraryService.getString(R.string.most_played)
-                        )
-                    }
-                    aHomeScreenItems.add(mediaItem)
+                    aHomeScreenItems.add(
+                        album.apply {
+                            this.mediaMetadata.extras?.putString(
+                                MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE,
+                                this@ChoraMediaLibraryService.getString(R.string.most_played)
+                            )
+                        }
+                    )
                 }
             }
         }
@@ -693,22 +566,20 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         return aPlaylistScreenItems
     }
 
-    private fun getFolderItems(parentId: String): MutableList<MediaItem> {
+    private fun getFolderItems(parentId: String, type: Int): MutableList<MediaItem> {
         runBlocking {
             aFolderSongs.clear()
-            val folderId = parentId.removePrefix("folder_")
-            when {
-                folderId.startsWith("album_") -> {
-                    val albumId = folderId.removePrefix("album_")
+            when (type) {
+                MediaMetadata.MEDIA_TYPE_ALBUM -> {
+                    val albumSongs = getAlbum(parentId)
                     aFolderSongs.addAll(
-                        getAlbum(albumId)?.songs?.map { songToMediaItem(it) } ?: emptyList()
+                        albumSongs?.subList(1, albumSongs.size) ?: emptyList()
                     )
                 }
 
-                folderId.startsWith("playlist_") -> {
-                    val playlistId = folderId.removePrefix("playlist_")
-                    getPlaylistDetails(playlistId)?.songs?.forEach {
-                        aFolderSongs.add(songToMediaItem(it))
+                MediaMetadata.MEDIA_TYPE_PLAYLIST -> {
+                    getPlaylistDetails(parentId)?.songs?.forEach {
+                        aFolderSongs.add(it.toMediaItem())
                     }
                 }
 

@@ -203,7 +203,7 @@ class SettingsManager(
     }
 
     val scrobblePercentFlow: Flow<Int> = context.dataStore.data.map { preferences ->
-        preferences[SCROBBLE_PERCENT_KEY] ?: 75
+        preferences[SCROBBLE_PERCENT_KEY] ?: 7
     }
 
     suspend fun setScrobblePercent(scrobblePercent: Int) {

@@ -62,7 +62,6 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
 import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
@@ -405,7 +404,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         },
                     interactionSource = interactionSource,
                     value = lyricsAnimationSpeed.value.toFloat(),
-                    steps = 4,
+                    steps = 5,
                     onValueChange = {
                         runBlocking {
                             SettingsManager(context).setLyricsAnimationSpeed(it.toInt())
@@ -414,8 +413,6 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     valueRange = 600f..2400f
                 )
             }
-
-            BottomSpacer()
         }
 
         if(showBackgroundDialog)

@@ -50,7 +50,8 @@ sealed class MediaData {
 
         val isRadio: Boolean? = false,
         var media: String? = null,
-        val trackIndex: Int? = 0
+        val trackIndex: Int? = 0,
+        var starred: String? = null,
     ) : MediaData()
 
     @Serializable
@@ -135,7 +136,6 @@ sealed class MediaData {
         var songs: List<Song>? = listOf()
     ) : MediaData()
 
-    // Navidrome Plain Lyrics
     @Serializable
     data class PlainLyrics(
         val value: String,
@@ -143,7 +143,6 @@ sealed class MediaData {
         val title: String? = ""
     ) : MediaData()
 
-    // Navidrome Synced Lyrics
     @Serializable
     data class StructuredLyrics(
         val displayArtist: String? = "",

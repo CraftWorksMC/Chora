@@ -27,7 +27,7 @@ class PlaylistScreenViewModel : ViewModel(), ReloadableViewModel {
     override fun reloadData() {
         viewModelScope.launch {
             coroutineScope {
-                val allPlaylistsDeferred = async { getPlaylists() }
+                val allPlaylistsDeferred = async { getPlaylists(true) }
 
                 _allPlaylists.value = allPlaylistsDeferred.await()
             }

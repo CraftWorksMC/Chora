@@ -117,6 +117,7 @@ class SongHelper {
                             putBoolean("isRadio", false)
                             putString("format", song.format)
                             putInt("bitrate", song.bitrate ?: 0)
+                            putString("starred", song.starred)
                         })
                         .build()
                     val mediaItem = MediaItem.Builder()
@@ -141,6 +142,17 @@ class SongHelper {
                     println("Index: $currentTrackIndex, playlist size: ${mediaController?.mediaItemCount}")
                 }
             }
+        }
+
+        fun play(mediaItems: List<MediaItem>, index: Int, mediaController: MediaController?) {
+            currentTracklist = (mediaItems).toMutableList()
+            println("tracklist set: ${currentTracklist.map { it.mediaMetadata.title }}")
+            //mediaController?.clearMediaItems()
+            //mediaController?.addMediaItems(currentTracklist)
+            //mediaController?.seekToDefaultPosition(index)
+            mediaController?.setMediaItems(currentTracklist, index, 0)
+            mediaController?.prepare()
+            mediaController?.play()
         }
     }
 }

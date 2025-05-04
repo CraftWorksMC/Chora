@@ -1,11 +1,14 @@
 package com.craftworks.music.providers.navidrome
 
 import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.artistList
 import com.craftworks.music.data.songsList
+import com.craftworks.music.data.toMediaItem
+import com.craftworks.music.player.SongHelper
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -24,7 +27,7 @@ fun parseNavidromeSearch3JSON(
     navidromeUrl: String,
     navidromeUsername: String,
     navidromePassword: String,
-) : List<MediaData> {
+) : List<Any> {
 
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
@@ -44,21 +47,26 @@ fun parseNavidromeSearch3JSON(
         it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora"
     }
 
-    var mediaDataSongs = emptyList<MediaData.Song>()
-    var mediaDataAlbums = emptyList<MediaData.Album>()
+    var mediaDataSongs = emptyList<MediaItem>()
+    var mediaDataAlbums = emptyList<MediaItem>()
     var mediaDataArtists = emptyList<MediaData.Artist>()
 
     subsonicResponse.searchResult3?.song?.filterNot { newSong ->
         songsList.any { existingSong ->
             existingSong.navidromeID == newSong.navidromeID
         }
-    }?.let { mediaDataSongs = it }
+    }?.let { mediaDataSongs = it.map {
+        it.copy(
+            media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.12.0&c=Chora"
+        ).toMediaItem()
+        }
+    }
 
     subsonicResponse.searchResult3?.album?.filterNot { newAlbum ->
         albumList.any { existingAlbum ->
             existingAlbum.navidromeID == newAlbum.navidromeID
         }
-    }?.let { mediaDataAlbums = it }
+    }?.let { mediaDataAlbums = it.map { it.toMediaItem() } }
 
     subsonicResponse.searchResult3?.artist?.filterNot { newArtist ->
         artistList.any { existingArtist ->
@@ -74,3 +82,25 @@ fun parseNavidromeSearch3JSON(
     }
 }
 
+@OptIn(UnstableApi::class)
+fun parseNavidromeSongJSON(
+    response: String,
+    navidromeUrl: String,
+    navidromeUsername: String,
+    navidromePassword: String,
+) : MediaData {
+
+    val jsonParser = Json { ignoreUnknownKeys = true }
+    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
+        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
+    )
+
+    // Generate password salt and hash
+    val passwordSaltMedia = generateSalt(8)
+    val passwordHashMedia = md5Hash(navidromePassword + passwordSaltMedia)
+
+    subsonicResponse.song?.media = "$navidromeUrl/rest/stream.view?&id=${subsonicResponse.song.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.12.0&c=Chora"
+    subsonicResponse.song?.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${subsonicResponse.song.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora"
+
+    return subsonicResponse.song ?: SongHelper.currentSong
+}

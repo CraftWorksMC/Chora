@@ -56,12 +56,12 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.toMediaItem
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.shuffleSongs
-import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
@@ -212,14 +212,14 @@ fun PlaylistDetails(
 
         Column(modifier = Modifier.padding(12.dp, top = 0.dp)) {
             playlist?.songs?.let {
-                SongsHorizontalColumn(it, onSongSelected = { song ->
+                SongsHorizontalColumn(it.map {
+                    it.toMediaItem()
+                }, onSongSelected = { songs, index ->
                     //SongHelper.currentSong = song
                     SongHelper.currentList = playlist.songs.orEmpty()
-                    song.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
+                    //song.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
                 })
             }
         }
-
-        BottomSpacer()
     }
 }

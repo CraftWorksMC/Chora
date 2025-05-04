@@ -48,9 +48,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.player.SongHelper
@@ -61,6 +61,7 @@ import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import kotlinx.coroutines.launch
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -130,6 +131,7 @@ fun SongsScreen(
                 Box(modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
+                    .padding(bottom = 6.dp)
                 ) {
                     val focusRequester = remember { FocusRequester() }
                     TextField(
@@ -169,15 +171,13 @@ fun SongsScreen(
 
             Column(modifier = Modifier.padding(horizontal = 12.dp)) {
                 SongsHorizontalColumn(
-                    songList = allSongsList, onSongSelected = { song ->
-                        //SongHelper.currentSong = song
-                        SongHelper.currentList = allSongsList.sortedBy { song.title }
-                        song.media?.let {
-                            SongHelper.playStream(
-                                context, it.toUri(), false, mediaController
-                            )
-                        }
-                    }, searchFilter.isNotBlank(), viewModel
+                    songList = allSongsList,
+                    onSongSelected = { songs, index ->
+                        println("Starting song at index: $index")
+                        SongHelper.play(songs, index, mediaController)
+                    },
+                    isSearch = searchFilter.isNotBlank(),
+                    viewModel = viewModel
                 )
             }
         }

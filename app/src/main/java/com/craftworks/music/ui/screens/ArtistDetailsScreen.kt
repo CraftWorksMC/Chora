@@ -61,8 +61,8 @@ import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.selectedArtist
+import com.craftworks.music.data.toMediaItem
 import com.craftworks.music.ui.elements.AlbumRow
-import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 import java.net.URLEncoder
@@ -87,9 +87,7 @@ fun ArtistDetails(
         .fillMaxWidth()
         .padding(
             start = leftPadding,
-            top = WindowInsets.statusBars
-                .asPaddingValues()
-                .calculateTopPadding()
+            top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
         )
         .wrapContentHeight()
         .verticalScroll(rememberScrollState())
@@ -115,10 +113,8 @@ fun ArtistDetails(
                     .fillMaxWidth()
                     //.fadingEdge(imageFadingEdge)
                     .clip(
-                        if (artist?.description != "")
-                            RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp)
-                        else
-                            RoundedCornerShape(12.dp)
+                        if (artist?.description != "") RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp)
+                        else RoundedCornerShape(12.dp)
                     )
                     .blur(12.dp)
             )
@@ -246,49 +242,25 @@ fun ArtistDetails(
                 modifier = Modifier.padding(start = 12.dp)
             )
 
-            AlbumRow(albums = artist?.album.orEmpty(), mediaController, onAlbumSelected = { album ->
-                val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
-                    launchSingleTop = true
+            AlbumRow(
+                albums = artist?.album?.map { it.toMediaItem() }.orEmpty(),
+                mediaController = mediaController,
+                onAlbumSelected = { album ->
+                    val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
+                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                        launchSingleTop = true
+                    }
+                    selectedAlbum = album
                 }
-                selectedAlbum = album }
             )
         }
-
-        /* Songs List
-        Column(modifier = Modifier
-            .padding(start = 12.dp, end = 12.dp, top = 0.dp)
-            .wrapContentHeight()
-        ) {
-            Column(
-                modifier = Modifier
-                    .wrapContentHeight()
-                    .fillMaxWidth()
-            ) {
-                Text(
-                    text = stringResource(R.string.Screen_Top_Songs) + ":",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                for(song in artistSongs){
-                    HorizontalSongCard(song = song, onClick = {
-                        SongHelper.currentSong = song
-                        SongHelper.currentList = artistSongs
-                        song.media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
-                    })
-                }
-            }
-        }
-        */
-
-        BottomSpacer()
     }
 
     // Show loading indicator while loading
     AnimatedVisibility(artist?.name != selectedArtist.name, exit = fadeOut()) {
-        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
                 modifier = Modifier
                     .padding(12.dp)

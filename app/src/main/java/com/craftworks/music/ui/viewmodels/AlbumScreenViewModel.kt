@@ -2,7 +2,7 @@ package com.craftworks.music.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.craftworks.music.data.MediaData
+import androidx.media3.common.MediaItem
 import com.craftworks.music.providers.getAlbums
 import com.craftworks.music.providers.searchAlbum
 import kotlinx.coroutines.async
@@ -13,15 +13,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class AlbumScreenViewModel : ViewModel(), ReloadableViewModel {
-    private val _allAlbums = MutableStateFlow<List<MediaData.Album>>(emptyList())
-    val allAlbums: StateFlow<List<MediaData.Album>> = _allAlbums.asStateFlow()
+    private val _allAlbums = MutableStateFlow<List<MediaItem>>(emptyList())
+    val allAlbums: StateFlow<List<MediaItem>> = _allAlbums.asStateFlow()
 
     override fun reloadData() {
         viewModelScope.launch {
             coroutineScope {
                 val allAlbumsDeferred = async { getAlbums("alphabeticalByName", 20, 0, true) }
 
-                _allAlbums.value = allAlbumsDeferred.await().sortedByDescending { it.navidromeID.startsWith("Local_") }
+                _allAlbums.value = allAlbumsDeferred.await().sortedByDescending {
+                    it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")
+                }
             }
         }
     }

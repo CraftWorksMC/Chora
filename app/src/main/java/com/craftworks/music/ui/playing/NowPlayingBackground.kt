@@ -13,13 +13,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -29,51 +26,17 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.Player
-import androidx.media3.session.MediaController
-import com.craftworks.music.managers.SettingsManager
 import kotlinx.coroutines.launch
-import kotlin.collections.elementAtOrNull
 
 @Preview
 @Stable
 @Composable
 fun NowPlaying_Background(
     colorPalette: List<Color> = emptyList(),
-    mediaController: MediaController? = null
+    backgroundStyle: String = "Animated Blur"
 ) {
-    val context = LocalContext.current
-
-    //region Player Status
-    val playerStatus = remember { mutableStateOf("") }
-
-    DisposableEffect(mediaController) {
-        val listener = object : Player.Listener {
-            override fun onIsLoadingChanged(isLoading: Boolean) {
-                playerStatus.value = "loading"
-                super.onIsLoadingChanged(isLoading)
-            }
-
-            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                playerStatus.value = if (playWhenReady) "playing" else "paused"
-                super.onPlayWhenReadyChanged(playWhenReady, reason)
-            }
-        }
-
-        mediaController?.addListener(listener)
-        Log.d("RECOMPOSITION", "Registered new listener for mediaController in NowPlaying_Background!")
-
-        onDispose {
-            mediaController?.removeListener(listener)
-        }
-    }
-    //endregion
-
-    val backgroundStyle by SettingsManager(context).npBackgroundFlow.collectAsState("Static Blur")
-
     when (backgroundStyle){
         "Plain"         -> PlainBG()
         "Static Blur"   -> StaticBlurBG(colorPalette)
@@ -156,6 +119,9 @@ fun AnimatedGradientBG(
     color3: Color = Color.Cyan,
     modifier: Modifier = Modifier.fillMaxSize()
 ) {
+    println("RECOMPOSITION: Animated Gradient BG")
+    println("Colors: $color1, $color2, $color3")
+
     val shaderCode = """
     uniform float2 iResolution;
     uniform float iTime;

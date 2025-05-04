@@ -37,6 +37,7 @@ data class SubsonicResponse(
     val openSubsonic: Boolean,
 
     // Songs
+    val song: MediaData.Song? = null,
     val searchResult3: SearchResult3? = null,
 
     // Albums
@@ -63,7 +64,7 @@ data class SubsonicResponse(
 suspend fun sendNavidromeGETRequest(
     endpoint: String,
     ignoreCachedResponse: Boolean = false
-) : List<MediaData> {
+) : List<Any> {
     // Check if data is in the cache
     val cachedData = NavidromeCache.get(endpoint)
     if (cachedData != null && ignoreCachedResponse == false) {
@@ -72,7 +73,7 @@ suspend fun sendNavidromeGETRequest(
         return cachedData
     }
 
-    val parsedData = mutableListOf<MediaData>()
+    val parsedData = mutableListOf<Any>()
     val server = getCurrentServer() ?: throw IllegalArgumentException("Could not get current server.")
 
     setSyncingStatus(true)
@@ -139,8 +140,9 @@ suspend fun sendNavidromeGETRequest(
                     withContext(Dispatchers.Default) {
                         val responseContent = it.readText()
                         when {
-                            endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (responseContent)
-                            endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON    (responseContent, server.url, server.username, server.password))
+                            endpoint.startsWith("ping")         -> parseNavidromeStatusXML(responseContent)
+                            endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON(responseContent, server.url, server.username, server.password))
+                            endpoint.startsWith("getSong")      -> parsedData.addAll(listOf(parseNavidromeSongJSON(responseContent, server.url, server.username, server.password)))
 
                             // Albums
                             endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))
@@ -155,9 +157,9 @@ suspend fun sendNavidromeGETRequest(
                             // Playlists
                             endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
                             endpoint.startsWith("getPlaylist.") -> parsedData.addAll(listOf(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password)))
-                            endpoint.startsWith("updatePlaylist") -> getPlaylists(true) // Ignore cache
-                            endpoint.startsWith("createPlaylist") -> getPlaylists(true) // Ignore cache
-                            endpoint.startsWith("deletePlaylist") -> getPlaylists(true) // Ignore cache
+                            endpoint.startsWith("updatePlaylist") -> parsedData.addAll(getPlaylists(true))
+                            endpoint.startsWith("createPlaylist") -> parsedData.addAll(getPlaylists(true))
+                            endpoint.startsWith("deletePlaylist") -> parsedData.addAll(getPlaylists(true))
 
                             // Radios
                             endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
@@ -168,8 +170,20 @@ suspend fun sendNavidromeGETRequest(
 
 
                             // Star and unstar
-                            endpoint.startsWith("star") -> { setSyncingStatus(false) }
-                            endpoint.startsWith("unstar") -> { setSyncingStatus(false) }
+                            endpoint.startsWith("star") -> {
+                                NavidromeCache.delByPrefix("getAlbum")
+                                NavidromeCache.delByPrefix("search3")
+                                NavidromeCache.delByPrefix("getPlaylist")
+                                //GlobalViewModels.refreshAll()
+                                setSyncingStatus(false)
+                            }
+                            endpoint.startsWith("unstar") -> {
+                                NavidromeCache.delByPrefix("getAlbum")
+                                NavidromeCache.delByPrefix("search3")
+                                NavidromeCache.delByPrefix("getPlaylist")
+                                //GlobalViewModels.refreshAll()
+                                setSyncingStatus(false)
+                            }
 
                             else -> { setSyncingStatus(false) }
                         }

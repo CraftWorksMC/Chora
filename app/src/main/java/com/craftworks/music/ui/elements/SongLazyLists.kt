@@ -50,6 +50,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.songsList
+import com.craftworks.music.data.toAlbum
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
@@ -111,12 +112,11 @@ fun SongsRow(songsList: List<MediaData.Song>, onSongSelected: (song: MediaData.S
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongsHorizontalColumn(
-    songList: List<MediaData.Song>,
-    onSongSelected: (song: MediaData.Song) -> Unit,
+    songList: List<MediaItem>,
+    onSongSelected: (itemsList: List<MediaItem>, index: Int) -> Unit,
     isSearch: Boolean? = false,
     viewModel: SongsScreenViewModel? = null
 ){
-    var isSongSelected by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
     val showDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
@@ -145,11 +145,12 @@ fun SongsHorizontalColumn(
         modifier = Modifier
             .wrapContentHeight()
             .fillMaxWidth(),
-        state = listState
+        state = listState,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         // Group songs by their source (Local or Navidrome)
         val groupedSongs = songList.groupBy { song ->
-            if (song.navidromeID.startsWith("Local_")) "Local" else "Navidrome"
+            if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
         }
 
         groupedSongs.forEach { (groupName, songsInGroup) ->
@@ -177,11 +178,13 @@ fun SongsHorizontalColumn(
                     )
                 }
             }
-            items(songsInGroup) { song ->
-                HorizontalSongCard(song = song, onClick = {
-                    isSongSelected = true
-                    onSongSelected(song)
-                })
+            itemsIndexed(songsInGroup) { index, song ->
+                HorizontalSongCard(
+                    song = song,
+                    onClick = {
+                        onSongSelected(songsInGroup, index)
+                    }
+                )
             }
         }
     }
@@ -234,7 +237,7 @@ fun AlbumGrid(
             AlbumCard(album = album,
                 mediaController = mediaController,
                 onClick = {
-                    onAlbumSelected(album)
+                    onAlbumSelected(album.toAlbum())
                 })
         }
     }
@@ -243,7 +246,7 @@ fun AlbumGrid(
 @ExperimentalFoundationApi
 @Composable
 fun AlbumRow(
-    albums: List<MediaData.Album>,
+    albums: List<MediaItem>,
     mediaController: MediaController?,
     onAlbumSelected: (album: MediaData.Album) -> Unit
 ){
@@ -267,7 +270,7 @@ fun AlbumRow(
         itemsIndexed(albums) { index, album ->
             // Show divider between local and navidrome albums
             if (SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true).value) {
-                val dividerIndex = albums.indexOfFirst { it.navidromeID.startsWith("Local_") }
+                val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_") }
                 if (index == dividerIndex && index != albums.lastIndex && index != 0) {
                     Row(
                         modifier = Modifier.padding(12.dp, 12.dp, 0.dp, 0.dp),
@@ -295,7 +298,7 @@ fun AlbumRow(
                 album = album,
                 mediaController = mediaController,
                 onClick = {
-                    onAlbumSelected(album)
+                    onAlbumSelected(album.toAlbum())
                 })
         }
     }

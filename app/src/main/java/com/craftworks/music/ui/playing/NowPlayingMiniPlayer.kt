@@ -30,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -38,19 +37,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.media3.session.MediaController
-import coil.compose.AsyncImage
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-import com.craftworks.music.R
-import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.ChoraMediaLibraryService
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Stable
 @Composable
 fun NowPlayingMiniPlayer(
     scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
-    mediaController: MediaController? = null,
+    metadata: MediaMetadata? = null,
     onClick: () -> Unit = { }
 ) {
     val expanded by remember { derivedStateOf { scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded } }
@@ -72,15 +72,15 @@ fun NowPlayingMiniPlayer(
         }
     ) {
         // Album Image
-        AsyncImage(
+        SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(SongHelper.currentSong.imageUrl)
+                .data(metadata?.artworkUri)
                 .size(128)
                 .crossfade(true)
                 .build(),
             contentDescription = "Album Cover",
-            placeholder = painterResource(R.drawable.placeholder),
-            fallback = painterResource(R.drawable.placeholder),
+            //placeholder = painterResource(R.drawable.placeholder),
+            //fallback = painterResource(R.drawable.placeholder),
             contentScale = ContentScale.FillWidth,
             alignment = Alignment.Center,
             modifier = Modifier
@@ -96,21 +96,19 @@ fun NowPlayingMiniPlayer(
                 .padding(horizontal = 12.dp)
                 .weight(1f)
         ) {
-            SongHelper.currentSong.title.let {
-                Text(
-                    text = it,
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            Text(
+                text = metadata?.title.toString(),
+                fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
             Row(modifier = Modifier.width(IntrinsicSize.Max)) {
                 Text(
-                    text = SongHelper.currentSong.artist,
+                    text = metadata?.artist.toString(),
                     fontSize = MaterialTheme.typography.bodyMedium.fontSize,
                     fontWeight = FontWeight.Light,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -119,17 +117,25 @@ fun NowPlayingMiniPlayer(
                     textAlign = TextAlign.Start,
                     modifier = Modifier.weight(1f)
                 )
-                Text(
-                    text = if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
-                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                    fontWeight = FontWeight.Light,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1,
-                    modifier = Modifier.wrapContentWidth()
-                )
+                if (metadata?.recordingYear != 0 && metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
+                    Text(
+                        text = " • " + metadata?.recordingYear.toString(),
+                        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                        fontWeight = FontWeight.Light,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1,
+                        modifier = Modifier.wrapContentWidth()
+                    )
+                }
             }
         }
 
-        PlayPauseButtonUpdating(MaterialTheme.colorScheme.onBackground, mediaController, 48.dp)
+        ChoraMediaLibraryService.getInstance()?.player?.let {
+            PlayPauseButton(
+                it,
+                MaterialTheme.colorScheme.onBackground,
+                Modifier.size(48.dp)
+            )
+        }
     }
 }

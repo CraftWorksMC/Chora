@@ -1,7 +1,6 @@
 package com.craftworks.music
 
 import android.content.res.Configuration
-import android.net.Uri
 import android.util.Log
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -11,18 +10,24 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -33,7 +38,6 @@ import com.craftworks.music.data.Screen
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.ui.elements.bottomSpacerHeightDp
 import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
@@ -60,7 +64,7 @@ import java.net.URLDecoder
 @Composable
 fun SetupNavGraph(
     navController: NavHostController,
-    paddingValues: PaddingValues,
+    bottomPadding: Dp,
     mediaController: MediaController?,
     homeViewModel: HomeScreenViewModel,
     albumViewModel: AlbumScreenViewModel,
@@ -68,11 +72,6 @@ fun SetupNavGraph(
     artistsViewModel: ArtistsScreenViewModel,
     playlistViewModel: PlaylistScreenViewModel
 ){
-    val bottomPadding: Dp =
-        if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT)
-            paddingValues.calculateBottomPadding()
-        else 0.dp
-
     val context = LocalContext.current
 
     playlistList = SettingsManager(context).localPlaylists.collectAsStateWithLifecycle(mutableListOf()).value
@@ -90,12 +89,12 @@ fun SetupNavGraph(
 
     NavHost(navController = navController,
         startDestination = Screen.Home.route,
-        modifier = Modifier.padding(bottom = bottomPadding + bottomSpacerHeightDp()),
+        modifier = Modifier.padding(bottom = bottomPadding),
         enterTransition = {
             scaleIn(tween(300), 0.95f) + fadeIn(tween(400))
         },
         exitTransition = {
-            fadeOut(tween(400))
+            fadeOut(tween(300))
         },
         popEnterTransition = {
             scaleIn(tween(300), 1.05f) + fadeIn(tween(400))
@@ -134,7 +133,7 @@ fun SetupNavGraph(
             val albumImageUri = URLDecoder.decode(it.arguments?.getString("image"), "UTF-8")
             AlbumDetails(
                 albumId,
-                Uri.parse(albumImageUri),
+                albumImageUri.toUri(),
                 navController,
                 mediaController
             )
@@ -187,8 +186,33 @@ fun SetupNavGraph(
         composable(route = Screen.NowPlayingLandscape.route){
             if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) ||
                 LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                var metadata by remember { mutableStateOf<MediaMetadata?>(null) }
+
+                // Update metadata from mediaController.
+                LaunchedEffect(mediaController) {
+                    if (mediaController?.currentMediaItem != null) {
+                        metadata = mediaController.currentMediaItem?.mediaMetadata
+                    }
+                }
+                DisposableEffect(mediaController) {
+                    val listener = object : Player.Listener {
+                        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                            super.onMediaItemTransition(mediaItem, reason)
+                            metadata = mediaController?.currentMediaItem?.mediaMetadata
+                        }
+                    }
+
+                    mediaController?.addListener(listener)
+
+                    onDispose {
+                        mediaController?.removeListener(listener)
+                    }
+                }
+
                 NowPlayingContent(
-                    LocalContext.current, navController, mediaController
+                    LocalContext.current,
+                    mediaController,
+                    metadata
                 )
 
                 // Keep screen on

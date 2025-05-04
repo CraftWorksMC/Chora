@@ -6,12 +6,16 @@ import android.content.Context
 import android.database.Cursor
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
+import androidx.core.net.toUri
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.Genre
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.managers.LocalProviderManager
@@ -44,9 +48,9 @@ class LocalProvider private constructor() {
     }
 
     //region Albums
-    fun getLocalAlbums(sort: String?): List<MediaData.Album> {
+    fun getLocalAlbums(sort: String?): List<MediaItem> {
         Log.d("LOCAL PROVIDER", "Getting All Albums!")
-        val albums = mutableSetOf<MediaData.Album>() // Use a Set to avoid duplicates
+        val albums = mutableSetOf<MediaItem>()
 
         val sortOrder = when (sort) {
             "alphabeticalByName" -> "${MediaStore.Audio.Albums.ALBUM} DESC"
@@ -103,19 +107,31 @@ class LocalProvider private constructor() {
                             println("No Album Art!")
                         }.toString()
 
-                        val album = MediaData.Album(
-                            navidromeID = "Local_$thisId",
-                            name = thisAlbum,
-                            album = thisAlbum,
-                            title = thisAlbum,
-                            artist = thisArtist,
-                            coverArt = imageUri,
-                            songCount = 0,
-                            duration = 0,
-                            artistId = "",
-                        )
+                        val mediaMetadata = MediaMetadata.Builder()
+                            .setTitle(thisAlbum)
+                            .setArtist(thisArtist)
+                            .setAlbumTitle(thisAlbum)
+                            .setAlbumArtist(thisAlbum)
+                            .setArtworkUri(imageUri.toUri())
+                            .setIsBrowsable(true)
+                            .setIsPlayable(false)
+                            .setMediaType(MediaMetadata.MEDIA_TYPE_ALBUM)
+                            .setExtras(
+                                Bundle().apply {
+                                    putString("navidromeID", "Local_$thisId")
+                                }
+                            )
+                            .build()
 
-                        albums.add(album) // Add to the Set (duplicates will be ignored)
+                        val album = MediaItem.Builder()
+                            .setMediaId(
+                                "Local_$thisId"
+                            )
+                            .setUri("Local_$thisId")
+                            .setMediaMetadata(mediaMetadata)
+                            .build()
+
+                        albums.add(album)
                     } while (cursor.moveToNext())
                 }
             }
@@ -123,10 +139,10 @@ class LocalProvider private constructor() {
             cursor?.close()
         }
 
-        return albums.toList() // Convert the Set back to a List before returning
+        return albums.toList()
     }
 
-    fun getLocalAlbum(albumId: String): MediaData.Album? {
+    fun getLocalAlbum(albumId: String): List<MediaItem>? {
         val numericId = try {
             albumId.removePrefix("Local_").toLong()
         } catch (e: NumberFormatException) {
@@ -135,7 +151,7 @@ class LocalProvider private constructor() {
 
         Log.d("LOCAL PROVIDER", "Getting album data for id $numericId!")
 
-        var album: MediaData.Album? = null
+        var album = mutableListOf<MediaItem>()
 
         applicationContext?.let { context ->
             val contentResolver: ContentResolver = context.contentResolver
@@ -144,7 +160,7 @@ class LocalProvider private constructor() {
                 MediaStore.Audio.Albums._ID,
                 MediaStore.Audio.Albums.ALBUM,
                 MediaStore.Audio.Albums.ARTIST,
-                MediaStore.Audio.Albums.ARTIST_ID,
+                MediaStore.Audio.Albums.ALBUM_ID,
                 //MediaStore.Audio.Albums.NUMBER_OF_SONGS,
                 MediaStore.Audio.Media.YEAR
             )
@@ -170,14 +186,14 @@ class LocalProvider private constructor() {
                     val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
                     val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
                     val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)
-                    val artistIdColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST_ID)
+                    val albumIdColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ID)
                     val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
 
                     do {
                         val thisId = cursor.getLongOrNull(idColumn) ?: 0
                         val thisAlbum = cursor.getString(albumColumn)
                         val thisArtist = cursor.getString(artistColumn)
-                        val thisArtistId = cursor.getInt(artistIdColumn)
+                        val thisAlbumId = cursor.getInt(albumIdColumn)
                         val thisYear = cursor.getInt(yearColumn)
 
                         val imageUri: String = try {
@@ -188,24 +204,36 @@ class LocalProvider private constructor() {
 
                         val songs = getLocalAlbumSongs(numericId)
                         //val songs = emptyList<MediaData.Song>()
-                        val totalDuration = songs.sumOf { it.duration }
-                        val genre = songs.firstOrNull()?.genres ?: emptyList()
+                        val totalDuration = songs.sumOf { it.mediaMetadata.extras?.getLong("duration") ?: 0L }
+                        val genre = songs.firstOrNull()?.mediaMetadata?.genre
 
-                        album = MediaData.Album(
-                            navidromeID = albumId,
-                            name = thisAlbum,
-                            album = thisAlbum,
-                            title = thisAlbum,
-                            coverArt = imageUri,
-                            songCount = songs.size,
-                            duration = totalDuration,
-                            artistId = "Local_$thisArtistId",
-                            artist = thisArtist,
-                            year = thisYear,
-                            //genre = genre,
-                            genres = genre,
-                            songs = songs
+                        val mediaMetadata = MediaMetadata.Builder()
+                            .setTitle(thisAlbum)
+                            .setArtist(thisArtist)
+                            .setAlbumTitle(thisAlbum)
+                            .setAlbumArtist(thisArtist)
+                            .setArtworkUri(imageUri.toUri())
+                            .setReleaseYear(thisYear)
+                            .setGenre(genre)
+                            .setIsBrowsable(true)
+                            .setIsPlayable(false)
+                            .setMediaType(MediaMetadata.MEDIA_TYPE_ALBUM)
+                            .setExtras(
+                                Bundle().apply {
+                                    putString("navidromeID", "Local_$thisAlbumId")
+                                    putInt("duration", totalDuration.toInt())
+                                }
+                            )
+                            .build()
+
+                        album.add(MediaItem.Builder()
+                            .setMediaId("Local_$thisAlbumId")
+                            .setUri("Local_$thisAlbumId")
+                            .setMediaMetadata(mediaMetadata)
+                            .build()
                         )
+
+                        album.addAll(songs)
                         Log.d("LOCAL PROVIDER", "Got album data: $album")
 
                     } while (cursor.moveToNext())
@@ -218,10 +246,10 @@ class LocalProvider private constructor() {
         return album
     }
 
-    private fun getLocalAlbumSongs(albumId: Long): List<MediaData.Song> {
+    private fun getLocalAlbumSongs(albumId: Long): List<MediaItem> {
         Log.d("LOCAL PROVIDER", "Getting Songs for album id: $albumId")
 
-        val songs = mutableListOf<MediaData.Song>()
+        val songs = mutableListOf<MediaItem>()
 
         applicationContext?.let { context ->
             val contentResolver: ContentResolver = context.contentResolver
@@ -310,30 +338,30 @@ class LocalProvider private constructor() {
                             genres.add(Genre(it))
                         }
 
-                        songs.add(
-                            MediaData.Song(
-                                navidromeID = "Local_$thisId",
-                                parent = "",
-                                title = thisTitle,
-                                album = thisAlbum,
-                                artist = thisArtist,
-                                imageUrl = imageUri,
-                                format = thisFormat.split("/").last(),
-                                dateAdded = thisDateAdded,
-                                albumId = "Local_$albumId",
-                                bpm = 0,
-                                path = thisPath,
-                                media = contentUri.toString(),
+                        val mediaMetadata = MediaMetadata.Builder()
+                            .setTitle(thisTitle)
+                            .setArtist(thisArtist)
+                            .setAlbumTitle(thisAlbum)
+                            .setArtworkUri(imageUri.toUri())
+                            .setReleaseYear(thisYear)
+                            .setGenre(thisGenre.toString())
+                            .setIsBrowsable(false).setIsPlayable(true)
+                            .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                            .setDurationMs(thisDuration.toLong())
+                            .setExtras(Bundle().apply {
+                                putString("navidromeID", "Local_$thisId")
+                                putInt("duration", thisDuration)
+                                putString("format", thisFormat)
+                                putLong("bitrate", thisBitrate.toLong())
+                                putBoolean("isRadio", false)
+                            }).build()
 
-                                track = thisTrack,
-                                year = thisYear,
-                                contentType = thisFormat,
-                                duration = thisDuration / 1000,
-                                bitrate = thisBitrate / 1000,
-                                artistId = "Local_$thisArtistId",
-                                genre = thisGenre,
-                                genres = genres
-                            )
+                        songs.add(
+                            MediaItem.Builder()
+                            .setMediaId(thisId.toString())
+                            .setUri(thisId.toString())
+                            .setMediaMetadata(mediaMetadata)
+                            .build()
                         )
                     }while (cursor.moveToNext())
                 }
@@ -346,8 +374,8 @@ class LocalProvider private constructor() {
     }
     //endregion
 
-    fun getLocalSongs(): List<MediaData.Song> {
-        val songs = mutableListOf<MediaData.Song>()
+    fun getLocalSongs(): List<MediaItem> {
+        val songs = mutableListOf<MediaItem>()
         applicationContext?.let { context ->
             val contentResolver: ContentResolver = context.contentResolver
             val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -442,29 +470,36 @@ class LocalProvider private constructor() {
                         }
 
                         songs.add(
-                            MediaData.Song(
-                                navidromeID = "Local_$thisId",
-                                parent = "",
-                                title = thisTitle,
-                                album = thisAlbum,
-                                artist = thisArtist,
-                                imageUrl = imageUri,
-                                format = thisFormat.split("/").last(),
-                                dateAdded = thisDateAdded,
-                                albumId = "Local_$thisAlbumId",
-                                bpm = 0,
-                                path = thisPath,
-                                media = contentUri.toString(),
-
-                                track = thisTrack,
-                                year = thisYear,
-                                contentType = thisFormat,
-                                duration = thisDuration / 1000,
-                                bitrate = thisBitrate / 1000,
-                                artistId = "Local_$thisArtistId",
-                                genre = thisGenre,
-                                genres = genres
-                            )
+                            MediaItem.fromUri(contentUri).buildUpon().apply {
+                                setMediaId(contentUri.toString())
+                                setMediaMetadata(
+                                    MediaMetadata.Builder()
+                                        .setTitle(thisTitle)
+                                        .setAlbumTitle(thisAlbum)
+                                        .setArtist(thisArtist)
+                                        .setArtworkUri(imageUri.toUri())
+                                        .setIsPlayable(true)
+                                        .setTrackNumber(thisTrack)
+                                        .setReleaseYear(thisYear)
+                                        .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                                        .setExtras(
+                                            Bundle().apply {
+                                                putString("navidromeID", "Local_$thisId")
+                                                putString("parent", "")
+                                                putString("format", thisFormat.split("/").last())
+                                                putString("dateAdded", thisDateAdded)
+                                                putString("albumId", "Local_$thisAlbumId")
+                                                putString("path", thisPath)
+                                                putString("contentType", thisFormat)
+                                                putInt("duration", thisDuration / 1000)
+                                                putInt("bitrate", thisBitrate / 1000)
+                                                putString("artistId", "Local_$thisArtistId")
+                                                putString("genre", thisGenre)
+                                            }
+                                        )
+                                        .build()
+                                )
+                            }.build()
                         )
                     }while (cursor.moveToNext())
                 }

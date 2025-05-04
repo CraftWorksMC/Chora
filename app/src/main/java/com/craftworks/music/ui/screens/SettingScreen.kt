@@ -44,7 +44,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
-import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 
 @Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
@@ -111,8 +110,6 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                 R.string.Settings_Header_Playback,
                 navHostController)
         }
-
-        BottomSpacer()
     }
 }
 

@@ -53,11 +53,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
@@ -150,10 +150,10 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            RecentlyPlayed(mediaController, navHostController, recentlyPlayedAlbums)
-            RecentlyAdded(mediaController, navHostController, recentAlbums)
-            MostPlayed(mediaController, navHostController, mostPlayedAlbums)
-            Shuffled(mediaController, navHostController, shuffledAlbums)
+            AlbumRow(stringResource(R.string.recently_played), recentlyPlayedAlbums, mediaController, navHostController)
+            AlbumRow(stringResource(R.string.recently_added), recentAlbums, mediaController, navHostController)
+            AlbumRow(stringResource(R.string.most_played), mostPlayedAlbums, mediaController, navHostController)
+            AlbumRow(stringResource(R.string.random_songs), shuffledAlbums, mediaController, navHostController)
         }
     }
 }
@@ -191,10 +191,11 @@ fun HomeScreen(
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-@Composable fun RecentlyPlayed(
+@Composable fun AlbumRow(
+    title: String,
+    albums: List<MediaItem>,
     mediaController: MediaController?,
-    navHostController: NavHostController,
-    albums: List<MediaData.Album>
+    navHostController: NavHostController
 ) {
     Box(
         modifier = Modifier
@@ -202,91 +203,7 @@ fun HomeScreen(
             .height(256.dp)
     ) {
         Text(
-            text = stringResource(R.string.recently_played) + ":",
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-            modifier = Modifier.padding(start = 12.dp)
-        )
-
-        AlbumRow(albums, mediaController) { album ->
-            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
-                launchSingleTop = true
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable fun RecentlyAdded(
-    mediaController: MediaController?,
-    navHostController: NavHostController,
-    albums: List<MediaData.Album>
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(256.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.recently_added) + ":",
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-            modifier = Modifier.padding(start = 12.dp)
-        )
-
-        AlbumRow(albums, mediaController) { album ->
-            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
-                launchSingleTop = true
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable fun MostPlayed(
-    mediaController: MediaController?,
-    navHostController: NavHostController,
-    albums: List<MediaData.Album>
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(256.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.most_played) + ":",
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-            modifier = Modifier.padding(start = 12.dp)
-        )
-
-        AlbumRow(albums, mediaController) { album ->
-            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
-                launchSingleTop = true
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable fun Shuffled(
-    mediaController: MediaController?,
-    navHostController: NavHostController,
-    albums: List<MediaData.Album>
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(256.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.random_songs) + ":",
+            text = "$title:",
             color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.SemiBold,
             fontSize = MaterialTheme.typography.headlineMedium.fontSize,

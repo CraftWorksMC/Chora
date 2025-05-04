@@ -1,8 +1,6 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
-import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -50,18 +48,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.radioList
+import com.craftworks.music.data.toMediaItem
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.getIcecastMetadata
 import com.craftworks.music.providers.getRadios
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.RadioCard
 import com.craftworks.music.ui.elements.dialogs.AddRadioDialog
 import com.craftworks.music.ui.elements.dialogs.ModifyRadioDialog
-import com.gitlab.mvysny.konsumexml.year
 import kotlinx.coroutines.launch
-import java.util.Calendar
 
 var showRadioAddDialog = mutableStateOf(false)
 var showRadioModifyDialog = mutableStateOf(false)
@@ -151,35 +146,6 @@ fun RadioScreen(
 
             HorizontalLineWithNavidromeCheck()
 
-            /*
-            val coroutineScope = rememberCoroutineScope()
-            RadiosGrid(radioList, onRadioSelected = { song ->
-                Log.d("ICECAST", "SELECTED RADIO: $song")
-
-                //SongHelper.currentSong = song
-                SongHelper.currentList = listOf(song)
-                song.media?.let {
-                    SongHelper.playStream(
-                        context,
-                        Uri.parse(it),
-                        true,
-                        mediaController
-                    )
-                }
-                // Get Metadata
-                val icecastUrl = "${song.media}/status-json.xsl"
-                Log.d("ICECAST", "Getting Icecast Metadata")
-                Thread {
-                    try {
-                        val metadata = getIcecastMetadata(icecastUrl)
-                        println(metadata)
-                    } catch (e: Exception) {
-                        Log.d("ICECAST", "Exception: $e")
-                    }
-                }.start()
-            })
-            */
-
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(128.dp),
                 modifier = Modifier
@@ -187,48 +153,10 @@ fun RadioScreen(
                     .fillMaxHeight(),
             ) {
                 items(radioList) { radio ->
-                    Log.d("ICECAST", "ADDED RADIO: $radio")
-
-                    val songItem = MediaData.Song(
-                        title = radio.name,
-                        imageUrl = "android.resource://com.craftworks.music/" + R.drawable.radioplaceholder,
-                        artist = radio.name,
-                        media = radio.media,
-                        duration = 0,
-                        album = "Internet Radio",
-                        year = Calendar.getInstance().year,
-                        isRadio = true,
-                        albumId = "",
-                        dateAdded = "",
-                        format = "MP3",
-                        path = "",
-                        parent = "",
-                        bpm = 0,
-                        navidromeID = radio.navidromeID,
-                        size = 0
-                    )
-
                     RadioCard(
                         radio = radio,
                         onClick = {
-                            //SongHelper.currentSong = song
-                            SongHelper.currentList = listOf(songItem)
-                            Log.d("ICECAST", "Set currentList to: $songItem")
-                            SongHelper.playStream(
-                                context,
-                                Uri.parse(radio.media),
-                                true,
-                                mediaController
-                            )
-                            // Get Metadata
-                            val icecastUrl = "${radio.media}/status-json.xsl"
-                            Log.d("ICECAST", "Getting Icecast Metadata")
-                            try {
-                                val metadata = getIcecastMetadata(icecastUrl)
-                                println(metadata)
-                            } catch (e: Exception) {
-                                Log.d("ICECAST", "Exception: $e")
-                            }
+                            SongHelper.play(radioList.map { it.toMediaItem() }, radioList.indexOfFirst { it.name == radio.name }, mediaController)
                         }
                     )
                 }

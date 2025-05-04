@@ -2,7 +2,7 @@ package com.craftworks.music.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.craftworks.music.data.MediaData
+import androidx.media3.common.MediaItem
 import com.craftworks.music.providers.getSongs
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class SongsScreenViewModel : ViewModel(), ReloadableViewModel {
-    private val _allSongs = MutableStateFlow<List<MediaData.Song>>(emptyList())
-    val allSongs: StateFlow<List<MediaData.Song>> = _allSongs.asStateFlow()
+    private val _allSongs = MutableStateFlow<List<MediaItem>>(emptyList())
+    val allSongs: StateFlow<List<MediaItem>> = _allSongs.asStateFlow()
 
     override fun reloadData() {
         viewModelScope.launch {

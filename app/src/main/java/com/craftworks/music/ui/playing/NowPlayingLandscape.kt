@@ -1,5 +1,8 @@
+@file:OptIn(UnstableApi::class)
+
 package com.craftworks.music.ui.playing
 
+import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -20,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -44,13 +48,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.lyrics.LyricsManager
+import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.SongHelper
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
@@ -59,8 +64,8 @@ import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 @Composable
 fun NowPlayingLandscape(
     mediaController: MediaController? = null,
-    navHostController: NavHostController = rememberNavController(),
-    iconColor: Color = Color.Black
+    iconColor: Color = Color.Black,
+    metadata: MediaMetadata? = null
 ){
     // use dark or light colors for icons and text based on the album art luminance.
     val iconTextColor by animateColorAsState(
@@ -85,7 +90,7 @@ fun NowPlayingLandscape(
                     /* Album Cover + Lyrics */
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(SongHelper.currentSong.imageUrl)
+                            .data(metadata?.artworkUri)
                             .allowHardware(false)
                             .size(1024)
                             .crossfade(true)
@@ -112,7 +117,7 @@ fun NowPlayingLandscape(
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(SongHelper.currentSong.imageUrl)
+                            .data(metadata?.artworkUri)
                             .allowHardware(false)
                             .size(256)
                             .crossfade(true)
@@ -155,21 +160,19 @@ fun NowPlayingLandscape(
                         )
                     }
 
-                    SongHelper.currentSong.artist.let { artistName ->
-                        Text(
-                            text = artistName + if (SongHelper.currentSong.year != 0) " • " + SongHelper.currentSong.year else "",
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                            fontWeight = FontWeight.Normal,
-                            color = iconTextColor,
-                            maxLines = 1,
-                            softWrap = false,
-                            textAlign = TextAlign.Start,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
-                        )
-                    }
+                    Text(
+                        text = metadata?.artist.toString() + if (metadata?.releaseYear != 0) " • " + metadata?.releaseYear else "",
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.Normal,
+                        color = iconTextColor,
+                        maxLines = 1,
+                        softWrap = false,
+                        textAlign = TextAlign.Start,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+                    )
 
                     Spacer(Modifier.height(8.dp))
                 }
@@ -177,7 +180,7 @@ fun NowPlayingLandscape(
 
             //Spacer(Modifier.height(24.dp))
 
-            if (SongHelper.currentSong.isRadio == true){
+            if (metadata?.mediaType == MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
                 Spacer(Modifier.height(48.dp))
             }
             else {
@@ -193,15 +196,37 @@ fun NowPlayingLandscape(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ShuffleButton(iconTextColor, mediaController, 32.dp)
+                ChoraMediaLibraryService.getInstance()?.player?.let {
+                    ShuffleButton(
+                        it,
+                        iconTextColor,
+                        Modifier.size(32.dp)
+                    )
 
-                PreviousSongButton(iconTextColor, mediaController, 48.dp)
+                    PreviousSongButton(
+                        it,
+                        iconTextColor,
+                        Modifier.size(48.dp)
+                    )
 
-                PlayPauseButtonUpdating(iconTextColor, mediaController, 92.dp)
+                    PlayPauseButton(
+                        it,
+                        iconTextColor,
+                        Modifier.size(92.dp)
+                    )
 
-                NextSongButton(iconTextColor, mediaController, 48.dp)
+                    NextSongButton(
+                        it,
+                        iconTextColor,
+                        Modifier.size(48.dp)
+                    )
 
-                RepeatButton(iconTextColor, mediaController, 32.dp)
+                    RepeatButton(
+                        it,
+                        iconTextColor,
+                        Modifier.size(32.dp)
+                    )
+                }
             }
             if (LocalConfiguration.current.screenHeightDp.dp < 512.dp){
                 Row(
@@ -243,7 +268,7 @@ fun NowPlayingLandscape(
                     /* Album Cover + Lyrics */
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(SongHelper.currentSong.imageUrl)
+                            .data(metadata?.artworkUri)
                             .allowHardware(false)
                             .size(1024)
                             .crossfade(true)
@@ -264,7 +289,7 @@ fun NowPlayingLandscape(
             }
         }
         else {
-            if (SongHelper.currentSong.isRadio == false &&
+            if (metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION &&
                 lyrics.isNotEmpty()
             ) {
                 Box(Modifier.weight(0.75f).fillMaxHeight()){

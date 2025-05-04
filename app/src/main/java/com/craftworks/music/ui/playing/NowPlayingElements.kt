@@ -1,6 +1,7 @@
+@file:androidx.annotation.OptIn(UnstableApi::class)
+
 package com.craftworks.music.ui.playing
 
-import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.focusable
@@ -13,35 +14,31 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -56,16 +53,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
+import androidx.media3.ui.compose.state.rememberNextButtonState
+import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
+import androidx.media3.ui.compose.state.rememberPreviousButtonState
+import androidx.media3.ui.compose.state.rememberRepeatButtonState
+import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import com.craftworks.music.R
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
-import com.craftworks.music.shuffleSongs
-import com.craftworks.music.sliderPos
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
 import kotlinx.coroutines.delay
@@ -78,8 +79,12 @@ import kotlinx.coroutines.launch
 fun PlaybackProgressSlider(
     color: Color = MaterialTheme.colorScheme.onBackground,
     mediaController: MediaController? = null,
+    metadata: MediaMetadata? = null
 ) {
-    var currentValue by remember { mutableIntStateOf(0) }
+    var currentValue by remember { mutableLongStateOf(1L) }
+    val currentDuration by derivedStateOf {
+        mediaController?.duration?.coerceAtLeast(0L)
+    }
 
     val animatedValue by animateFloatAsState(
         targetValue = currentValue.toFloat(), label = "Smooth Slider Update"
@@ -91,11 +96,8 @@ fun PlaybackProgressSlider(
     LaunchedEffect(mediaController) {
         mediaController?.let {
             while (isActive) {
-                if (it.isPlaying) {
-                    val position = it.currentPosition.toInt()
-                    currentValue = position
-                    sliderPos.intValue = position
-                }
+                if (it.isPlaying)
+                    currentValue = it.currentPosition
                 delay(1000)
             }
         }
@@ -105,7 +107,7 @@ fun PlaybackProgressSlider(
         Modifier.focusable(false)
     ) {
         Slider(
-            enabled = (SongHelper.currentSong.isRadio == false),
+            enabled = metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION,
             modifier = Modifier
                 .padding(horizontal = 24.dp)
                 .fillMaxWidth()
@@ -131,29 +133,18 @@ fun PlaybackProgressSlider(
                 },
             value = animatedValue,
             onValueChange = {
-                sliderPos.intValue = it.toInt()
-                currentValue = it.toInt()
+                currentValue = it.toLong()
             },
             onValueChangeFinished = {
                 mediaController?.seekTo(currentValue.toLong())
             },
-            valueRange = 0f..(SongHelper.currentSong.duration.toFloat() * 1000),
+            valueRange = 0f..(currentDuration?.toFloat() ?: 0f),
             colors = SliderDefaults.colors(
                 activeTrackColor = color,
                 inactiveTrackColor = color.copy(alpha = 0.25f),
                 thumbColor = color
             ),
             interactionSource = interactionSource,
-//            thumb = {
-//                AnimatedVisibility(
-//                    focused.value
-//                ) {
-//                    SliderDefaults.Thumb(
-//                        interactionSource = interactionSource,
-//                        colors = SliderDefaults.colors().copy(thumbColor = color)
-//                    )
-//                }
-//            }
         )
 
         // Time thingies
@@ -163,7 +154,7 @@ fun PlaybackProgressSlider(
                 .fillMaxWidth()
         ) {
             Text(
-                text = formatMilliseconds(currentValue / 1000),
+                text = remember(currentValue) { formatMilliseconds(currentValue.toInt() / 1000) },
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.Start,
                 color = color.copy(alpha = 0.5f),
@@ -173,7 +164,7 @@ fun PlaybackProgressSlider(
                 maxLines = 1
             )
             Text(
-                text = formatMilliseconds(SongHelper.currentSong.duration),
+                text = remember(currentDuration) { formatMilliseconds(currentDuration?.toInt()?.div(1000) ?: (currentValue/1000).toInt()) },
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.End,
                 color = color.copy(alpha = 0.5f),
@@ -186,127 +177,43 @@ fun PlaybackProgressSlider(
     }
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun PreviousSongButton(color: Color, mediaController: MediaController?, size: Dp) {
-    Button(
-        onClick = {
-            if (SongHelper.currentSong.isRadio == true) return@Button
-            mediaController?.seekToPreviousMediaItem()
-        },
-        shape = CircleShape,
-        modifier = Modifier
-            .size(size)
-            .bounceClick()
-            .moveClick(false),
-        contentPadding = PaddingValues(0.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-    ) {
+internal fun PreviousSongButton(player: Player, color: Color, modifier: Modifier = Modifier) {
+    val state = rememberPreviousButtonState(player)
+    IconButton(onClick = state::onClick, modifier = modifier.bounceClick().moveClick(false), enabled = state.isEnabled) {
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_previous),
-            tint = color,
-            contentDescription = "Previous Song",
-            modifier = Modifier
-                .size(size)
+            contentDescription = "Previous song",
+            modifier = modifier,
+            tint = color
         )
     }
 }
 
-@Stable
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun PlayPauseButtonUpdating(color: Color, mediaController: MediaController?, size: Dp){
-    val playerStatus = remember {
-        mutableStateOf(
-            if (mediaController?.isLoading == true) "loading"
-            else if (mediaController?.isPlaying == true) "playing"
-            else "paused"
-        )
-    }
-
-    // Update playerStatus from mediaController
-    DisposableEffect(mediaController) {
-        val listener = object : Player.Listener {
-            override fun onIsLoadingChanged(isLoading: Boolean) {
-                playerStatus.value = if (isLoading) "loading" else playerStatus.value
-                super.onIsLoadingChanged(isLoading)
-            }
-
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                playerStatus.value = if (isPlaying) "playing" else "paused"
-                super.onIsPlayingChanged(isPlaying)
-            }
-        }
-
-        mediaController?.addListener(listener)
-        Log.d("RECOMPOSITION", "Registered play/pause button mediaController!")
-
-        onDispose {
-            mediaController?.removeListener(listener)
-        }
-    }
-
-    Button(
-        onClick = {
-            mediaController?.playWhenReady = mediaController?.playWhenReady == false
-        },
-        shape = CircleShape,
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-            .size(size)
-            .bounceClick(),
-        contentPadding = PaddingValues(0.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent,
-            contentColor = color
-        )
-    ) {
-        val icon = when (playerStatus.value) {
-            "playing" -> ImageVector.vectorResource(R.drawable.media3_notification_pause)
-            "paused" -> Icons.Rounded.PlayArrow
-            else -> null // Return null for loading state
-        }
-
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
-                tint = color,
-                contentDescription = "Play/Pause button",
-                modifier = Modifier
-                    .height(size)
-                    .size(size)
-            )
-        } else {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .padding(size / 8)
-                    .size(size),
-                strokeCap = StrokeCap.Round,
-                strokeWidth = size / 12,
-                color = color
-            )
-        }
+internal fun PlayPauseButton(player: Player, color: Color, modifier: Modifier = Modifier) {
+    val state = rememberPlayPauseButtonState(player)
+    val icon = if (state.showPlay) Icons.Rounded.PlayArrow else ImageVector.vectorResource(R.drawable.media3_notification_pause)
+    val contentDescription =
+        if (state.showPlay) "play"
+        else "pause"
+    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(), enabled = state.isEnabled) {
+        Icon(icon, contentDescription = contentDescription, modifier = modifier, tint = color)
     }
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun NextSongButton(color: Color, mediaController: MediaController?, size: Dp) {
-    Button(
-        onClick = {
-            if (SongHelper.currentSong.isRadio == true) return@Button
-            mediaController?.seekToNextMediaItem()
-        },
-        shape = CircleShape,
-        modifier = Modifier
-            .size(size)
-            .bounceClick()
-            .moveClick(true),
-        contentPadding = PaddingValues(0.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-    ) {
+internal fun NextSongButton(player: Player, color: Color, modifier: Modifier = Modifier) {
+    val state = rememberNextButtonState(player)
+    IconButton(onClick = state::onClick, modifier = modifier.bounceClick().moveClick(true), enabled = state.isEnabled) {
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_next),
-            tint = color,
-            contentDescription = "Next Song",
-            modifier = Modifier.size(size)
+            contentDescription = "Next song",
+            modifier = modifier,
+            tint = color
         )
     }
 }
@@ -398,59 +305,39 @@ fun DownloadButton(color: Color, size: Dp) {
     }
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun ShuffleButton(
-    color: Color, mediaController: MediaController?, size: Dp
-){
-    Button(
-        onClick = {
-            shuffleSongs.value = !shuffleSongs.value
-            mediaController?.shuffleModeEnabled = shuffleSongs.value
-        },
-        shape = CircleShape,
-        modifier = Modifier
-            .size(size),
-        contentPadding = PaddingValues(0.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-    ) {
-
+internal fun ShuffleButton(player: Player, color: Color, modifier: Modifier = Modifier) {
+    val state = rememberShuffleButtonState(player)
+    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(), enabled = state.isEnabled) {
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.round_shuffle_28),
-            tint = color.copy(if (shuffleSongs.value) 1f else 0.5f),
-            contentDescription = "Toggle Shuffle",
-            modifier = Modifier
-                .height(size)
-                .size(size)
+            contentDescription = "Shuffle",
+            modifier = modifier,
+            tint = color.copy(if (state.shuffleOn) 1f else 0.5f)
         )
     }
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun RepeatButton(
-    color: Color, mediaController: MediaController?, size: Dp,
-) {
-    Button(
-        onClick = {
-            mediaController?.repeatMode =
-                if (mediaController?.repeatMode == Player.REPEAT_MODE_OFF)
-                    Player.REPEAT_MODE_ONE
-                else
-                    Player.REPEAT_MODE_OFF
-        },
-        shape = CircleShape,
-        modifier = Modifier
-            .size(size),
-        contentPadding = PaddingValues(0.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-    ) {
-
+internal fun RepeatButton(player: Player, color: Color, modifier: Modifier = Modifier) {
+    val state = rememberRepeatButtonState(player)
+    val icon = repeatModeIcon(state.repeatModeState)
+    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(), enabled = state.isEnabled) {
         Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.round_repeat_28),
-            tint = color.copy(if (mediaController?.repeatMode == Player.REPEAT_MODE_ONE) 1f else 0.5f),
-            contentDescription = "Toggle Repeat",
-            modifier = Modifier
-                .height(size)
-                .size(size)
+            imageVector = icon,
+            contentDescription = "Repeat",
+            modifier = modifier,
+            tint = color.copy(if (state.repeatModeState == Player.REPEAT_MODE_OFF) 0.5f else 1f)
         )
+    }
+}
+@Composable
+private fun repeatModeIcon(repeatMode: @Player.RepeatMode Int): ImageVector {
+    return when (repeatMode) {
+        Player.REPEAT_MODE_OFF -> ImageVector.vectorResource(R.drawable.rounded_repeat_24)
+        Player.REPEAT_MODE_ONE -> ImageVector.vectorResource(R.drawable.rounded_repeat1_24)
+        else -> ImageVector.vectorResource(R.drawable.rounded_repeat_24)
     }
 }
