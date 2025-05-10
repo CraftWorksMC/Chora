@@ -150,7 +150,7 @@ fun SetupNavGraph(
             )
         ) {
             val artistId = it.arguments?.getString("artist") ?: ""
-            ArtistDetails(navController, mediaController, artistsViewModel, artistId)
+            ArtistDetails(navController, mediaController, artistId)
         }
 
         //Playlists

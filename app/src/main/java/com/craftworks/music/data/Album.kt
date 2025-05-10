@@ -16,7 +16,7 @@ fun MediaData.Album.toMediaItem(): MediaItem {
         .setDisplayTitle(this@toMediaItem.name)
         .setAlbumArtist(this@toMediaItem.artist)
         .setArtworkUri(this@toMediaItem.coverArt?.toUri())
-        .setReleaseYear(this@toMediaItem.year)
+        .setRecordingYear(this@toMediaItem.year)
         .setDurationMs(this@toMediaItem.duration.times(1000).toLong())
         .setIsBrowsable(true)
         .setIsPlayable(false)

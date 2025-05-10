@@ -170,14 +170,6 @@ fun ArtistsScreen(
                 }
             }
 
-            //var sortedArtistList = allArtistList.sortedBy { it.name }.toMutableList()
-
-//            if (searchFilter.isNotBlank()) {
-//                sortedArtistList =
-//                    sortedArtistList.fastFilter { it.name.contains(searchFilter, true) }
-//                        .toMutableList()
-//            }
-
             ArtistsGrid(allArtistList, onArtistSelected = { artist ->
                 selectedArtist = artist
                 navHostController.navigate(Screen.ArtistDetails.route + "/${artist.navidromeID}") {

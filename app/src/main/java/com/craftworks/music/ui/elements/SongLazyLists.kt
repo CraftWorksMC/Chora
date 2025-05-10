@@ -257,16 +257,6 @@ fun AlbumRow(
             end = 12.dp
         )
     ) {
-        /*
-        items(albums) {album ->
-            AlbumCard(album = album,
-                mediaController = mediaController,
-                onClick = {
-                    onAlbumSelected(album)
-                })
-        }
-        */
-
         itemsIndexed(albums) { index, album ->
             // Show divider between local and navidrome albums
             if (SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true).value) {

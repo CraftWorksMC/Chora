@@ -62,7 +62,7 @@
     <string name="recently_played">Joués récemment</string>
     <string name="random_songs">Explorer votre médiathèque</string>
         <!-- Artist Details -->
-    <string name="Screen_Recent_Albums">Albums récents</string>
+    <string name="Screen_Discography">Discographie</string>
     <string name="Screen_Top_Songs">Top titres</string>
         <!-- Settings -->
     <string name="Settings_Header_Appearance">Apparence</string>

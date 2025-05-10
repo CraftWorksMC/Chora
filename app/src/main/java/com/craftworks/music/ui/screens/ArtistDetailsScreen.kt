@@ -21,10 +21,11 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
@@ -62,11 +63,11 @@ import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
+import com.craftworks.music.data.toAlbum
 import com.craftworks.music.data.toMediaItem
 import com.craftworks.music.providers.getArtistDetails
-import com.craftworks.music.ui.elements.AlbumRow
+import com.craftworks.music.ui.elements.AlbumCard
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
-import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
@@ -77,7 +78,6 @@ import java.net.URLEncoder
 fun ArtistDetails(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,
-    viewModel: ArtistsScreenViewModel = ArtistsScreenViewModel(),
     artistId: String
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
@@ -136,113 +136,120 @@ fun ArtistDetails(
         visible = artist?.name?.isNotBlank() == true,
         enter = fadeIn()
     ) {
-        Column(
+        LazyVerticalGrid (
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(
                     start = leftPadding,
                     top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
                 )
-                .wrapContentHeight()
-                .verticalScroll(rememberScrollState())
-                .dialogFocusable()
+                .dialogFocusable(),
+            //verticalArrangement = Arrangement.spacedBy(6.dp),
+            columns = GridCells.Adaptive(128.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 12.dp)
-                    .height(192.dp)
-                    .fillMaxWidth()
-            ) {
-                //Image and Name
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(artist?.artistImageUrl)
-                        .allowHardware(false)
-                        .size(256)
-                        .crossfade(true)
-                        .build(),
-                    placeholder = painterResource(R.drawable.s_a_username),
-                    fallback = painterResource(R.drawable.s_a_username),
-                    contentScale = ContentScale.FillWidth,
-                    contentDescription = "Artist Image",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        //.fadingEdge(imageFadingEdge)
-                        .clip(
-                            if (artist?.description != "") RoundedCornerShape(
-                                12.dp,
-                                12.dp,
-                                0.dp,
-                                0.dp
-                            )
-                            else RoundedCornerShape(12.dp)
-                        )
-                        .blur(12.dp)
-                )
-                Button(
-                    onClick = {
-                        navHostController.popBackStack()
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier
-                        .padding(top = 12.dp, start = 12.dp)
-                        .size(32.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        contentColor = MaterialTheme.colorScheme.onBackground
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "Go Back",
+            // Group songs by their source (Local or Navidrome)
+            val groupedAlbums = artist?.album?.map { it.toMediaItem() }?.groupBy { it.mediaMetadata.recordingYear }?.toSortedMap(compareByDescending { it })
+
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Column {
+                    Box(
                         modifier = Modifier
-                            .height(32.dp)
-                            .size(32.dp)
-                    )
-                }
-
-
-                // Album Name and Artist
-                Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-                    Text(
-                        text = artist?.name.toString(),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                        lineHeight = 32.sp
-                    )
-                }
-            }
-
-            // Description
-            artist?.description?.let {
-                var expanded by remember { mutableStateOf(false) }
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .fillMaxWidth()
-                        .heightIn(min = if (it.isBlank()) 0.dp else 32.dp)
-                        .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .animateContentSize()
-                        .clickable {
-                            expanded = !expanded
-                        }) {
-                    if (it.isNotBlank()) {
-                        Text(
-                            text = it,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Light,
-                            fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                            textAlign = TextAlign.Start,
-                            maxLines = if (expanded) 100 else 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(6.dp)
+                            .padding(horizontal = 12.dp)
+                            .height(192.dp)
+                            .fillMaxWidth()
+                    ) {
+                        //Image and Name
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(artist?.artistImageUrl)
+                                .allowHardware(false)
+                                .size(256)
+                                .crossfade(true)
+                                .build(),
+                            placeholder = painterResource(R.drawable.s_a_username),
+                            fallback = painterResource(R.drawable.s_a_username),
+                            contentScale = ContentScale.FillWidth,
+                            contentDescription = "Artist Image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                //.fadingEdge(imageFadingEdge)
+                                .clip(
+                                    if (artist?.description != "") RoundedCornerShape(
+                                        12.dp,
+                                        12.dp,
+                                        0.dp,
+                                        0.dp
+                                    )
+                                    else RoundedCornerShape(12.dp)
+                                )
+                                .blur(12.dp)
                         )
+                        Button(
+                            onClick = {
+                                navHostController.popBackStack()
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .padding(top = 12.dp, start = 12.dp)
+                                .size(32.dp),
+                            contentPadding = PaddingValues(0.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.background,
+                                contentColor = MaterialTheme.colorScheme.onBackground
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                tint = MaterialTheme.colorScheme.onBackground,
+                                contentDescription = "Go Back",
+                                modifier = Modifier
+                                    .height(32.dp)
+                                    .size(32.dp)
+                            )
+                        }
+
+
+                        // Album Name and Artist
+                        Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+                            Text(
+                                text = artist?.name.toString(),
+                                color = MaterialTheme.colorScheme.onBackground,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth(),
+                                lineHeight = 32.sp
+                            )
+                        }
+                    }
+
+                    // Description
+                    artist?.description?.let {
+                        var expanded by remember { mutableStateOf(false) }
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp)
+                                .fillMaxWidth()
+                                .heightIn(min = if (it.isBlank()) 0.dp else 32.dp)
+                                .clip(RoundedCornerShape(0.dp, 0.dp, 12.dp, 12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .animateContentSize()
+                                .clickable {
+                                    expanded = !expanded
+                                }) {
+                            if (it.isNotBlank()) {
+                                Text(
+                                    text = it,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    fontWeight = FontWeight.Light,
+                                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                                    textAlign = TextAlign.Start,
+                                    maxLines = if (expanded) 100 else 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(6.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -294,31 +301,39 @@ fun ArtistDetails(
         }
         */
 
-            /* ALBUMS LIST */
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(224.dp)
-            ) {
+            /* Discography header */
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 Text(
-                    text = stringResource(R.string.Screen_Recent_Albums) + ":",
+                    text = stringResource(R.string.Screen_Discography) + ":",
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                    modifier = Modifier.padding(start = 12.dp)
+                    modifier = Modifier.padding(start = 12.dp, top = 6.dp)
                 )
+            }
 
-                AlbumRow(
-                    albums = artist?.album?.map { it.toMediaItem() }.orEmpty(),
-                    mediaController = mediaController,
-                    onAlbumSelected = { album ->
-                        val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                        navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
-                            launchSingleTop = true
-                        }
-                        selectedAlbum = album
-                    }
-                )
+            groupedAlbums?.forEach { (groupName, albumsInGroup) ->
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        text = groupName.toString(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)
+                    )
+                }
+                itemsIndexed(albumsInGroup) { index, album ->
+                    AlbumCard(
+                        album = album,
+                        mediaController = mediaController,
+                        onClick = {
+                            val album = album.toAlbum()
+                            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
+                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                                launchSingleTop = true
+                            }
+                            selectedAlbum = album
+                        })
+                }
             }
         }
     }
