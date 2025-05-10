@@ -4,7 +4,6 @@ import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.LrcLibLyrics
 import com.craftworks.music.data.Lyric
 import com.craftworks.music.data.toLyrics
-import com.craftworks.music.player.SongHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -18,7 +17,7 @@ suspend fun getLrcLibLyrics(metadata: MediaMetadata?): List<Lyric> = withContext
                 "artist_name=${URLEncoder.encode(metadata?.artist.toString(), "UTF-8")}&" +
                 "track_name=${URLEncoder.encode(metadata?.title.toString(), "UTF-8")}&" +
                 "album_name=${URLEncoder.encode(metadata?.albumTitle.toString(), "UTF-8")}" +
-                "&duration=${SongHelper.currentSong.duration}"
+                "&duration=${metadata?.durationMs?.div(1000)?.toInt()}"
     )
 
     val connection = url.openConnection() as HttpsURLConnection

@@ -21,7 +21,6 @@ data class SyncedLyrics(
 )
 
 suspend fun getNavidromePlainLyrics(): List<Lyric> {
-    // Get plain lyrics from navidrome, if it doesn't exist, return an empty list
     return sendNavidromeGETRequest("getLyrics.view?artist=${SongHelper.currentSong.artist}&title=${SongHelper.currentSong.title}&f=json").filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.content.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
 }
 

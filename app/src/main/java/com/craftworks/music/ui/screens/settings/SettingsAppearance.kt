@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens.settings
 
 import android.content.res.Configuration
+import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -342,7 +343,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 }
             )
 
-            //More Song Info
+            //Lyrics blur Info
             val nowPlayingLyricsBlur = SettingsManager(context).nowPlayingLyricsBlurFlow.collectAsState(true)
 
             SettingsSwitch(
@@ -352,7 +353,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     coroutineScope.launch {
                         SettingsManager(context).setNowPlayingLyricsBlur(!nowPlayingLyricsBlur.value)
                     }
-                }
+                },
+                enabled = Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU
             )
 
             //Show Navidrome Logo
@@ -430,7 +432,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 private fun SettingsSwitch(
     selected: Boolean,
     settingsName: String,
-    toggleEvent: () -> Unit = {}
+    toggleEvent: () -> Unit = {},
+    enabled: Boolean = true
 ){
     Row(verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -439,7 +442,8 @@ private fun SettingsSwitch(
             .selectable(
                 selected = selected,
                 onClick = toggleEvent,
-                role = Role.RadioButton
+                role = Role.RadioButton,
+                enabled = enabled
             )
     ) {
         Icon(
@@ -460,6 +464,6 @@ private fun SettingsSwitch(
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Start
         )
-        Switch(checked = selected, onCheckedChange = { toggleEvent() })
+        Switch(checked = selected, onCheckedChange = { toggleEvent() }, enabled = enabled)
     }
 }

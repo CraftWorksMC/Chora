@@ -79,18 +79,15 @@ fun LyricsView(
 
     val scrollOffset = dpToPx(128)
 
-    // Update the current playback position every second
-    LaunchedEffect(mediaController, lyrics) {
+    LaunchedEffect(mediaController?.isPlaying, lyrics) {
         while (true) {
             if (mediaController?.isPlaying == true) {
                 val position = mediaController.currentPosition.toInt()
                 currentPosition.intValue = position
-
-                // Calculate delay until next update based on lyrics timing
-                val delay = getNextUpdateDelay(position + lyricsAnimationSpeed, lyrics)
-                delay(delay)
-            } else {
-                delay(500)
+                delay(getNextUpdateDelay(position, lyrics))
+            }
+            else {
+                delay(100)
             }
         }
     }
@@ -98,7 +95,7 @@ fun LyricsView(
     // Lyric index updates and scrolling
     LaunchedEffect(currentPosition.intValue, lyrics) {
         if (mediaController?.isPlaying == true) {
-            val newCurrentLyricIndex = lyrics.indexOfFirst { it.timestamp > currentPosition.intValue }
+            val newCurrentLyricIndex = lyrics.indexOfFirst { it.timestamp > (currentPosition.intValue + lyricsAnimationSpeed / 2) }
                 .takeIf { it >= 0 } ?: lyrics.size
 
             val targetIndex = (newCurrentLyricIndex - 1).coerceAtLeast(0)
@@ -272,15 +269,9 @@ private fun getNextUpdateDelay(currentTime: Int, lyrics: List<Lyric>): Long {
     val nextTimestamp = lyrics
         .filter { it.timestamp > currentTime }
         .minByOrNull { it.timestamp }
-        ?.timestamp ?: return 1000L // Default to 1 second if no future timestamps
+        ?.timestamp ?: return 1000L
 
-    // Calculate time until next lyric
     val timeUntilNext = nextTimestamp - currentTime
 
-    // If timestamps are too far apart (> 5 seconds), use intermediate updates
-    return when {
-        timeUntilNext <= 0 -> 500L // Minimum delay
-        timeUntilNext > 5000 -> 1000L // Maximum delay for long gaps
-        else -> (timeUntilNext / 2).toLong().coerceIn(500L, 2000L) // Half the time until next lyric
-    }
+    return timeUntilNext.toLong()
 }

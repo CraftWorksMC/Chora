@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.Lyric
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromePlainLyrics
@@ -19,7 +20,7 @@ object LyricsManager {
 
     var useLrcLib by mutableStateOf(true)
 
-    suspend fun getLyrics() {
+    suspend fun getLyrics(metadata: MediaMetadata?) {
         // Try getting lyrics through navidrome, first synced then plain.
         // If that fails, try LRCLIB.net.
         // If we turned it off or we cannot find lyrics, then return an empty list
@@ -49,13 +50,13 @@ object LyricsManager {
         if (useLrcLib) {
             if (foundNavidromePlainLyrics) {
                 Log.d("LYRICS", "Got Navidrome plain lyrics, trying LRCLIB.")
-                getLrcLibLyrics().takeIf { it.isNotEmpty() }?.let {
+                getLrcLibLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
                     if (it.size != 1) _Lyrics.value = it
                     return
                 }
             }
 
-            getLrcLibLyrics().takeIf { it.isNotEmpty() }?.let {
+            getLrcLibLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
                 Log.d("LYRICS", "Got LRCLIB lyrics.")
                 _Lyrics.value = it
                 return
