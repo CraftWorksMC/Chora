@@ -67,7 +67,8 @@ fun AlbumScreen(
     mediaController: MediaController? = null,
     viewModel: AlbumScreenViewModel = viewModel(),
 ) {
-    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
+    val leftPadding =
+        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     var isSearchFieldOpen by remember { mutableStateOf(false) }
     var searchFilter by remember { mutableStateOf("") }
@@ -86,20 +87,26 @@ fun AlbumScreen(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh
     ) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = leftPadding,
-                top = WindowInsets.statusBars
-                    .asPaddingValues()
-                    .calculateTopPadding()
-            )) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = leftPadding,
+                    top = WindowInsets.statusBars
+                        .asPaddingValues()
+                        .calculateTopPadding()
+                )
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.placeholder),
                     contentDescription = "Songs Icon",
                     tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(48.dp))
+                    modifier = Modifier.size(48.dp)
+                )
                 Text(
                     text = stringResource(R.string.Albums),
                     color = MaterialTheme.colorScheme.onBackground,
@@ -109,9 +116,11 @@ fun AlbumScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                IconButton(onClick = { isSearchFieldOpen = !isSearchFieldOpen },
+                IconButton(
+                    onClick = { isSearchFieldOpen = !isSearchFieldOpen },
                     modifier = Modifier
-                        .size(48.dp)) {
+                        .size(48.dp)
+                ) {
                     Icon(Icons.Rounded.Search, contentDescription = "Search all songs")
                 }
             }
@@ -124,18 +133,20 @@ fun AlbumScreen(
                 enter = expandVertically(),
                 exit = shrinkVertically()
             ) {
-                Box(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
                 ) {
                     val focusRequester = remember { FocusRequester() }
                     TextField(
                         value = searchFilter,
                         onValueChange = {
                             searchFilter = it
-                            if (it.isBlank()){
+                            if (it.isBlank()) {
                                 viewModel.reloadData()
-                            } },
+                            }
+                        },
                         label = { Text(stringResource(R.string.Action_Search)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -169,7 +180,8 @@ fun AlbumScreen(
                     navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
                         launchSingleTop = true
                     }
-                selectedAlbum = album },
+                    selectedAlbum = album
+                },
                 searchFilter.isNotBlank(),
                 "alphabeticalByName",
                 viewModel

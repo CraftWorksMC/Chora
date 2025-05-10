@@ -142,8 +142,15 @@ fun SetupNavGraph(
         composable(route = Screen.Artists.route) {
             ArtistsScreen(navController, artistsViewModel)
         }
-        composable(route = Screen.AristDetails.route) {
-            ArtistDetails(navController, mediaController, artistsViewModel)
+        composable(route = Screen.ArtistDetails.route + "/{artist}",
+            arguments = listOf(
+                navArgument("artist") {
+                    type = NavType.StringType
+                }
+            )
+        ) {
+            val artistId = it.arguments?.getString("artist") ?: ""
+            ArtistDetails(navController, mediaController, artistsViewModel, artistId)
         }
 
         //Playlists

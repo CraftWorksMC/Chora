@@ -6,13 +6,13 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.providers.getArtistDetails
 import com.craftworks.music.providers.getArtists
 import com.craftworks.music.providers.searchArtist
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class ArtistsScreenViewModel : ViewModel(), ReloadableViewModel {
     private val _allArtists = MutableStateFlow<List<MediaData.Artist>>(emptyList())
@@ -35,12 +35,9 @@ class ArtistsScreenViewModel : ViewModel(), ReloadableViewModel {
 
     fun setSelectedArtist(artist: MediaData.Artist) {
         _selectedArtist.value = artist
-        fetchArtistDetails(artist.navidromeID)
-    }
-
-    fun fetchArtistDetails(artistId: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            _selectedArtist.value = getArtistDetails(artistId)
+        runBlocking {
+            val detailedArtist = async { getArtistDetails(artist.navidromeID) }
+            _selectedArtist.value = detailedArtist.await()
             println("New Artist: ${_selectedArtist.value} \n Selected Artist: ${com.craftworks.music.data.selectedArtist}")
         }
     }
