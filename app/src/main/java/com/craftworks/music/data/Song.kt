@@ -13,7 +13,8 @@ var songsList: MutableList<MediaData.Song> = mutableStateListOf()
 @Immutable
 @Serializable
 data class Genre(
-    val name: String? = "")
+    val name: String? = ""
+)
 
 @Immutable
 @Serializable
@@ -30,11 +31,11 @@ fun MediaData.Song.toMediaItem(): MediaItem {
             .setArtist(this@toMediaItem.artist)
             .setAlbumTitle(this@toMediaItem.album)
             .setArtworkUri(this@toMediaItem.imageUrl.toUri())
-            .setReleaseYear(this@toMediaItem.year)
             .setRecordingYear(this@toMediaItem.year) // Recording Year is kept, releaseYear gets set to 'null' by ExoPlayer.
             .setIsBrowsable(false).setIsPlayable(true)
             .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
             .setDurationMs(this@toMediaItem.duration.times(1000).toLong())
+            .setGenre(this@toMediaItem.genres?.joinToString() { it.name ?: "" })
             .setExtras(Bundle().apply {
                 putString("navidromeID", this@toMediaItem.navidromeID)
                 putInt("duration", this@toMediaItem.duration)

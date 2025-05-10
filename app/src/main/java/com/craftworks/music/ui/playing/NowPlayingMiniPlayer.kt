@@ -87,7 +87,6 @@ fun NowPlayingMiniPlayer(
                 .padding(start = 8.dp)
                 .size(48.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
         )
 
         // Title + Artist

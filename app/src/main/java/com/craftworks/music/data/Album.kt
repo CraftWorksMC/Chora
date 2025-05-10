@@ -20,6 +20,7 @@ fun MediaData.Album.toMediaItem(): MediaItem {
         .setDurationMs(this@toMediaItem.duration.times(1000).toLong())
         .setIsBrowsable(true)
         .setIsPlayable(false)
+        .setGenre(this@toMediaItem.genres?.joinToString() { it.name ?: "" })
         .setMediaType(MediaMetadata.MEDIA_TYPE_ALBUM)
         .setExtras(
             Bundle().apply {

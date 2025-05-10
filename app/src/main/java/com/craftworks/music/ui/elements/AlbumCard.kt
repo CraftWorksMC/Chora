@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.getAlbum
@@ -65,7 +65,7 @@ fun AlbumCard(
                 .fillMaxWidth()
                 .aspectRatio(1f)
         ) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(album.mediaMetadata.artworkUri)
                     .crossfade(true)
@@ -81,12 +81,6 @@ fun AlbumCard(
 
             IconButton(
                 onClick = {
-//                    playSelectedAlbum(
-//                        context,
-//                        coroutineScope,
-//                        mediaController,
-//                        album.mediaMetadata.extras?.getString("navidromeID") ?: ""
-//                    )
                     coroutineScope.launch {
                         val mediaItems = getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
                         SongHelper.play(

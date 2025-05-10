@@ -238,8 +238,12 @@ fun AlbumDetails(
                     }
 
                     // Genres
-                    if (!currentAlbum[0].mediaMetadata.genre.isNullOrEmpty()) {
-                        currentAlbum[0].mediaMetadata.genre?.let { GenrePill(it.toString()) }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        if (!currentAlbum[0].mediaMetadata.genre.isNullOrEmpty()) {
+                            currentAlbum[0].mediaMetadata.genre?.split(",")?.forEach {
+                                GenrePill(it.toString())
+                            }
+                        }
                     }
                 }
 

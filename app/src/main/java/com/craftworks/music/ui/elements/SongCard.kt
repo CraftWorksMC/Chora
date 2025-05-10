@@ -1,9 +1,7 @@
 package com.craftworks.music.ui.elements
 
-import android.net.Uri
 import android.os.Bundle
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
@@ -43,7 +40,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,7 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.radioList
@@ -96,24 +92,14 @@ fun SongsCard(song: MediaItem, onClick: () -> Unit) {
                 .width(128.dp)
                 .height(172.dp)
         ) {
-
-            AsyncImage(
-                model =
-                    if (song.mediaMetadata.artworkUri == Uri.EMPTY && song.mediaMetadata.extras?.getBoolean(
-                            "isRadio"
-                        ) == true
-                    )
-                        R.drawable.rounded_cell_tower_24
-                    else song.mediaMetadata.artworkUri,
-                placeholder = painterResource(R.drawable.placeholder),
-                fallback = painterResource(R.drawable.placeholder),
+            SubcomposeAsyncImage(
+                model = song.mediaMetadata.artworkUri,
                 contentScale = ContentScale.FillHeight,
                 contentDescription = "Album Image",
                 modifier = Modifier
                     .height(128.dp)
                     .width(128.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp))
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -164,14 +150,12 @@ fun HorizontalSongCard(
             modifier = Modifier
                 .height(72.dp), verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = ImageRequest.Builder(context)
                     .data(song.mediaMetadata.artworkUri)
                     .crossfade(true)
                     .size(64)
                     .build(),
-                placeholder = painterResource(R.drawable.placeholder),
-                fallback = painterResource(R.drawable.placeholder),
                 contentDescription = "Album Image",
                 contentScale = ContentScale.FillHeight,
                 modifier = Modifier
@@ -198,7 +182,7 @@ fun HorizontalSongCard(
                 )
 
                 Text(
-                    text = song.mediaMetadata.artist.toString() + if (song.mediaMetadata.releaseYear != 0) " • " + song.mediaMetadata.releaseYear else "",
+                    text = song.mediaMetadata.artist.toString() + if (song.mediaMetadata.recordingYear != 0) " • " + song.mediaMetadata.recordingYear else "",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground.copy(0.75f),

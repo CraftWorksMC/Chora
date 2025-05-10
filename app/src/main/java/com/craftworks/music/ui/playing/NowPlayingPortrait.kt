@@ -118,7 +118,7 @@ fun NowPlayingPortrait(
                             .fillMaxWidth()
                             .padding(horizontal = 32.dp, vertical = 16.dp)
                             .aspectRatio(1f)
-                            .shadow(4.dp, RoundedCornerShape(24.dp), clip = true),
+                            .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
                     )
                 }
             }
