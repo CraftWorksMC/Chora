@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,8 +20,10 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -208,6 +211,11 @@ fun AlbumGrid(
     val albums by viewModel.allAlbums.collectAsStateWithLifecycle()
     val showDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
+    // Group songs by their source (Local or Navidrome)
+    val groupedAlbums = albums.groupBy { song ->
+        if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
+    }
+
     if (NavidromeManager.checkActiveServers() && isSearch == false) {
         LaunchedEffect(gridState) {
             if (albumList.size % 100 != 0) return@LaunchedEffect
@@ -234,12 +242,48 @@ fun AlbumGrid(
             .padding(end = 12.dp),
         state = gridState
     ) {
-        items(albums) {album ->
-            AlbumCard(album = album,
-                mediaController = mediaController,
-                onClick = {
-                    onAlbumSelected(album.toAlbum())
-                })
+        if (showDividers) {
+            groupedAlbums.forEach { (groupName, albumsInGroup) ->
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Column (Modifier.padding(start = 12.dp)) {
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .height(1.dp)
+                                .fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                        )
+                        Text(
+                            text = when (groupName) {
+                                "Navidrome" -> stringResource(R.string.Source_Navidrome)
+                                "Local" -> stringResource(R.string.Source_Local)
+                                else -> ""
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        )
+                    }
+
+                }
+                itemsIndexed(albumsInGroup) { index, album ->
+                    AlbumCard(album = album,
+                        mediaController = mediaController,
+                        onClick = {
+                            onAlbumSelected(album.toAlbum())
+                        })
+                }
+            }
+        }
+        else {
+            items(albums) {album ->
+                AlbumCard(album = album,
+                    mediaController = mediaController,
+                    onClick = {
+                        onAlbumSelected(album.toAlbum())
+                    })
+            }
         }
     }
 }
