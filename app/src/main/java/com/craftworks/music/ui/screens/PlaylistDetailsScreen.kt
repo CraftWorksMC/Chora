@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -39,7 +40,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,7 +51,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.fadingEdge
@@ -80,10 +80,14 @@ fun PlaylistDetails(
     val playlistMetadata = viewModel.selectedPlaylist.collectAsStateWithLifecycle().value?.mediaMetadata
     val playlistSongs = viewModel.selectedPlaylistSongs.collectAsStateWithLifecycle().value
 
+    val playlistDuration = remember(playlistSongs) { playlistSongs.sumOf { it.mediaMetadata.durationMs ?: 0 }  }
+
     LaunchedEffect(playlistMetadata?.extras?.getString("navidromeID")) {
         requester.requestFocus()
         viewModel.fetchPlaylistDetails()
     }
+
+    println("artwork uri: ${playlistMetadata?.artworkUri}; artwork data: ${playlistMetadata?.artworkData}")
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -98,14 +102,14 @@ fun PlaylistDetails(
             .padding(horizontal = 12.dp)
             .height(192.dp)
             .fillMaxWidth()) {
-            AsyncImage(
+            SubcomposeAsyncImage (
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(playlistMetadata?.artworkUri)
+                    .data(if (playlistMetadata?.extras?.getString("navidromeID")?.startsWith("Local") == true)
+                        playlistMetadata.artworkData else
+                        playlistMetadata?.artworkUri)
                     .size(256)
                     .crossfade(true)
                     .build(),
-                placeholder = painterResource(R.drawable.placeholder),
-                fallback = painterResource(R.drawable.placeholder),
                 contentScale = ContentScale.FillWidth,
                 contentDescription = "Playlist cover art",
                 modifier = Modifier
@@ -144,7 +148,7 @@ fun PlaylistDetails(
                     lineHeight = 32.sp,
                 )
                 Text(
-                    text = formatMilliseconds(playlistMetadata?.durationMs?.toInt() ?: 0),
+                    text = formatMilliseconds((playlistDuration / 1000).toInt()),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Normal,
                     fontSize = MaterialTheme.typography.headlineSmall.fontSize,
@@ -199,7 +203,7 @@ fun PlaylistDetails(
             }
         }
 
-        Column(modifier = Modifier.padding(12.dp, top = 0.dp)) {
+        Column(modifier = Modifier.padding(12.dp, top = 0.dp, end = 12.dp)) {
             SongsHorizontalColumn(playlistSongs, onSongSelected = { songs, index ->
                 SongHelper.play(songs, index, mediaController)
             })

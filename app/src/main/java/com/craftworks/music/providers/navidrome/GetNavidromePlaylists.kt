@@ -59,7 +59,7 @@ fun parseNavidromePlaylistJSON(
         jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
     )
 
-    val mediaDataPlaylist = mutableListOf(subsonicResponse.playlist?.toMediaItem() ?: MediaItem.EMPTY)
+    val mediaDataPlaylist = mutableListOf<MediaItem>()
 
     // Generate password salt and hash
     val passwordSalt = generateSalt(8)
@@ -69,9 +69,6 @@ fun parseNavidromePlaylistJSON(
         it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora"
         it.media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora"
     }
-    subsonicResponse.playlist?.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${subsonicResponse.playlist.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora"
-
-    Log.d("NAVIDROME", "Added Metadata to ${mediaDataPlaylist[0].mediaMetadata.title}")
 
     mediaDataPlaylist.addAll(subsonicResponse.playlist?.songs?.map { it.toMediaItem() } ?: emptyList())
 

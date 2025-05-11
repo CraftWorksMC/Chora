@@ -51,7 +51,9 @@ fun PlaylistCard(playlist: MediaItem, onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AsyncImage(
-            model = metadata.artworkUri,
+            model = if (metadata.extras?.getString("navidromeID")?.startsWith("Local") == true)
+                metadata.artworkData else
+                    metadata.artworkUri,
             placeholder = painterResource(R.drawable.placeholder),
             fallback = painterResource(R.drawable.placeholder),
             contentScale = ContentScale.FillWidth,

@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.ui.util.fastFilter
 import androidx.core.math.MathUtils.clamp
-import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -22,7 +21,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionError
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.toMediaItem
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
@@ -429,7 +428,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                                     query
                                 )
                             }.size +
-                            getPlaylists().fastFilter { it.mediaMetadata.title?.contains(query) == true }.size
+                            getPlaylists(baseContext).fastFilter { it.mediaMetadata.title?.contains(query) == true }.size
                 },
                 LibraryParams.Builder().build()
             )
@@ -459,52 +458,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             )
         }
     }
-
-    //region Convert to media items
-    private fun radioToMediaItem(radio: MediaData.Radio): MediaItem {
-        val mediaMetadata =
-            MediaMetadata.Builder()
-                .setTitle(radio.name)
-                .setArtist(radio.name)
-                .setArtworkUri(
-                    ("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder).toUri()
-                )
-                .setIsPlayable(true)
-                .setIsBrowsable(false)
-                .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
-                .setExtras(Bundle().apply {
-                    putString("navidromeID", radio.navidromeID)
-                    putBoolean("isRadio", true)
-                }).build()
-
-        return MediaItem.Builder()
-            .setMediaId(radio.media)
-            .setUri(radio.media)
-            .setMediaMetadata(mediaMetadata)
-            .build()
-    }
-
-    private fun playlistToMediaItem(playlist: MediaData.Playlist): MediaItem {
-        val mediaMetadata = MediaMetadata.Builder()
-            .setTitle(playlist.name)
-            .setSubtitle(playlist.comment)
-            .setArtworkUri(playlist.coverArt?.toUri())
-            .setIsBrowsable(true)
-            .setIsPlayable(false)
-            .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
-            .setExtras(Bundle().apply {
-                putString("navidromeID", playlist.navidromeID)
-                putInt("Duration", playlist.duration)
-            })
-            .build()
-
-        Log.d("AA", "Added ${mediaMetadata.title} to recently played albums")
-        return MediaItem.Builder()
-            .setMediaId(playlist.navidromeID)
-            .setMediaMetadata(mediaMetadata)
-            .build()
-    }
-    //endregion
 
     //region getChildren
     private fun getHomeScreenItems(): MutableList<MediaItem> {
@@ -544,7 +497,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         runBlocking {
             if (aRadioScreenItems.isEmpty()) {
                 getRadios(baseContext).forEach { radio ->
-                    aRadioScreenItems.add(radioToMediaItem(radio))
+                    aRadioScreenItems.add(radio.toMediaItem())
                 }
             }
             SongHelper.currentTracklist = aRadioScreenItems
@@ -555,7 +508,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     private fun getPlaylistItems(): MutableList<MediaItem> {
         runBlocking {
             if (aPlaylistScreenItems.isEmpty()) {
-                getPlaylists()
+                getPlaylists(baseContext)
             }
             SongHelper.currentTracklist = aPlaylistScreenItems
         }
@@ -574,9 +527,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 }
 
                 MediaMetadata.MEDIA_TYPE_PLAYLIST -> {
-                    val playlistSongs = getPlaylistDetails(parentId)
                     aFolderSongs.addAll(
-                        playlistSongs?.subList(1, playlistSongs.size) ?: emptyList()
+                        getPlaylistDetails(parentId) ?: emptyList()
                     )
                 }
 

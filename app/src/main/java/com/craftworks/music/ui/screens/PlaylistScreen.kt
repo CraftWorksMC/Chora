@@ -37,8 +37,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.Screen
-import com.craftworks.music.data.playlistList
-import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.PlaylistGrid
 import com.craftworks.music.ui.elements.dialogs.DeletePlaylist
@@ -69,17 +67,12 @@ fun PlaylistScreen(
         coroutineScope.launch {
             isRefreshing = true
 
-            viewModel.reloadData()
+            viewModel.reloadData(context)
 
-            for (playlist in playlistList){
-                if (playlist.navidromeID.startsWith("Local_")){
-                    val playlistImage = playlist.songs?.let { localPlaylistImageGenerator(it, context) } ?: ""
-                    playlist.coverArt = playlistImage.toString()
-                }
-            }
             isRefreshing = false
         }
     }
+
 
     PullToRefreshBox(
         state = state,
@@ -119,7 +112,10 @@ fun PlaylistScreen(
             })
 
             if(showDeletePlaylistDialog.value)
-                DeletePlaylist(setShowDialog =  { showDeletePlaylistDialog.value = it } )
+                DeletePlaylist(
+                    setShowDialog =  { showDeletePlaylistDialog.value = it },
+                    onDeleted = { onRefresh.invoke()}
+                )
         }
     }
 }

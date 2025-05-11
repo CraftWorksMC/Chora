@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.compose.ui.util.fastFilter
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.albumList
 import com.craftworks.music.data.playlistList
@@ -16,7 +17,6 @@ import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.providers.local.LocalProvider
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
-import com.craftworks.music.ui.elements.dialogs.playlistToDelete
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -251,7 +251,7 @@ suspend fun deleteRadio(radio: MediaData.Radio, context: Context){
 //endregion
 
 //region Playlists
-suspend fun getPlaylists(ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
+suspend fun getPlaylists(context: Context, ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
     val deferredPlaylists = mutableListOf<Deferred<List<MediaItem>>>()
 
     if (NavidromeManager.checkActiveServers()) {
@@ -259,7 +259,17 @@ suspend fun getPlaylists(ignoreCachedResponse: Boolean = false): List<MediaItem>
             sendNavidromeGETRequest("getPlaylists.view?f=json", ignoreCachedResponse).filterIsInstance<MediaItem>()
         })
     }
-    deferredPlaylists.add(async { playlistList.map { it.toMediaItem() } })
+    deferredPlaylists.add(
+        async {
+            playlistList.map {
+                it.toMediaItem().buildUpon().setMediaMetadata(
+                    it.toMediaItem().mediaMetadata.buildUpon()
+                        .setArtworkData(localPlaylistImageGenerator(it.songs?.map { it.toMediaItem() } ?: emptyList(), context), MediaMetadata.PICTURE_TYPE_OTHER)
+                        .build()
+                ).build()
+            }
+        }
+    )
 
     deferredPlaylists.awaitAll().flatten()
 }
@@ -269,30 +279,27 @@ suspend fun getPlaylistDetails(
     ignoreCachedResponse: Boolean = false
 ): List<MediaItem>? = coroutineScope {
     val deferredPlaylist: Deferred<List<MediaItem>>
-
-    if (NavidromeManager.checkActiveServers()) {
+    if (NavidromeManager.checkActiveServers() && !id.startsWith("Local")) {
         deferredPlaylist = async {
             sendNavidromeGETRequest("getPlaylist.view?id=$id&f=json", ignoreCachedResponse).filterIsInstance<MediaItem>()
         }
         deferredPlaylist.await()
     } else {
-        emptyList()
+        playlistList.first { it.navidromeID == id }.songs?.map { it.toMediaItem() }
     }
 }
 
-suspend fun createPlaylist(playlistName: String, context: Context) {
-    if (NavidromeManager.checkActiveServers()) {
+suspend fun createPlaylist(playlistName: String, addToNavidrome: Boolean, context: Context) {
+    if (NavidromeManager.checkActiveServers() && addToNavidrome) {
+        println("creating navidrome $playlistName")
         sendNavidromeGETRequest("createPlaylist.view?name=$playlistName&songId=${songToAddToPlaylist.value.navidromeID}", true) // Always ignore cache when creating playlists
     }
     else {
-        val playlistImage: Uri = localPlaylistImageGenerator(
-            listOf(songToAddToPlaylist.value), context
-        ) ?: Uri.EMPTY
         playlistList.add(
             MediaData.Playlist(
-                "Local",
+                "Local_$playlistName",
                 playlistName,
-                playlistImage.toString(),
+                Uri.EMPTY.toString(),
                 changed = "",
                 created = "",
                 duration = 0,
@@ -304,18 +311,25 @@ suspend fun createPlaylist(playlistName: String, context: Context) {
     }
 }
 suspend fun deletePlaylist(playlistID: String, context: Context){
-    if (NavidromeManager.checkActiveServers())
+    if (NavidromeManager.checkActiveServers() && !playlistID.startsWith("Local"))
         sendNavidromeGETRequest("deletePlaylist.view?id=$playlistID", true) // Always ignore cache when deleting playlists
     else{
-        playlistList = playlistList.filter { it.navidromeID != playlistToDelete.value }.toMutableList()
+        playlistList = playlistList.filter { it.navidromeID != playlistID }.toMutableList()
         SettingsManager(context).saveLocalPlaylists()
     }
 }
-suspend fun addSongToPlaylist(playlist: MediaData.Playlist, songID: String, context: Context){
-    if (NavidromeManager.checkActiveServers())
-        sendNavidromeGETRequest("updatePlaylist.view?playlistId=${playlist.navidromeID}&songIdToAdd=$songID", true) // Always ignore cache when modifying playlists
+suspend fun addSongToPlaylist(playlistId: String, songID: String, context: Context) {
+    println("Adding song $songID to playlist $playlistId")
+
+    if (NavidromeManager.checkActiveServers() && !playlistId.startsWith("Local"))
+        sendNavidromeGETRequest("updatePlaylist.view?playlistId=${playlistId}&songIdToAdd=$songID", true) // Always ignore cache when modifying playlists
     else {
-        playlist.songs = playlist.songs?.plus(songToAddToPlaylist.value)
+        println("Adding song to local playlist")
+        val index = playlistList.indexOfFirst { it.navidromeID == playlistId }
+        playlistList[index].songs = playlistList[index].songs?.plus(songToAddToPlaylist.value)
+
+        playlistList[index].coverArt =
+            localPlaylistImageGenerator(playlistList[index].songs?.map { it.toMediaItem() } ?: emptyList(), context).toString()
         SettingsManager(context).saveLocalPlaylists()
     }
 }

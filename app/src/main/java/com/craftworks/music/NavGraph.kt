@@ -82,7 +82,6 @@ fun SetupNavGraph(
         GlobalViewModels.registerViewModel(albumViewModel)
         GlobalViewModels.registerViewModel(songsViewModel)
         GlobalViewModels.registerViewModel(artistsViewModel)
-        GlobalViewModels.registerViewModel(playlistViewModel)
 
         //GlobalViewModels.refreshAll()
     }

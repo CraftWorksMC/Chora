@@ -165,10 +165,14 @@ fun RadioScreen(
     }
 
     if (showRadioAddDialog.value)
-        AddRadioDialog(setShowDialog = { showRadioAddDialog.value = it })
+        AddRadioDialog(
+            setShowDialog = { showRadioAddDialog.value = it },
+            onAdded = { onRefresh.invoke() }
+        )
     if (showRadioModifyDialog.value)
         ModifyRadioDialog(
             setShowDialog = { showRadioModifyDialog.value = it },
-            radio = radioList[selectedRadioIndex.intValue]
+            radio = radioList[selectedRadioIndex.intValue],
+            onModified = { onRefresh.invoke() }
         )
 }

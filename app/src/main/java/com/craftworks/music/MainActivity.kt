@@ -131,11 +131,12 @@ class MainActivity : ComponentActivity() {
         albumViewModel.reloadData()
         songsViewModel.reloadData()
         artistsViewModel.reloadData()
-        playlistViewModel.reloadData()
 
         setContent {
             MusicPlayerTheme {
                 navController = rememberNavController()
+
+                playlistViewModel.reloadData(LocalContext.current)
 
                 val mediaController by rememberManagedMediaController()
                 var metadata by remember { mutableStateOf<MediaMetadata?>(null) }

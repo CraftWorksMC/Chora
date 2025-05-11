@@ -59,12 +59,15 @@ fun PreviewAddRadioDialog(){
 @Preview(showBackground = true)
 @Composable
 fun PreviewModifyRadioDialog(){
-    ModifyRadioDialog(setShowDialog = {}, radio = MediaData.Radio("", "", ""))
+    ModifyRadioDialog(setShowDialog = {}, radio = MediaData.Radio("", "", ""), {})
 }
 //endregion
 
 @Composable
-fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
+fun AddRadioDialog(
+    setShowDialog: (Boolean) -> Unit,
+    onAdded: () -> Unit = {}
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -178,6 +181,8 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                                     )
                                 }
 
+                                onAdded()
+
                                 setShowDialog(false)
                             },
                             shape = RoundedCornerShape(12.dp),
@@ -201,7 +206,11 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
 }
 
 @Composable
-fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) {
+fun ModifyRadioDialog(
+    setShowDialog: (Boolean) -> Unit,
+    radio: MediaData.Radio,
+    onModified: () -> Unit
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -298,6 +307,8 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) 
                                     modifyRadio(radio, context)
                                 }
                                 setShowDialog(false)
+
+                                onModified()
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(

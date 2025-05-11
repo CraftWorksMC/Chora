@@ -5,7 +5,6 @@ import android.util.Log
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.managers.NavidromeManager.getCurrentServer
 import com.craftworks.music.managers.NavidromeManager.setSyncingStatus
-import com.craftworks.music.providers.getPlaylists
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -160,9 +159,9 @@ suspend fun sendNavidromeGETRequest(
                             // Playlists
                             endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
                             endpoint.startsWith("getPlaylist.") -> parsedData.addAll(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password))
-                            endpoint.startsWith("updatePlaylist") -> parsedData.addAll(getPlaylists(true))
-                            endpoint.startsWith("createPlaylist") -> parsedData.addAll(getPlaylists(true))
-                            endpoint.startsWith("deletePlaylist") -> parsedData.addAll(getPlaylists(true))
+                            endpoint.startsWith("updatePlaylist") -> { }
+                            endpoint.startsWith("createPlaylist") -> { }
+                            endpoint.startsWith("deletePlaylist") -> { }
 
                             // Radios
                             endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
