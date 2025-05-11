@@ -440,7 +440,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     override fun onDestroy() {
         saveState()
-
+        session?.release()
         instance = null
         super.onDestroy()
     }

@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.elements
 
-import android.os.Bundle
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -54,7 +53,6 @@ import com.craftworks.music.data.radioList
 import com.craftworks.music.data.toSong
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
-import com.craftworks.music.providers.navidrome.setNavidromeStar
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
 import com.craftworks.music.ui.screens.selectedRadioIndex
@@ -270,36 +268,6 @@ fun HorizontalSongCard(
                             Icon(
                                 imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
                                 contentDescription = "Download Icon"
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        enabled = !song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_"),
-                        text = {
-                            Text(if (song.mediaMetadata.extras?.getString("starred").isNullOrEmpty()) "Star" else "Unstar")
-                        },
-                        onClick = {
-                            coroutineScope.launch {
-                                setNavidromeStar(
-                                    !song.mediaMetadata.extras?.getString("starred").isNullOrEmpty(),
-                                    song.mediaMetadata.extras?.getString("navidromeID")!!
-                                )
-                            }
-                            song.mediaMetadata.buildUpon().setExtras(
-                                Bundle().apply {
-                                    putString("starred", System.currentTimeMillis().toString())
-                                }
-                            ).build()
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(
-                                    if (song.mediaMetadata.extras?.getString("starred").isNullOrEmpty())
-                                        R.drawable.round_favorite_border_24
-                                    else
-                                        R.drawable.round_favorite_24
-                                ),
-                                contentDescription = "Star/Unstar Icon"
                             )
                         }
                     )
