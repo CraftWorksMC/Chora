@@ -269,7 +269,7 @@ fun LyricsButton(
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun DownloadButton(color: Color, size: Dp) {
+fun DownloadButton(color: Color, size: Dp, enabled: Boolean) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -279,9 +279,9 @@ fun DownloadButton(color: Color, size: Dp) {
                 downloadNavidromeSong(context, SongHelper.currentSong)
             }
         },
-        enabled = !SongHelper.currentSong.navidromeID.startsWith("Local_"),
+        enabled = enabled,
         shape = RoundedCornerShape(12.dp),
-        modifier = if (!SongHelper.currentSong.navidromeID.startsWith("Local_")) // Disable bounce click if song is local
+        modifier = if (enabled) // Disable bounce click if song is local
             Modifier
                 .bounceClick()
                 .height(size + 6.dp)

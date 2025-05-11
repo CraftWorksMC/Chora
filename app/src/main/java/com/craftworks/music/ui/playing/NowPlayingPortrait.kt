@@ -270,7 +270,7 @@ fun NowPlayingPortrait(
             ) {
                 LyricsButton(iconTextColor, 64.dp)
 
-                DownloadButton(iconTextColor, 64.dp)
+                DownloadButton(iconTextColor, 64.dp, (metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION || metadata.extras?.getString("navidromeID")?.startsWith("Local_") == true))
             }
         }
         //endregion

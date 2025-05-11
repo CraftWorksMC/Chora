@@ -193,13 +193,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     }
                 }
 
-                serviceIOScope.launch {
-                    if (mediaItem?.mediaMetadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION)
-                        async { LyricsManager.getLyrics(mediaItem?.mediaMetadata) }
-                }
-//                    mediaItem?.toSong()?.let {
-//                        SongHelper.currentSong = it
-//                    }
+                serviceIOScope.launch { async { LyricsManager.getLyrics(mediaItem?.mediaMetadata) } }
             }
 
             override fun onPlayerError(error: PlaybackException) {

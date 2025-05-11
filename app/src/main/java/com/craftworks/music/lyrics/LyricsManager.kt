@@ -25,10 +25,15 @@ object LyricsManager {
         // If that fails, try LRCLIB.net.
         // If we turned it off or we cannot find lyrics, then return an empty list
 
+        if (metadata?.mediaType == MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
+            _Lyrics.value = listOf()
+            return
+        }
+
         var foundNavidromePlainLyrics by mutableStateOf(false)
 
         if (NavidromeManager.checkActiveServers()) {
-            getNavidromeSyncedLyrics().takeIf { it.isNotEmpty() }?.let {
+            getNavidromeSyncedLyrics(metadata?.extras?.getString("navidromeID") ?: "").takeIf { it.isNotEmpty() }?.let {
                 if (it.size == 1)
                     foundNavidromePlainLyrics = true
                 else {
@@ -38,7 +43,7 @@ object LyricsManager {
                 }
             }
 
-            getNavidromePlainLyrics().takeIf { it.isNotEmpty() }?.let {
+            getNavidromePlainLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
                 if (it.size == 1)
                     foundNavidromePlainLyrics = true
 
