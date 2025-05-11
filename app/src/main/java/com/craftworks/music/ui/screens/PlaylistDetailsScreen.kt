@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,14 +48,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.toMediaItem
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
@@ -73,17 +70,17 @@ import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 fun PlaylistDetails(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = rememberManagedMediaController().value,
-    viewModel: PlaylistScreenViewModel = viewModel()
+    viewModel: PlaylistScreenViewModel = PlaylistScreenViewModel()
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red, Color.Transparent))
-    val context = LocalContext.current
 
     val requester = FocusRequester()
 
-    val playlist = viewModel.selectedPlaylist.collectAsStateWithLifecycle().value
+    val playlistMetadata = viewModel.selectedPlaylist.collectAsStateWithLifecycle().value?.mediaMetadata
+    val playlistSongs = viewModel.selectedPlaylistSongs.collectAsStateWithLifecycle().value
 
-    LaunchedEffect(playlist?.navidromeID) {
+    LaunchedEffect(playlistMetadata?.extras?.getString("navidromeID")) {
         requester.requestFocus()
         viewModel.fetchPlaylistDetails()
     }
@@ -103,7 +100,7 @@ fun PlaylistDetails(
             .fillMaxWidth()) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(playlist?.coverArt)
+                    .data(playlistMetadata?.artworkUri)
                     .size(256)
                     .crossfade(true)
                     .build(),
@@ -138,7 +135,7 @@ fun PlaylistDetails(
             // Playlist name
             Column(modifier = Modifier.align(Alignment.BottomCenter)){
                 Text(
-                    text = playlist?.name.toString(),
+                    text = playlistMetadata?.title.toString(),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
@@ -146,12 +143,8 @@ fun PlaylistDetails(
                     modifier = Modifier.fillMaxWidth(),
                     lineHeight = 32.sp,
                 )
-                var playlistDuration = 0
-                for (song in playlist?.songs.orEmpty()){
-                    playlistDuration += song.duration
-                }
                 Text(
-                    text = formatMilliseconds(playlistDuration),
+                    text = formatMilliseconds(playlistMetadata?.durationMs?.toInt() ?: 0),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Normal,
                     fontSize = MaterialTheme.typography.headlineSmall.fontSize,
@@ -170,9 +163,7 @@ fun PlaylistDetails(
             verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = {
-                    //SongHelper.currentSong = playlist?.songs?.get(0) ?: return@Button
-                    SongHelper.currentList = playlist?.songs.orEmpty()
-                    playlist?.songs?.get(0)?.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
+                    SongHelper.play(playlistSongs, 0, mediaController)
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -193,10 +184,8 @@ fun PlaylistDetails(
                     shuffleSongs.value = true
                     mediaController?.shuffleModeEnabled = true
 
-                    val random = playlist?.songs?.indices?.random() ?: 0
-                    //SongHelper.currentSong = random?.let { playlist.songs?.get(it) } ?: return@Button
-                    SongHelper.currentList = playlist?.songs.orEmpty()
-                    playlist?.songs?.get(random)?.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
+                    val random = playlistSongs.indices.random()
+                    SongHelper.play(playlistSongs, random, mediaController)
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -211,15 +200,9 @@ fun PlaylistDetails(
         }
 
         Column(modifier = Modifier.padding(12.dp, top = 0.dp)) {
-            playlist?.songs?.let {
-                SongsHorizontalColumn(it.map {
-                    it.toMediaItem()
-                }, onSongSelected = { songs, index ->
-                    //SongHelper.currentSong = song
-                    SongHelper.currentList = playlist.songs.orEmpty()
-                    //song.media?.let { songUri -> SongHelper.playStream(context, Uri.parse(songUri), false, mediaController) }
-                })
-            }
+            SongsHorizontalColumn(playlistSongs, onSongSelected = { songs, index ->
+                SongHelper.play(songs, index, mediaController)
+            })
         }
     }
 }

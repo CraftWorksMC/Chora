@@ -9,6 +9,7 @@ import com.craftworks.music.data.albumList
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedArtist
+import com.craftworks.music.data.toMediaItem
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
@@ -250,15 +251,15 @@ suspend fun deleteRadio(radio: MediaData.Radio, context: Context){
 //endregion
 
 //region Playlists
-suspend fun getPlaylists(ignoreCachedResponse: Boolean = false): List<MediaData.Playlist> = coroutineScope {
-    val deferredPlaylists = mutableListOf<Deferred<List<MediaData.Playlist>>>()
+suspend fun getPlaylists(ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
+    val deferredPlaylists = mutableListOf<Deferred<List<MediaItem>>>()
 
     if (NavidromeManager.checkActiveServers()) {
         deferredPlaylists.add(async {
-            sendNavidromeGETRequest("getPlaylists.view?f=json", ignoreCachedResponse).filterIsInstance<MediaData.Playlist>()
+            sendNavidromeGETRequest("getPlaylists.view?f=json", ignoreCachedResponse).filterIsInstance<MediaItem>()
         })
     }
-    deferredPlaylists.add(async { playlistList })
+    deferredPlaylists.add(async { playlistList.map { it.toMediaItem() } })
 
     deferredPlaylists.awaitAll().flatten()
 }
@@ -266,17 +267,16 @@ suspend fun getPlaylists(ignoreCachedResponse: Boolean = false): List<MediaData.
 suspend fun getPlaylistDetails(
     id: String,
     ignoreCachedResponse: Boolean = false
-): MediaData.Playlist? = coroutineScope {
-    val deferredPlaylist: Deferred<MediaData.Playlist>
+): List<MediaItem>? = coroutineScope {
+    val deferredPlaylist: Deferred<List<MediaItem>>
 
     if (NavidromeManager.checkActiveServers()) {
         deferredPlaylist = async {
-            sendNavidromeGETRequest("getPlaylist.view?id=$id&f=json", ignoreCachedResponse).filterIsInstance<MediaData.Playlist>()
-                .firstOrNull() ?: throw IllegalStateException("No playlist details returned")
+            sendNavidromeGETRequest("getPlaylist.view?id=$id&f=json", ignoreCachedResponse).filterIsInstance<MediaItem>()
         }
         deferredPlaylist.await()
     } else {
-        null
+        emptyList()
     }
 }
 
@@ -307,7 +307,7 @@ suspend fun deletePlaylist(playlistID: String, context: Context){
     if (NavidromeManager.checkActiveServers())
         sendNavidromeGETRequest("deletePlaylist.view?id=$playlistID", true) // Always ignore cache when deleting playlists
     else{
-        playlistList.remove(playlistToDelete.value)
+        playlistList = playlistList.filter { it.navidromeID != playlistToDelete.value }.toMutableList()
         SettingsManager(context).saveLocalPlaylists()
     }
 }
@@ -318,5 +318,22 @@ suspend fun addSongToPlaylist(playlist: MediaData.Playlist, songID: String, cont
         playlist.songs = playlist.songs?.plus(songToAddToPlaylist.value)
         SettingsManager(context).saveLocalPlaylists()
     }
+}
+//endregion
+
+//region Favourites
+suspend fun getFavouriteSongs() : List<MediaItem> = coroutineScope {
+    val deferredSongs = mutableListOf<Deferred<List<MediaItem>>>()
+
+    if (LocalProviderManager.checkActiveFolders()) {
+        emptyList<MediaItem>()
+    }
+    if (NavidromeManager.checkActiveServers()) {
+        deferredSongs.add(async {
+            sendNavidromeGETRequest("getStarred.view?f=json", true).filterIsInstance<MediaItem>()
+        })
+    }
+
+    deferredSongs.awaitAll().flatten()
 }
 //endregion

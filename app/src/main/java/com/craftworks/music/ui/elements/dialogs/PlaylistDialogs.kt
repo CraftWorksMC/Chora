@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
@@ -84,7 +83,7 @@ var showAddSongToPlaylistDialog = mutableStateOf(false)
 var showNewPlaylistDialog = mutableStateOf(false)
 var songToAddToPlaylist = mutableStateOf(SongHelper.currentSong)
 var showDeletePlaylistDialog = mutableStateOf(false)
-var playlistToDelete = mutableStateOf(MediaData.Playlist("", "","","", true, "", "", 0, 0, ""))
+var playlistToDelete = mutableStateOf("")
 
 @Composable
 fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
@@ -324,7 +323,7 @@ fun DeletePlaylist(setShowDialog: (Boolean) -> Unit) {
                         Button(
                             onClick = {
                                 coroutineScope.launch {
-                                    deletePlaylist(playlistToDelete.value.navidromeID, context)
+                                    deletePlaylist(playlistToDelete.value, context)
                                 }
                                 setShowDialog(false)
                             },

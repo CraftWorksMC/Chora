@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
@@ -354,13 +355,36 @@ fun RadiosGrid(radioList: List<MediaData.Radio>, onRadioSelected: (song: MediaDa
 //region Playlists
 @ExperimentalFoundationApi
 @Composable
-fun PlaylistGrid(playlists: List<MediaData.Playlist>, onPlaylistSelected: (playlist: MediaData.Playlist) -> Unit){
+fun PlaylistGrid(playlists: List<MediaItem>, onPlaylistSelected: (playlist: MediaItem) -> Unit){
     LazyVerticalGrid(
         columns = GridCells.Adaptive(128.dp),
         modifier = Modifier
             .wrapContentWidth()
             .fillMaxHeight()
     ) {
+        item {
+            val favouritesPlaylist = MediaItem.Builder()
+                .setMediaId("favourites")
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle("Favourites")
+                        .setIsPlayable(false)
+                        .setIsBrowsable(true)
+                        .setArtworkUri(("android.resource://com.craftworks.music/" + R.drawable.placeholder).toUri()) // Add a placeholder image
+                        .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
+                        .setExtras(Bundle().apply {
+                            putString("navidromeID", "favourites")
+                        })
+                        .build()
+                )
+                .build()
+
+            PlaylistCard(playlist = favouritesPlaylist,
+                onClick = {
+                    onPlaylistSelected(favouritesPlaylist)
+                }
+            )
+        }
         items(playlists) {playlist ->
             PlaylistCard(playlist = playlist,
                 onClick = {

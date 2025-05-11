@@ -220,22 +220,14 @@ fun AlbumDetails(
                         modifier = Modifier.fillMaxWidth(),
                         lineHeight = 32.sp,
                     )
-                    Row (modifier = Modifier.fillMaxWidth() ,horizontalArrangement = Arrangement.Center) {
-                        Text(
-                            text = currentAlbum[0].mediaMetadata.artist.toString(),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                            textAlign = TextAlign.Center,
-                        )
-                        Text(
-                            text = " • " + formatMilliseconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    Text(
+                        text = currentAlbum[0].mediaMetadata.artist.toString() + " • " + formatMilliseconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
                     // Genres
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {

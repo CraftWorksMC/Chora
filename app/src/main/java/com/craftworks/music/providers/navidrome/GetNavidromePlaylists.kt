@@ -1,8 +1,10 @@
 package com.craftworks.music.providers.navidrome
 
 import android.util.Log
+import androidx.media3.common.MediaItem
 import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.playlistList
+import com.craftworks.music.data.toMediaItem
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -16,7 +18,7 @@ fun parseNavidromePlaylistsJSON(
     navidromeUrl: String,
     navidromeUsername: String,
     navidromePassword: String
-) : List<MediaData.Playlist> {
+) : List<MediaItem> {
 
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
@@ -31,14 +33,14 @@ fun parseNavidromePlaylistsJSON(
         it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora"
     }
 
-    var mediaDataPlaylists = emptyList<MediaData.Playlist>()
+    var mediaDataPlaylists = emptyList<MediaItem>()
 
     subsonicResponse.playlists?.playlist?.filterNot { newPlaylist ->
         playlistList.any { existingPlaylist ->
             existingPlaylist.navidromeID == newPlaylist.navidromeID
         }
     }?.let {
-        mediaDataPlaylists = it
+        mediaDataPlaylists = it.map { it.toMediaItem() }
     }
 
     Log.d("NAVIDROME", "Added playlists. Total: ${mediaDataPlaylists.size}")
@@ -51,13 +53,13 @@ fun parseNavidromePlaylistJSON(
     navidromeUrl: String,
     navidromeUsername: String,
     navidromePassword: String
-) : MediaData.Playlist {
+) : List<MediaItem> {
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
         jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
     )
 
-    val mediaDataPlaylist = subsonicResponse.playlist
+    val mediaDataPlaylist = mutableListOf(subsonicResponse.playlist?.toMediaItem() ?: MediaItem.EMPTY)
 
     // Generate password salt and hash
     val passwordSalt = generateSalt(8)
@@ -69,7 +71,9 @@ fun parseNavidromePlaylistJSON(
     }
     subsonicResponse.playlist?.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${subsonicResponse.playlist.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora"
 
-    Log.d("NAVIDROME", "Added Metadata to ${mediaDataPlaylist?.name}")
+    Log.d("NAVIDROME", "Added Metadata to ${mediaDataPlaylist[0].mediaMetadata.title}")
 
-    return mediaDataPlaylist!!
+    mediaDataPlaylist.addAll(subsonicResponse.playlist?.songs?.map { it.toMediaItem() } ?: emptyList())
+
+    return mediaDataPlaylist
 }

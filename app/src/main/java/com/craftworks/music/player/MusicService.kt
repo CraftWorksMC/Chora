@@ -23,7 +23,6 @@ import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionError
 import com.craftworks.music.R
 import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.toMediaItem
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
@@ -430,7 +429,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                                     query
                                 )
                             }.size +
-                            getPlaylists().fastFilter { it.name.contains(query) }.size
+                            getPlaylists().fastFilter { it.mediaMetadata.title?.contains(query) == true }.size
                 },
                 LibraryParams.Builder().build()
             )
@@ -556,10 +555,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     private fun getPlaylistItems(): MutableList<MediaItem> {
         runBlocking {
             if (aPlaylistScreenItems.isEmpty()) {
-                val playlists = async { getPlaylists() }.await()
-                playlists.forEach { playlist ->
-                    aPlaylistScreenItems.add(playlistToMediaItem(playlist))
-                }
+                getPlaylists()
             }
             SongHelper.currentTracklist = aPlaylistScreenItems
         }
@@ -578,9 +574,10 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 }
 
                 MediaMetadata.MEDIA_TYPE_PLAYLIST -> {
-                    getPlaylistDetails(parentId)?.songs?.forEach {
-                        aFolderSongs.add(it.toMediaItem())
-                    }
+                    val playlistSongs = getPlaylistDetails(parentId)
+                    aFolderSongs.addAll(
+                        playlistSongs?.subList(1, playlistSongs.size) ?: emptyList()
+                    )
                 }
 
                 else -> aFolderSongs.clear()

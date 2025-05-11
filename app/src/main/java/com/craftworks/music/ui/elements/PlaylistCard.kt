@@ -22,15 +22,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
 import coil.compose.AsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.ui.elements.dialogs.playlistToDelete
 import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PlaylistCard(playlist: MediaData.Playlist, onClick: () -> Unit) {
+fun PlaylistCard(playlist: MediaItem, onClick: () -> Unit) {
+    val metadata = playlist.mediaMetadata
     Column(
         modifier = Modifier
             .padding(12.dp)
@@ -38,8 +39,11 @@ fun PlaylistCard(playlist: MediaData.Playlist, onClick: () -> Unit) {
             .combinedClickable(
                 onClick = { onClick() },
                 onLongClick = {
-                    playlistToDelete.value = playlist
-                    showDeletePlaylistDialog.value = true
+                    if (playlist.mediaMetadata.extras?.getString("navidromeID") != "favourites") {
+                        playlistToDelete.value =
+                            playlist.mediaMetadata.extras?.getString("navidromeID") ?: ""
+                        showDeletePlaylistDialog.value = true
+                    }
                 },
                 onLongClickLabel = "Delete Playlist"
             )
@@ -47,7 +51,7 @@ fun PlaylistCard(playlist: MediaData.Playlist, onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AsyncImage(
-            model = playlist.coverArt,
+            model = metadata.artworkUri,
             placeholder = painterResource(R.drawable.placeholder),
             fallback = painterResource(R.drawable.placeholder),
             contentScale = ContentScale.FillWidth,
@@ -59,7 +63,7 @@ fun PlaylistCard(playlist: MediaData.Playlist, onClick: () -> Unit) {
         )
 
         Text(
-            text = playlist.name,
+            text = metadata.title.toString(),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground,

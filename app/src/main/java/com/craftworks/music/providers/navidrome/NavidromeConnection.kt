@@ -58,7 +58,10 @@ data class SubsonicResponse(
 
     //Lyrics
     val lyrics: MediaData.PlainLyrics? = null,
-    val lyricsList: LyricsList? = null
+    val lyricsList: LyricsList? = null,
+
+    // Favourites
+    val starred: Starred? = null,
 )
 
 suspend fun sendNavidromeGETRequest(
@@ -156,7 +159,7 @@ suspend fun sendNavidromeGETRequest(
 
                             // Playlists
                             endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
-                            endpoint.startsWith("getPlaylist.") -> parsedData.addAll(listOf(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password)))
+                            endpoint.startsWith("getPlaylist.") -> parsedData.addAll(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password))
                             endpoint.startsWith("updatePlaylist") -> parsedData.addAll(getPlaylists(true))
                             endpoint.startsWith("createPlaylist") -> parsedData.addAll(getPlaylists(true))
                             endpoint.startsWith("deletePlaylist") -> parsedData.addAll(getPlaylists(true))
@@ -168,22 +171,22 @@ suspend fun sendNavidromeGETRequest(
                             endpoint.startsWith("getLyrics.") -> parsedData.addAll(listOf(parseNavidromePlainLyricsJSON(responseContent)))
                             endpoint.startsWith("getLyricsBySongId.") -> parsedData.addAll(parseNavidromeSyncedLyricsJSON(responseContent))
 
-
                             // Star and unstar
                             endpoint.startsWith("star") -> {
                                 NavidromeCache.delByPrefix("getAlbum")
                                 NavidromeCache.delByPrefix("search3")
                                 NavidromeCache.delByPrefix("getPlaylist")
-                                //GlobalViewModels.refreshAll()
                                 setSyncingStatus(false)
                             }
                             endpoint.startsWith("unstar") -> {
                                 NavidromeCache.delByPrefix("getAlbum")
                                 NavidromeCache.delByPrefix("search3")
                                 NavidromeCache.delByPrefix("getPlaylist")
-                                //GlobalViewModels.refreshAll()
                                 setSyncingStatus(false)
                             }
+
+                            // Favourites
+                            endpoint.startsWith("getStarred") -> { parsedData.addAll(parseNavidromeFavouritesJSON(responseContent, server.url, server.username, server.password)) }
 
                             else -> { setSyncingStatus(false) }
                         }
