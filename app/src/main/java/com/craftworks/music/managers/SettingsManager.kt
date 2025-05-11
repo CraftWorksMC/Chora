@@ -157,7 +157,7 @@ class SettingsManager(
     }
 
     val lyricsAnimationSpeedFlow: Flow<Int> = context.dataStore.data.map {  preferences ->
-        preferences[LYRICS_ANIMATION_SPEED] ?: 100
+        preferences[LYRICS_ANIMATION_SPEED] ?: 1200
     }
 
     suspend fun setLyricsAnimationSpeed(speed: Int) {

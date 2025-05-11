@@ -159,9 +159,9 @@ suspend fun sendNavidromeGETRequest(
                             // Playlists
                             endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
                             endpoint.startsWith("getPlaylist.") -> parsedData.addAll(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password))
-                            endpoint.startsWith("updatePlaylist") -> { }
-                            endpoint.startsWith("createPlaylist") -> { }
-                            endpoint.startsWith("deletePlaylist") -> { }
+                            endpoint.startsWith("updatePlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
+                            endpoint.startsWith("createPlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
+                            endpoint.startsWith("deletePlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
 
                             // Radios
                             endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))

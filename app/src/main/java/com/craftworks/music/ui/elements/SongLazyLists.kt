@@ -242,7 +242,7 @@ fun AlbumGrid(
             .padding(end = 12.dp),
         state = gridState
     ) {
-        if (showDividers) {
+        if (showDividers && groupedAlbums.size > 1) {
             groupedAlbums.forEach { (groupName, albumsInGroup) ->
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Column (Modifier.padding(start = 12.dp)) {
