@@ -179,9 +179,9 @@ fun AddRadioDialog(
                                         context,
                                         addToNavidrome
                                     )
-                                }
 
-                                onAdded()
+                                    onAdded()
+                                }
 
                                 setShowDialog(false)
                             },

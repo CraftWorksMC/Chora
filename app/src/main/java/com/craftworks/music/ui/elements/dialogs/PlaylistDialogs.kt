@@ -349,8 +349,8 @@ fun DeletePlaylist(
                             onClick = {
                                 coroutineScope.launch {
                                     deletePlaylist(playlistToDelete.value, context)
+                                    onDeleted()
                                 }
-                                onDeleted()
                                 setShowDialog(false)
                             },
                             colors = ButtonDefaults.buttonColors(

@@ -370,6 +370,19 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 }
             )
 
+            //Show Provider Dividers
+            val showProviderDividers = SettingsManager(context).showProviderDividersFlow.collectAsState(true)
+
+            SettingsSwitch(
+                showProviderDividers.value,
+                stringResource(R.string.Setting_ProviderDividers),
+                toggleEvent = {
+                    coroutineScope.launch {
+                        SettingsManager(context).setShowProviderDividers(!showProviderDividers.value)
+                    }
+                }
+            )
+
             // Lyrics Animation Speed
             val lyricsAnimationSpeed = SettingsManager(context).lyricsAnimationSpeedFlow.collectAsState(1200)
             val interactionSource = remember { MutableInteractionSource() }

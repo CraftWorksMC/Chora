@@ -78,6 +78,6 @@
     <string name="Theme_Dark">Scuro</string>
     <string name="Theme_Light">Chiaro</string>
     <string name="Action_Download">Scarica</string>
-    <string name="Setting_ProviderDividers">Mostra Separatori Provider</string>
+    <string name="Setting_ProviderDividers">Mostra Divisori Provider</string>
     <string name="Setting_LyricsAnimationSpeed">Velocità Animazione Testo</string>
 </resources>

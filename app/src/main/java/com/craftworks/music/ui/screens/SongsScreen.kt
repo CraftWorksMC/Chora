@@ -99,7 +99,8 @@ fun SongsScreen(
                 start = leftPadding,
                 top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
             )) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 12.dp)) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.round_music_note_24),
                     contentDescription = "Songs Icon",

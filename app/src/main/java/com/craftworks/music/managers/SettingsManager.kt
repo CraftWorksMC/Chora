@@ -147,7 +147,7 @@ class SettingsManager(
     }
 
     val showProviderDividersFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[SHOW_NAVIDROME_KEY] != false
+        preferences[SHOW_PROVIDER_DIVIDERS] != false
     }
 
     suspend fun setShowProviderDividers(showDividers: Boolean) {
