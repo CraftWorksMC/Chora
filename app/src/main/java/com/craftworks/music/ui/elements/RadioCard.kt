@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.elements
 
-import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -26,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
@@ -58,7 +58,7 @@ fun RadioCard(radio: MediaData.Radio, onClick: () -> Unit) {
         AsyncImage(
             // Use generic radio image as we cannot get the radio's logo reliably.
             model = ImageRequest.Builder(LocalContext.current)
-                .data(Uri.parse("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder))
+                .data(("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder).toUri())
                 .crossfade(true).size(256).build(),
             fallback = painterResource(R.drawable.placeholder),
             contentScale = ContentScale.FillWidth,

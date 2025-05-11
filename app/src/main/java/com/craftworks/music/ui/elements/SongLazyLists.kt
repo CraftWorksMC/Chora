@@ -370,7 +370,7 @@ fun PlaylistGrid(playlists: List<MediaItem>, onPlaylistSelected: (playlist: Medi
                         .setTitle("Favourites")
                         .setIsPlayable(false)
                         .setIsBrowsable(true)
-                        .setArtworkUri(("android.resource://com.craftworks.music/" + R.drawable.placeholder).toUri()) // Add a placeholder image
+                        .setArtworkUri(("android.resource://com.craftworks.music/" + R.drawable.favourites).toUri())
                         .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
                         .setExtras(Bundle().apply {
                             putString("navidromeID", "favourites")
