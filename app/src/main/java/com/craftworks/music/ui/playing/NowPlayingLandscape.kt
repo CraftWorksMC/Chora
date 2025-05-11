@@ -56,7 +56,6 @@ import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
-import com.craftworks.music.player.SongHelper
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
 @Preview(device = "id:tv_1080p", showBackground = true, showSystemUi = true)
@@ -138,6 +137,8 @@ fun NowPlayingLandscape(
 
                 if (LocalConfiguration.current.screenHeightDp.dp < 512.dp)
                     Spacer(Modifier.animateContentSize().width(if (lyricsOpen) 0.dp else 24.dp))
+                else
+                    Spacer(Modifier.width(24.dp))
 
                 Column(
                     modifier = Modifier
@@ -145,23 +146,21 @@ fun NowPlayingLandscape(
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    SongHelper.currentSong.title.let {
-                        Text(
-                            text = it,
-                            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                            fontWeight = FontWeight.SemiBold,
-                            color = iconTextColor,
-                            maxLines = 1, overflow = TextOverflow.Visible,
-                            softWrap = false,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
-                        )
-                    }
+                    Text(
+                        text = metadata?.title.toString(),
+                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                        fontWeight = FontWeight.SemiBold,
+                        color = iconTextColor,
+                        maxLines = 1, overflow = TextOverflow.Visible,
+                        softWrap = false,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+                    )
 
                     Text(
-                        text = metadata?.artist.toString() + if (metadata?.releaseYear != 0) " • " + metadata?.releaseYear else "",
+                        text = metadata?.artist.toString() + if (metadata?.recordingYear != 0) " • " + metadata?.recordingYear else "",
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         fontWeight = FontWeight.Normal,
                         color = iconTextColor,

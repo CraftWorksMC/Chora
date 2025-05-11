@@ -181,12 +181,12 @@ fun PlaybackProgressSlider(
 @Composable
 internal fun PreviousSongButton(player: Player, color: Color, modifier: Modifier = Modifier) {
     val state = rememberPreviousButtonState(player)
-    IconButton(onClick = state::onClick, modifier = modifier.bounceClick().moveClick(false), enabled = state.isEnabled) {
+    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(state.isEnabled).moveClick(false, state.isEnabled), enabled = state.isEnabled) {
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_previous),
             contentDescription = "Previous song",
             modifier = modifier,
-            tint = color
+            tint = if (state.isEnabled) color else color.copy(0.5f)
         )
     }
 }
@@ -199,8 +199,8 @@ internal fun PlayPauseButton(player: Player, color: Color, modifier: Modifier = 
     val contentDescription =
         if (state.showPlay) "play"
         else "pause"
-    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(), enabled = state.isEnabled) {
-        Icon(icon, contentDescription = contentDescription, modifier = modifier, tint = color)
+    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(state.isEnabled), enabled = state.isEnabled) {
+        Icon(icon, contentDescription = contentDescription, modifier = modifier, tint = if (state.isEnabled) color else color.copy(0.5f))
     }
 }
 
@@ -208,12 +208,12 @@ internal fun PlayPauseButton(player: Player, color: Color, modifier: Modifier = 
 @Composable
 internal fun NextSongButton(player: Player, color: Color, modifier: Modifier = Modifier) {
     val state = rememberNextButtonState(player)
-    IconButton(onClick = state::onClick, modifier = modifier.bounceClick().moveClick(true), enabled = state.isEnabled) {
+    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(state.isEnabled).moveClick(true, state.isEnabled), enabled = state.isEnabled) {
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_next),
             contentDescription = "Next song",
             modifier = modifier,
-            tint = color
+            tint = if (state.isEnabled) color else color.copy(0.5f)
         )
     }
 }

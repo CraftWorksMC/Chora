@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.dp
 // https://blog.canopas.com/jetpack-compose-cool-button-click-effects-c6bbecec7bcb
 
 enum class ButtonState { Pressed, Idle }
-fun Modifier.bounceClick() = composed {
+fun Modifier.bounceClick(enabled: Boolean = true) = composed {
     var buttonState by remember { mutableStateOf(ButtonState.Idle) }
-    val scale by animateFloatAsState(if (buttonState == ButtonState.Pressed) 0.9f else 1f,
+    val scale by animateFloatAsState(if (buttonState == ButtonState.Pressed && enabled) 0.9f else 1f,
         label = "Animated Button Scale",
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -56,9 +56,9 @@ fun Modifier.bounceClick() = composed {
         }
 }
 
-fun Modifier.moveClick(right: Boolean) = composed {
+fun Modifier.moveClick(right: Boolean, enabled: Boolean = true) = composed {
     var buttonState by remember { mutableStateOf(ButtonState.Idle) }
-    val position by animateDpAsState(if (buttonState == ButtonState.Pressed) 12.dp else 0.dp,
+    val position by animateDpAsState(if (buttonState == ButtonState.Pressed && enabled) 12.dp else 0.dp,
         label = "Animated Button Position",
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
