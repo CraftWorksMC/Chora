@@ -409,7 +409,6 @@ fun AnimatedBottomNavBar(
                             if (Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route) return@NavigationRailItem
                             navController.navigate(Screen.NowPlayingLandscape.route) {
                                 launchSingleTop = true
-                                //popUpTo(navController.graph.findStartDestination().id)
                             }
                             coroutineScope.launch {
                                 if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()

@@ -9,6 +9,10 @@ android {
     namespace = "com.craftworks.music"
     compileSdk = 35
 
+    androidResources {
+        generateLocaleConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.craftworks.music"
         minSdk = 23
