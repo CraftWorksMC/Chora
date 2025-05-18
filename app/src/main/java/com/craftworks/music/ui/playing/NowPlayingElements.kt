@@ -65,7 +65,6 @@ import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import com.craftworks.music.R
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.lyrics.LyricsManager
-import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
@@ -269,14 +268,16 @@ fun LyricsButton(
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun DownloadButton(color: Color, size: Dp, enabled: Boolean) {
+fun DownloadButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Boolean) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
     Button(
         onClick = {
             coroutineScope.launch {
-                downloadNavidromeSong(context, SongHelper.currentSong)
+                metadata?.let {
+                    downloadNavidromeSong(context, it)
+                }
             }
         },
         enabled = enabled,

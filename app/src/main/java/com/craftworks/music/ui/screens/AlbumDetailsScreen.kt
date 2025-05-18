@@ -73,7 +73,6 @@ import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.getAlbum
 import com.craftworks.music.providers.navidrome.setNavidromeStar
-import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.GenrePill
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
@@ -315,7 +314,6 @@ fun AlbumDetails(
                 }
                 Button(
                     onClick = {
-                        shuffleSongs.value = true
                         mediaController?.shuffleModeEnabled = true
 
                         val random = currentAlbum.subList(1, currentAlbum.size).indices.random()

@@ -71,7 +71,7 @@ fun SetupNavGraph(
     songsViewModel: SongsScreenViewModel,
     artistsViewModel: ArtistsScreenViewModel,
     playlistViewModel: PlaylistScreenViewModel
-){
+) {
     val context = LocalContext.current
 
     playlistList = SettingsManager(context).localPlaylists.collectAsStateWithLifecycle(mutableListOf()).value
@@ -82,8 +82,6 @@ fun SetupNavGraph(
         GlobalViewModels.registerViewModel(albumViewModel)
         GlobalViewModels.registerViewModel(songsViewModel)
         GlobalViewModels.registerViewModel(artistsViewModel)
-
-        //GlobalViewModels.refreshAll()
     }
 
     NavHost(navController = navController,
@@ -101,8 +99,7 @@ fun SetupNavGraph(
         popExitTransition = {
             scaleOut(tween(300), 0.95f) + fadeOut(tween(400))
         }
-    )
-    {
+    ) {
         println("Recomposing NavHost!")
         composable(route = Screen.Home.route) {
             HomeScreen(navController, mediaController, homeViewModel)

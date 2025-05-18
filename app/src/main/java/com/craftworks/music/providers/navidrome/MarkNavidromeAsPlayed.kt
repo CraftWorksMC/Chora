@@ -4,7 +4,7 @@ import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.player.SongHelper
 
 suspend fun markNavidromeSongAsPlayed(navidromeId: String, playerPos: Float, duration: Float){
-    if (SongHelper.currentSong.isRadio == true || !NavidromeManager.checkActiveServers()) return
+    if (!NavidromeManager.checkActiveServers()) return
 
     val scrobblePercentage = playerPos / (duration * 1000f)
     if (scrobblePercentage < SongHelper.minPercentageScrobble.intValue / 100) return

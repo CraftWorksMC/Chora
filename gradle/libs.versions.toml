@@ -13,9 +13,9 @@ kotlinxSerializationJson = "1.7.3"
 lifecycleRuntimeKtx = "2.9.0"
 material3Android = "1.3.2"
 media = "1.7.0"
-media3Exoplayer = "1.6.1"
-media3Session = "1.6.1"
-media3Ui = "1.6.1"
+media3Exoplayer = "1.7.1"
+media3Session = "1.7.1"
+media3Ui = "1.7.1"
 mediarouter = "1.7.0"
 navigationCompose = "2.9.0"
 paletteKtx = "1.0.0"
@@ -50,7 +50,7 @@ composefadingedges = { module = "com.github.GIGAMOLE:ComposeFadingEdges", versio
 junit = { module = "junit:junit", version.ref = "junit" }
 konsume-xml = { module = "com.gitlab.mvysny.konsume-xml:konsume-xml", version.ref = "konsumeXml" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-reorderable = { module = "sh.calvin.reorderable:reorderable", version = "2.3.2" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version = "2.4.3" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

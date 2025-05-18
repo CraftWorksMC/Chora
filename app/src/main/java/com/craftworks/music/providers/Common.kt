@@ -11,6 +11,7 @@ import com.craftworks.music.data.playlistList
 import com.craftworks.music.data.radioList
 import com.craftworks.music.data.selectedArtist
 import com.craftworks.music.data.toMediaItem
+import com.craftworks.music.data.toSong
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
@@ -104,26 +105,6 @@ suspend fun getSongs(
 
     deferredSongs.awaitAll().flatten()
 }
-
-//suspend fun getSong(
-//    songId: String
-//) : MediaData.Song? = coroutineScope {
-//    when {
-//        songId.startsWith("Local_") -> {
-//            async {
-//                LocalProvider.getInstance().getLocalSongs().firstOrNull { it.navidromeID == songId }
-//            }.await()
-//        }
-//
-//        NavidromeManager.checkActiveServers() -> {
-//            async {
-//                sendNavidromeGETRequest("getSong.view?id=$songId&f=json", true).filterIsInstance<MediaData.Song>().firstOrNull()
-//            }.await()
-//        }
-//
-//        else -> null
-//    }
-//}
 //endregion
 
 //region Artists
@@ -292,7 +273,7 @@ suspend fun getPlaylistDetails(
 suspend fun createPlaylist(playlistName: String, addToNavidrome: Boolean, context: Context) {
     if (NavidromeManager.checkActiveServers() && addToNavidrome) {
         println("creating navidrome $playlistName")
-        sendNavidromeGETRequest("createPlaylist.view?name=$playlistName&songId=${songToAddToPlaylist.value.navidromeID}", true) // Always ignore cache when creating playlists
+        sendNavidromeGETRequest("createPlaylist.view?name=$playlistName&songId=${songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID")}", true) // Always ignore cache when creating playlists
     }
     else {
         playlistList.add(
@@ -304,7 +285,7 @@ suspend fun createPlaylist(playlistName: String, addToNavidrome: Boolean, contex
                 created = "",
                 duration = 0,
                 songCount = 0,
-                songs = listOf(songToAddToPlaylist.value)
+                songs = listOf(songToAddToPlaylist.value.toSong())
             )
         )
         SettingsManager(context).saveLocalPlaylists()
@@ -326,7 +307,7 @@ suspend fun addSongToPlaylist(playlistId: String, songID: String, context: Conte
     else {
         println("Adding song to local playlist")
         val index = playlistList.indexOfFirst { it.navidromeID == playlistId }
-        playlistList[index].songs = playlistList[index].songs?.plus(songToAddToPlaylist.value)
+        playlistList[index].songs = playlistList[index].songs?.plus(songToAddToPlaylist.value.toSong())
 
         playlistList[index].coverArt =
             localPlaylistImageGenerator(playlistList[index].songs?.map { it.toMediaItem() } ?: emptyList(), context).toString()

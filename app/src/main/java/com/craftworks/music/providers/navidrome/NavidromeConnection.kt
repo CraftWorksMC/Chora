@@ -144,7 +144,6 @@ suspend fun sendNavidromeGETRequest(
                         when {
                             endpoint.startsWith("ping")         -> parseNavidromeStatusXML(responseContent)
                             endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON(responseContent, server.url, server.username, server.password))
-                            endpoint.startsWith("getSong")      -> parsedData.addAll(listOf(parseNavidromeSongJSON(responseContent, server.url, server.username, server.password)))
 
                             // Albums
                             endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))

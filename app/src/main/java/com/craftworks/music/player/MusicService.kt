@@ -179,13 +179,13 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 }
 
                 serviceMainScope.launch {
-                    if (NavidromeManager.checkActiveServers() && !SongHelper.currentSong.navidromeID.startsWith(
-                            "Local"
-                        )
+                    if (NavidromeManager.checkActiveServers() &&
+                        mediaItem?.mediaMetadata?.extras?.getString("navidromeID")?.startsWith("Local") == false &&
+                        mediaItem.mediaMetadata.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION
                     ) {
                         async {
                             markNavidromeSongAsPlayed(
-                                SongHelper.currentSong.navidromeID,
+                                mediaItem.mediaMetadata.extras?.getString("navidromeID") ?: "",
                                 player.currentPosition.toFloat(),
                                 player.duration.toFloat()
                             )
@@ -243,13 +243,13 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             startPositionMs: Long
         ): ListenableFuture<MediaItemsWithStartPosition> {
             // We need to use URI from requestMetaData because of https://github.com/androidx/media/issues/282
-            val updatedStartIndex = SongHelper.currentTracklist.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
+            val updatedStartIndex =
+                SongHelper.currentTracklist.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
 
             val currentTracklist =
                 if (updatedStartIndex != -1) {
                     SongHelper.currentTracklist
-                }
-                else {
+                } else {
                     SongHelper.currentTracklist = mediaItems.toMutableList()
                     mediaItems
                 }
@@ -422,7 +422,11 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                                     query
                                 )
                             }.size +
-                            getPlaylists(baseContext).fastFilter { it.mediaMetadata.title?.contains(query) == true }.size
+                            getPlaylists(baseContext).fastFilter {
+                                it.mediaMetadata.title?.contains(
+                                    query
+                                ) == true
+                            }.size
                 },
                 LibraryParams.Builder().build()
             )

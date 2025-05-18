@@ -58,7 +58,6 @@ import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
-import com.craftworks.music.shuffleSongs
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
@@ -185,7 +184,6 @@ fun PlaylistDetails(
             }
             Button(
                 onClick = {
-                    shuffleSongs.value = true
                     mediaController?.shuffleModeEnabled = true
 
                     val random = playlistSongs.indices.random()

@@ -54,7 +54,6 @@ import com.craftworks.music.R
 import com.craftworks.music.data.playlistList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.addSongToPlaylist
 import com.craftworks.music.providers.createPlaylist
 import com.craftworks.music.providers.deletePlaylist
@@ -84,7 +83,7 @@ fun PreviewDeletePlaylistDialog(){
 
 var showAddSongToPlaylistDialog = mutableStateOf(false)
 var showNewPlaylistDialog = mutableStateOf(false)
-var songToAddToPlaylist = mutableStateOf(SongHelper.currentSong)
+var songToAddToPlaylist = mutableStateOf(MediaItem.EMPTY)
 var showDeletePlaylistDialog = mutableStateOf(false)
 var playlistToDelete = mutableStateOf("")
 
@@ -116,7 +115,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                         text = buildAnnotatedString {
                             append(stringResource(R.string.Dialog_Add_To_Playlist).split("/")[0])
                             withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                                append(songToAddToPlaylist.value.title)
+                                append(songToAddToPlaylist.value.mediaMetadata.title)
                             }
                             append(stringResource(R.string.Dialog_Add_To_Playlist).split("/")[1])
                         },
@@ -151,14 +150,14 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                 .clip(RoundedCornerShape(12.dp))
                                 //.background(MaterialTheme.colorScheme.surfaceVariant)
                                 .clickable {
-                                    if (playlist.mediaMetadata.extras?.getString("navidromeID") == songToAddToPlaylist.value.navidromeID)
+                                    if (playlist.mediaMetadata.extras?.getString("navidromeID") == songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID"))
                                         return@clickable
 
                                     coroutineScope.launch {
                                         addSongToPlaylist(
                                             playlist.mediaMetadata.extras?.getString("navidromeID")
                                                 ?: "",
-                                            songToAddToPlaylist.value.navidromeID,
+                                            songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID") ?: "",
                                             context
                                         )
                                     }

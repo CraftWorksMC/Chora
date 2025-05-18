@@ -50,7 +50,6 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.radioList
-import com.craftworks.music.data.toSong
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
@@ -243,7 +242,7 @@ fun HorizontalSongCard(
                         onClick = {
                             println("Add Song To Playlist")
                             showAddSongToPlaylistDialog.value = true
-                            songToAddToPlaylist.value = song.toSong()
+                            songToAddToPlaylist.value = song
                             expanded = false
                         },
                         leadingIcon = {
@@ -260,7 +259,7 @@ fun HorizontalSongCard(
                         },
                         onClick = {
                             coroutineScope.launch {
-                                downloadNavidromeSong(context, song.toSong())
+                                downloadNavidromeSong(context, song.mediaMetadata)
                             }
                             expanded = false
                         },

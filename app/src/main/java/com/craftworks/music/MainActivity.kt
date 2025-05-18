@@ -1,6 +1,5 @@
 package com.craftworks.music
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
@@ -46,7 +45,6 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,7 +70,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -100,13 +97,9 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.system.exitProcess
 
-var sliderPos = mutableIntStateOf(0)
-var shuffleSongs = mutableStateOf(false)
-
 var showNoProviderDialog = mutableStateOf(false)
 
 class MainActivity : ComponentActivity() {
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     lateinit var navController: NavHostController
 
     @androidx.annotation.OptIn(UnstableApi::class)
@@ -326,8 +319,7 @@ fun AnimatedBottomNavBar(
     val context = LocalContext.current
 
     val orderedNavItems = SettingsManager(context).bottomNavItemsFlow.collectAsState(
-        initial = //region Default Items
-        listOf(
+        initial = listOf(
             BottomNavItem(
                 "Home", R.drawable.rounded_home_24, "home_screen"
             ), BottomNavItem(
@@ -342,7 +334,6 @@ fun AnimatedBottomNavBar(
                 "Playlists", R.drawable.placeholder, "playlist_screen"
             )
         )
-        //endregion
     ).value
 
     if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -366,7 +357,6 @@ fun AnimatedBottomNavBar(
                         if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationBarItem
                         navController.navigate(item.screenRoute) {
                             launchSingleTop = true
-                            //popUpTo(navController.graph.findStartDestination().id)
                         }
                         coroutineScope.launch {
                             if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
@@ -400,11 +390,6 @@ fun AnimatedBottomNavBar(
                             if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationRailItem
                             navController.navigate(item.screenRoute) {
                                 launchSingleTop = true
-                                //restoreState = true
-                                popUpTo(navController.graph.findStartDestination().id)
-//                            {
-//                                saveState = true
-//                            }
                             }
                             coroutineScope.launch {
                                 if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
@@ -464,8 +449,6 @@ fun AnimatedBottomNavBar(
 }
 
 fun formatMilliseconds(seconds: Int): String {
-    //val format = SimpleDateFormat("mm:ss", Locale.getDefault())
-    //return format.format(Date(milliseconds.toLong()))
     return String.format(Locale.getDefault(), "%02d:%02d", seconds / 60, seconds % 60)
 }
 

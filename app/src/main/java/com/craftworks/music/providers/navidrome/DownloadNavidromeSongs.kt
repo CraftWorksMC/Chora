@@ -9,11 +9,11 @@ import androidx.annotation.OptIn
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.NotificationUtil.IMPORTANCE_LOW
 import androidx.media3.common.util.NotificationUtil.createNotificationChannel
 import androidx.media3.common.util.UnstableApi
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.managers.NavidromeManager.getCurrentServer
 import com.craftworks.music.providers.local.LocalProvider
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +26,7 @@ import java.net.URL
 @OptIn(UnstableApi::class)
 suspend fun downloadNavidromeSong(
     context: Context,
-    song: MediaData.Song
+    song: MediaMetadata
 ) {
     val channelId = "download_channel"
     createNotificationChannel(
@@ -60,7 +60,7 @@ suspend fun downloadNavidromeSong(
         val passwordSalt = generateSalt(8)
         val passwordHash = md5Hash(server.password + passwordSalt)
 
-        val url = URL("${server.url}/rest/download.view?id=${song.navidromeID}&u=${server.username}&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
+        val url = URL("${server.url}/rest/download.view?id=${song.extras?.getString("navidromeID")}&u=${server.username}&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
 
         println("DOWNLOADING FROM: $url")
 
@@ -72,7 +72,7 @@ suspend fun downloadNavidromeSong(
                 musicDir.mkdirs()
             }
 
-            val fileName = "${song.title} - ${song.artist}.${song.format}"
+            val fileName = "${song.title} - ${song.artist}.${song.extras?.getString("format")}"
             val outputFile = File(musicDir, fileName)
             val fileOutputStream = FileOutputStream(outputFile)
 
@@ -100,20 +100,11 @@ suspend fun downloadNavidromeSong(
             println("Download completed: ${outputFile.absolutePath}")
 
             withContext(Dispatchers.Main) {
-//                notificationBuilder
-//                    .setSmallIcon(android.R.drawable.stat_sys_download_done)
-//                    .setContentTitle("${song.title} - ${song.artist} " + context.getString(R.string.Notification_Download_Success))
-//                    .setPriority(NotificationCompat.PRIORITY_LOW)
-//                    .setAutoCancel(true)
-//                    .setProgress(0, 0, false)
-//
-//                notificationManager.notify(1, notificationBuilder.build())
-
                 notificationManager.cancel(1)
 
                 Toast.makeText(
                     context,
-                    song.title + " " + context.getString(R.string.Notification_Download_Success),
+                    "${song.title} " + context.getString(R.string.Notification_Download_Success),
                     Toast.LENGTH_SHORT
                 ).show()
 
