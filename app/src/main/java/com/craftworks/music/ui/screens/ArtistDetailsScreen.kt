@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -28,6 +30,7 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,17 +42,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -65,6 +71,8 @@ import com.craftworks.music.data.MediaData
 import com.craftworks.music.data.Screen
 import com.craftworks.music.data.toAlbum
 import com.craftworks.music.data.toMediaItem
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.getAlbum
 import com.craftworks.music.providers.getArtistDetails
 import com.craftworks.music.ui.elements.AlbumCard
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
@@ -80,7 +88,8 @@ fun ArtistDetails(
     mediaController: MediaController? = null,
     artistId: String
 ) {
-    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
+    val leftPadding =
+        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     var showLoading by remember { mutableStateOf(false) }
     var artist by remember(artistId) {
@@ -136,19 +145,22 @@ fun ArtistDetails(
         visible = artist?.name?.isNotBlank() == true,
         enter = fadeIn()
     ) {
-        LazyVerticalGrid (
+        LazyVerticalGrid(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
                     start = leftPadding,
-                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
+                    end = 12.dp
                 )
                 .dialogFocusable(),
             //verticalArrangement = Arrangement.spacedBy(6.dp),
             columns = GridCells.Adaptive(128.dp)
         ) {
             // Group songs by their source (Local or Navidrome)
-            val groupedAlbums = artist?.album?.map { it.toMediaItem() }?.groupBy { it.mediaMetadata.recordingYear }?.toSortedMap(compareByDescending { it })
+            val groupedAlbums =
+                artist?.album?.map { it.toMediaItem() }?.groupBy { it.mediaMetadata.recordingYear }
+                    ?.toSortedMap(compareByDescending { it })
 
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Column {
@@ -254,52 +266,82 @@ fun ArtistDetails(
                 }
             }
 
-            /* Play and shuffle buttons
-        Row (modifier = Modifier
-            .fillMaxWidth()
-            .height(64.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically) {
-            Button(
-                onClick = {
-                    if (artistSongs.isEmpty()) return@Button
-                    SongHelper.currentSong = artistSongs[0]
-                    SongHelper.currentList = artistSongs
-                    artistSongs[0].media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier.width(128.dp)
-            ) {
-                Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(24.dp)) {
-                    Icon(Icons.Rounded.PlayArrow, "Play Album")
-                    Text(stringResource(R.string.Action_Play))
-                }
-            }
-            Button(
-                onClick = {
-                    if (artistSongs.isEmpty()) return@Button
-                    shuffleSongs.value = true
-                    mediaController?.shuffleModeEnabled = true
+            // Play and shuffle buttons
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                val coroutineScope = rememberCoroutineScope()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                val allArtistSongsList = artist?.album?.map {
+                                    val album = getAlbum(it.navidromeID)
+                                    album?.subList(1, album.size) ?: emptyList()
+                                }
 
-                    val random = artistSongs.indices.random()
-                    SongHelper.currentSong = artistSongs[random]
-                    SongHelper.currentList = artistSongs
-                    artistSongs[random].media?.let { SongHelper.playStream(context, Uri.parse(it), false, mediaController)}
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier.width(128.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(24.dp)) {
-                    Icon(ImageVector.vectorResource(R.drawable.round_shuffle_28), "Shuffle Album")
-                    Text(stringResource(R.string.Action_Shuffle))
+                                SongHelper.play(
+                                    allArtistSongsList?.flatten() ?: emptyList(),
+                                    0,
+                                    mediaController
+                                )
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onBackground
+                        ),
+                        modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.height(24.dp)
+                        ) {
+                            Icon(Icons.Rounded.PlayArrow, "Play Album")
+                            Text(stringResource(R.string.Action_Play))
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+
+                                val allArtistSongsList = artist?.album?.map {
+                                    val album = getAlbum(it.navidromeID)
+                                    album?.subList(1, album.size) ?: emptyList()
+                                }
+
+                                mediaController?.shuffleModeEnabled = true
+                                val random = allArtistSongsList?.indices?.random() ?: 0
+                                SongHelper.play(
+                                    allArtistSongsList?.flatten() ?: emptyList(),
+                                    random,
+                                    mediaController
+                                )
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onBackground
+                        ),
+                        modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.height(24.dp)
+                        ) {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.round_shuffle_28),
+                                "Shuffle Album"
+                            )
+                            Text(stringResource(R.string.Action_Shuffle))
+                        }
+                    }
                 }
             }
-        }
-        */
 
             /* Discography header */
             item(span = { GridItemSpan(maxLineSpan) }) {
@@ -318,7 +360,9 @@ fun ArtistDetails(
                         text = groupName.toString(),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp)
+                            .padding(top = 12.dp)
                     )
                 }
                 itemsIndexed(albumsInGroup) { index, album ->
