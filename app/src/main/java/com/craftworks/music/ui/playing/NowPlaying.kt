@@ -8,9 +8,14 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,7 +42,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
 var lyricsOpen by mutableStateOf(false)
+var playQueueOpen by mutableStateOf(false)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun NowPlayingContent(
@@ -97,6 +104,33 @@ fun NowPlayingContent(
         NowPlayingLandscape(mediaController, iconTextColor, metadata)
     } else {
         NowPlayingPortrait(mediaController, iconTextColor, metadata)
+    }
+
+    // Modal Bottom Sheet for Play Queue
+    val playQueueSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true // Makes it fully expand or hide, no half-state
+    )
+    if (playQueueOpen) {
+        ModalBottomSheet(
+            onDismissRequest = { playQueueOpen = false },
+            sheetState = playQueueSheetState,
+            // You can customize containerColor, contentColor, scrimColor etc.
+            // scrimColor = Color.Black.copy(alpha = 0.6f) // Example for scrim
+        ) {
+            // Content of your Bottom Sheet
+            PlayQueueContent(mediaController = mediaController)
+            // Add a button inside the sheet to close it, or rely on swipe down/back press
+            /*Button(onClick = {
+                scope.launch { playQueueSheetState.hide() }.invokeOnCompletion {
+                    if (!playQueueSheetState.isVisible) {
+                        showPlayQueueSheet = false
+                    }
+                }
+            }) {
+                Text("Close Queue")
+            }*/
+            Spacer(modifier = Modifier.height(16.dp)) // Some padding at the bottom of the sheet
+        }
     }
 }
 

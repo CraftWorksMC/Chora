@@ -235,18 +235,8 @@ internal fun PlayPauseButton(player: Player, color: Color, modifier: Modifier = 
         if (state.showPlay) "play"
         else "pause"
 
-    Crossfade(player.isLoading) {
-        if (it) {
-            CircularProgressIndicator(
-                modifier = modifier,
-                strokeCap = StrokeCap.Round
-            )
-        }
-        else {
-            IconButton(onClick = state::onClick, modifier = modifier.bounceClick(state.isEnabled), enabled = state.isEnabled) {
-                Icon(icon, contentDescription = contentDescription, modifier = modifier, tint = if (state.isEnabled) color else color.copy(0.5f))
-            }
-        }
+    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(state.isEnabled), enabled = state.isEnabled) {
+        Icon(icon, contentDescription = contentDescription, modifier = modifier, tint = if (state.isEnabled) color else color.copy(0.5f))
     }
 }
 
@@ -314,6 +304,33 @@ fun LyricsButton(
         }
     }
 }
+
+@Composable
+fun PlayQueueButton(
+    color: Color = Color.Black,
+    size: Dp = 64.dp
+){
+    Button(
+        onClick = { playQueueOpen = true },
+        shape = RoundedCornerShape(12.dp),
+        contentPadding = PaddingValues(6.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            contentColor = color.copy(0.5f),
+            disabledContentColor = color.copy(0.25f)
+        )
+    ) {
+        Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.s_m_playback),
+            contentDescription = "Close Lyrics",
+            modifier = Modifier
+                .height(size)
+                .size(size)
+        )
+    }
+}
+
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
