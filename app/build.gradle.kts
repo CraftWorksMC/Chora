@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.craftworks.music"
-    compileSdk = 35
+    compileSdk = 36
 
     androidResources {
         generateLocaleConfig = true
@@ -16,9 +16,9 @@ android {
     defaultConfig {
         applicationId = "com.craftworks.music"
         minSdk = 23
-        targetSdk = 35
-        versionCode = 271
-        versionName = "1.27.1"
+        targetSdk = 36
+        versionCode = 280
+        versionName = "1.28.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

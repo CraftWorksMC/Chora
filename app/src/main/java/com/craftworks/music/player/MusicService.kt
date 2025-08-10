@@ -32,7 +32,7 @@ import com.craftworks.music.providers.getPlaylistDetails
 import com.craftworks.music.providers.getPlaylists
 import com.craftworks.music.providers.getRadios
 import com.craftworks.music.providers.getSongs
-import com.craftworks.music.providers.navidrome.markNavidromeSongAsPlayed
+import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.providers.searchAlbum
 import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import com.google.common.collect.ImmutableList
@@ -42,6 +42,7 @@ import com.google.common.util.concurrent.SettableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -164,10 +165,10 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         player.repeatMode = Player.REPEAT_MODE_OFF
         player.shuffleModeEnabled = false
 
+        var playerScrobbled: Boolean = false
+
         player.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                super.onMediaItemTransition(mediaItem, reason)
-
                 // Apply ReplayGain
                 if (mediaItem?.mediaMetadata?.extras?.getFloat("replayGain") != null) {
                     player.volume = clamp(
@@ -178,21 +179,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     Log.d("REPLAY GAIN", "Setting ReplayGain to ${player.volume}")
                 }
 
-                serviceMainScope.launch {
-                    if (NavidromeManager.checkActiveServers() &&
-                        mediaItem?.mediaMetadata?.extras?.getString("navidromeID")?.startsWith("Local") == false &&
-                        mediaItem.mediaMetadata.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION
-                    ) {
-                        async {
-                            markNavidromeSongAsPlayed(
-                                mediaItem.mediaMetadata.extras?.getString("navidromeID") ?: "",
-                                player.currentPosition.toFloat(),
-                                player.duration.toFloat()
-                            )
-                        }
-                    }
-                }
+                playerScrobbled = false;
 
+                super.onMediaItemTransition(mediaItem, reason)
                 serviceIOScope.launch { async { LyricsManager.getLyrics(mediaItem?.mediaMetadata) } }
             }
 
@@ -205,6 +194,40 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         session = MediaLibrarySession.Builder(this, player, LibrarySessionCallback())
             .setId("AutoSession")
             .build()
+
+        /*
+        // Thread to check if we should scrobble.
+        Thread {
+            val defaultThread = CoroutineScope(Dispatchers.Main)
+            while (true) {
+                defaultThread.launch {
+                    val duration = player.duration
+                    val mediaItem = player.currentMediaItem
+
+                    println("Scrobble duration: $duration")
+                    if (duration > 0 && !playerScrobbled) {
+                        val currentPosition = player.currentPosition
+                        val progress = (currentPosition * 100 / duration).toInt()
+
+                        println("Scrobble Percentage: $progress")
+
+                        if (progress >= SongHelper.minPercentageScrobble.intValue) {
+                            playerScrobbled = true
+                            if (NavidromeManager.checkActiveServers() &&
+                                mediaItem?.mediaMetadata?.extras?.getString("navidromeID")?.startsWith("Local") == false &&
+                                mediaItem.mediaMetadata.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION
+                            ) {
+                                serviceMainScope.launch {
+                                    sendNavidromeGETRequest("scrobble.view?id=${mediaItem.mediaMetadata.extras?.getString("navidromeID")}&submission=true", true) // Never cache scrobbles
+                                }
+                            }
+                        }
+                    }
+                }
+                Thread.sleep(10_000) // sleep 10 seconds
+            }
+        }.start()
+        */
 
         Log.d("AA", "Initialized MediaLibraryService.")
     }
@@ -362,21 +385,21 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             val settable = SettableFuture.create<MediaItemsWithStartPosition>()
             serviceMainScope.launch {
                 Log.d("RESUMPTION", "Getting onPlaybackResumption")
-                SettingsManager(applicationContext).playbackResumptionPlaylistWithStartPosition.collectLatest {
-                    settable.set(it)
+                SettingsManager(applicationContext).playbackResumptionPlaylistWithStartPosition.collectLatest { playbackResumptionList ->
+                    settable.set(playbackResumptionList)
                     Log.d("RESUMPTION", "Got mediaitems")
                     withContext(Dispatchers.Main) {
-                        player.setMediaItems(it.mediaItems)
+                        player.setMediaItems(playbackResumptionList.mediaItems)
                         player.prepare()
                         player.playWhenReady = true
 
-                        player.seekTo(it.startIndex, it.startPositionMs)
+                        player.seekTo(playbackResumptionList.startIndex, playbackResumptionList.startPositionMs)
 
-                        SongHelper.currentTracklist = it.mediaItems
+                        SongHelper.currentTracklist = playbackResumptionList.mediaItems
 
                         Log.d(
                             "RESUMPTION",
-                            "Set playlist: ${it.mediaItems.map { it.mediaMetadata.title }} at index ${it.startIndex} with position ${it.startPositionMs}"
+                            "Set playlist: ${playbackResumptionList.mediaItems.map { it.mediaMetadata.title }} at index ${playbackResumptionList.startIndex} with position ${playbackResumptionList.startPositionMs}"
                         )
                     }
                 }

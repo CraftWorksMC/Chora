@@ -24,6 +24,13 @@ data class ReplayGain(
     //val albumPeak: Float? = 0f
 )
 
+@Immutable
+@Serializable
+data class Artists(
+    val id: String? = "",
+    val name: String? = ""
+)
+
 fun MediaData.Song.toMediaItem(): MediaItem {
     val mediaMetadata =
         MediaMetadata.Builder()
@@ -38,6 +45,7 @@ fun MediaData.Song.toMediaItem(): MediaItem {
             .setGenre(this@toMediaItem.genres?.joinToString() { it.name ?: "" })
             .setExtras(Bundle().apply {
                 putString("navidromeID", this@toMediaItem.navidromeID)
+                putString("lyricsArtist", this@toMediaItem.artists[0].name)
                 putInt("duration", this@toMediaItem.duration)
                 putString("format", this@toMediaItem.format)
                 putLong("bitrate", this@toMediaItem.bitrate?.toLong() ?: 0)

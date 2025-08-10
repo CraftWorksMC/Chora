@@ -2,6 +2,8 @@
 
 package com.craftworks.music.ui.playing
 
+import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.focusable
@@ -19,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +30,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -39,6 +43,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.vector.DefaultStrokeLineCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -80,7 +86,7 @@ fun PlaybackProgressSlider(
     mediaController: MediaController? = null,
     metadata: MediaMetadata? = null
 ) {
-    var currentValue by remember { mutableLongStateOf(1L) }
+    var currentValue by remember { mutableLongStateOf(0L) }
     val currentDuration by derivedStateOf {
         mediaController?.duration?.coerceAtLeast(0L)
     }
@@ -92,13 +98,41 @@ fun PlaybackProgressSlider(
     val interactionSource = remember { MutableInteractionSource() }
     val focused = remember { mutableStateOf(false) }
 
-    LaunchedEffect(mediaController) {
-        mediaController?.let {
+    var isPlaying by remember { mutableStateOf(false) }
+
+    LaunchedEffect(mediaController, isPlaying) {
+        if (mediaController != null && isPlaying) {
             while (isActive) {
-                if (it.isPlaying)
-                    currentValue = it.currentPosition
-                delay(1000)
+                currentValue = mediaController.currentPosition
+                delay(1000L)
             }
+        } else {
+            if (mediaController != null) {
+                currentValue = mediaController.currentPosition
+            }
+        }
+    }
+
+    DisposableEffect(mediaController) {
+        if (mediaController == null) {
+            onDispose { }
+        }
+
+        val listener = object : Player.Listener {
+            override fun onIsPlayingChanged(playing: Boolean) {
+                Log.d("TAG", "MediaController isPlaying changed: $playing")
+                isPlaying = playing
+            }
+        }
+
+        mediaController?.addListener(listener)
+
+        // Initial check in case state changed before listener was attached or for initial setup
+        isPlaying = mediaController?.isPlaying ?: false
+        currentValue = mediaController?.currentPosition ?: 0L
+
+        onDispose {
+            mediaController?.removeListener(listener)
         }
     }
 
@@ -117,13 +151,13 @@ fun PlaybackProgressSlider(
                     when {
                         keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyDown -> {
                             currentValue = (currentValue + 5000)
-                            mediaController?.seekTo(currentValue.toLong())
+                            mediaController?.seekTo(currentValue)
                             true
                         }
 
                         keyEvent.key == Key.DirectionLeft && keyEvent.type == KeyEventType.KeyDown -> {
                             currentValue = (currentValue - 5000)
-                            mediaController?.seekTo(currentValue.toLong())
+                            mediaController?.seekTo(currentValue)
                             true
                         }
 
@@ -135,7 +169,7 @@ fun PlaybackProgressSlider(
                 currentValue = it.toLong()
             },
             onValueChangeFinished = {
-                mediaController?.seekTo(currentValue.toLong())
+                mediaController?.seekTo(currentValue)
             },
             valueRange = 0f..(currentDuration?.toFloat() ?: 0f),
             colors = SliderDefaults.colors(
@@ -180,7 +214,9 @@ fun PlaybackProgressSlider(
 @Composable
 internal fun PreviousSongButton(player: Player, color: Color, modifier: Modifier = Modifier) {
     val state = rememberPreviousButtonState(player)
-    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(state.isEnabled).moveClick(false, state.isEnabled), enabled = state.isEnabled) {
+    IconButton(onClick = state::onClick, modifier = modifier
+        .bounceClick(state.isEnabled)
+        .moveClick(false, state.isEnabled), enabled = state.isEnabled) {
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_previous),
             contentDescription = "Previous song",
@@ -198,8 +234,19 @@ internal fun PlayPauseButton(player: Player, color: Color, modifier: Modifier = 
     val contentDescription =
         if (state.showPlay) "play"
         else "pause"
-    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(state.isEnabled), enabled = state.isEnabled) {
-        Icon(icon, contentDescription = contentDescription, modifier = modifier, tint = if (state.isEnabled) color else color.copy(0.5f))
+
+    Crossfade(player.isLoading) {
+        if (it) {
+            CircularProgressIndicator(
+                modifier = modifier,
+                strokeCap = StrokeCap.Round
+            )
+        }
+        else {
+            IconButton(onClick = state::onClick, modifier = modifier.bounceClick(state.isEnabled), enabled = state.isEnabled) {
+                Icon(icon, contentDescription = contentDescription, modifier = modifier, tint = if (state.isEnabled) color else color.copy(0.5f))
+            }
+        }
     }
 }
 
@@ -207,7 +254,9 @@ internal fun PlayPauseButton(player: Player, color: Color, modifier: Modifier = 
 @Composable
 internal fun NextSongButton(player: Player, color: Color, modifier: Modifier = Modifier) {
     val state = rememberNextButtonState(player)
-    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(state.isEnabled).moveClick(true, state.isEnabled), enabled = state.isEnabled) {
+    IconButton(onClick = state::onClick, modifier = modifier
+        .bounceClick(state.isEnabled)
+        .moveClick(true, state.isEnabled), enabled = state.isEnabled) {
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.media3_notification_seek_to_next),
             contentDescription = "Next song",

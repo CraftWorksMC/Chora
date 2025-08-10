@@ -14,6 +14,7 @@ sealed class MediaData {
         val title: String,
         val album: String,
         val artist: String,
+        val artists: List<Artists> = listOf(),
         val track: Int? = 0,
         val year: Int? = 0,
         val genre: String? = "",

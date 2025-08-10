@@ -26,6 +26,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -36,8 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
+import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import coil.size.Size
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.getAlbum
 import kotlinx.coroutines.launch
@@ -66,7 +69,7 @@ fun AlbumCard(
                 .aspectRatio(1f)
         ) {
             SubcomposeAsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
+                model = ImageRequest.Builder(context)
                     .data(album.mediaMetadata.artworkUri)
                     .crossfade(true)
                     .build(),
@@ -74,7 +77,19 @@ fun AlbumCard(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp)),
+                loading = { painter ->
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(album.mediaMetadata.artworkUri)
+                            .size(1)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Blurry Placeholder",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             )
 
             val coroutineScope = rememberCoroutineScope()

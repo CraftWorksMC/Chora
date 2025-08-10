@@ -14,7 +14,7 @@ import javax.net.ssl.HttpsURLConnection
 suspend fun getLrcLibLyrics(metadata: MediaMetadata?): List<Lyric> = withContext(Dispatchers.IO) {
     val url = URL(
         "https://lrclib.net/api/get?" +
-                "artist_name=${URLEncoder.encode(metadata?.artist.toString(), "UTF-8")}&" +
+                "artist_name=${URLEncoder.encode(metadata?.extras?.getString("lyricsArtist").toString(), "UTF-8")}&" +
                 "track_name=${URLEncoder.encode(metadata?.title.toString(), "UTF-8")}&" +
                 "album_name=${URLEncoder.encode(metadata?.albumTitle.toString(), "UTF-8")}" +
                 "&duration=${metadata?.durationMs?.div(1000)?.toInt()}"
