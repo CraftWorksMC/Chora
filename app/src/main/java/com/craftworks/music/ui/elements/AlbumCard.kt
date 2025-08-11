@@ -79,15 +79,11 @@ fun AlbumCard(
                     .fillMaxSize()
                     .clip(RoundedCornerShape(8.dp)),
                 loading = { painter ->
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(album.mediaMetadata.artworkUri)
-                            .size(1)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Blurry Placeholder",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clip(RoundedCornerShape(8.dp))
                     )
                 }
             )

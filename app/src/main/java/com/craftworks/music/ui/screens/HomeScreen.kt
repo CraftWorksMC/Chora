@@ -2,8 +2,10 @@ package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
 import android.view.animation.OvershootInterpolator
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -197,23 +199,28 @@ fun HomeScreen(
     mediaController: MediaController?,
     navHostController: NavHostController
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(256.dp)
+    AnimatedVisibility(
+        visible = albums.isNotEmpty(),
+        enter = fadeIn(tween(durationMillis = 100))
     ) {
-        Text(
-            text = "$title:",
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-            modifier = Modifier.padding(start = 12.dp)
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(256.dp)
+        ) {
+            Text(
+                text = "$title:",
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                modifier = Modifier.padding(start = 12.dp)
+            )
 
-        AlbumRow(albums, mediaController) { album ->
-            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
-                launchSingleTop = true
+            AlbumRow(albums, mediaController) { album ->
+                val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
+                navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                    launchSingleTop = true
+                }
             }
         }
     }

@@ -31,6 +31,7 @@ import com.craftworks.music.managers.NavidromeManager
 @Composable
 @Preview
 fun HorizontalLineWithNavidromeCheck() {
+    /*
     val context = LocalContext.current
 
     // Observe Navidrome Server Status
@@ -66,4 +67,6 @@ fun HorizontalLineWithNavidromeCheck() {
             syncToastShown.value = false // Reset when syncing is false
         }
     }
+
+     */
 }

@@ -9,10 +9,9 @@ import androidx.media3.session.MediaController
 class SongHelper {
     companion object{
         var currentTracklist = mutableListOf<MediaItem>()
-        var minPercentageScrobble = mutableIntStateOf(75)
 
         fun play(mediaItems: List<MediaItem>, index: Int, mediaController: MediaController?) {
-            currentTracklist = (mediaItems).toMutableList()
+            currentTracklist = mediaItems.toMutableList()
             mediaController?.setMediaItems(currentTracklist, index, 0)
             mediaController?.prepare()
             mediaController?.play()
