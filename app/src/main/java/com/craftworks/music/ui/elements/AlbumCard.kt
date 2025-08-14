@@ -50,7 +50,7 @@ import kotlinx.coroutines.launch
 fun AlbumCard(
     album: MediaItem,
     mediaController: MediaController? = null,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = { }
 ) {
     if (album.mediaMetadata.mediaType != MediaMetadata.MEDIA_TYPE_ALBUM) return
     val context = LocalContext.current
@@ -72,6 +72,7 @@ fun AlbumCard(
                 model = ImageRequest.Builder(context)
                     .data(album.mediaMetadata.artworkUri)
                     .crossfade(true)
+                    .size(128)
                     .build(),
                 contentDescription = "Album Image",
                 contentScale = ContentScale.Crop,
