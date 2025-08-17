@@ -3,12 +3,10 @@ package com.craftworks.music.managers
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.craftworks.music.managers.NavidromeManager.getAllServers
-import com.craftworks.music.providers.local.LocalProvider
-import com.craftworks.music.showNoProviderDialog
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import androidx.core.content.edit
+import com.craftworks.music.managers.NavidromeManager.getAllServers
+import com.craftworks.music.showNoProviderDialog
+import kotlinx.serialization.json.Json
 
 object LocalProviderManager {
     private val folders = mutableListOf<String>()
@@ -39,7 +37,7 @@ object LocalProviderManager {
         sharedPreferences = context.getSharedPreferences("LocalProviderPrefs", Context.MODE_PRIVATE)
         loadFolders()
 
-        if (getAllServers().isEmpty() && getAllFolders().isEmpty()) showNoProviderDialog.value = true
+        if (getAllServers().isEmpty() && folders.isEmpty()) showNoProviderDialog.value = true
     }
 
     private fun saveFolders() {

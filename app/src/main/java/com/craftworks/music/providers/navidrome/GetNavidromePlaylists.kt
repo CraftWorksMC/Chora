@@ -17,7 +17,7 @@ fun parseNavidromePlaylistsJSON(
     navidromeUrl: String,
     navidromeUsername: String,
     navidromePassword: String
-) : List<MediaData.Playlist> {
+) : List<MediaItem> {
 
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
@@ -32,14 +32,12 @@ fun parseNavidromePlaylistsJSON(
         it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora&size=128"
     }
 
-    val mediaDataPlaylists = emptyList<MediaItem>()
-
     subsonicResponse.playlists?.playlist?.filterNot { newPlaylist ->
         playlistList.any { existingPlaylist ->
             existingPlaylist.navidromeID == newPlaylist.navidromeID
         }
     }
-    return subsonicResponse.playlists?.playlist ?: emptyList()
+    return subsonicResponse.playlists?.playlist?.map { it.toMediaItem() } ?: emptyList()
 }
 
 fun parseNavidromePlaylistJSON(

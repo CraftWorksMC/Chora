@@ -38,9 +38,6 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.getAlbum
-import kotlinx.coroutines.launch
 
 @Stable
 @Composable
@@ -48,6 +45,7 @@ fun AlbumCard(
     album: MediaItem,
     mediaController: MediaController? = null,
     onClick: () -> Unit = { },
+    onPlay: (album: MediaItem) -> Unit = { },
     modifier: Modifier = Modifier
 ) {
     if (album.mediaMetadata.mediaType != MediaMetadata.MEDIA_TYPE_ALBUM) return
@@ -86,14 +84,15 @@ fun AlbumCard(
 
             IconButton(
                 onClick = {
-                    coroutineScope.launch {
-                        val mediaItems = getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
-                        SongHelper.play(
-                            mediaItems = mediaItems?.subList(1, mediaItems.size) ?: emptyList(),
-                            index = 0,
-                            mediaController = mediaController
-                        )
-                    }
+                    onPlay(album)
+//                    coroutineScope.launch {
+//                        val mediaItems = getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+//                        SongHelper.play(
+//                            mediaItems = mediaItems?.subList(1, mediaItems.size) ?: emptyList(),
+//                            index = 0,
+//                            mediaController = mediaController
+//                        )
+//                    }
                 },
                 modifier = Modifier
                     .padding(6.dp)

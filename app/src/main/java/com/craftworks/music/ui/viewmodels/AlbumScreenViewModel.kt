@@ -42,6 +42,10 @@ class AlbumScreenViewModel @Inject constructor(
         }
     }
 
+    suspend fun getAlbum(id: String): List<MediaItem> {
+        return albumRepository.getAlbum(id) ?: emptyList()
+    }
+
     fun getMoreAlbums(sort: String? = "alphabeticalByName" , size: Int){
         viewModelScope.launch {
             coroutineScope {

@@ -27,7 +27,6 @@ import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.data.repository.RadioRepository
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.lyrics.LyricsManager
-import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
 import com.google.common.collect.ImmutableList
@@ -244,8 +243,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         override fun onPostConnect(session: MediaSession, controller: MediaSession.ControllerInfo) {
             serviceIOScope.launch {
                 println("ONPOSTCONNTECT MUSIC SERVICE!")
-                NavidromeManager.init(this@ChoraMediaLibraryService)
-                LocalProviderManager.init(this@ChoraMediaLibraryService)
+                //NavidromeManager.init(this@ChoraMediaLibraryService)
+                //LocalProviderManager.init(this@ChoraMediaLibraryService)
 
                 if (session.isAutoCompanionController(controller))
                     getHomeScreenItems()
@@ -545,7 +544,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             aFolderSongs.clear()
             when (type) {
                 MediaMetadata.MEDIA_TYPE_ALBUM -> {
-                    val albumSongs = albumRepository.getAlbum(parentId)
+                    val albumSongs = async { albumRepository.getAlbum(parentId) }.await()
                     aFolderSongs.addAll(
                         albumSongs?.subList(1, albumSongs.size) ?: emptyList()
                     )

@@ -133,6 +133,7 @@ suspend fun extractColorsFromUri(uri: String, context: Context): List<Color> = c
     val request = ImageRequest.Builder(context)
         .data(uri.replace("size=128", "size=16"))
         .allowHardware(false)
+        .size(16)
         .diskCachePolicy(CachePolicy.DISABLED)
         .build()
 

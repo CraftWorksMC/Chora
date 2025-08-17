@@ -33,6 +33,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,9 +53,11 @@ import com.craftworks.music.data.model.songsList
 import com.craftworks.music.data.model.toAlbum
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
 //region Songs
 @OptIn(ExperimentalFoundationApi::class)
@@ -151,6 +154,7 @@ fun AlbumGrid(
     viewModel: AlbumScreenViewModel = viewModel(),
 ){
     val gridState = rememberLazyGridState()
+    val coroutineScope = rememberCoroutineScope()
 
     val albums by viewModel.allAlbums.collectAsStateWithLifecycle()
     val showDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
@@ -216,7 +220,19 @@ fun AlbumGrid(
                         mediaController = mediaController,
                         onClick = {
                             onAlbumSelected(album.toAlbum())
-                        })
+                        },
+                        onPlay = {
+                            coroutineScope.launch {
+                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                                if (mediaItems.isNotEmpty())
+                                    SongHelper.play(
+                                        mediaItems = mediaItems.subList(1, mediaItems.size),
+                                        index = 0,
+                                        mediaController = mediaController
+                                    )
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -229,7 +245,19 @@ fun AlbumGrid(
                     mediaController = mediaController,
                     onClick = {
                         onAlbumSelected(album.toAlbum())
-                    })
+                    },
+                    onPlay = {
+                        coroutineScope.launch {
+                            val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                            if (mediaItems.isNotEmpty())
+                                SongHelper.play(
+                                    mediaItems = mediaItems.subList(1, mediaItems.size),
+                                    index = 0,
+                                    mediaController = mediaController
+                                )
+                        }
+                    }
+                )
             }
         }
     }
@@ -240,7 +268,8 @@ fun AlbumGrid(
 fun AlbumRow(
     albums: List<MediaItem>,
     mediaController: MediaController?,
-    onAlbumSelected: (album: MediaData.Album) -> Unit
+    onAlbumSelected: (album: MediaData.Album) -> Unit,
+    onPlay: (album: MediaItem) -> Unit,
 ){
     val showProviderDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
     val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_") }
@@ -286,6 +315,9 @@ fun AlbumRow(
                 mediaController = mediaController,
                 onClick = {
                     onAlbumSelected(album.toAlbum())
+                },
+                onPlay = {
+                    onPlay(album)
                 },
                 modifier = Modifier.animateItem()
             )

@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,6 +45,10 @@ class ArtistsScreenViewModel @Inject constructor(
             _allArtists.value = artistRepository.getArtists(ignoreCachedResponse = true)
             _isLoading.value = false
         }
+    }
+
+    suspend fun getAlbums(id: String): List<MediaItem> {
+        return artistRepository.getArtistAlbums(id)
     }
 
     suspend fun search(query: String) {

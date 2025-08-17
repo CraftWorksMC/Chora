@@ -73,7 +73,6 @@ import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.toAlbum
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.getAlbum
 import com.craftworks.music.ui.elements.AlbumCard
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
@@ -286,8 +285,11 @@ fun ArtistDetails(
                             coroutineScope.launch {
                                 val allArtistSongsList = artistAlbums.map {
                                     it.mediaMetadata.extras?.getString("navidromeID").let {
-                                        val album = getAlbum(it ?: "")
-                                        album?.subList(1, album.size) ?: emptyList()
+                                        val album = viewModel.getAlbums(it ?: "")
+                                        if (album.isNotEmpty())
+                                            album.subList(1, album.size)
+                                        else
+                                            emptyList()
                                     }
                                 }
 
@@ -315,16 +317,20 @@ fun ArtistDetails(
                     Button(
                         onClick = {
                             coroutineScope.launch {
-
-                                val allArtistSongsList = artist?.album?.map {
-                                    val album = getAlbum(it.navidromeID)
-                                    album?.subList(1, album.size) ?: emptyList()
+                                val allArtistSongsList = artistAlbums.map {
+                                    it.mediaMetadata.extras?.getString("navidromeID").let {
+                                        val album = viewModel.getAlbums(it ?: "")
+                                        if (album.isNotEmpty())
+                                            album.subList(1, album.size)
+                                        else
+                                            emptyList()
+                                    }
                                 }
 
                                 mediaController?.shuffleModeEnabled = true
-                                val random = allArtistSongsList?.indices?.random() ?: 0
+                                val random = allArtistSongsList.indices.random()
                                 SongHelper.play(
-                                    allArtistSongsList?.flatten() ?: emptyList(),
+                                    allArtistSongsList.flatten(),
                                     random,
                                     mediaController
                                 )
@@ -382,8 +388,19 @@ fun ArtistDetails(
                             navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
                                 launchSingleTop = true
                             }
-                            selectedAlbum = album
-                        })
+                        },
+                        onPlay = {
+//                            coroutineScope.launch {
+//                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+//                                if (mediaItems.isNotEmpty())
+//                                    SongHelper.play(
+//                                        mediaItems = mediaItems.subList(1, mediaItems.size),
+//                                        index = 0,
+//                                        mediaController = mediaController
+//                                    )
+//                            }
+                        }
+                    )
                 }
             }
         }

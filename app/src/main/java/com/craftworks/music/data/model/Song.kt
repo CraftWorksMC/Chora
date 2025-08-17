@@ -7,6 +7,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 var songsList: MutableList<MediaData.Song> = mutableStateListOf()
 
@@ -69,6 +70,7 @@ fun MediaItem.toSong(): MediaData.Song {
         navidromeID = extras?.getString("navidromeID") ?: "",
         title = mediaMetadata.title.toString(),
         artist = mediaMetadata.artist.toString(),
+        artists = listOf(Artists(UUID.randomUUID().toString(), mediaMetadata.artist.toString())),
         album = mediaMetadata.albumTitle.toString(),
         imageUrl = mediaMetadata.artworkUri.toString(),
         year = mediaMetadata.recordingYear ?: 0,

@@ -53,4 +53,8 @@ class HomeScreenViewModel @Inject constructor(
             _isLoading.value = false
         }
     }
+
+    suspend fun getAlbumSongs(albumId: String): List<MediaItem> {
+        return albumRepository.getAlbum(albumId) ?: emptyList()
+    }
 }
