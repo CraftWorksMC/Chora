@@ -37,10 +37,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,14 +50,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
-import com.craftworks.music.data.radioList
-import com.craftworks.music.data.toMediaItem
+import com.craftworks.music.data.model.radioList
+import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.getRadios
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.RadioCard
+import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.dialogs.AddRadioDialog
 import com.craftworks.music.ui.elements.dialogs.ModifyRadioDialog
+import com.craftworks.music.ui.playing.dpToPx
 import kotlinx.coroutines.launch
 
 var showRadioAddDialog = mutableStateOf(false)
@@ -79,11 +83,17 @@ fun RadioScreen(
     val state = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
 
+    var showRipple by remember { mutableIntStateOf(0) }
+    val rippleXOffset = LocalWindowInfo.current.containerSize.width / 2
+    val rippleYOffset = dpToPx(12)
+
+
     val onRefresh: () -> Unit = {
         coroutineScope.launch {
             isRefreshing = true
             radioList.clear()
             radioList.addAll(getRadios(context, true))
+            showRipple++
             isRefreshing = false
         }
     }
@@ -156,13 +166,20 @@ fun RadioScreen(
                     RadioCard(
                         radio = radio,
                         onClick = {
-                            SongHelper.play(radioList.map { it.toMediaItem() }, radioList.indexOfFirst { it.name == radio.name }, mediaController)
+                            coroutineScope.launch {
+                                SongHelper.play(radioList.map { it.toMediaItem() }, radioList.indexOfFirst { it.name == radio.name }, mediaController)
+                            }
                         }
                     )
                 }
             }
         }
     }
+    RippleEffect(
+        center = Offset(rippleXOffset.toFloat(), rippleYOffset.toFloat()),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        key = showRipple
+    )
 
     if (showRadioAddDialog.value)
         AddRadioDialog(

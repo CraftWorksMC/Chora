@@ -2,10 +2,8 @@ package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
 import android.view.animation.OvershootInterpolator
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -35,17 +33,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -53,18 +53,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.Screen
+import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
+import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
 import java.net.URLEncoder
@@ -74,7 +75,7 @@ import java.net.URLEncoder
 fun HomeScreen(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,
-    viewModel: HomeScreenViewModel = viewModel()
+    viewModel: HomeScreenViewModel = hiltViewModel()
 ) {
     val leftPadding =
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
@@ -87,18 +88,20 @@ fun HomeScreen(
     val shuffledAlbums by viewModel.shuffledAlbums.collectAsStateWithLifecycle()
 
     val state = rememberPullToRefreshState()
-    var isRefreshing by remember { mutableStateOf(false) }
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
+    var showRipple by remember { mutableIntStateOf(0) }
+    val rippleXOffset = LocalWindowInfo.current.containerSize.width / 2
+    val rippleYOffset = dpToPx(12)
     val onRefresh: () -> Unit = {
-        isRefreshing = true
-        viewModel.reloadData()
-        isRefreshing = false
+        viewModel.loadHomeScreenData()
+        showRipple++
     }
 
     PullToRefreshBox(
         modifier = Modifier,
         state = state,
-        isRefreshing = isRefreshing,
+        isRefreshing = isLoading,
         onRefresh = onRefresh
     ) {
         Column(
@@ -158,6 +161,12 @@ fun HomeScreen(
             AlbumRow(stringResource(R.string.random_songs), shuffledAlbums, mediaController, navHostController)
         }
     }
+
+    RippleEffect(
+        center = Offset(rippleXOffset.toFloat(), rippleYOffset.toFloat()),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        key = showRipple
+    )
 }
 
 @Composable fun NavidromeLogo(){
@@ -199,28 +208,23 @@ fun HomeScreen(
     mediaController: MediaController?,
     navHostController: NavHostController
 ) {
-    AnimatedVisibility(
-        visible = albums.isNotEmpty(),
-        enter = fadeIn(tween(durationMillis = 100))
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(256.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(256.dp)
-        ) {
-            Text(
-                text = "$title:",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                modifier = Modifier.padding(start = 12.dp)
-            )
+        Text(
+            text = "$title:",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+            modifier = Modifier.padding(start = 12.dp)
+        )
 
-            AlbumRow(albums, mediaController) { album ->
-                val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
-                    launchSingleTop = true
-                }
+        AlbumRow(albums, mediaController) { album ->
+            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
+            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                launchSingleTop = true
             }
         }
     }

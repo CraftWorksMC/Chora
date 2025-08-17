@@ -90,9 +90,10 @@ fun NowPlayingLandscape(
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(metadata?.artworkUri)
-                            .allowHardware(false)
-                            .size(1024)
                             .crossfade(true)
+                            .diskCacheKey(
+                                metadata?.extras?.getString("navidromeID")
+                            )
                             .build(),
                         contentDescription = "Album Cover Art",
                         placeholder = painterResource(R.drawable.placeholder),

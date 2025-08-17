@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.Screen
+import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.navidromeStatus
@@ -120,7 +120,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
 
             // Then Navidrome Providers
             for (server in NavidromeManager.getAllServers()){
-                NavidromeProviderCard(server, context)
+                NavidromeProviderCard(server)
             }
         }
 

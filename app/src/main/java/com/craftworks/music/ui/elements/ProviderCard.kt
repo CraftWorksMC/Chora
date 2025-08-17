@@ -45,7 +45,6 @@ import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import kotlinx.coroutines.runBlocking
 
 @Preview
@@ -124,10 +123,16 @@ fun LocalProviderCard(local: String = "", context: Context = LocalContext.curren
 
 @Preview
 @Composable
-fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","https://demo.navidrome.org", "CraftWorks", "demo",
-    enabled = true,
-    allowSelfSignedCert = true
-), context: Context = LocalContext.current){
+fun NavidromeProviderCard(
+    server: NavidromeProvider = NavidromeProvider(
+        "0",
+        "https://demo.navidrome.org",
+        "CraftWorks",
+        "demo",
+        enabled = true,
+        allowSelfSignedCert = true
+    )
+) {
 
     rememberCoroutineScope()
 
@@ -188,18 +193,13 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","htt
         // Enabled Checkbox
         Checkbox(
             checked = checked,
-            onCheckedChange = { checked = it
-                Log.d("NAVIDROME", "Navidrome Current Server: ${server.id}")
-                if (it){
-                    NavidromeManager.setCurrentServer(server.id)
-                    GlobalViewModels.refreshAll()
-                }
-                else {
+            onCheckedChange = {
+                checked = it
+                if (!checked && NavidromeManager.getAllServers().size == 1)
                     NavidromeManager.setCurrentServer(null)
-                    GlobalViewModels.refreshAll()
-                }
-                // Update checked
-                //checked = (server.id == NavidromeManager.getCurrentServer()?.id)
+                else
+                    NavidromeManager.setCurrentServer(server.id)
+                Log.d("NAVIDROME", "Navidrome Current Server: ${server.id}")
             }
         )
     }

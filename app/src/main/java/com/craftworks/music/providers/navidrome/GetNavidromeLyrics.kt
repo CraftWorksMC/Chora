@@ -1,10 +1,10 @@
 package com.craftworks.music.providers.navidrome
 
 import androidx.media3.common.MediaMetadata
-import com.craftworks.music.data.Lyric
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.toLyric
-import com.craftworks.music.data.toLyrics
+import com.craftworks.music.data.model.Lyric
+import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.toLyric
+import com.craftworks.music.data.model.toLyrics
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement

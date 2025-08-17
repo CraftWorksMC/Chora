@@ -60,25 +60,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.MediaItem
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.getAlbum
 import com.craftworks.music.providers.navidrome.setNavidromeStar
 import com.craftworks.music.ui.elements.GenrePill
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
-import kotlinx.coroutines.delay
+import com.craftworks.music.ui.viewmodels.AlbumDetailsViewModel
 import kotlinx.coroutines.launch
 
 var selectedAlbum by mutableStateOf<MediaData.Album?>(MediaData.Album(navidromeID = "", parent = "", album = "", title = "", name = "", songCount = 0, duration = 0, artistId = "", artist = "", coverArt = ""))
@@ -90,32 +90,17 @@ fun AlbumDetails(
     selectedAlbumId: String = "",
     selectedAlbumImage: Uri = Uri.EMPTY,
     navHostController: NavHostController = rememberNavController(),
-    mediaController: MediaController? = null
+    mediaController: MediaController? = null,
+    viewModel: AlbumDetailsViewModel = hiltViewModel()
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
-
     var showLoading by remember { mutableStateOf(false) }
-    var currentAlbum by remember(selectedAlbumId) {
-        mutableStateOf<List<MediaItem>>(emptyList())
-    }
+    val currentAlbum = viewModel.songsInAlbum.collectAsStateWithLifecycle().value
 
     LaunchedEffect(selectedAlbumId) {
-        val loadingJob = launch {
-            delay(1000)
-            if (currentAlbum.isEmpty()) {
-                showLoading = true
-            }
-        }
-
-        // Load the album
-        getAlbum(selectedAlbumId)?.let { album ->
-            currentAlbum = album
-        }
-
-        loadingJob.cancel()
-        showLoading = false
+        viewModel.loadAlbumDetails(selectedAlbumId)
     }
 
     // Loading spinner
@@ -151,213 +136,215 @@ fun AlbumDetails(
         enter = fadeIn()
     ) {
         var isStarred by remember { mutableStateOf(currentAlbum[0].mediaMetadata.extras?.getString("starred").isNullOrEmpty()) }
-        val requester = FocusRequester()
+        val requester = remember { FocusRequester() }
 
         val coroutineScope = rememberCoroutineScope()
         LaunchedEffect(Unit) {
             requester.requestFocus()
         }
 
-        Column(modifier = Modifier
+        LazyColumn(modifier = Modifier
             .fillMaxWidth()
             .padding(
-                start = leftPadding,
-                top = WindowInsets.statusBars
-                    .asPaddingValues()
-                    .calculateTopPadding()
+                start = leftPadding + 12.dp,
+                end = 12.dp,
             )
-            //.wrapContentHeight()
-            //.verticalScroll(rememberScrollState())
-            .dialogFocusable()
+            .dialogFocusable(),
+            contentPadding = PaddingValues(bottom = 16.dp, top = WindowInsets.statusBars
+                .asPaddingValues()
+                .calculateTopPadding()),
         ) {
-            Box (modifier = Modifier
-                .padding(horizontal = 12.dp)
-                .height(224.dp)
-                .fillMaxWidth()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(selectedAlbumImage)
-                        .size(256)
-                        .crossfade(true)
-                        .build(),
-                    placeholder = painterResource(R.drawable.placeholder),
-                    fallback = painterResource(R.drawable.placeholder),
-                    contentScale = ContentScale.FillWidth,
-                    contentDescription = "Album Image",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fadingEdge(imageFadingEdge)
-                        .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
-                        .blur(8.dp)
-                )
-                Button(
-                    onClick = { navHostController.popBackStack() },
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier
-                        .padding(top = 12.dp, start = 12.dp)
-                        .size(32.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "Settings",
+            // Header
+            item {
+                Box (modifier = Modifier
+                    .height(224.dp)
+                    .fillMaxWidth()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(selectedAlbumImage)
+                            .size(128)
+                            .diskCacheKey(selectedAlbumId)
+                            .crossfade(true)
+                            .build(),
+                        placeholder = painterResource(R.drawable.placeholder),
+                        fallback = painterResource(R.drawable.placeholder),
+                        contentScale = ContentScale.FillWidth,
+                        contentDescription = "Album Image",
                         modifier = Modifier
-                            .height(32.dp)
-                            .size(32.dp)
+                            .fillMaxWidth()
+                            .fadingEdge(imageFadingEdge)
+                            .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
+                            .blur(8.dp)
                     )
-                }
-                // Album Name and Artist
-                Column(modifier = Modifier.align(Alignment.BottomCenter)){
-                    Text(
-                        text = currentAlbum[0].mediaMetadata.title.toString(),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                        lineHeight = 32.sp,
-                    )
-                    Text(
-                        text = currentAlbum[0].mediaMetadata.artist.toString() + " • " + formatMilliseconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Button(
+                        onClick = { navHostController.popBackStack() },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .padding(top = 12.dp, start = 12.dp)
+                            .size(32.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            contentDescription = "Settings",
+                            modifier = Modifier
+                                .height(32.dp)
+                                .size(32.dp)
+                        )
+                    }
+                    // Album Name and Artist
+                    Column(modifier = Modifier.align(Alignment.BottomCenter)){
+                        Text(
+                            text = currentAlbum[0].mediaMetadata.title.toString(),
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                            lineHeight = 32.sp,
+                        )
+                        Text(
+                            text = currentAlbum[0].mediaMetadata.artist.toString() + " • " + formatMilliseconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0),
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
-                    // Genres
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                        if (!currentAlbum[0].mediaMetadata.genre.isNullOrEmpty()) {
-                            currentAlbum[0].mediaMetadata.genre?.split(",")?.forEach {
-                                GenrePill(it.toString())
+                        // Genres
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            if (!currentAlbum[0].mediaMetadata.genre.isNullOrEmpty()) {
+                                currentAlbum[0].mediaMetadata.genre?.split(",")?.forEach {
+                                    GenrePill(it.toString())
+                                }
                             }
                         }
                     }
-                }
 
-                // Star/unstar button, NAVIDROME ONLY
-                if (currentAlbum[0].mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == false) {
+                    // Star/unstar button, NAVIDROME ONLY
+                    if (currentAlbum[0].mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == false) {
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    setNavidromeStar(
+                                        star = isStarred,
+                                        albumId = currentAlbum[0].mediaMetadata.extras?.getString("navidromeID").toString()
+                                    )
+                                    viewModel.loadAlbumDetails(selectedAlbumId)
+                                    isStarred = !isStarred
+                                }
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 12.dp, end = 12.dp)
+                                .size(32.dp),
+                            contentPadding = PaddingValues(4.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground)
+                        ) {
+                            Crossfade(
+                                targetState = isStarred
+                            ) {
+                                if (it) Icon(
+                                    imageVector = ImageVector.vectorResource(R.drawable.round_favorite_border_24),
+                                    contentDescription = "Star Album",
+                                    modifier = Modifier
+                                        .height(28.dp)
+                                        .size(28.dp)
+                                )
+                                else Icon(
+                                    imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
+                                    contentDescription = "Unstar Album",
+                                    modifier = Modifier
+                                        .height(28.dp)
+                                        .size(28.dp)
+                                )
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            // Play and shuffle buttons
+            item {
+                Row (modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically) {
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                setNavidromeStar(
-                                    star = isStarred,
-                                    albumId = currentAlbum[0].mediaMetadata.extras?.getString("navidromeID").toString()
+                                SongHelper.play(
+                                    currentAlbum.subList(1, currentAlbum.size),
+                                    0,
+                                    mediaController
                                 )
-                                // Reload album data to update cache
-                                currentAlbum = getAlbum(selectedAlbumId, true)?.toMutableList() ?: currentAlbum
-                                isStarred = !isStarred
                             }
                         },
-                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onBackground),
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(top = 12.dp, end = 12.dp)
-                            .size(32.dp),
-                        contentPadding = PaddingValues(4.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground)
+                            .widthIn(min = 128.dp, max = 320.dp)
+                            .focusRequester(requester)
                     ) {
-                        Crossfade(
-                            targetState = isStarred
+                        Row (verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.height(24.dp)
                         ) {
-                            if (it) Icon(
-                                imageVector = ImageVector.vectorResource(R.drawable.round_favorite_border_24),
-                                contentDescription = "Star Album",
-                                modifier = Modifier
-                                    .height(28.dp)
-                                    .size(28.dp)
+                            Icon(Icons.Rounded.PlayArrow, "Play Album")
+                            Text(stringResource(R.string.Action_Play), maxLines = 1)
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            mediaController?.shuffleModeEnabled = true
+                            coroutineScope.launch {
+                            val random = currentAlbum.subList(1, currentAlbum.size).indices.random()
+                            SongHelper.play(
+                                currentAlbum.subList(1, currentAlbum.size),
+                                random,
+                                mediaController
                             )
-                            else Icon(
-                                imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
-                                contentDescription = "Unstar Album",
-                                modifier = Modifier
-                                    .height(28.dp)
-                                    .size(28.dp)
-                            )
+                                }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onBackground),
+                        modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(24.dp)) {
+                            Icon(ImageVector.vectorResource(R.drawable.round_shuffle_28), "Shuffle Album")
+                            Text(stringResource(R.string.Action_Shuffle), maxLines = 1)
                         }
                     }
                 }
-
             }
 
-
-            // Play and shuffle buttons
-            Row (modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically) {
-                Button(
+            // Album Songs
+            items(currentAlbum.subList(1, currentAlbum.size)) { song ->
+                HorizontalSongCard(
+                    song = song,
+                    modifier = Modifier.animateItem(),
                     onClick = {
-                        SongHelper.play(
-                            currentAlbum.subList(1, currentAlbum.size),
-                            0,
-                            mediaController
-                        )
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onBackground),
-                    modifier = Modifier
-                        .widthIn(min = 128.dp, max = 320.dp)
-                        .focusRequester(requester)
-                ) {
-                    Row (verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.height(24.dp)
-                    ) {
-                        Icon(Icons.Rounded.PlayArrow, "Play Album")
-                        Text(stringResource(R.string.Action_Play), maxLines = 1)
-                    }
-                }
-                Button(
-                    onClick = {
-                        mediaController?.shuffleModeEnabled = true
-
-                        val random = currentAlbum.subList(1, currentAlbum.size).indices.random()
-                        SongHelper.play(
-                            currentAlbum.subList(1, currentAlbum.size),
-                            random,
-                            mediaController
-                        )
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onBackground),
-                    modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(24.dp)) {
-                        Icon(ImageVector.vectorResource(R.drawable.round_shuffle_28), "Shuffle Album")
-                        Text(stringResource(R.string.Action_Shuffle), maxLines = 1)
-                    }
-                }
-            }
-
-            LazyColumn(
-                modifier = Modifier
-                    .padding(start = 12.dp, end = 12.dp, top = 0.dp)
-                    .fillMaxWidth(),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                items(currentAlbum.subList(1, currentAlbum.size)) { song ->
-                    HorizontalSongCard(
-                        song = song,
-                        //modifier = Modifier.animateItem(),
-                        onClick = {
+                        coroutineScope.launch {
                             SongHelper.play(
                                 currentAlbum.subList(1, currentAlbum.size),
                                 currentAlbum.subList(1, currentAlbum.size).indexOf(song),
                                 mediaController
                             )
                         }
-                    )
-                }
+                    }
+                )
             }
-
-            if(showAddSongToPlaylistDialog.value)
-                AddSongToPlaylist(setShowDialog =  { showAddSongToPlaylistDialog.value = it } )
         }
     }
+
+    if(showAddSongToPlaylistDialog.value)
+        AddSongToPlaylist(setShowDialog =  { showAddSongToPlaylistDialog.value = it } )
+
 }

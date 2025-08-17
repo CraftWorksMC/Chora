@@ -51,10 +51,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.albumList
-import com.craftworks.music.data.songsList
-import com.craftworks.music.data.toAlbum
+import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.albumList
+import com.craftworks.music.data.model.songsList
+import com.craftworks.music.data.model.toAlbum
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
@@ -218,7 +218,7 @@ fun AlbumGrid(
 
     if (NavidromeManager.checkActiveServers() && isSearch == false) {
         LaunchedEffect(gridState) {
-            if (albumList.size % 100 != 0) return@LaunchedEffect
+            if (albumList.size % 50 != 0) return@LaunchedEffect
 
             snapshotFlow {
                 val lastVisibleItemIndex = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
@@ -229,7 +229,7 @@ fun AlbumGrid(
             }
                 .filter { it }
                 .collect {
-                    viewModel.getMoreAlbums(sort, 100)
+                    viewModel.getMoreAlbums(sort, 50)
                 }
         }
     }
@@ -277,7 +277,10 @@ fun AlbumGrid(
             }
         }
         else {
-            items(albums) {album ->
+            items(
+                items = albums,
+                key = { it.mediaId }
+            ) { album ->
                 AlbumCard(album = album,
                     mediaController = mediaController,
                     onClick = {
@@ -295,6 +298,9 @@ fun AlbumRow(
     mediaController: MediaController?,
     onAlbumSelected: (album: MediaData.Album) -> Unit
 ){
+    val showProviderDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
+    val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_") }
+
     LazyRow(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -302,10 +308,12 @@ fun AlbumRow(
             end = 12.dp
         )
     ) {
-        itemsIndexed(albums) { index, album ->
+        itemsIndexed(
+            items = albums,
+            key = { _, album -> album.mediaId }
+        ) { index, album ->
             // Show divider between local and navidrome albums
-            if (SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true).value) {
-                val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_") }
+            if (showProviderDividers) {
                 if (index == dividerIndex && index != albums.lastIndex && index != 0) {
                     Row(
                         modifier = Modifier.padding(12.dp, 12.dp, 0.dp, 0.dp),
@@ -334,7 +342,9 @@ fun AlbumRow(
                 mediaController = mediaController,
                 onClick = {
                     onAlbumSelected(album.toAlbum())
-                })
+                },
+                modifier = Modifier.animateItem()
+            )
         }
     }
 }

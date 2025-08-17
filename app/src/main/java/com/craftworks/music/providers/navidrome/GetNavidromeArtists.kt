@@ -1,9 +1,10 @@
 package com.craftworks.music.providers.navidrome
 
 import android.util.Log
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.artistList
-import com.craftworks.music.data.selectedArtist
+import androidx.media3.common.MediaItem
+import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.artistList
+import com.craftworks.music.data.model.toMediaItem
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -48,15 +49,12 @@ fun parseNavidromeArtistAlbumsJSON(
     navidromeUrl: String,
     navidromeUsername: String,
     navidromePassword: String
-) : MediaData.Artist {
+) : List<MediaItem> {
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
         jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
     )
 
-    val mediaDataArtist = selectedArtist
-
-    // Generate password salt and hash for album coverArt
     val passwordSaltArt = generateSalt(8)
     val passwordHashArt = md5Hash(navidromePassword + passwordSaltArt)
 
@@ -64,29 +62,22 @@ fun parseNavidromeArtistAlbumsJSON(
         it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashArt&s=$passwordSaltArt&v=1.16.1&c=Chora"
     }
 
-    mediaDataArtist.starred = subsonicResponse.artist?.starred
-    mediaDataArtist.album = subsonicResponse.artist?.album
-
-    Log.d("NAVIDROME", "Added Metadata to ${mediaDataArtist.name}")
-
-    return mediaDataArtist
+    return subsonicResponse.artist?.album?.map { it.toMediaItem() } ?: emptyList()
 }
 
 fun parseNavidromeArtistBiographyJSON(
     response: String
-) : MediaData.Artist {
+) : MediaData.ArtistInfo {
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
         jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
     )
 
-    val mediaDataArtist = selectedArtist
-
-    mediaDataArtist.description = subsonicResponse.artistInfo?.biography.toString().replace(Regex("<a[^>]*>.*?</a>"), "")
-    mediaDataArtist.musicBrainzId = subsonicResponse.artistInfo?.musicBrainzId
-    mediaDataArtist.similarArtist = subsonicResponse.artistInfo?.similarArtist
-
-    Log.d("NAVIDROME", "Added Metadata to ${mediaDataArtist.name}")
+    val mediaDataArtist = MediaData.ArtistInfo(
+        biography = subsonicResponse.artistInfo?.biography,
+        musicBrainzId = subsonicResponse.artistInfo?.musicBrainzId,
+        similarArtist = subsonicResponse.artistInfo?.similarArtist
+    )
 
     return mediaDataArtist
 }

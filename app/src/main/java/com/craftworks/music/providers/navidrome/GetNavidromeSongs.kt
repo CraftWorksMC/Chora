@@ -3,11 +3,11 @@ package com.craftworks.music.providers.navidrome
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.albumList
-import com.craftworks.music.data.artistList
-import com.craftworks.music.data.songsList
-import com.craftworks.music.data.toMediaItem
+import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.albumList
+import com.craftworks.music.data.model.artistList
+import com.craftworks.music.data.model.songsList
+import com.craftworks.music.data.model.toMediaItem
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -39,11 +39,11 @@ fun parseNavidromeSearch3JSON(
 
     subsonicResponse.searchResult3?.song?.map {
         it.media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.12.0&c=Chora"
-        it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora"
+        it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora&size=128"
     }
 
     subsonicResponse.searchResult3?.album?.map {
-        it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora"
+        it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora&size=128"
     }
 
     var mediaDataSongs = emptyList<MediaItem>()

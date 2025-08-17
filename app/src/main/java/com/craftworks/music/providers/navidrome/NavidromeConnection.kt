@@ -2,7 +2,7 @@ package com.craftworks.music.providers.navidrome
 
 import android.annotation.SuppressLint
 import android.util.Log
-import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.managers.NavidromeManager.getCurrentServer
 import com.craftworks.music.managers.NavidromeManager.setSyncingStatus
 import kotlinx.coroutines.Dispatchers
@@ -151,55 +151,49 @@ suspend fun sendNavidromeGETRequest(
                 }
 
                 inputStream.bufferedReader().use {
-                    withContext(Dispatchers.Default) {
-                        val responseContent = it.readText()
-                        when {
-                            endpoint.startsWith("ping")         -> parseNavidromeStatusXML(responseContent)
-                            endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON(responseContent, server.url, server.username, server.password))
+                    val responseContent = it.readText()
+                    when {
+                        endpoint.startsWith("ping")         -> parseNavidromeStatusXML(responseContent)
+                        endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON(responseContent, server.url, server.username, server.password))
 
-                            // Albums
-                            endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))
-                            endpoint.startsWith("getAlbum.")    -> parsedData.addAll(parseNavidromeAlbumJSON(responseContent, server.url, server.username, server.password))
+                        // Albums
+                        endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))
+                        endpoint.startsWith("getAlbum.")    -> parsedData.addAll(parseNavidromeAlbumJSON(responseContent, server.url, server.username, server.password))
 
 
-                            // Artists
-                            endpoint.startsWith("getArtists")   -> parsedData.addAll(parseNavidromeArtistsJSON(responseContent))
-                            endpoint.startsWith("getArtist.")   -> parsedData.addAll(listOf(parseNavidromeArtistAlbumsJSON(responseContent, server.url, server.username, server.password)))
-                            endpoint.startsWith("getArtistInfo")-> parsedData.addAll(listOf(parseNavidromeArtistBiographyJSON(responseContent)))
+                        // Artists
+                        endpoint.startsWith("getArtists")   -> parsedData.addAll(parseNavidromeArtistsJSON(responseContent))
+                        endpoint.startsWith("getArtist.")   -> parsedData.addAll(parseNavidromeArtistAlbumsJSON(responseContent, server.url, server.username, server.password))
+                        endpoint.startsWith("getArtistInfo")-> parsedData.addAll(listOf(parseNavidromeArtistBiographyJSON(responseContent)))
 
-                            // Playlists
-                            endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
-                            endpoint.startsWith("getPlaylist.") -> parsedData.addAll(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password))
-                            endpoint.startsWith("updatePlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
-                            endpoint.startsWith("createPlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
-                            endpoint.startsWith("deletePlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
+                        // Playlists
+                        endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
+                        endpoint.startsWith("getPlaylist.") -> parsedData.addAll(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password))
+                        endpoint.startsWith("updatePlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
+                        endpoint.startsWith("createPlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
+                        endpoint.startsWith("deletePlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
 
-                            // Radios
-                            endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
+                        // Radios
+                        endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
 
-                            // Lyrics
-                            endpoint.startsWith("getLyrics.") -> parsedData.addAll(listOf(parseNavidromePlainLyricsJSON(responseContent)))
-                            endpoint.startsWith("getLyricsBySongId.") -> parsedData.addAll(parseNavidromeSyncedLyricsJSON(responseContent))
+                        // Lyrics
+                        endpoint.startsWith("getLyrics.") -> parsedData.addAll(listOf(parseNavidromePlainLyricsJSON(responseContent)))
+                        endpoint.startsWith("getLyricsBySongId.") -> parsedData.addAll(parseNavidromeSyncedLyricsJSON(responseContent))
 
-                            // Star and unstar
-                            endpoint.startsWith("star") -> {
-                                NavidromeCache.delByPrefix("getAlbum")
-                                NavidromeCache.delByPrefix("search3")
-                                NavidromeCache.delByPrefix("getPlaylist")
-                                setSyncingStatus(false)
-                            }
-                            endpoint.startsWith("unstar") -> {
-                                NavidromeCache.delByPrefix("getAlbum")
-                                NavidromeCache.delByPrefix("search3")
-                                NavidromeCache.delByPrefix("getPlaylist")
-                                setSyncingStatus(false)
-                            }
-
-                            // Favourites
-                            endpoint.startsWith("getStarred") -> { parsedData.addAll(parseNavidromeFavouritesJSON(responseContent, server.url, server.username, server.password)) }
-
-                            else -> { setSyncingStatus(false) }
+                        // Star and unstar
+                        endpoint.startsWith("star") -> {
+                            NavidromeCache.delByPrefix("getStarred")
+                            setSyncingStatus(false)
                         }
+                        endpoint.startsWith("unstar") -> {
+                            NavidromeCache.delByPrefix("getStarred")
+                            setSyncingStatus(false)
+                        }
+
+                        // Favourites
+                        endpoint.startsWith("getStarred") -> { parsedData.addAll(parseNavidromeFavouritesJSON(responseContent, server.url, server.username, server.password)) }
+
+                        else -> { setSyncingStatus(false) }
                     }
                 }
                 inputStream.close()

@@ -5,16 +5,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.ImageDecoder
-import android.media.browse.MediaBrowser
-import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.MediaData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import androidx.core.net.toUri

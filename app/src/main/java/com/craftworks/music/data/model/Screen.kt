@@ -1,4 +1,4 @@
-package com.craftworks.music.data
+package com.craftworks.music.data.model
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home_screen")

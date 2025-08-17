@@ -1,10 +1,9 @@
 package com.craftworks.music.providers.navidrome
 
-import android.util.Log
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.playlistList
-import com.craftworks.music.data.toMediaItem
+import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.playlistList
+import com.craftworks.music.data.model.toMediaItem
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -18,7 +17,7 @@ fun parseNavidromePlaylistsJSON(
     navidromeUrl: String,
     navidromeUsername: String,
     navidromePassword: String
-) : List<MediaItem> {
+) : List<MediaData.Playlist> {
 
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
@@ -30,22 +29,17 @@ fun parseNavidromePlaylistsJSON(
     val passwordHashMedia = md5Hash(navidromePassword + passwordSaltMedia)
 
     subsonicResponse.playlists?.playlist?.map {
-        it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora"
+        it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora&size=128"
     }
 
-    var mediaDataPlaylists = emptyList<MediaItem>()
+    val mediaDataPlaylists = emptyList<MediaItem>()
 
     subsonicResponse.playlists?.playlist?.filterNot { newPlaylist ->
         playlistList.any { existingPlaylist ->
             existingPlaylist.navidromeID == newPlaylist.navidromeID
         }
-    }?.let {
-        mediaDataPlaylists = it.map { it.toMediaItem() }
     }
-
-    Log.d("NAVIDROME", "Added playlists. Total: ${mediaDataPlaylists.size}")
-
-    return mediaDataPlaylists
+    return subsonicResponse.playlists?.playlist ?: emptyList()
 }
 
 fun parseNavidromePlaylistJSON(

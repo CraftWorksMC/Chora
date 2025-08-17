@@ -29,8 +29,8 @@ import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.radioList
+import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.radioList
 import com.craftworks.music.ui.screens.selectedRadioIndex
 import com.craftworks.music.ui.screens.showRadioModifyDialog
 
@@ -59,7 +59,7 @@ fun RadioCard(radio: MediaData.Radio, onClick: () -> Unit) {
             // Use generic radio image as we cannot get the radio's logo reliably.
             model = ImageRequest.Builder(LocalContext.current)
                 .data(("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder).toUri())
-                .crossfade(true).size(256).build(),
+                .crossfade(true).build(),
             fallback = painterResource(R.drawable.placeholder),
             contentScale = ContentScale.FillWidth,
             contentDescription = "Album Image",

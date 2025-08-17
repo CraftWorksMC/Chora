@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
-import com.craftworks.music.data.Lyric
+import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.SettingsManager
 import com.gigamole.composefadingedges.FadingEdgesGravity

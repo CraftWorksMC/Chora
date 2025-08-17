@@ -3,13 +3,8 @@ package com.craftworks.music.ui.playing
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -34,12 +29,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
 import androidx.palette.graphics.Palette
-import coil.ImageLoader
+import coil.imageLoader
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.craftworks.music.managers.SettingsManager
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 
 var lyricsOpen by mutableStateOf(false)
 var playQueueOpen by mutableStateOf(false)
@@ -48,11 +45,12 @@ var playQueueOpen by mutableStateOf(false)
 @Preview
 @Composable
 fun NowPlayingContent(
-    context: Context = LocalContext.current,
     mediaController: MediaController? = null,
     metadata: MediaMetadata? = null
 ) {
-    val backgroundStyle by SettingsManager(context).npBackgroundFlow.collectAsStateWithLifecycle("Animated Blur")
+    val context = LocalContext.current
+    val settingsManager = remember { SettingsManager(context) }
+    val backgroundStyle by settingsManager.npBackgroundFlow.collectAsStateWithLifecycle("Animated Blur")
     var backgroundDarkMode by remember { mutableStateOf(false) }
 
     var colors by remember {
@@ -63,41 +61,28 @@ fun NowPlayingContent(
     backgroundDarkMode = isSystemInDarkTheme()
 
     LaunchedEffect(metadata?.artworkUri) {
-        if (metadata?.artworkUri != null) {
-            async {
-                colors = extractColorsFromUri(metadata.artworkUri.toString(), context)
-            }.await()
+        if (metadata?.artworkUri != null && backgroundStyle != "Plain") {
+            colors = extractColorsFromUri(metadata.artworkUri.toString(), context)
 
             backgroundDarkMode =
                 (colors.elementAtOrNull(2) ?: Color.Black).customLuminance() <= 0.75f
             println("Generated new colors for song ${metadata.artworkUri}! Luminance: ${colors.elementAtOrNull(2)?.customLuminance()}")
-
-            iconTextColor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (backgroundDarkMode) dynamicDarkColorScheme(context).onBackground
-                else dynamicLightColorScheme(context).onBackground
-            } else {
-                if (backgroundDarkMode) Color.White
-                else Color.Black
-            }
+        }
+        iconTextColor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (backgroundDarkMode) dynamicDarkColorScheme(context).onBackground
+            else dynamicLightColorScheme(context).onBackground
+        } else {
+            if (backgroundDarkMode) Color.White
+            else Color.Black
         }
     }
 
-    NowPlaying_Background(colors, backgroundStyle)
-
-    // Apply a back or white overlay to the background for improved contrast on the animated bg
-    if (backgroundStyle == "Animated Blur") {
-        val animatedOverlayColor by animateColorAsState(
-            targetValue = if (backgroundDarkMode) Color.Black.copy(0.2f) else Color.White.copy(0.2f),
-            animationSpec = tween(durationMillis = 1000),
-            label = "Overlay Color Animation"
-        )
-
-        Box (
-            modifier = Modifier
-                .fillMaxSize()
-                .background(animatedOverlayColor)
-        )
+    val targetOverlayColor = if (backgroundStyle == "Animated Blur") {
+        if (backgroundDarkMode) Color.Black.copy(0.2f) else Color.White.copy(0.2f)
+    } else {
+        Color.Transparent
     }
+    NowPlaying_Background(colors, backgroundStyle, targetOverlayColor)
 
     if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) ||
         LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -144,25 +129,27 @@ fun Color.customLuminance(): Float {
 }
 
 suspend fun extractColorsFromUri(uri: String, context: Context): List<Color> = coroutineScope {
-    val loader = ImageLoader(context)
+    val loader = context.imageLoader
     val request = ImageRequest.Builder(context)
-        .size(64)
-        .data(uri)
-        .allowHardware(false) // Disable hardware bitmaps.
+        .data(uri.replace("size=128", "size=16"))
+        .allowHardware(false)
+        .diskCachePolicy(CachePolicy.DISABLED)
         .build()
 
     val result = (loader.execute(request) as? SuccessResult)?.drawable
     val bitmap = result?.toBitmap()
 
     bitmap?.let { bitmapImage ->
-        val palette = Palette.Builder(bitmapImage).generate()
-        listOfNotNull(
-            palette.mutedSwatch?.rgb?.let { Color(it) },
-            palette.darkVibrantSwatch?.rgb?.let { Color(it) },
-            palette.lightVibrantSwatch?.rgb?.let { Color(it) },
-            palette.vibrantSwatch?.rgb?.let { Color(it) },
-            palette.dominantSwatch?.rgb?.let { Color(it) },
-            palette.lightMutedSwatch?.rgb?.let { Color(it) },
-        )
+        withContext(Dispatchers.Default) {
+            val palette = Palette.Builder(bitmapImage).generate()
+            listOfNotNull(
+                palette.mutedSwatch?.rgb?.let { Color(it) },
+                palette.darkVibrantSwatch?.rgb?.let { Color(it) },
+                palette.lightVibrantSwatch?.rgb?.let { Color(it) },
+                palette.vibrantSwatch?.rgb?.let { Color(it) },
+                palette.dominantSwatch?.rgb?.let { Color(it) },
+                palette.lightMutedSwatch?.rgb?.let { Color(it) },
+            )
+        }
     } ?: listOf()
 }

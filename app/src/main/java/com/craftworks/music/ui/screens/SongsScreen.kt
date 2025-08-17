@@ -30,6 +30,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,25 +40,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
+import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
+import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import kotlinx.coroutines.launch
 
@@ -67,7 +72,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SongsScreen(
     mediaController: MediaController? = null,
-    viewModel: SongsScreenViewModel = viewModel()
+    viewModel: SongsScreenViewModel = hiltViewModel()
 ) {
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val context = LocalContext.current
@@ -80,12 +85,15 @@ fun SongsScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val state = rememberPullToRefreshState()
-    var isRefreshing by remember { mutableStateOf(false) }
+    val isRefreshing by viewModel.isLoading.collectAsStateWithLifecycle()
+
+    var showRipple by remember { mutableIntStateOf(0) }
+    val rippleXOffset = LocalWindowInfo.current.containerSize.width / 2
+    val rippleYOffset = dpToPx(12)
 
     val onRefresh: () -> Unit = {
-        isRefreshing = true
-        viewModel.reloadData()
-        isRefreshing = false
+        viewModel.getSongs()
+        showRipple++
     }
 
     PullToRefreshBox(
@@ -141,7 +149,6 @@ fun SongsScreen(
                             searchFilter = it
                             if (it.isBlank()){
                                 coroutineScope.launch {
-                                    viewModel.reloadData()
                                     isSearchFieldOpen = false
                                 }
                             } },
@@ -175,7 +182,9 @@ fun SongsScreen(
                     songList = allSongsList,
                     onSongSelected = { songs, index ->
                         println("Starting song at index: $index")
-                        SongHelper.play(songs, index, mediaController)
+                        coroutineScope.launch {
+                            SongHelper.play(songs, index, mediaController)
+                        }
                     },
                     isSearch = searchFilter.isNotBlank(),
                     viewModel = viewModel
@@ -186,4 +195,10 @@ fun SongsScreen(
 
     if(showAddSongToPlaylistDialog.value)
         AddSongToPlaylist(setShowDialog =  { showAddSongToPlaylistDialog.value = it } )
+
+    RippleEffect(
+        center = Offset(rippleXOffset.toFloat(), rippleYOffset.toFloat()),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        key = showRipple
+    )
 }

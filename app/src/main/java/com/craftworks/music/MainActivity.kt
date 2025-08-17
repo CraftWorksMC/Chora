@@ -74,34 +74,33 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.data.BottomNavItem
-import com.craftworks.music.data.Screen
+import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.rememberManagedMediaController
-import com.craftworks.music.providers.navidrome.NavidromeCache
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
 import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.playing.NowPlayingMiniPlayer
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.theme.MusicPlayerTheme
-import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
-import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
-import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
-import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
-import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import com.gigamole.composefadingedges.FadingEdgesGravity
 import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
 import com.gigamole.composefadingedges.verticalFadingEdges
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.system.exitProcess
 
 var showNoProviderDialog = mutableStateOf(false)
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     lateinit var navController: NavHostController
+
+    private val playerState = MutableStateFlow<MediaMetadata?>(null)
 
     @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(ExperimentalMaterial3Api::class)
@@ -111,26 +110,11 @@ class MainActivity : ComponentActivity() {
         val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
         this@MainActivity.startService(serviceIntent)
 
-        //handleSearchIntent(intent)
-
         enableEdgeToEdge()
-
-        val homeViewModel = HomeScreenViewModel()
-        val albumViewModel = AlbumScreenViewModel()
-        val songsViewModel = SongsScreenViewModel()
-        val artistsViewModel = ArtistsScreenViewModel()
-        val playlistViewModel = PlaylistScreenViewModel()
-
-        homeViewModel.reloadData()
-        albumViewModel.reloadData()
-        songsViewModel.reloadData()
-        artistsViewModel.reloadData()
 
         setContent {
             MusicPlayerTheme {
                 navController = rememberNavController()
-
-                playlistViewModel.reloadData(LocalContext.current)
 
                 val mediaController by rememberManagedMediaController()
                 var metadata by remember { mutableStateOf<MediaMetadata?>(null) }
@@ -155,7 +139,6 @@ class MainActivity : ComponentActivity() {
                         mediaController?.removeListener(listener)
                     }
                 }
-
                 // Set background color to colorScheme.background
                 window.decorView.setBackgroundColor(
                     MaterialTheme.colorScheme.background.toArgb()
@@ -207,8 +190,8 @@ class MainActivity : ComponentActivity() {
                                             }
                                         })
 
+                                    println("Recomposing sheetcontent")
                                     NowPlayingContent(
-                                        context = this@MainActivity,
                                         mediaController = mediaController,
                                         metadata = metadata
                                     )
@@ -233,24 +216,14 @@ class MainActivity : ComponentActivity() {
                             SetupNavGraph(
                                 navController,
                                 peekHeight + paddingValues.calculateBottomPadding(),
-                                mediaController,
-                                homeViewModel,
-                                albumViewModel,
-                                songsViewModel,
-                                artistsViewModel,
-                                playlistViewModel
+                                mediaController
                             )
                         }
                     } else {
                         SetupNavGraph(
                             navController,
                             0.dp,
-                            mediaController,
-                            homeViewModel,
-                            albumViewModel,
-                            songsViewModel,
-                            artistsViewModel,
-                            playlistViewModel
+                            mediaController
                         )
                     }
                 }

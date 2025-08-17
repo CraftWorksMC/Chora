@@ -26,7 +26,6 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -37,10 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
-import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-import coil.size.Size
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.getAlbum
 import kotlinx.coroutines.launch
@@ -50,12 +47,13 @@ import kotlinx.coroutines.launch
 fun AlbumCard(
     album: MediaItem,
     mediaController: MediaController? = null,
-    onClick: () -> Unit = { }
+    onClick: () -> Unit = { },
+    modifier: Modifier = Modifier
 ) {
     if (album.mediaMetadata.mediaType != MediaMetadata.MEDIA_TYPE_ALBUM) return
     val context = LocalContext.current
     Column(
-        modifier = Modifier
+        modifier = modifier
             .padding(12.dp, 12.dp, 0.dp, 0.dp)
             .width(128.dp)
             .height(172.dp)
@@ -72,21 +70,16 @@ fun AlbumCard(
                 model = ImageRequest.Builder(context)
                     .data(album.mediaMetadata.artworkUri)
                     .crossfade(true)
-                    .size(128)
+                    .diskCacheKey(
+                        album.mediaMetadata.extras?.getString("navidromeID") ?: album.mediaId
+                    )
                     .build(),
                 contentDescription = "Album Image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clip(RoundedCornerShape(8.dp)),
-                loading = { painter ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .clip(RoundedCornerShape(8.dp))
-                    )
-                }
             )
 
             val coroutineScope = rememberCoroutineScope()

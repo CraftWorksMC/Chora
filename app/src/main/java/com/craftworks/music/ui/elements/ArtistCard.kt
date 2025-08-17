@@ -28,11 +28,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.model.MediaData
 
 @Stable
 @Composable
@@ -51,7 +50,9 @@ fun ArtistCard(artist: MediaData.Artist, onClick: () -> Unit) {
             model = ImageRequest.Builder(LocalContext.current)
                 .data(artist.artistImageUrl)
                 .crossfade(true)
-                .size(256)
+                .diskCacheKey(
+                    artist.navidromeID
+                )
                 .build(),
             contentScale = ContentScale.Crop,
             contentDescription = "Album Image",

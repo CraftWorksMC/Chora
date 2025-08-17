@@ -15,20 +15,24 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.playlistList
-import com.craftworks.music.data.radioList
-import com.craftworks.music.data.toMediaItem
-import com.craftworks.music.data.toSong
+import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.playlistList
+import com.craftworks.music.data.model.radioList
+import com.craftworks.music.data.model.toMediaItem
+import com.craftworks.music.data.model.toSong
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import javax.inject.Inject
+import javax.inject.Singleton
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-class SettingsManager(
-    private val context: Context
+@Singleton
+class SettingsManager @Inject constructor(
+    @ApplicationContext private val context: Context
 ) {
     companion object {
         private val USERNAME_KEY = stringPreferencesKey("username")

@@ -17,14 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
-import coil.compose.AsyncImage
-import com.craftworks.music.R
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
 import com.craftworks.music.ui.elements.dialogs.playlistToDelete
 import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
 
@@ -32,6 +32,7 @@ import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
 @Composable
 fun PlaylistCard(playlist: MediaItem, onClick: () -> Unit) {
     val metadata = playlist.mediaMetadata
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .padding(12.dp)
@@ -50,12 +51,18 @@ fun PlaylistCard(playlist: MediaItem, onClick: () -> Unit) {
             .widthIn(min = 128.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        AsyncImage(
-            model = if (metadata.extras?.getString("navidromeID")?.startsWith("Local") == true)
-                metadata.artworkData else
-                    metadata.artworkUri,
-            placeholder = painterResource(R.drawable.placeholder),
-            fallback = painterResource(R.drawable.placeholder),
+        SubcomposeAsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(
+                    if (metadata.extras?.getString("navidromeID")?.startsWith("Local") == true)
+                        metadata.artworkData else
+                        metadata.artworkUri
+                )
+                .crossfade(true)
+                .diskCacheKey(
+                    metadata.extras?.getString("navidromeID") ?: playlist.mediaId
+                )
+                .build(),
             contentScale = ContentScale.FillWidth,
             contentDescription = "Album Image",
             modifier = Modifier

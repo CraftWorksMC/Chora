@@ -107,8 +107,6 @@ suspend fun downloadNavidromeSong(
                     "${song.title} " + context.getString(R.string.Notification_Download_Success),
                     Toast.LENGTH_SHORT
                 ).show()
-
-                LocalProvider.getInstance().scanLocalFiles()
             }
 
         } catch (e: Exception) {

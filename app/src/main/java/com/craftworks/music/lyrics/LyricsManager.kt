@@ -5,7 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.media3.common.MediaMetadata
-import com.craftworks.music.data.Lyric
+import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromePlainLyrics
 import com.craftworks.music.providers.navidrome.getNavidromeSyncedLyrics

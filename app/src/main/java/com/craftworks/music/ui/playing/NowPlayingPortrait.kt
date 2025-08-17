@@ -12,9 +12,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +51,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import coil.compose.SubcomposeAsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.managers.SettingsManager
@@ -78,9 +78,9 @@ fun NowPlayingPortrait(
         label = "Animated text color"
     )
 
-    val showMoreInfo =
-        SettingsManager(LocalContext.current).showMoreInfoFlow.collectAsStateWithLifecycle(true)
-
+    val context = LocalContext.current
+    val settingsManager = remember { SettingsManager(context) }
+    val showMoreInfo by settingsManager.showMoreInfoFlow.collectAsStateWithLifecycle(true)
     Column {
         // Top padding
         Spacer(Modifier.height(24.dp))
@@ -92,7 +92,7 @@ fun NowPlayingPortrait(
             modifier = Modifier
                 .heightIn(min = 256.dp, max = 420.dp)
                 .fillMaxWidth(),
-        ) {
+        ) { it ->
             if (it) {
                 LyricsView(
                     iconTextColor,
@@ -101,24 +101,28 @@ fun NowPlayingPortrait(
                     PaddingValues(horizontal = 32.dp, vertical = 16.dp)
                 )
             } else {
-                Crossfade (
-                    targetState = metadata?.artworkUri,
-                    animationSpec = tween(1000, 0, FastOutSlowInEasing),
-                ) {
+                Crossfade(
+                    targetState = metadata?.artworkUri.toString().replace("size=128", "size=500"),
+                    animationSpec = tween(durationMillis = 500),
+                    label = "Crossfade between album art"
+                ) { artworkUri ->
                     SubcomposeAsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(it)
-                            .size(1024)
-                            .crossfade(true)
+                        model = ImageRequest.Builder(context)
+                            .data(artworkUri)
+                            .diskCachePolicy(
+                                CachePolicy.DISABLED
+                            )
                             .build(),
                         contentDescription = "Album Cover Art",
-                        contentScale = ContentScale.FillWidth,
+                        contentScale = ContentScale.Crop,
                         alignment = Alignment.Center,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 32.dp, vertical = 16.dp)
                             .aspectRatio(1f)
-                            .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
+                            .shadow(4.dp, RoundedCornerShape(24.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clip(RoundedCornerShape(24.dp))
                     )
                 }
             }
@@ -136,17 +140,13 @@ fun NowPlayingPortrait(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top
             ) {
-                val transition = (
-                    fadeIn(animationSpec = tween(durationMillis = 500)) togetherWith fadeOut(animationSpec = tween(durationMillis = 500))
-                )
-
-                AnimatedContent(
+                Crossfade(
                     targetState = metadata?.title.toString(),
-                    transitionSpec = { transition },
-                    label = "Animated Song Title",
-                ) {
+                    animationSpec = tween(durationMillis = 500),
+                    label = "Animated Song Title"
+                ) { title ->
                     Text(
-                        text = it,
+                        text = title,
                         fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                         fontWeight = FontWeight.SemiBold,
                         color = iconTextColor,
@@ -159,13 +159,13 @@ fun NowPlayingPortrait(
                     )
                 }
 
-                AnimatedContent(
+                Crossfade(
                     targetState = metadata?.artist.toString() + if (metadata?.recordingYear != 0 && metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION) " • " + metadata?.recordingYear else "",
-                    transitionSpec = { transition },
-                    label = "Animated Song Title",
-                ) {
+                    animationSpec = tween(durationMillis = 500),
+                    label = "Animated Artist"
+                ) { artistInfo ->
                     Text(
-                        text = it,
+                        text = artistInfo,
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         fontWeight = FontWeight.Normal,
                         color = iconTextColor,
@@ -181,8 +181,8 @@ fun NowPlayingPortrait(
 
                 Spacer(Modifier.height(8.dp))
 
-                if (showMoreInfo.value && metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
-                    AnimatedContent(
+                if (showMoreInfo && metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
+                    Crossfade(
                         targetState = "${
                             metadata?.extras?.getString("format")?.uppercase()
                         } • ${metadata?.extras?.getLong("bitrate")} • ${
@@ -193,11 +193,9 @@ fun NowPlayingPortrait(
                             else
                                 stringResource(R.string.Source_Navidrome)
                         } ",
-                        transitionSpec = { transition },
-                        label = "Animated Song Title",
-                    ) {
+                    ) { moreInfo ->
                         Text(
-                            text = it,
+                            text = moreInfo,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Light,
                             color = iconTextColor.copy(alpha = 0.5f),

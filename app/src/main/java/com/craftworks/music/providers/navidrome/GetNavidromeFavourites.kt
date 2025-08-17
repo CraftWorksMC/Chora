@@ -2,8 +2,8 @@ package com.craftworks.music.providers.navidrome
 
 import android.util.Log
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.toMediaItem
+import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.toMediaItem
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

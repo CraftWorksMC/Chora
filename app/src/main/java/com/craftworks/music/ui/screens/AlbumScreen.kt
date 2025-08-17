@@ -31,6 +31,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,21 +41,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.Screen
+import com.craftworks.music.data.model.Screen
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
+import com.craftworks.music.ui.elements.RippleEffect
+import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
@@ -65,7 +71,7 @@ import java.net.URLEncoder
 fun AlbumScreen(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,
-    viewModel: AlbumScreenViewModel = viewModel(),
+    viewModel: AlbumScreenViewModel = hiltViewModel(),
 ) {
     val leftPadding =
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
@@ -74,12 +80,15 @@ fun AlbumScreen(
     var searchFilter by remember { mutableStateOf("") }
 
     val state = rememberPullToRefreshState()
-    var isRefreshing by remember { mutableStateOf(false) }
+    val isRefreshing by viewModel.isLoading.collectAsStateWithLifecycle()
+
+    var showRipple by remember { mutableIntStateOf(0) }
+    val rippleXOffset = LocalWindowInfo.current.containerSize.width / 2
+    val rippleYOffset = dpToPx(12)
 
     val onRefresh: () -> Unit = {
-        isRefreshing = true
-        viewModel.reloadData()
-        isRefreshing = false
+        viewModel.getAlbums()
+        showRipple++
     }
 
     PullToRefreshBox(
@@ -143,9 +152,6 @@ fun AlbumScreen(
                         value = searchFilter,
                         onValueChange = {
                             searchFilter = it
-                            if (it.isBlank()) {
-                                viewModel.reloadData()
-                            }
                         },
                         label = { Text(stringResource(R.string.Action_Search)) },
                         singleLine = true,
@@ -188,4 +194,10 @@ fun AlbumScreen(
             )
         }
     }
+
+    RippleEffect(
+        center = Offset(rippleXOffset.toFloat(), rippleYOffset.toFloat()),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        key = showRipple
+    )
 }

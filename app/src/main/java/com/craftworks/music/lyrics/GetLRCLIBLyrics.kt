@@ -1,9 +1,9 @@
 package com.craftworks.music.lyrics
 
 import androidx.media3.common.MediaMetadata
-import com.craftworks.music.data.LrcLibLyrics
-import com.craftworks.music.data.Lyric
-import com.craftworks.music.data.toLyrics
+import com.craftworks.music.data.model.LrcLibLyrics
+import com.craftworks.music.data.model.Lyric
+import com.craftworks.music.data.model.toLyrics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json

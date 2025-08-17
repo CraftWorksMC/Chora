@@ -21,7 +21,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionError
 import com.craftworks.music.R
-import com.craftworks.music.data.toMediaItem
+import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
@@ -32,9 +32,7 @@ import com.craftworks.music.providers.getPlaylistDetails
 import com.craftworks.music.providers.getPlaylists
 import com.craftworks.music.providers.getRadios
 import com.craftworks.music.providers.getSongs
-import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import com.craftworks.music.providers.searchAlbum
-import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -42,7 +40,6 @@ import com.google.common.util.concurrent.SettableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -182,7 +179,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 playerScrobbled = false;
 
                 super.onMediaItemTransition(mediaItem, reason)
-                serviceIOScope.launch { async { LyricsManager.getLyrics(mediaItem?.mediaMetadata) } }
+                serviceIOScope.launch { LyricsManager.getLyrics(mediaItem?.mediaMetadata) }
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -245,8 +242,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
                 if (session.isAutoCompanionController(controller))
                     getHomeScreenItems()
-
-                GlobalViewModels.refreshAll()
 
                 this@ChoraMediaLibraryService.session?.notifyChildrenChanged(
                     "nodeHOME",
@@ -469,11 +464,13 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         runBlocking {
             Log.d(
                 "AA",
-                "Saving state! Playlist: ${SongHelper.currentTracklist.map { it.mediaMetadata.title }}, current index: ${player.currentMediaItemIndex}, current position: ${player.currentPosition}"
+                "Saving state! Playlist: ${List(player.mediaItemCount) { i -> player.getMediaItemAt(i) }.map { it.mediaMetadata.title }}, current index: ${player.currentMediaItemIndex}, current position: ${player.currentPosition}"
             )
 
             SettingsManager(applicationContext).setPlaybackResumption(
-                SongHelper.currentTracklist,
+                List(player.mediaItemCount) { i ->
+                    player.getMediaItemAt(i)
+                },
                 player.currentMediaItemIndex,
                 player.currentPosition
             )

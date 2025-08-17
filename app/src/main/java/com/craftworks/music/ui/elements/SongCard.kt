@@ -51,7 +51,7 @@ import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.radioList
+import com.craftworks.music.data.model.radioList
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
@@ -103,8 +103,10 @@ fun SongsCard(song: MediaItem, onClick: () -> Unit) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(song.mediaMetadata.artworkUri)
-                            .size(1)
                             .crossfade(true)
+                            .diskCacheKey(
+                                song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
+                            )
                             .build(),
                         contentDescription = "Blurry Placeholder",
                         contentScale = ContentScale.Crop,
@@ -166,6 +168,9 @@ fun HorizontalSongCard(
                     .data(song.mediaMetadata.artworkUri)
                     .crossfade(true)
                     .size(64)
+                    .diskCacheKey(
+                        song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
+                    )
                     .build(),
                 contentDescription = "Album Image",
                 contentScale = ContentScale.FillHeight,

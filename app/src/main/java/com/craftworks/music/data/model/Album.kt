@@ -1,4 +1,4 @@
-package com.craftworks.music.data
+package com.craftworks.music.data.model
 
 import android.os.Bundle
 import androidx.compose.runtime.mutableStateListOf

@@ -51,7 +51,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.media3.common.MediaItem
 import coil.compose.SubcomposeAsyncImage
 import com.craftworks.music.R
-import com.craftworks.music.data.playlistList
+import com.craftworks.music.data.model.playlistList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.addSongToPlaylist

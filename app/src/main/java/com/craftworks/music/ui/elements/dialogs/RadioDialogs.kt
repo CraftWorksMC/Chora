@@ -41,7 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.createRadio
 import com.craftworks.music.providers.deleteRadio

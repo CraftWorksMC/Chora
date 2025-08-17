@@ -23,6 +23,7 @@
         android:required="false" />
 
     <application
+        android:name=".ChoraApplication"
         android:allowBackup="true"
         android:banner="@mipmap/ic_banner"
         android:dataExtractionRules="@xml/data_extraction_rules"
