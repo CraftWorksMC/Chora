@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -119,6 +120,8 @@ class MainActivity : ComponentActivity() {
                 val mediaController by rememberManagedMediaController()
                 var metadata by remember { mutableStateOf<MediaMetadata?>(null) }
 
+                val coroutineScope = rememberCoroutineScope()
+
                 // Update metadata from mediaController.
                 LaunchedEffect(mediaController) {
                     if (mediaController?.currentMediaItem != null) {
@@ -159,6 +162,14 @@ class MainActivity : ComponentActivity() {
                     animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
                     label = "sheetPeekAnimation"
                 )
+
+                BackHandler(
+                    enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
+                ) {
+                    coroutineScope.launch {
+                        scaffoldState.bottomSheetState.partialExpand()
+                    }
+                }
 
                 Scaffold(
                     bottomBar = {

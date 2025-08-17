@@ -162,7 +162,6 @@ fun AlbumDetails(
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(selectedAlbumImage)
-                            .size(128)
                             .diskCacheKey(selectedAlbumId)
                             .crossfade(true)
                             .build(),

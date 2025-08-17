@@ -2,7 +2,6 @@ package com.craftworks.music.ui.screens
 
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
@@ -40,7 +39,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +61,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
@@ -71,20 +70,15 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.toAlbum
-import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.getAlbum
-import com.craftworks.music.providers.getArtistDetails
 import com.craftworks.music.ui.elements.AlbumCard
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
-import androidx.core.net.toUri
 
 @OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalFoundationApi
@@ -92,16 +86,12 @@ import androidx.core.net.toUri
 fun ArtistDetails(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,
-    artistId: String,
     viewModel: ArtistsScreenViewModel = hiltViewModel()
 ) {
     val leftPadding =
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     val showLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-//    var artist by remember(artistId) {
-//        mutableStateOf<MediaData.Artist?>(null)
-//    }
     val artist = viewModel.selectedArtist.collectAsStateWithLifecycle().value
     val artistAlbums = viewModel.artistAlbums.collectAsStateWithLifecycle().value
     val context = LocalContext.current

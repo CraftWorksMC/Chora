@@ -149,21 +149,12 @@ fun SetupNavGraph(
                 val viewModel: ArtistsScreenViewModel = hiltViewModel(parentEntry)
                 ArtistsScreen(navController, viewModel)
             }
-            composable(
-                route = Screen.ArtistDetails.route + "/{artist}",
-                arguments = listOf(
-                    navArgument("artist") {
-                        type = NavType.StringType
-                    }
-                )
-            ) { backStackEntry ->
+            composable(route = Screen.ArtistDetails.route) { backStackEntry ->
                 val parentEntry = remember(backStackEntry) {
                     navController.getBackStackEntry("artists_graph")
                 }
                 val viewModel: ArtistsScreenViewModel = hiltViewModel(parentEntry)
-
-                val artistId = backStackEntry.arguments?.getString("artist") ?: ""
-                ArtistDetails(navController, mediaController, artistId, viewModel)
+                ArtistDetails(navController, mediaController, viewModel)
             }
         }
 

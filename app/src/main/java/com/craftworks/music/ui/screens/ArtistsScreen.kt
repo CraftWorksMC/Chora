@@ -179,7 +179,7 @@ fun ArtistsScreen(
 
             ArtistsGrid(allArtistList, onArtistSelected = { artist ->
                 viewModel.setSelectedArtist(artist)
-                navHostController.navigate(Screen.ArtistDetails.route + "/${artist.navidromeID}") {
+                navHostController.navigate(Screen.ArtistDetails.route) {
                     launchSingleTop = true
                 }
             })
