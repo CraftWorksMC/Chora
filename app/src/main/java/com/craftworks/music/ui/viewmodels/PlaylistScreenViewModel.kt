@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,7 +40,7 @@ class PlaylistScreenViewModel @Inject constructor(
     fun loadPlaylists() {
         viewModelScope.launch {
             _isLoading.value = true
-            _allPlaylists.value = playlistRepository.getPlaylists(true).map { it.toMediaItem() }
+            _allPlaylists.value = playlistRepository.getPlaylists(true)
             _isLoading.value = false
         }
     }

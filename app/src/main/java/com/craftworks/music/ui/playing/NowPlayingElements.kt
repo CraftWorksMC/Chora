@@ -3,7 +3,6 @@
 package com.craftworks.music.ui.playing
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.focusable
@@ -21,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,8 +41,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.vector.DefaultStrokeLineCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -87,8 +83,10 @@ fun PlaybackProgressSlider(
     metadata: MediaMetadata? = null
 ) {
     var currentValue by remember { mutableLongStateOf(0L) }
-    val currentDuration by derivedStateOf {
-        mediaController?.duration?.coerceAtLeast(0L)
+    val currentDuration by remember {
+        derivedStateOf {
+            mediaController?.duration?.coerceAtLeast(0L)
+        }
     }
 
     val animatedValue by animateFloatAsState(

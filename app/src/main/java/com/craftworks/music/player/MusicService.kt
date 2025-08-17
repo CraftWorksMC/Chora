@@ -22,21 +22,19 @@ import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionError
 import com.craftworks.music.R
 import com.craftworks.music.data.model.toMediaItem
+import com.craftworks.music.data.repository.AlbumRepository
+import com.craftworks.music.data.repository.PlaylistRepository
+import com.craftworks.music.data.repository.RadioRepository
+import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.providers.getAlbum
-import com.craftworks.music.providers.getAlbums
-import com.craftworks.music.providers.getPlaylistDetails
-import com.craftworks.music.providers.getPlaylists
-import com.craftworks.music.providers.getRadios
-import com.craftworks.music.providers.getSongs
-import com.craftworks.music.providers.searchAlbum
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -44,6 +42,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 import kotlin.math.pow
 
 /*
@@ -52,10 +51,18 @@ import kotlin.math.pow
 */
 
 @UnstableApi
+@AndroidEntryPoint
 class ChoraMediaLibraryService : MediaLibraryService() {
     //region Vars
     lateinit var player: Player
     var session: MediaLibrarySession? = null
+
+    @Inject lateinit var settingsManager: SettingsManager
+
+    @Inject lateinit var albumRepository: AlbumRepository
+    @Inject lateinit var songRepository: SongRepository
+    @Inject lateinit var radioRepository: RadioRepository
+    @Inject lateinit var playlistRepository: PlaylistRepository
 
     companion object {
         private var instance: ChoraMediaLibraryService? = null
@@ -413,7 +420,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             return Futures.immediateFuture(
                 LibraryResult.ofItemList(
                     runBlocking {
-                        SongHelper.currentTracklist = getSongs(query).toMutableList()
+                        SongHelper.currentTracklist = songRepository.getSongs(query).toMutableList()
                         SongHelper.currentTracklist
                     },
                     LibraryParams.Builder().build()
@@ -433,14 +440,14 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 browser,
                 query,
                 runBlocking {
-                    getSongs(query).size +
-                            searchAlbum(query).size +
-                            getRadios(this@ChoraMediaLibraryService).fastFilter {
+                    songRepository.getSongs(query).size +
+                            albumRepository.searchAlbum(query).size +
+                            radioRepository.getRadios().fastFilter {
                                 it.name.contains(
                                     query
                                 )
                             }.size +
-                            getPlaylists(baseContext).fastFilter {
+                            playlistRepository.getPlaylists().fastFilter {
                                 it.mediaMetadata.title?.contains(
                                     query
                                 ) == true
@@ -482,8 +489,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         println("GETTING ANDROID AUTO SCREEN ITEMS")
         runBlocking {
             if (aHomeScreenItems.isEmpty()) {
-                val recentlyPlayedAlbums = async { getAlbums("recent", 6) }.await()
-                val mostPlayedAlbums = async { getAlbums("frequent", 6) }.await()
+                val recentlyPlayedAlbums = async { albumRepository.getAlbums("recent", 6) }.await()
+                val mostPlayedAlbums = async { albumRepository.getAlbums("frequent", 6) }.await()
 
                 recentlyPlayedAlbums.forEach { album ->
                     aHomeScreenItems.add(
@@ -514,7 +521,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     private fun getRadioItems(): MutableList<MediaItem> {
         runBlocking {
             if (aRadioScreenItems.isEmpty()) {
-                getRadios(baseContext).forEach { radio ->
+                radioRepository.getRadios().forEach { radio ->
                     aRadioScreenItems.add(radio.toMediaItem())
                 }
             }
@@ -526,7 +533,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     private fun getPlaylistItems(): MutableList<MediaItem> {
         runBlocking {
             if (aPlaylistScreenItems.isEmpty()) {
-                getPlaylists(baseContext)
+                aPlaylistScreenItems.addAll(playlistRepository.getPlaylists())
             }
             SongHelper.currentTracklist = aPlaylistScreenItems
         }
@@ -538,7 +545,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             aFolderSongs.clear()
             when (type) {
                 MediaMetadata.MEDIA_TYPE_ALBUM -> {
-                    val albumSongs = getAlbum(parentId)
+                    val albumSongs = albumRepository.getAlbum(parentId)
                     aFolderSongs.addAll(
                         albumSongs?.subList(1, albumSongs.size) ?: emptyList()
                     )
@@ -546,7 +553,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
                 MediaMetadata.MEDIA_TYPE_PLAYLIST -> {
                     aFolderSongs.addAll(
-                        getPlaylistDetails(parentId) ?: emptyList()
+                        playlistRepository.getPlaylistSongs(parentId)
                     )
                 }
 

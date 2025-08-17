@@ -1,13 +1,9 @@
 package com.craftworks.music.ui.elements
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,7 +22,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,98 +42,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
-import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.model.radioList
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
-import com.craftworks.music.ui.screens.selectedRadioIndex
-import com.craftworks.music.ui.screens.showRadioModifyDialog
 import kotlinx.coroutines.launch
-
-@OptIn(ExperimentalFoundationApi::class)
-@Stable
-@Composable
-fun SongsCard(song: MediaItem, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .padding(12.dp, 48.dp, 0.dp, 0.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = {
-                    if (song.mediaMetadata.extras?.getBoolean("isRadio") == false) return@combinedClickable
-                    showRadioModifyDialog.value = true
-                    selectedRadioIndex.intValue =
-                        radioList.indexOf(radioList.firstOrNull { it.name == song.mediaMetadata.artist && it.media == song.mediaId })
-                },
-                onLongClickLabel = "Modify Radio"
-            ),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.onBackground,
-            disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .width(128.dp)
-                .height(172.dp)
-        ) {
-            SubcomposeAsyncImage(
-                model = song.mediaMetadata.artworkUri,
-                contentScale = ContentScale.FillHeight,
-                contentDescription = "Album Image",
-                modifier = Modifier
-                    .height(128.dp)
-                    .width(128.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                loading = {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(song.mediaMetadata.artworkUri)
-                            .crossfade(true)
-                            .diskCacheKey(
-                                song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
-                            )
-                            .build(),
-                        contentDescription = "Blurry Placeholder",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = song.mediaMetadata.title.toString(),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 1, overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
-
-            Text(
-                text = song.mediaMetadata.artist.toString(),
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 1, overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-}
 
 @Composable
 fun HorizontalSongCard(

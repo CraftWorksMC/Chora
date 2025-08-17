@@ -23,6 +23,7 @@ fun MediaData.Radio.toMediaItem(): MediaItem {
             .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
             .setExtras(Bundle().apply {
                 putString("navidromeID", this@toMediaItem.navidromeID)
+                putString("homepage", this@toMediaItem.homePageUrl ?: "")
             }).build()
 
     return MediaItem.Builder()

@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,7 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,47 +40,46 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
-import com.craftworks.music.data.model.radioList
-import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.getRadios
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.RadioCard
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.dialogs.AddRadioDialog
 import com.craftworks.music.ui.elements.dialogs.ModifyRadioDialog
 import com.craftworks.music.ui.playing.dpToPx
+import com.craftworks.music.ui.viewmodels.RadioScreenViewModel
 import kotlinx.coroutines.launch
-
-var showRadioAddDialog = mutableStateOf(false)
-var showRadioModifyDialog = mutableStateOf(false)
-var selectedRadioIndex = mutableIntStateOf(0)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RadioScreen(
-    mediaController: MediaController? = null
+    mediaController: MediaController? = null,
+    viewModel: RadioScreenViewModel = hiltViewModel()
 ) {
     val leftPadding =
         if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     val coroutineScope = rememberCoroutineScope()
 
-    val context = LocalContext.current
-
     val state = rememberPullToRefreshState()
-    var isRefreshing by remember { mutableStateOf(false) }
+
+    var showRadioModifyDialog by remember { mutableStateOf(false) }
+    var showRadioAddDialog by remember { mutableStateOf(false) }
+
+    val isRefreshing by viewModel.isLoading.collectAsStateWithLifecycle()
+    val radios by viewModel.radioStations.collectAsStateWithLifecycle()
 
     var showRipple by remember { mutableIntStateOf(0) }
     val rippleXOffset = LocalWindowInfo.current.containerSize.width / 2
@@ -89,18 +87,8 @@ fun RadioScreen(
 
 
     val onRefresh: () -> Unit = {
-        coroutineScope.launch {
-            isRefreshing = true
-            radioList.clear()
-            radioList.addAll(getRadios(context, true))
-            showRipple++
-            isRefreshing = false
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (radioList.isEmpty())
-            onRefresh.invoke()
+        viewModel.getRadioStations()
+        showRipple++
     }
 
     PullToRefreshBox(
@@ -111,7 +99,7 @@ fun RadioScreen(
         /* RADIO ICON + TEXT */
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(
                     start = leftPadding,
                     top = WindowInsets.statusBars
@@ -137,7 +125,7 @@ fun RadioScreen(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Button(
-                    onClick = { showRadioAddDialog.value = true },
+                    onClick = { showRadioAddDialog = true },
                     shape = CircleShape,
                     modifier = Modifier.size(48.dp),
                     contentPadding = PaddingValues(2.dp),
@@ -162,13 +150,21 @@ fun RadioScreen(
                     .wrapContentWidth()
                     .fillMaxHeight(),
             ) {
-                items(radioList) { radio ->
+                items(radios) { radio ->
                     RadioCard(
                         radio = radio,
                         onClick = {
                             coroutineScope.launch {
-                                SongHelper.play(radioList.map { it.toMediaItem() }, radioList.indexOfFirst { it.name == radio.name }, mediaController)
+                                SongHelper.play(
+                                    listOf(radio),
+                                    0,
+                                    mediaController
+                                )
                             }
+                        },
+                        onLongClick = {
+                            showRadioModifyDialog = true
+                            viewModel.selectRadioStation(it)
                         }
                     )
                 }
@@ -181,15 +177,27 @@ fun RadioScreen(
         key = showRipple
     )
 
-    if (showRadioAddDialog.value)
+    if (showRadioAddDialog)
         AddRadioDialog(
-            setShowDialog = { showRadioAddDialog.value = it },
-            onAdded = { onRefresh.invoke() }
+            setShowDialog = { showRadioAddDialog = it },
+            onAdded = { name, url, homePageUrl, addToNavidrome ->
+                viewModel.addRadioStation(name, url, homePageUrl, addToNavidrome)
+                onRefresh.invoke()
+            }
         )
-    if (showRadioModifyDialog.value)
+    if (showRadioModifyDialog) {
+        val selectedRadio by viewModel.selectedRadioStation.collectAsStateWithLifecycle()
         ModifyRadioDialog(
-            setShowDialog = { showRadioModifyDialog.value = it },
-            radio = radioList[selectedRadioIndex.intValue],
-            onModified = { onRefresh.invoke() }
+            setShowDialog = { showRadioModifyDialog = it },
+            radio = selectedRadio,
+            onModified = { id, name, url, homepage ->
+                viewModel.modifyRadioStation(id, name, url, homepage)
+                onRefresh.invoke()
+            },
+            onDeleted = {
+                viewModel.deleteRadioStation(it)
+                onRefresh.invoke()
+            }
         )
+    }
 }

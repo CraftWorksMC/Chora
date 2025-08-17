@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.elements
 
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -25,7 +24,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
@@ -35,9 +33,6 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,57 +57,6 @@ import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import kotlinx.coroutines.flow.filter
 
 //region Songs
-@Composable
-fun SongsRow(songsList: List<MediaData.Song>, onSongSelected: (song: MediaData.Song) -> Unit){
-    var isSongSelected by remember { mutableStateOf(false) }
-    LazyRow(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(end = 12.dp)
-    ) {
-        items(songsList, key = { it.navidromeID }) {song ->
-            //region Make mediaItem from Song
-            val mediaMetadata = MediaMetadata.Builder()
-                .setIsPlayable(true)
-                .setIsBrowsable(false)
-                .setTitle(song.title)
-                .setArtist(song.artist)
-                .setAlbumTitle(song.album)
-                .setArtworkUri(Uri.parse(song.imageUrl))
-                .setReleaseYear(song.year)
-                .setExtras(Bundle().apply {
-                    putInt("duration", song.duration)
-                    putString("MoreInfo", "${song.format} • ${song.bitrate}")
-                    putString("NavidromeID", song.navidromeID)
-                    putBoolean("isRadio", song.isRadio == true)
-                })
-                .build()
-            val songMediaItem = MediaItem.Builder()
-                .setMediaId(song.media.toString())
-                .setMediaMetadata(mediaMetadata)
-                .setUri(song.media)
-                .build()
-            //endregion
-
-            SongsCard(
-                song = songMediaItem, onClick = {
-                isSongSelected = true
-                onSongSelected(song)
-                //markSongAsPlayed(song)
-//                if (navidromeServersList.isEmpty()) return@SongsCard
-//                if (navidromeServersList[selectedNavidromeServerIndex.intValue].username == "" ||
-//                    navidromeServersList[selectedNavidromeServerIndex.intValue].url == "") return@SongsCard
-//                if (useNavidromeServer.value && (navidromeServersList[selectedNavidromeServerIndex.intValue].username != "" || navidromeServersList[selectedNavidromeServerIndex.intValue].url !="" || navidromeServersList[selectedNavidromeServerIndex.intValue].url != "")){
-//                    try {
-//                        getNavidromeSongs(URL("${navidromeServersList[selectedNavidromeServerIndex.intValue].url}/rest/search3.view?query=''&songCount=10000&u=${navidromeServersList[selectedNavidromeServerIndex.intValue].username}&p=${navidromeServersList[selectedNavidromeServerIndex.intValue].password}&v=1.12.0&c=Chora"))
-//                    } catch (_: Exception){
-//                        // DO NOTHING
-//                    }
-//                }
-            })
-        }
-    }
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongsHorizontalColumn(
@@ -365,42 +309,6 @@ fun ArtistsGrid(artists: List<MediaData.Artist>,
             ArtistCard(artist = artist, onClick = {
                     onArtistSelected(artist)
                 })
-        }
-    }
-}
-//endregion
-
-//region Radios
-@ExperimentalFoundationApi
-@Composable
-fun RadiosGrid(radioList: List<MediaData.Radio>, onRadioSelected: (song: MediaData.Song) -> Unit){
-    //var isSongSelected by remember { mutableStateOf(false) }
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(128.dp),
-        modifier = Modifier
-            .wrapContentWidth()
-            .fillMaxHeight(),
-    ) {
-        items(radioList) {radio ->
-            val song = MediaData.Song(
-                title = radio.name,
-                imageUrl = "android.resource://com.craftworks.music/" + R.drawable.radioplaceholder,
-                artist = radio.name,
-                media = radio.media,
-                duration = 0,
-                album = "Internet Radio",
-                year = 2024,
-                isRadio = true,
-                albumId = "", dateAdded = "", format = "MP3", path = "", parent = "", bpm = 0, navidromeID = radio.navidromeID, size = 0)
-
-            RadioCard(
-                radio = radio,
-                onClick = {
-                //isSongSelected = true
-                //sliderPos.intValue = 0
-                onRadioSelected(song)
-                }
-            )
         }
     }
 }

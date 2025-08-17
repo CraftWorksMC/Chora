@@ -26,28 +26,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.media3.common.MediaItem
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.model.MediaData
-import com.craftworks.music.data.model.radioList
-import com.craftworks.music.ui.screens.selectedRadioIndex
-import com.craftworks.music.ui.screens.showRadioModifyDialog
 
 @OptIn(ExperimentalFoundationApi::class)
 @Stable
 @Composable
-fun RadioCard(radio: MediaData.Radio, onClick: () -> Unit) {
+fun RadioCard(
+    radio: MediaItem,
+    onClick: () -> Unit,
+    onLongClick: (radio: MediaItem) -> Unit
+) {
     Column(
         modifier = Modifier
             .padding(12.dp)
             .clip(RoundedCornerShape(12.dp))
             .combinedClickable(
-                onClick = { onClick(); Log.d("Play", "Clicked Radio: " + radio.name) },
+                onClick = { onClick(); Log.d("Play", "Clicked Radio: " + radio.mediaMetadata.station) },
                 onLongClick = {
-                    showRadioModifyDialog.value = true
-                    selectedRadioIndex.intValue =
-                        radioList.indexOf(radioList.firstOrNull { it.name == radio.name && it.media == radio.media })
+                    onLongClick(radio)
                 },
                 onLongClickLabel = "Modify Radio"
             )
@@ -70,7 +69,7 @@ fun RadioCard(radio: MediaData.Radio, onClick: () -> Unit) {
         )
 
         Text(
-            text = radio.name,
+            text = radio.mediaMetadata.station.toString(),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground,
