@@ -4,7 +4,9 @@ package com.craftworks.music.ui.playing
 
 import android.util.Log
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -90,17 +92,23 @@ fun PlaybackProgressSlider(
     }
 
     val animatedValue by animateFloatAsState(
-        targetValue = currentValue.toFloat(), label = "Smooth Slider Update"
+        targetValue = currentValue.toFloat(),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "Smooth Slider Update"
     )
 
     val interactionSource = remember { MutableInteractionSource() }
     val focused = remember { mutableStateOf(false) }
+    var isInteracting by remember { mutableStateOf(false) }
 
     var isPlaying by remember { mutableStateOf(false) }
 
     LaunchedEffect(mediaController, isPlaying) {
         if (mediaController != null && isPlaying) {
-            while (isActive) {
+            while (isActive && !isInteracting) {
                 currentValue = mediaController.currentPosition
                 delay(1000L)
             }
@@ -120,6 +128,16 @@ fun PlaybackProgressSlider(
             override fun onIsPlayingChanged(playing: Boolean) {
                 Log.d("TAG", "MediaController isPlaying changed: $playing")
                 isPlaying = playing
+            }
+
+            override fun onPositionDiscontinuity(
+                oldPosition: Player.PositionInfo,
+                newPosition: Player.PositionInfo,
+                reason: Int
+            ) {
+                super.onPositionDiscontinuity(oldPosition, newPosition, reason)
+                if (reason != Player.DISCONTINUITY_REASON_SEEK)
+                    currentValue = newPosition.positionMs
             }
         }
 
@@ -164,9 +182,11 @@ fun PlaybackProgressSlider(
                 },
             value = animatedValue,
             onValueChange = {
+                isInteracting = true
                 currentValue = it.toLong()
             },
             onValueChangeFinished = {
+                isInteracting = false
                 mediaController?.seekTo(currentValue)
             },
             valueRange = 0f..(currentDuration?.toFloat() ?: 0f),
