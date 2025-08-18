@@ -39,7 +39,7 @@ fun MediaData.Song.toMediaItem(): MediaItem {
             .setArtist(this@toMediaItem.artist)
             .setAlbumTitle(this@toMediaItem.album)
             .setArtworkUri(this@toMediaItem.imageUrl.toUri())
-            .setRecordingYear(this@toMediaItem.year) // Recording Year is kept, releaseYear gets set to 'null' by ExoPlayer.
+            .setRecordingYear(this@toMediaItem.year)
             .setIsBrowsable(false).setIsPlayable(true)
             .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
             .setDurationMs(this@toMediaItem.duration.times(1000).toLong())

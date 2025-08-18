@@ -83,7 +83,7 @@ fun PlaybackProgressSlider(
     metadata: MediaMetadata? = null
 ) {
     var currentValue by remember { mutableLongStateOf(0L) }
-    val currentDuration by remember {
+    val currentDuration by remember(mediaController?.duration) {
         derivedStateOf {
             mediaController?.duration?.coerceAtLeast(0L)
         }

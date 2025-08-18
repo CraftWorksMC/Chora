@@ -11,11 +11,9 @@ import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -201,9 +199,9 @@ fun LyricsView(
         horizontalAlignment = Alignment.CenterHorizontally,
         state = state,
     ) {
-        item {
-            Spacer(modifier = Modifier.height(appViewHeightDp / 3))
-        }
+//        item {
+//            Spacer(modifier = Modifier.height(appViewHeightDp / 3))
+//        }
         // Synced Lyrics
         if (lyrics.size > 1) {
             itemsIndexed(
@@ -241,15 +239,15 @@ fun LyricsView(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = color,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
                     textAlign = TextAlign.Center,
                     lineHeight = MaterialTheme.typography.titleLarge.lineHeight.times(1.2f)
                 )
             }
         }
-        item {
-            Spacer(modifier = Modifier.height(appViewHeightDp / 3))
-        }
+//        item {
+//            Spacer(modifier = Modifier.height(appViewHeightDp / 3))
+//        }
     }
 }
 
@@ -267,7 +265,7 @@ fun SyncedLyricItem(
     val lyricAlpha: Float by animateFloatAsState(
         targetValue = if (currentLyricIndex == index) 1f else 0.5f,
         label = "Current Lyric Alpha",
-        animationSpec = tween(500, 0, FastOutSlowInEasing)
+        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
     )
 
     val lyricBlur: Dp by animateDpAsState(

@@ -1,9 +1,9 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
-import android.view.animation.OvershootInterpolator
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -176,12 +176,15 @@ fun HomeScreen(
     var rotation by remember { mutableFloatStateOf(-10f) }
     val animatedRotation by animateFloatAsState(
         targetValue = rotation,
-        animationSpec = tween(durationMillis = 1200, 0 , easing = { OvershootInterpolator().getInterpolation(it) }),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessVeryLow
+        ),
         label = "Navidrome Logo Rotate"
     )
     val offsetX = dpToPx(-36)
     val clickAction = rememberUpdatedState {
-        rotation += 360f
+        rotation += 180f
     }
 
     val isClickable =
