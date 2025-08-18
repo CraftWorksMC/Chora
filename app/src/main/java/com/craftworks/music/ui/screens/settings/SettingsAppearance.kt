@@ -1,9 +1,11 @@
 package com.craftworks.music.ui.screens.settings
 
 import android.content.res.Configuration
+import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +43,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -53,15 +61,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.Screen
+import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
 import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
 import com.craftworks.music.ui.elements.dialogs.ThemeDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -335,7 +343,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 }
             )
 
-            //More Song Info
+            //Lyrics blur Info
             val nowPlayingLyricsBlur = SettingsManager(context).nowPlayingLyricsBlurFlow.collectAsState(true)
 
             SettingsSwitch(
@@ -345,7 +353,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     coroutineScope.launch {
                         SettingsManager(context).setNowPlayingLyricsBlur(!nowPlayingLyricsBlur.value)
                     }
-                }
+                },
+                enabled = Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU
             )
 
             //Show Navidrome Logo
@@ -361,7 +370,64 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 }
             )
 
-            BottomSpacer()
+            //Show Provider Dividers
+            val showProviderDividers = SettingsManager(context).showProviderDividersFlow.collectAsState(true)
+
+            SettingsSwitch(
+                showProviderDividers.value,
+                stringResource(R.string.Setting_ProviderDividers),
+                toggleEvent = {
+                    coroutineScope.launch {
+                        SettingsManager(context).setShowProviderDividers(!showProviderDividers.value)
+                    }
+                }
+            )
+
+            // Lyrics Animation Speed
+            val lyricsAnimationSpeed = SettingsManager(context).lyricsAnimationSpeedFlow.collectAsState(1200)
+            val interactionSource = remember { MutableInteractionSource() }
+            Column {
+                Text(
+                    text = stringResource(R.string.Setting_LyricsAnimationSpeed),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.fillMaxSize(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Start
+                )
+                Slider(
+                    modifier = Modifier
+                        //.semantics { contentDescription = "Lyrics Animation Speed" }
+                        .onKeyEvent { keyEvent ->
+                            when {
+                                keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyDown -> {
+                                    runBlocking {
+                                        SettingsManager(context).setLyricsAnimationSpeed((lyricsAnimationSpeed.value + 300).coerceAtMost(2400))
+                                    }
+                                    true
+                                }
+                                keyEvent.key == Key.DirectionLeft && keyEvent.type == KeyEventType.KeyDown -> {
+                                    runBlocking {
+                                        SettingsManager(context).setLyricsAnimationSpeed((lyricsAnimationSpeed.value - 300).coerceAtLeast(600))
+                                    }
+                                    true
+                                }
+                                else -> false
+                            }
+                        },
+                    interactionSource = interactionSource,
+                    value = lyricsAnimationSpeed.value.toFloat(),
+                    steps = 5,
+                    onValueChange = {
+                        runBlocking {
+                            SettingsManager(context).setLyricsAnimationSpeed(it.toInt())
+                        }
+                    },
+                    valueRange = 600f..2400f
+                )
+            }
         }
 
         if(showBackgroundDialog)
@@ -379,7 +445,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 private fun SettingsSwitch(
     selected: Boolean,
     settingsName: String,
-    toggleEvent: () -> Unit = {}
+    toggleEvent: () -> Unit = {},
+    enabled: Boolean = true
 ){
     Row(verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -388,7 +455,8 @@ private fun SettingsSwitch(
             .selectable(
                 selected = selected,
                 onClick = toggleEvent,
-                role = Role.RadioButton
+                role = Role.RadioButton,
+                enabled = enabled
             )
     ) {
         Icon(
@@ -409,6 +477,6 @@ private fun SettingsSwitch(
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Start
         )
-        Switch(checked = selected, onCheckedChange = { toggleEvent() })
+        Switch(checked = selected, onCheckedChange = { toggleEvent() }, enabled = enabled)
     }
 }

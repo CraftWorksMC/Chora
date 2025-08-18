@@ -1,15 +1,9 @@
 package com.craftworks.music.ui.elements
 
-import android.net.Uri
-import android.util.Log
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,9 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,7 +35,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,103 +42,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.radioList
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
-import com.craftworks.music.ui.screens.selectedRadioIndex
-import com.craftworks.music.ui.screens.showRadioModifyDialog
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
-@Stable
 @Composable
-fun SongsCard(song: MediaItem, onClick: () -> Unit){
-                Card(
-                    modifier = Modifier
-                        .padding(12.dp, 48.dp, 0.dp, 0.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .combinedClickable(
-                            onClick = {
-                                onClick(); Log.d(
-                                "Play",
-                                "Clicked Song: " + song.mediaMetadata.title
-                            )
-                            },
-                            onLongClick = {
-                                if (song.mediaMetadata.extras?.getBoolean("isRadio") == false) return@combinedClickable
-                                showRadioModifyDialog.value = true
-                                selectedRadioIndex.intValue =
-                                    radioList.indexOf(radioList.firstOrNull { it.name == song.mediaMetadata.artist && it.media == song.mediaId })
-                            },
-                            onLongClickLabel = "Modify Radio"
-                        ),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        contentColor = MaterialTheme.colorScheme.onBackground,
-                        disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .width(128.dp)
-                            .height(172.dp)
-                    ) {
-
-                        AsyncImage(
-                            model =
-                            if (song.mediaMetadata.artworkUri == Uri.EMPTY && song.mediaMetadata.extras?.getBoolean("isRadio") == true)
-                                R.drawable.rounded_cell_tower_24
-                            else song.mediaMetadata.artworkUri,
-                            placeholder = painterResource(R.drawable.placeholder),
-                            fallback = painterResource(R.drawable.placeholder),
-                            contentScale = ContentScale.FillHeight,
-                            contentDescription = "Album Image",
-                            modifier = Modifier
-                                .height(128.dp)
-                                .width(128.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp))
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            text = song.mediaMetadata.title.toString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.fillMaxWidth(),
-                            maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Text(
-                            text = song.mediaMetadata.artist.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
-                            modifier = Modifier.fillMaxWidth(),
-                            maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-}
-
-@Composable
-fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
+fun HorizontalSongCard(
+    song: MediaItem,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     val context = LocalContext.current
 
     Card(
-        onClick = { onClick(); Log.d("Play", "Clicked Song: " + song.title) },
+        onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.Transparent,
@@ -155,22 +68,21 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
             disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
             disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ),
-        modifier = Modifier
-            .padding(0.dp, 0.dp, 0.dp, 12.dp)
-            .clip(RoundedCornerShape(12.dp))
+        modifier = modifier
     ) {
         Row(
             modifier = Modifier
                 .height(72.dp), verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = ImageRequest.Builder(context)
-                    .data(song.imageUrl)
+                    .data(song.mediaMetadata.artworkUri)
                     .crossfade(true)
                     .size(64)
+                    .diskCacheKey(
+                        song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
+                    )
                     .build(),
-                placeholder = painterResource(R.drawable.placeholder),
-                fallback = painterResource(R.drawable.placeholder),
                 contentDescription = "Album Image",
                 contentScale = ContentScale.FillHeight,
                 modifier = Modifier
@@ -187,7 +99,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                     .weight(1f)
             ) {
                 Text(
-                    text = song.title,
+                    text = song.mediaMetadata.title.toString(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -197,7 +109,7 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                 )
 
                 Text(
-                    text = song.artist + " • " + song.year,
+                    text = song.mediaMetadata.artist.toString() + if (song.mediaMetadata.recordingYear != 0) " • " + song.mediaMetadata.recordingYear else "",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
@@ -206,8 +118,10 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                     textAlign = TextAlign.Start
                 )
             }
-            val formattedDuration by remember(song.duration) {
-                derivedStateOf { formatMilliseconds(song.duration) }
+            val formattedDuration by remember(song.mediaMetadata.durationMs) {
+                derivedStateOf {
+                    formatMilliseconds((song.mediaMetadata.durationMs?.div(1000))?.toInt() ?: 0)
+                }
             }
             Text(
                 text = formattedDuration,
@@ -269,13 +183,13 @@ fun HorizontalSongCard(song: MediaData.Song, onClick: () -> Unit) {
                         }
                     )
                     DropdownMenuItem(
-                        enabled = !song.navidromeID.startsWith("Local_"),
+                        enabled = !song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_"),
                         text = {
                             Text(stringResource(R.string.Action_Download))
                         },
                         onClick = {
                             coroutineScope.launch {
-                                downloadNavidromeSong(context, song)
+                                downloadNavidromeSong(context, song.mediaMetadata)
                             }
                             expanded = false
                         },

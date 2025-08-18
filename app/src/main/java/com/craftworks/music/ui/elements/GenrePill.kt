@@ -17,7 +17,7 @@ fun GenrePill(genre: String) {
     Card (
         modifier = Modifier
             .wrapContentHeight()
-            .padding(horizontal = 6.dp),
+            .padding(6.dp),
         shape = CircleShape
     ) {
         Text(

@@ -1,4 +1,4 @@
-package com.craftworks.music.data
+package com.craftworks.music.data.model
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home_screen")
@@ -13,7 +13,7 @@ sealed class Screen(val route: String) {
 
     //Artists
     data object Artists : Screen("artists_screen")
-    data object AristDetails : Screen("artist_details")
+    data object ArtistDetails : Screen("artist_details")
 
     //Playlists
     data object Playlists : Screen("playlist_screen")

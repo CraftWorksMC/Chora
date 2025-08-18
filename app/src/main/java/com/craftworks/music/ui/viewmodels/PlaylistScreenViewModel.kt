@@ -1,55 +1,106 @@
 package com.craftworks.music.ui.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.providers.getPlaylistDetails
-import com.craftworks.music.providers.getPlaylists
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import com.craftworks.music.data.repository.PlaylistRepository
+import com.craftworks.music.managers.DataRefreshManager
+import com.craftworks.music.providers.local.localPlaylistImageGenerator
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PlaylistScreenViewModel : ViewModel(), ReloadableViewModel {
-    private val _allPlaylists = MutableStateFlow<List<MediaData.Playlist>>(emptyList())
-    val allPlaylists: StateFlow<List<MediaData.Playlist>> = _allPlaylists.asStateFlow()
+@HiltViewModel
+class PlaylistScreenViewModel @Inject constructor(
+    private val playlistRepository: PlaylistRepository
+) : ViewModel() {
+    private val _allPlaylists = MutableStateFlow<List<MediaItem>>(emptyList())
+    val allPlaylists: StateFlow<List<MediaItem>> = _allPlaylists.asStateFlow()
 
-    private var _selectedPlaylist = MutableStateFlow<MediaData.Playlist?>(null)
-    var selectedPlaylist: StateFlow<MediaData.Playlist?> = _selectedPlaylist
+    private var _selectedPlaylist = MutableStateFlow<MediaItem?>(null)
+    val selectedPlaylist: StateFlow<MediaItem?> = _selectedPlaylist
 
-    fun setCurrentPlaylist(playlist: MediaData.Playlist){
-        _selectedPlaylist.value = playlist
-    }
+    private var _selectedPlaylistSongs = MutableStateFlow<List<MediaItem>>(emptyList())
+    val selectedPlaylistSongs: StateFlow<List<MediaItem>> = _selectedPlaylistSongs.asStateFlow()
 
-    override fun reloadData() {
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    init {
+        loadPlaylists()
+
         viewModelScope.launch {
-            coroutineScope {
-                val allPlaylistsDeferred = async { getPlaylists() }
-
-                _allPlaylists.value = allPlaylistsDeferred.await()
+            DataRefreshManager.dataSourceChangedEvent.collect {
+                loadPlaylists()
             }
         }
     }
 
-    fun addLocalPlaylists(playlist: List<MediaData.Playlist>) {
-        _allPlaylists.value += playlist
+    fun loadPlaylists() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _allPlaylists.value = playlistRepository.getPlaylists(true)
+            _isLoading.value = false
+        }
+    }
+
+    fun setCurrentPlaylist(playlist: MediaItem){
+        _selectedPlaylistSongs.value = emptyList<MediaItem>()
+        _selectedPlaylist.value = playlist
+        fetchPlaylistDetails() // Fetch details when playlist is set
+    }
+
+    suspend fun updatePlaylistsImages(context: Context) {
+        _allPlaylists.value = _allPlaylists.value.map {
+            if (it.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local") == true) {
+                val songs = playlistRepository.getPlaylistSongs(it.mediaMetadata.extras?.getString("navidromeID") ?: "", true)
+                it.buildUpon()
+                    .setMediaMetadata(
+                        it.mediaMetadata.buildUpon()
+                            .setArtworkData(localPlaylistImageGenerator(songs, context), MediaMetadata.PICTURE_TYPE_OTHER)
+                            .build()
+                    )
+                    .build()
+            } else {
+                it
+            }
+        }
     }
 
     fun fetchPlaylistDetails() {
-        if (!NavidromeManager.checkActiveServers()) return
+        if (_selectedPlaylist.value == null) return
+
+        val playlistId = _selectedPlaylist.value?.mediaMetadata?.extras?.getString("navidromeID")
+        if (playlistId == null) return
+
+        println("Fetching playlist details for playlist ID: $playlistId")
 
         viewModelScope.launch {
-            coroutineScope {
-                val selectedPlaylistDeferred = async { getPlaylistDetails(_selectedPlaylist.value?.navidromeID.toString()) }
-
-                _selectedPlaylist.value = _selectedPlaylist.value?.copy(
-                    songs = selectedPlaylistDeferred.await()?.songs,
-                    coverArt = selectedPlaylistDeferred.await()?.coverArt
-                )
+            val loadingJob = launch {
+                delay(1000)
+                if (_selectedPlaylistSongs.value.isEmpty()) {
+                    _isLoading.value = true
+                }
             }
+            loadingJob.start()
+            coroutineScope {
+                if (playlistId == "favourites") {
+                    //TODO: favourites
+                }
+                else {true
+                    _selectedPlaylistSongs.value = async { playlistRepository.getPlaylistSongs(playlistId) }.await()
+                }
+            }
+            loadingJob.cancel()
+            _isLoading.value = false
         }
     }
 }

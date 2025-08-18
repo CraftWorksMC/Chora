@@ -46,15 +46,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
-import com.craftworks.music.data.Lyric
+import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.SettingsManager
 import com.gigamole.composefadingedges.FadingEdgesGravity
 import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
 import com.gigamole.composefadingedges.verticalFadingEdges
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -67,7 +72,9 @@ fun LyricsView(
 ) {
     val lyrics by LyricsManager.Lyrics.collectAsState()
 
+
     val useBlur by SettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
+    val lyricsAnimationSpeed by SettingsManager(LocalContext.current).lyricsAnimationSpeedFlow.collectAsState(100)
 
     // State holding the current position
     val currentPosition = remember { mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0) }
@@ -81,27 +88,50 @@ fun LyricsView(
 
     val configuration = LocalConfiguration.current
     val appViewHeightDp = configuration.screenHeightDp.dp
-
-    // Update the current playback position every second
+  
+    // Update current position only each lyrics change.
     LaunchedEffect(mediaController, lyrics) {
-        while (true) {
-            if (mediaController?.isPlaying == true) {
-                val position = mediaController.currentPosition.toInt()
+        var trackingJob: Job = Job()
+        val scope = CoroutineScope(Dispatchers.Main)
+
+        if (mediaController?.isPlaying == true) {
+            trackingJob = scope.launch {
+                var position = mediaController.currentPosition.toInt()
                 currentPosition.intValue = position
 
-                // Calculate delay until next update based on lyrics timing
-                val delay = getNextUpdateDelay(position, lyrics)
-                delay(delay)
-            } else {
-                delay(500)
+                while (isActive) {
+                    position = mediaController.currentPosition.toInt()
+                    currentPosition.intValue = position
+                    delay(getNextUpdateDelay(position, lyrics))
+                }
             }
         }
+
+        mediaController?.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                super.onIsPlayingChanged(isPlaying)
+                if (isPlaying) {
+                    if (trackingJob.isActive == true) return
+
+                    trackingJob = scope.launch {
+                        var position = mediaController.currentPosition.toInt()
+                        currentPosition.intValue = position
+
+                        while (isActive) {
+                            position = mediaController.currentPosition.toInt()
+                            currentPosition.intValue = position
+                            delay(getNextUpdateDelay(position, lyrics))
+                        }
+                    }
+                } else trackingJob.cancel()
+            }
+        })
     }
 
     // Lyric index updates and scrolling
     LaunchedEffect(currentPosition.intValue, lyrics) {
         if (mediaController?.isPlaying == true) {
-            val newCurrentLyricIndex = lyrics.indexOfFirst { it.timestamp > currentPosition.intValue }
+            val newCurrentLyricIndex = lyrics.indexOfFirst { it.timestamp > (currentPosition.intValue + lyricsAnimationSpeed / 2) }
                 .takeIf { it >= 0 } ?: lyrics.size
 
             val targetIndex = (newCurrentLyricIndex - 1).coerceAtLeast(0)
@@ -119,7 +149,7 @@ fun LyricsView(
 
                         state.animateScrollBy(
                             value = scrollBy.toFloat(),
-                            animationSpec = tween(500, 0, FastOutSlowInEasing)
+                            animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
                         )
                     }
                     else
@@ -186,7 +216,8 @@ fun LyricsView(
                     currentLyricIndex = currentLyricIndex.intValue,
                     useBlur = useBlur,
                     visibleItemsInfo = visibleItemsInfo,
-                    color = color
+                    color = color,
+                    lyricsAnimationSpeed = lyricsAnimationSpeed
                 ) {
                     mediaController?.seekTo(lyric.timestamp.toLong())
                     currentPosition.intValue = lyric.timestamp
@@ -230,7 +261,8 @@ fun SyncedLyricItem(
     useBlur: Boolean,
     visibleItemsInfo: List<LazyListItemInfo>,
     color: Color,
-    onClick: () -> Unit = {}
+    lyricsAnimationSpeed: Int = 1200,
+    onClick: () -> Unit = {},
 ) {
     val lyricAlpha: Float by animateFloatAsState(
         targetValue = if (currentLyricIndex == index) 1f else 0.5f,
@@ -243,13 +275,13 @@ fun SyncedLyricItem(
             index, currentLyricIndex, visibleItemsInfo
         ) else 0.dp,
         label = "Lyric Blur",
-        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
     )
 
     val scale by animateFloatAsState(
         targetValue = if (currentLyricIndex == index) 1f else 0.9f,
         label = "Lyric Scale Animation",
-        animationSpec = tween(500, 0, FastOutSlowInEasing)
+        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
     )
 
     Box(modifier = Modifier
@@ -295,15 +327,9 @@ private fun getNextUpdateDelay(currentTime: Int, lyrics: List<Lyric>): Long {
     val nextTimestamp = lyrics
         .filter { it.timestamp > currentTime }
         .minByOrNull { it.timestamp }
-        ?.timestamp ?: return 1000L // Default to 1 second if no future timestamps
+        ?.timestamp ?: return 1000L
 
-    // Calculate time until next lyric
     val timeUntilNext = nextTimestamp - currentTime
 
-    // If timestamps are too far apart (> 5 seconds), use intermediate updates
-    return when {
-        timeUntilNext <= 0 -> 500L // Minimum delay
-        timeUntilNext > 5000 -> 1000L // Maximum delay for long gaps
-        else -> (timeUntilNext / 2).toLong().coerceIn(500L, 2000L) // Half the time until next lyric
-    }
+    return timeUntilNext.toLong()
 }

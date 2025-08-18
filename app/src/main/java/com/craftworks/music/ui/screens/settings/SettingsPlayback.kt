@@ -55,13 +55,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
-import com.craftworks.music.data.Screen
+import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.ui.elements.BottomSpacer
 import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.dialogs.TranscodingDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import kotlinx.coroutines.runBlocking
+import kotlin.math.roundToInt
 
 @Preview(showSystemUi = false, showBackground = true)
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
@@ -251,18 +251,20 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                                         val newValue = (sliderValue.value + 1f).coerceIn(1f, 10f)
                                         println("NewValue $newValue, sliderValue $sliderValue")
                                         runBlocking {
-                                            SettingsManager(context).setScrobblePercent(newValue.toInt())
+                                            SettingsManager(context).setScrobblePercent(newValue.roundToInt())
                                         }
                                         true
                                     }
+
                                     keyEvent.key == Key.DirectionLeft && keyEvent.type == KeyEventType.KeyDown -> {
                                         val newValue = (sliderValue.value - 1f).coerceIn(1f, 10f)
                                         println("NewValue $newValue, sliderValue $sliderValue")
                                         runBlocking {
-                                            SettingsManager(context).setScrobblePercent(newValue.toInt())
+                                            SettingsManager(context).setScrobblePercent(newValue.roundToInt())
                                         }
                                         true
                                     }
+
                                     else -> false
                                 }
                             },
@@ -271,16 +273,14 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         steps = 8,
                         onValueChange = {
                             runBlocking {
-                                SettingsManager(context).setScrobblePercent(it.toInt())
+                                SettingsManager(context).setScrobblePercent(it.roundToInt())
                             }
-                            println("Change percentage to $it")
+                            println("Change scrobble percentage to ${it.roundToInt()}")
                         },
                         valueRange = 1f..10f
                     )
                 }
             }
-
-            BottomSpacer()
         }
 
         if (showWifiTranscodingDialog) TranscodingDialog(setShowDialog = { showWifiTranscodingDialog = it }, true)

@@ -54,7 +54,7 @@
     <string name="Label_Sorting">Trier par</string>
         <!-- Connection Errors -->
     <string name="Navidrome_Error">Serveur Navidrome indisponible.</string>
-    <string name="Navidrome_Sync">Synchronisation de Navidrome en cours…</string>
+    <string name="Navidrome_Sync">Chargement...</string>
         <!-- Home -->
     <string name="welcome_text">Bienvenue</string>
     <string name="recently_added">Récemment ajoutés</string>
@@ -62,7 +62,7 @@
     <string name="recently_played">Joués récemment</string>
     <string name="random_songs">Explorer votre médiathèque</string>
         <!-- Artist Details -->
-    <string name="Screen_Recent_Albums">Albums récents</string>
+    <string name="Screen_Discography">Discographie</string>
     <string name="Screen_Top_Songs">Top titres</string>
         <!-- Settings -->
     <string name="Settings_Header_Appearance">Apparence</string>
@@ -72,6 +72,8 @@
     <string name="Setting_MoreInfo">Afficher plus d\'informations</string>
     <string name="Setting_NavidromeLogo">Afficher le logo de Navidrome</string>
     <string name="Settings_Header_Playback">Playback</string>
+    <string name="Setting_ProviderDividers">Afficher les séparateurs de fournisseurs</string>
+    <string name="Setting_LyricsAnimationSpeed">Vitesse d\'animation du texte</string>
     <string name="Setting_Transcoding">Max Bitrate</string>
     <string name="Setting_Transcoding_Data">Max Bitrate (Mobile data)</string>
     <string name="Setting_Scrobble_Percent">Min. Scrobble Percentage</string>

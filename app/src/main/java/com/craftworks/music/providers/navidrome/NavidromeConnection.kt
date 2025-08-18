@@ -2,10 +2,9 @@ package com.craftworks.music.providers.navidrome
 
 import android.annotation.SuppressLint
 import android.util.Log
-import com.craftworks.music.data.MediaData
+import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.managers.NavidromeManager.getCurrentServer
 import com.craftworks.music.managers.NavidromeManager.setSyncingStatus
-import com.craftworks.music.providers.getPlaylists
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -20,10 +19,13 @@ import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.UnknownHostException
 import java.security.MessageDigest
+import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
@@ -37,6 +39,7 @@ data class SubsonicResponse(
     val openSubsonic: Boolean,
 
     // Songs
+    val song: MediaData.Song? = null,
     val searchResult3: SearchResult3? = null,
 
     // Albums
@@ -57,13 +60,16 @@ data class SubsonicResponse(
 
     //Lyrics
     val lyrics: MediaData.PlainLyrics? = null,
-    val lyricsList: LyricsList? = null
+    val lyricsList: LyricsList? = null,
+
+    // Favourites
+    val starred: Starred? = null,
 )
 
 suspend fun sendNavidromeGETRequest(
     endpoint: String,
     ignoreCachedResponse: Boolean = false
-) : List<MediaData> {
+) : List<Any> {
     // Check if data is in the cache
     val cachedData = NavidromeCache.get(endpoint)
     if (cachedData != null && ignoreCachedResponse == false) {
@@ -72,7 +78,7 @@ suspend fun sendNavidromeGETRequest(
         return cachedData
     }
 
-    val parsedData = mutableListOf<MediaData>()
+    val parsedData = mutableListOf<Any>()
     val server = getCurrentServer() ?: throw IllegalArgumentException("Could not get current server.")
 
     setSyncingStatus(true)
@@ -95,26 +101,35 @@ suspend fun sendNavidromeGETRequest(
         val connection = if (url.protocol == "https") {
             (url.openConnection() as HttpsURLConnection).apply {
                 if (server.allowSelfSignedCert == true) {
-                    // Allow every single cert. Not the best way to do this but eh
-                    val trustAllCerts =
-                        arrayOf<TrustManager>(@SuppressLint("CustomX509TrustManager") object :
-                            X509TrustManager {
+                    // INSECURE MODE: Trust all certificates + use client certs
+                    val trustAllCerts = arrayOf<TrustManager>(
+                        object : X509TrustManager {
                             @SuppressLint("TrustAllX509TrustManager")
-                            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) { }
+                            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
 
                             @SuppressLint("TrustAllX509TrustManager")
-                            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) { }
+                            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
 
-                            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-                        })
+                            override fun getAcceptedIssuers() = arrayOf<X509Certificate>()
+                        }
+                    )
 
-                    val sslContext = SSLContext.getInstance("SSL")
-                    sslContext.init(null, trustAllCerts, java.security.SecureRandom())
-                    val allHostsValid = HostnameVerifier { _, _ -> true }
+                    // Try to load client certificates from system keystore
+                    val keyManagers = try {
+                        val keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+                        keyManagerFactory.init(null, null)
+                        keyManagerFactory.keyManagers
+                    } catch (e: Exception) {
+                        Log.e("NAVIDROME", "Error loading client certificates", e)
+                        null
+                    }
 
-                    // Apply cert authenticity changes.
+                    val sslContext = SSLContext.getInstance("TLS")
+                    sslContext.init(keyManagers, trustAllCerts, SecureRandom())
                     sslSocketFactory = sslContext.socketFactory
-                    hostnameVerifier = allHostsValid
+                    hostnameVerifier = HostnameVerifier { _, _ -> true }
+                } else {
+                    sslSocketFactory = SSLSocketFactory.getDefault() as SSLSocketFactory
                 }
             }
         } else {
@@ -136,38 +151,49 @@ suspend fun sendNavidromeGETRequest(
                 }
 
                 inputStream.bufferedReader().use {
-                    withContext(Dispatchers.Default) {
-                        val responseContent = it.readText()
-                        when {
-                            endpoint.startsWith("ping")         -> parseNavidromeStatusXML   (responseContent)
-                            endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON    (responseContent, server.url, server.username, server.password))
+                    val responseContent = it.readText()
+                    when {
+                        endpoint.startsWith("ping")         -> parseNavidromeStatusXML(responseContent)
+                        endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON(responseContent, server.url, server.username, server.password))
 
-                            // Albums
-                            endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))
-                            endpoint.startsWith("getAlbum.")    -> parsedData.addAll(parseNavidromeAlbumJSON(responseContent, server.url, server.username, server.password))
+                        // Albums
+                        endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))
+                        endpoint.startsWith("getAlbum.")    -> parsedData.addAll(parseNavidromeAlbumJSON(responseContent, server.url, server.username, server.password))
 
 
-                            // Artists
-                            endpoint.startsWith("getArtists")   -> parsedData.addAll(parseNavidromeArtistsJSON(responseContent))
-                            endpoint.startsWith("getArtist.")   -> parsedData.addAll(listOf(parseNavidromeArtistAlbumsJSON(responseContent, server.url, server.username, server.password)))
-                            endpoint.startsWith("getArtistInfo")-> parsedData.addAll(listOf(parseNavidromeArtistBiographyJSON(responseContent)))
+                        // Artists
+                        endpoint.startsWith("getArtists")   -> parsedData.addAll(parseNavidromeArtistsJSON(responseContent))
+                        endpoint.startsWith("getArtist.")   -> parsedData.addAll(parseNavidromeArtistAlbumsJSON(responseContent, server.url, server.username, server.password))
+                        endpoint.startsWith("getArtistInfo")-> parsedData.addAll(listOf(parseNavidromeArtistBiographyJSON(responseContent)))
 
-                            // Playlists
-                            endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
-                            endpoint.startsWith("getPlaylist.") -> parsedData.addAll(listOf(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password)))
-                            endpoint.startsWith("updatePlaylist") -> getPlaylists(true) // Ignore cache
-                            endpoint.startsWith("createPlaylist") -> getPlaylists(true) // Ignore cache
-                            endpoint.startsWith("deletePlaylist") -> getPlaylists(true) // Ignore cache
+                        // Playlists
+                        endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
+                        endpoint.startsWith("getPlaylist.") -> parsedData.addAll(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password))
+                        endpoint.startsWith("updatePlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
+                        endpoint.startsWith("createPlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
+                        endpoint.startsWith("deletePlaylist") -> { NavidromeCache.delByPrefix("getPlaylist") }
 
-                            // Radios
-                            endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
+                        // Radios
+                        endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
 
-                            // Lyrics
-                            endpoint.startsWith("getLyrics.") -> parsedData.addAll(listOf(parseNavidromePlainLyricsJSON(responseContent)))
-                            endpoint.startsWith("getLyricsBySongId.") -> parsedData.addAll(parseNavidromeSyncedLyricsJSON(responseContent))
+                        // Lyrics
+                        endpoint.startsWith("getLyrics.") -> parsedData.addAll(listOf(parseNavidromePlainLyricsJSON(responseContent)))
+                        endpoint.startsWith("getLyricsBySongId.") -> parsedData.addAll(parseNavidromeSyncedLyricsJSON(responseContent))
 
-                            else -> { setSyncingStatus(false) }
+                        // Star and unstar
+                        endpoint.startsWith("star") -> {
+                            NavidromeCache.delByPrefix("getStarred")
+                            setSyncingStatus(false)
                         }
+                        endpoint.startsWith("unstar") -> {
+                            NavidromeCache.delByPrefix("getStarred")
+                            setSyncingStatus(false)
+                        }
+
+                        // Favourites
+                        endpoint.startsWith("getStarred") -> { parsedData.addAll(parseNavidromeFavouritesJSON(responseContent, server.url, server.username, server.password)) }
+
+                        else -> { setSyncingStatus(false) }
                     }
                 }
                 inputStream.close()

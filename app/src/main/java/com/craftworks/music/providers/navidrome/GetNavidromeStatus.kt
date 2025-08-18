@@ -10,7 +10,7 @@ var navidromeStatus = mutableStateOf("")
 
 suspend fun getNavidromeStatus(server: NavidromeProvider){
     NavidromeManager.addServer(server)
-    sendNavidromeGETRequest("ping.view?")
+    sendNavidromeGETRequest("ping.view?", true)
     NavidromeManager.removeServer(server.id)
 }
 
@@ -37,4 +37,3 @@ fun parseNavidromeStatusXML(response: String){
         }
     }
 }
-

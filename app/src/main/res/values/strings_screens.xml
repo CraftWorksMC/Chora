@@ -8,6 +8,6 @@
     <string name="random_songs">Explore From Your Library</string>
 
     <!-- Artist Details -->
-    <string name="Screen_Recent_Albums">Recent Albums</string>
+    <string name="Screen_Discography">Discography</string>
     <string name="Screen_Top_Songs">Top Songs</string>
 </resources>

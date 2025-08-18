@@ -4,7 +4,8 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.craftworks.music.data.Lyric
+import androidx.media3.common.MediaMetadata
+import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.getNavidromePlainLyrics
 import com.craftworks.music.providers.navidrome.getNavidromeSyncedLyrics
@@ -17,17 +18,22 @@ object LyricsManager {
     private val _Lyrics = MutableStateFlow(listOf<Lyric>())
     val Lyrics: StateFlow<List<Lyric>> = _Lyrics.asStateFlow()
 
-    private val useLrcLib: Boolean = true
+    var useLrcLib by mutableStateOf(true)
 
-    suspend fun getLyrics() {
+    suspend fun getLyrics(metadata: MediaMetadata?) {
         // Try getting lyrics through navidrome, first synced then plain.
         // If that fails, try LRCLIB.net.
         // If we turned it off or we cannot find lyrics, then return an empty list
 
+        if (metadata?.mediaType == MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
+            _Lyrics.value = listOf()
+            return
+        }
+
         var foundNavidromePlainLyrics by mutableStateOf(false)
 
         if (NavidromeManager.checkActiveServers()) {
-            getNavidromeSyncedLyrics().takeIf { it.isNotEmpty() }?.let {
+            getNavidromeSyncedLyrics(metadata?.extras?.getString("navidromeID") ?: "").takeIf { it.isNotEmpty() }?.let {
                 if (it.size == 1)
                     foundNavidromePlainLyrics = true
                 else {
@@ -37,7 +43,7 @@ object LyricsManager {
                 }
             }
 
-            getNavidromePlainLyrics().takeIf { it.isNotEmpty() }?.let {
+            getNavidromePlainLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
                 if (it.size == 1)
                     foundNavidromePlainLyrics = true
 
@@ -49,13 +55,13 @@ object LyricsManager {
         if (useLrcLib) {
             if (foundNavidromePlainLyrics) {
                 Log.d("LYRICS", "Got Navidrome plain lyrics, trying LRCLIB.")
-                getLrcLibLyrics().takeIf { it.isNotEmpty() }?.let {
+                getLrcLibLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
                     if (it.size != 1) _Lyrics.value = it
                     return
                 }
             }
 
-            getLrcLibLyrics().takeIf { it.isNotEmpty() }?.let {
+            getLrcLibLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
                 Log.d("LYRICS", "Got LRCLIB lyrics.")
                 _Lyrics.value = it
                 return

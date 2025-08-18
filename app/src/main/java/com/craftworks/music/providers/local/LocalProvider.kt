@@ -6,49 +6,50 @@ import android.content.Context
 import android.database.Cursor
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
-import com.craftworks.music.data.Genre
-import com.craftworks.music.data.MediaData
+import androidx.core.net.toUri
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import com.craftworks.music.R
+import com.craftworks.music.data.model.Genre
+import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.managers.LocalProviderManager
-import java.io.FileNotFoundException
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class LocalProvider private constructor() {
-    private var applicationContext: Context? = null
+@Singleton
+class LocalProvider @Inject constructor(
+    @ApplicationContext private val context: Context
+) { // Inject Context via constructor
 
-    companion object {
-        @Volatile
-        private var instance: LocalProvider? = null
-
-        fun getInstance(): LocalProvider {
-            return instance ?: synchronized(this) {
-                instance ?: LocalProvider().also { instance = it }
-            }
-        }
+    private companion object { // Still useful for TAG
+        private const val TAG = "LOCAL PROVIDER"
     }
 
-    fun init(context: Context) {
-        applicationContext = context.applicationContext
-
+    // Remove init, scanLocalFiles is now called in constructor if needed, or explicitly
+    init {
         scanLocalFiles()
     }
 
     fun scanLocalFiles() {
         MediaScannerConnection.scanFile(
-            applicationContext, arrayOf(Environment.getExternalStorageDirectory().path), null
+            context, arrayOf(Environment.getExternalStorageDirectory().path), null
         ) { _, _ -> Log.i("Scan For Files", "Media Scan Completed") }
     }
 
     //region Albums
-    fun getLocalAlbums(sort: String?): List<MediaData.Album> {
-        Log.d("LOCAL PROVIDER", "Getting All Albums!")
-        val albums = mutableListOf<MediaData.Album>()
+    fun getLocalAlbums(sort: String?): List<MediaItem> {
+        Log.d(TAG, "Getting All Albums!")
+        val albums = mutableSetOf<MediaItem>()
 
-        val sortOrder = when(sort) {
+        val sortOrder = when (sort) {
             "alphabeticalByName" -> "${MediaStore.Audio.Albums.ALBUM} DESC"
             "recent" -> "${MediaStore.Audio.Media.DATE_MODIFIED} DESC"
             "newest" -> "${MediaStore.Audio.Media.DATE_ADDED} DESC"
@@ -58,483 +59,497 @@ class LocalProvider private constructor() {
             }
         }
 
-        applicationContext?.let { context ->
-            val contentResolver: ContentResolver = context.contentResolver
-            val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-            val projection = arrayOf(
-                MediaStore.Audio.Media._ID,
-                MediaStore.Audio.Albums.ALBUM,
-                MediaStore.Audio.Albums.ARTIST,
-            )
-            val cursor: Cursor? = contentResolver.query(
-                uri,
-                projection,
-                "${MediaStore.Audio.Media.DATA} LIKE ?" +
-                        " OR ${MediaStore.Audio.Media.DATA} LIKE ?"
-                            .repeat(LocalProviderManager.getAllFolders().size - 1),
-                LocalProviderManager.getAllFolders().map {
-                    "%$it%"
-                }.toTypedArray(),
-                sortOrder
-            )
+        val contentResolver: ContentResolver = context.contentResolver
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        val projection = arrayOf(
+            MediaStore.Audio.Albums._ID,
+            MediaStore.Audio.Media.IS_MUSIC,
+            MediaStore.Audio.Albums.ALBUM,
+            MediaStore.Audio.Albums.ARTIST,
+        )
 
-            when {
-                cursor == null -> {
-                    // query failed, handle error.
-                }
+        val folders = LocalProviderManager.getAllFolders()
+        val selectionBuilder = StringBuilder("${MediaStore.Audio.Media.IS_MUSIC} != 0")
+        val selectionArgs = mutableListOf<String>()
 
-                !cursor.moveToFirst() -> {
-                    // no media on the device
-                }
-
-                else -> {
-                    val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums._ID)
-                    val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)
-                    val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)
-                    //val dateAddedColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
-                    //val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
-
-                    do {
-                        val thisId = cursor.getLongOrNull(idColumn) ?: 0
-                        val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
-                        val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
-                        //val thisDateAdded = cursor.getString(dateAddedColumn)
-                        //val thisYear = cursor.getInt(yearColumn)
-
-                        val imageUri: String = try {
-                            "content://media/external/audio/media/$thisId/albumart"
-                        } catch (_: FileNotFoundException) {
-                            println("No Album Art!")
-                        }.toString()
-
-                        val album = MediaData.Album(
-                            navidromeID = "Local_$thisId",
-                            name = thisAlbum,
-                            album = thisAlbum,
-                            title = thisAlbum,
-                            artist = thisArtist,
-                            coverArt = imageUri,
-                            songCount = 0,
-                            duration = 0,
-                            artistId = "",
-                        )
-
-                        if (!albums.contains(album))
-                            albums.add(album)
-                    } while (cursor.moveToNext())
-                }
+        if (folders.isNotEmpty()) {
+            selectionBuilder.append(" AND (")
+            folders.forEachIndexed { index, folder ->
+                if (index > 0) selectionBuilder.append(" OR ")
+                selectionBuilder.append("${MediaStore.Audio.Media.DATA} LIKE ?")
+                selectionArgs.add("%$folder%")
             }
-
-            cursor?.close()
+            selectionBuilder.append(")")
         }
 
-        return albums
+        val cursor: Cursor? = contentResolver.query(
+            uri,
+            projection,
+            selectionBuilder.toString(),
+            selectionArgs.toTypedArray(),
+            sortOrder
+        )
+
+        cursor?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val albumIdColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums._ID)
+                val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)
+                val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)
+
+                do {
+                    val thisId = cursor.getLongOrNull(albumIdColumn) ?: 0
+                    val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
+                    val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
+
+                    var imageUri = "content://media/external/audio/media/$thisId/albumart".toUri()
+
+                    try {
+                        context.contentResolver.openInputStream(imageUri)?.close()
+                    }
+                    catch(_: Exception) {
+                        imageUri = ("android.resource://com.craftworks.music/" + R.drawable.albumplaceholder).toUri()
+                    }
+
+                    val mediaMetadata = MediaMetadata.Builder()
+                        .setTitle(thisAlbum)
+                        .setArtist(thisArtist)
+                        .setAlbumTitle(thisAlbum)
+                        .setAlbumArtist(thisArtist)
+                        .setArtworkUri(imageUri)
+                        .setIsBrowsable(true)
+                        .setIsPlayable(false)
+                        .setMediaType(MediaMetadata.MEDIA_TYPE_ALBUM)
+                        .setExtras(
+                            Bundle().apply {
+                                putString("navidromeID", "Local_$thisId")
+                            }
+                        )
+                        .build()
+
+                    val album = MediaItem.Builder()
+                        .setMediaId(
+                            "Local_$thisId"
+                        )
+                        .setMediaMetadata(mediaMetadata)
+                        .build()
+
+                    if (!albums.contains(album))
+                        albums.add(album)
+                } while (cursor.moveToNext())
+            }
+        }
+
+        return albums.toList()
     }
 
-    fun getLocalAlbum(albumId: String): MediaData.Album? {
+    fun getLocalAlbum(albumId: String): List<MediaItem>? {
         val numericId = try {
             albumId.removePrefix("Local_").toLong()
         } catch (e: NumberFormatException) {
+            Log.e(TAG, "Invalid album ID format: $albumId", e)
             return null
         }
 
-        Log.d("LOCAL PROVIDER", "Getting album data for id $numericId!")
+        Log.d(TAG, "Getting album data for id $numericId!")
 
-        var album: MediaData.Album? = null
+        val albumWithSongs = mutableListOf<MediaItem>()
 
-        applicationContext?.let { context ->
-            val contentResolver: ContentResolver = context.contentResolver
-            val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-            val projection = arrayOf(
-                MediaStore.Audio.Albums._ID,
-                MediaStore.Audio.Albums.ALBUM,
-                MediaStore.Audio.Albums.ARTIST,
-                MediaStore.Audio.Albums.ARTIST_ID,
-                //MediaStore.Audio.Albums.NUMBER_OF_SONGS,
-                MediaStore.Audio.Media.YEAR
-            )
+        val contentResolver: ContentResolver = context.contentResolver
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        val projection = arrayOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.YEAR
+        )
 
-            val cursor: Cursor? = contentResolver.query(
-                uri,
-                projection,
-                "${MediaStore.Audio.Media._ID} = ?",
-                arrayOf(numericId.toString()),
-                null
-            )
+        val cursor: Cursor? = contentResolver.query(
+            uri,
+            projection,
+            "${MediaStore.Audio.Media._ID} = ?",
+            arrayOf(numericId.toString()),
+            null
+        )
 
-            when {
-                cursor == null -> {
-                    // query failed, handle error.
+        cursor?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                val albumIdColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
+                val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
+                val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+                val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
+
+                val thisId = cursor.getLongOrNull(idColumn) ?: 0
+                val thisAlbumId = cursor.getLong(albumIdColumn)
+                val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
+                val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
+                val thisYear = cursor.getIntOrNull(yearColumn) ?: 0
+
+                var imageUri = "content://media/external/audio/media/$thisAlbumId/albumart".toUri()
+
+                try {
+                    context.contentResolver.openInputStream(imageUri)?.close()
+                }
+                catch(_: Exception) {
+                    imageUri = ("android.resource://com.craftworks.music/" + R.drawable.albumplaceholder).toUri()
                 }
 
-                !cursor.moveToFirst() -> {
-                    // no media on the device
-                }
 
-                else -> {
-                    val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                    val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-                    val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)
-                    val artistIdColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST_ID)
-                    val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
+                val songs = getLocalAlbumSongs(thisAlbumId)
+                val totalDuration = songs.sumOf { it.mediaMetadata.durationMs ?: 0L }
+                val genre = songs.firstOrNull()?.mediaMetadata?.genre
 
-                    do {
-                        val thisId = cursor.getLongOrNull(idColumn) ?: 0
-                        val thisAlbum = cursor.getString(albumColumn)
-                        val thisArtist = cursor.getString(artistColumn)
-                        val thisArtistId = cursor.getInt(artistIdColumn)
-                        val thisYear = cursor.getInt(yearColumn)
+                val mediaMetadata = MediaMetadata.Builder()
+                    .setTitle(thisAlbum)
+                    .setArtist(thisArtist)
+                    .setAlbumTitle(thisAlbum)
+                    .setAlbumArtist(thisArtist)
+                    .setArtworkUri(imageUri)
+                    .setRecordingYear(thisYear)
+                    .setGenre(genre)
+                    .setIsBrowsable(true)
+                    .setIsPlayable(false)
+                    .setDurationMs(totalDuration)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_ALBUM)
+                    .setExtras(
+                        Bundle().apply {
+                            putString("navidromeID", "Local_$thisId")
+                        }
+                    )
+                    .build()
 
-                        val imageUri: String = try {
-                            "content://media/external/audio/media/$thisId/albumart"
-                        } catch (_: FileNotFoundException) {
-                            println("No Album Art!")
-                        }.toString()
+                albumWithSongs.add(
+                    MediaItem.Builder()
+                        .setMediaId("$thisId")
+                        .setUri("$thisId")
+                        .setMediaMetadata(mediaMetadata)
+                        .build()
+                )
 
-                        val songs = getLocalAlbumSongs(numericId)
-                        //val songs = emptyList<MediaData.Song>()
-                        val totalDuration = songs.sumOf { it.duration }
-                        val genre = songs.firstOrNull()?.genres ?: emptyList()
-
-                        album = MediaData.Album(
-                            navidromeID = albumId,
-                            name = thisAlbum,
-                            album = thisAlbum,
-                            title = thisAlbum,
-                            coverArt = imageUri,
-                            songCount = songs.size,
-                            duration = totalDuration,
-                            artistId = "Local_$thisArtistId",
-                            artist = thisArtist,
-                            year = thisYear,
-                            //genre = genre,
-                            genres = genre,
-                            songs = songs
-                        )
-                        Log.d("LOCAL PROVIDER", "Got album data: $album")
-
-                    } while (cursor.moveToNext())
-                }
+                albumWithSongs.addAll(songs)
+                Log.d(TAG, "Got album data with ${songs.size} songs")
             }
-
-            cursor?.close()
         }
 
-        return album
+        return albumWithSongs
     }
 
-    private fun getLocalAlbumSongs(albumId: Long): List<MediaData.Song> {
-        Log.d("LOCAL PROVIDER", "Getting Songs for album id: $albumId")
+    private fun getLocalAlbumSongs(albumId: Long): List<MediaItem> {
+        Log.d(TAG, "Getting Songs for album id: $albumId")
 
-        val songs = mutableListOf<MediaData.Song>()
+        val songs = mutableListOf<MediaItem>()
 
-        applicationContext?.let { context ->
-            val contentResolver: ContentResolver = context.contentResolver
-            val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-            val projection = arrayOf(
-                MediaStore.Audio.Media._ID,
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.TRACK,
-                MediaStore.Audio.Media.YEAR,
-                MediaStore.Audio.Media.DATE_ADDED,
-                MediaStore.Audio.Media.ALBUM_ID,
-                MediaStore.Audio.Media.ARTIST_ID,
-                MediaStore.Audio.Media.SIZE,
-                MediaStore.Audio.Media.MIME_TYPE,
-                MediaStore.Audio.Media.BITRATE,
-                MediaStore.Audio.Media.GENRE
-            )
+        val contentResolver: ContentResolver = context.contentResolver
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        val projection = arrayOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.DATA,
+            MediaStore.Audio.Media.TRACK,
+            MediaStore.Audio.Media.YEAR,
+            MediaStore.Audio.Media.DATE_ADDED,
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.ARTIST_ID,
+            MediaStore.Audio.Media.SIZE,
+            MediaStore.Audio.Media.MIME_TYPE,
+            MediaStore.Audio.Media.BITRATE,
+            MediaStore.Audio.Media.GENRE
+        )
 
-            val cursor: Cursor? = contentResolver.query(
-                uri,
-                projection,
-                "${MediaStore.Audio.Media._ID} = ?",
-                arrayOf(albumId.toString()),
-                null
-            )
+        val cursor: Cursor? = contentResolver.query(
+            uri,
+            projection,
+            "${MediaStore.Audio.Media.ALBUM_ID} = ?",
+            arrayOf(albumId.toString()),
+            "${MediaStore.Audio.Media.TRACK} ASC"
+        )
 
-            when {
-                cursor == null -> {
-                    // query failed, handle error.
-                }
+        cursor?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                val albumIdColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+                val pathColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
+                val titleColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
+                val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
+                val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+                val artistIdColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST_ID)
+                val formatColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE)
+                val dateAddedColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
+                val trackIndex: Int = cursor.getColumnIndex(MediaStore.Audio.Media.TRACK)
+                val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
+                val durationColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
+                val bitrateColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.BITRATE)
+                val genreColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.GENRE)
 
-                !cursor.moveToFirst() -> {
-                    // no media on the device
-                }
+                do {
+                    val thisId = cursor.getLong(idColumn)
+                    val thisAlbumId = cursor.getLongOrNull(albumIdColumn) ?: 0
+                    val thisPath = cursor.getString(pathColumn)
+                    val thisTitle = cursor.getString(titleColumn)
+                    val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
+                    val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
+                    val thisArtistId = cursor.getStringOrNull(artistIdColumn) ?: "Unknown"
+                    val thisFormat = cursor.getString(formatColumn)
+                    val thisDateAdded = cursor.getString(dateAddedColumn) ?: ""
+                    val thisTrack = cursor.getIntOrNull(trackIndex) ?: 0
+                    val thisYear = cursor.getIntOrNull(yearColumn) ?: 0
+                    val thisDuration = cursor.getIntOrNull(durationColumn) ?: 0
+                    val thisBitrate = cursor.getIntOrNull(bitrateColumn) ?: 0
+                    val thisGenre = cursor.getStringOrNull(genreColumn) ?: ""
 
-                else -> {
-                    val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                    val pathColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
-                    val titleColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
-                    val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-                    val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
-                    val artistIdColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST_ID)
-                    val formatColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE)
-                    val dateAddedColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
-                    val trackIndex: Int = cursor.getColumnIndex(MediaStore.Audio.Media.TRACK)
-                    val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
-                    val durationColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
-                    val bitrateColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.BITRATE)
-                    val genreColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.GENRE)
-
-                    do {
-                        val thisId = cursor.getLong(idColumn)
-                        val thisPath = cursor.getString(pathColumn)
-                        val thisTitle = cursor.getString(titleColumn)
-                        val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
-                        val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
-                        val thisArtistId = cursor.getStringOrNull(artistIdColumn) ?: "Unknown"
-                        val thisFormat = cursor.getString(formatColumn)
-                        val thisDateAdded = cursor.getString(dateAddedColumn) ?: ""
-                        val thisTrack = cursor.getIntOrNull(trackIndex) ?: 0
-                        val thisYear = cursor.getIntOrNull(yearColumn) ?: 0
-                        val thisDuration = cursor.getIntOrNull(durationColumn) ?: 0
-                        val thisBitrate = cursor.getIntOrNull(bitrateColumn) ?: 0
-                        val thisGenre = cursor.getStringOrNull(genreColumn) ?: ""
-
-                        val contentUri: Uri =
-                            ContentUris.withAppendedId(
-                                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                                thisId
-                            )
-
-                        val imageUri: String = try {
-                            "content://media/external/audio/media/$thisId/albumart"
-                        } catch (_: FileNotFoundException) {
-                            println("No Album Art!")
-                        }.toString()
-
-                        Log.d("LOCAL PROVIDER", "Added song: $thisTitle")
-
-                        val genres = mutableListOf<Genre>()
-                        thisGenre.split(",").forEach {
-                            genres.add(Genre(it))
-                        }
-
-                        songs.add(
-                            MediaData.Song(
-                                navidromeID = "Local_$thisId",
-                                parent = "",
-                                title = thisTitle,
-                                album = thisAlbum,
-                                artist = thisArtist,
-                                imageUrl = imageUri,
-                                format = thisFormat.split("/").last(),
-                                dateAdded = thisDateAdded,
-                                albumId = "Local_$albumId",
-                                bpm = 0,
-                                path = thisPath,
-                                media = contentUri.toString(),
-
-                                track = thisTrack,
-                                year = thisYear,
-                                contentType = thisFormat,
-                                duration = thisDuration / 1000,
-                                bitrate = thisBitrate / 1000,
-                                artistId = "Local_$thisArtistId",
-                                genre = thisGenre,
-                                genres = genres
-                            )
+                    val contentUri: Uri =
+                        ContentUris.withAppendedId(
+                            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                            thisId
                         )
-                    }while (cursor.moveToNext())
-                }
-            }
 
-            cursor?.close()
+                    var imageUri = ContentUris.withAppendedId(
+                        "content://media/external/audio/albumart".toUri(),
+                        thisAlbumId
+                    )
+
+                    try {
+                        context.contentResolver.openInputStream(imageUri)?.close()
+                    }
+                    catch(_: Exception) {
+                        imageUri = ("android.resource://com.craftworks.music/" + R.drawable.albumplaceholder).toUri()
+                    }
+
+                    Log.d(TAG, "Added song: $thisTitle")
+
+                    val genres = mutableListOf<Genre>()
+                    thisGenre.split(",").forEach { genreName ->
+                        if (genreName.isNotBlank()) {
+                            genres.add(Genre(genreName.trim()))
+                        }
+                    }
+
+                    val mediaMetadata = MediaMetadata.Builder()
+                        .setTitle(thisTitle)
+                        .setArtist(thisArtist)
+                        .setAlbumTitle(thisAlbum)
+                        .setArtworkUri(imageUri)
+                        .setRecordingYear(thisYear)
+                        .setGenre(thisGenre)
+                        .setIsBrowsable(false).setIsPlayable(true)
+                        .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                        .setTrackNumber(thisTrack)
+                        .setDurationMs(thisDuration.toLong())
+                        .setExtras(Bundle().apply {
+                            putString("navidromeID", "Local_$thisId")
+                            putString("format", thisFormat.drop(6))
+                            putLong("bitrate", thisBitrate.toLong() / 1000)
+                            putBoolean("isRadio", false)
+                        }).build()
+
+                    songs.add(
+                        MediaItem.Builder()
+                            .setMediaId(contentUri.toString())
+                            .setUri(contentUri.toString())
+                            .setMediaMetadata(mediaMetadata)
+                            .build()
+                    )
+                } while (cursor.moveToNext())
+            }
         }
 
         return songs
     }
     //endregion
 
-    fun getLocalSongs(): List<MediaData.Song> {
-        val songs = mutableListOf<MediaData.Song>()
-        applicationContext?.let { context ->
-            val contentResolver: ContentResolver = context.contentResolver
-            val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-            val projection = arrayOf(
-                MediaStore.Audio.Media._ID,
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.TRACK,
-                MediaStore.Audio.Media.YEAR,
-                MediaStore.Audio.Media.DATE_ADDED,
-                MediaStore.Audio.Media.ALBUM_ID,
-                MediaStore.Audio.Media.ARTIST_ID,
-                MediaStore.Audio.Media.SIZE,
-                MediaStore.Audio.Media.MIME_TYPE,
-                MediaStore.Audio.Media.BITRATE,
-                MediaStore.Audio.Media.GENRE
-            )
+    fun getLocalSongs(): List<MediaItem> {
+        val songs = mutableListOf<MediaItem>()
+        val contentResolver: ContentResolver = context.contentResolver
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        val projection = arrayOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.DATA,
+            MediaStore.Audio.Media.TRACK,
+            MediaStore.Audio.Media.YEAR,
+            MediaStore.Audio.Media.DATE_ADDED,
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.ARTIST_ID,
+            MediaStore.Audio.Media.SIZE,
+            MediaStore.Audio.Media.MIME_TYPE,
+            MediaStore.Audio.Media.BITRATE,
+            MediaStore.Audio.Media.GENRE
+        )
 
-            val cursor: Cursor? = contentResolver.query(
-                uri,
-                projection,
-                "${MediaStore.Audio.Media.DATA} LIKE ?" +
-                        " OR ${MediaStore.Audio.Media.DATA} LIKE ?"
-                            .repeat(LocalProviderManager.getAllFolders().size - 1),
-                LocalProviderManager.getAllFolders().map {
-                    "%$it%"
-                }.toTypedArray(),
-                "${MediaStore.Audio.Media.TITLE} DESC"
-            )
+        val folders = LocalProviderManager.getAllFolders()
+        val selectionBuilder = StringBuilder()
+        val selectionArgs = mutableListOf<String>()
 
-            when {
-                cursor == null -> {
-                    // query failed, handle error.
-                }
-
-                !cursor.moveToFirst() -> {
-                    // no media on the device
-                }
-
-                else -> {
-                    val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                    val albumIdColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-                    val pathColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
-                    val titleColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
-                    val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-                    val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
-                    val artistIdColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST_ID)
-                    val formatColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE)
-                    val dateAddedColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
-                    val trackIndex: Int = cursor.getColumnIndex(MediaStore.Audio.Media.TRACK)
-                    val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
-                    val durationColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
-                    val bitrateColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.BITRATE)
-                    val genreColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.GENRE)
-
-                    do {
-                        val thisId = cursor.getLong(idColumn)
-                        val thisAlbumId = cursor.getStringOrNull(albumIdColumn) ?: ""
-                        val thisPath = cursor.getString(pathColumn)
-                        val thisTitle = cursor.getString(titleColumn)
-                        val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
-                        val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
-                        val thisArtistId = cursor.getStringOrNull(artistIdColumn) ?: "Unknown"
-                        val thisFormat = cursor.getString(formatColumn)
-                        val thisDateAdded = cursor.getString(dateAddedColumn) ?: ""
-                        val thisTrack = cursor.getIntOrNull(trackIndex) ?: 0
-                        val thisYear = cursor.getIntOrNull(yearColumn) ?: 0
-                        val thisDuration = cursor.getIntOrNull(durationColumn) ?: 0
-                        val thisBitrate = cursor.getIntOrNull(bitrateColumn) ?: 0
-                        val thisGenre = cursor.getStringOrNull(genreColumn) ?: ""
-
-                        val contentUri: Uri =
-                            ContentUris.withAppendedId(
-                                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                                thisId
-                            )
-
-                        val imageUri: String = try {
-                            "content://media/external/audio/media/$thisId/albumart"
-                        } catch (_: FileNotFoundException) {
-                            println("No Album Art!")
-                        }.toString()
-
-                        Log.d("LOCAL PROVIDER", "Added song to all songs list: $thisTitle")
-
-                        val genres = mutableListOf<Genre>()
-                        thisGenre.split(",").forEach {
-                            genres.add(Genre(it))
-                        }
-
-                        songs.add(
-                            MediaData.Song(
-                                navidromeID = "Local_$thisId",
-                                parent = "",
-                                title = thisTitle,
-                                album = thisAlbum,
-                                artist = thisArtist,
-                                imageUrl = imageUri,
-                                format = thisFormat.split("/").last(),
-                                dateAdded = thisDateAdded,
-                                albumId = "Local_$thisAlbumId",
-                                bpm = 0,
-                                path = thisPath,
-                                media = contentUri.toString(),
-
-                                track = thisTrack,
-                                year = thisYear,
-                                contentType = thisFormat,
-                                duration = thisDuration / 1000,
-                                bitrate = thisBitrate / 1000,
-                                artistId = "Local_$thisArtistId",
-                                genre = thisGenre,
-                                genres = genres
-                            )
-                        )
-                    }while (cursor.moveToNext())
-                }
+        if (folders.isNotEmpty()) {
+            selectionBuilder.append("(")
+            folders.forEachIndexed { index, folder ->
+                if (index > 0) selectionBuilder.append(" OR ")
+                selectionBuilder.append("${MediaStore.Audio.Media.DATA} LIKE ?")
+                selectionArgs.add("%$folder%")
             }
+            selectionBuilder.append(")")
+        } else {
+            return emptyList()
+        }
 
-            cursor?.close()
+        val cursor: Cursor? = contentResolver.query(
+            uri,
+            projection,
+            selectionBuilder.toString(),
+            selectionArgs.toTypedArray(),
+            "${MediaStore.Audio.Media.TITLE} ASC"
+        )
+
+        cursor?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val idColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                val albumIdColumn: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+                val pathColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
+                val titleColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
+                val albumColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
+                val artistColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+                val artistIdColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST_ID)
+                val formatColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE)
+                val dateAddedColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
+                val trackIndex: Int = cursor.getColumnIndex(MediaStore.Audio.Media.TRACK)
+                val yearColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
+                val durationColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
+                val bitrateColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.BITRATE)
+                val genreColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Media.GENRE)
+
+                do {
+                    val thisId = cursor.getLong(idColumn)
+                    val thisAlbumId = cursor.getLongOrNull(albumIdColumn) ?: 0
+                    val thisPath = cursor.getString(pathColumn)
+                    val thisTitle = cursor.getString(titleColumn)
+                    val thisAlbum = cursor.getStringOrNull(albumColumn) ?: "Unknown"
+                    val thisArtist = cursor.getStringOrNull(artistColumn) ?: "Unknown"
+                    val thisArtistId = cursor.getStringOrNull(artistIdColumn) ?: "Unknown"
+                    val thisFormat = cursor.getString(formatColumn)
+                    val thisDateAdded = cursor.getString(dateAddedColumn) ?: ""
+                    val thisTrack = cursor.getIntOrNull(trackIndex) ?: 0
+                    val thisYear = cursor.getIntOrNull(yearColumn) ?: 0
+                    val thisDuration = cursor.getIntOrNull(durationColumn) ?: 0
+                    val thisBitrate = cursor.getIntOrNull(bitrateColumn) ?: 0
+                    val thisGenre = cursor.getStringOrNull(genreColumn) ?: ""
+
+                    val contentUri: Uri =
+                        ContentUris.withAppendedId(
+                            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                            thisId
+                        )
+
+                    var imageUri = ContentUris.withAppendedId(
+                        "content://media/external/audio/albumart".toUri(),
+                        thisAlbumId
+                    )
+
+                    try {
+                        context.contentResolver.openInputStream(imageUri)?.close()
+                    }
+                    catch(_: Exception) {
+                        imageUri = ("android.resource://com.craftworks.music/" + R.drawable.albumplaceholder).toUri()
+                    }
+
+
+                    Log.d(TAG, "Added song to all songs list: $thisTitle, released: $thisYear")
+
+                    songs.add(
+                        MediaItem.fromUri(contentUri.toString()).buildUpon().apply {
+                            setMediaId(contentUri.toString())
+                            setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .setTitle(thisTitle)
+                                    .setAlbumTitle(thisAlbum)
+                                    .setArtist(thisArtist)
+                                    .setArtworkUri(imageUri)
+                                    .setIsPlayable(true)
+                                    .setTrackNumber(thisTrack)
+                                    .setRecordingYear(thisYear)
+                                    .setDurationMs(thisDuration.toLong())
+                                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                                    .setExtras(
+                                        Bundle().apply {
+                                            putString("navidromeID", "Local_$thisId")
+                                            putString("format", thisFormat.drop(6))
+                                            putInt("bitrate", thisBitrate / 1000)
+                                        }
+                                    )
+                                    .build()
+                            )
+                        }.build()
+                    )
+                } while (cursor.moveToNext())
+            }
         }
         return songs
     }
 
     fun getLocalArtists(): List<MediaData.Artist> {
         val artists = mutableListOf<MediaData.Artist>()
-        applicationContext?.let { context ->
-            val contentResolver: ContentResolver = context.contentResolver
-            val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-            val projection = arrayOf(
-                MediaStore.Audio.Artists._ID,
-                MediaStore.Audio.Artists.ARTIST,
-            )
+        val contentResolver: ContentResolver = context.contentResolver
+        val uri = MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI
+        val projection = arrayOf(
+            MediaStore.Audio.Artists._ID,
+            MediaStore.Audio.Artists.ARTIST,
+            MediaStore.Audio.Artists.NUMBER_OF_ALBUMS,
+            MediaStore.Audio.Artists.NUMBER_OF_TRACKS
+        )
 
-            val cursor: Cursor? = contentResolver.query(
-                uri,
-                projection,
-                "${MediaStore.Audio.Media.DATA} LIKE ?" +
-                        " OR ${MediaStore.Audio.Media.DATA} LIKE ?"
-                            .repeat(LocalProviderManager.getAllFolders().size - 1),
-                LocalProviderManager.getAllFolders().map {
-                    "%$it%"
-                }.toTypedArray(),
-                null
-            )
+        val folders = LocalProviderManager.getAllFolders()
+        val selectionBuilder = StringBuilder()
+        val selectionArgs = mutableListOf<String>()
 
-            when {
-                cursor == null -> {
-                    // query failed, handle error.
-                }
+        val cursor: Cursor? = contentResolver.query(
+            uri,
+            projection,
+            null,
+            null,
+            MediaStore.Audio.Artists.ARTIST
+        )
 
-                !cursor.moveToFirst() -> {
-                    // no media on the device
-                }
+        cursor?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val idColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Artists._ID)
+                val nameColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)
 
-                else -> {
-                    val idColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Artists._ID)
-                    val nameColumn: Int = cursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)
+                do {
+                    val thisId = cursor.getLong(idColumn)
+                    val thisName = cursor.getString(nameColumn) ?: "Unknown"
 
-                    do {
-                        val thisId = cursor.getLong(idColumn)
-                        val thisName = cursor.getString(nameColumn) ?: "Unknown"
+                    Log.d(TAG, "Added artist: $thisName")
 
-                        Log.d("LOCAL PROVIDER", "Added artist: $thisName")
-
-                        artists.add(
-                            MediaData.Artist(
-                                navidromeID = "Local_$thisId",
-                                name = thisName,
-                                description = "",
-                                artistImageUrl = null
-                            )
+                    artists.add(
+                        MediaData.Artist(
+                            navidromeID = "Local_$thisId",
+                            name = thisName,
+                            description = "",
+                            artistImageUrl = null
                         )
-                    }while (cursor.moveToNext())
-                }
+                    )
+                } while (cursor.moveToNext())
             }
-
-            cursor?.close()
         }
-        return artists
+
+        // Filter artists based on the songs we have in our folders
+        return if (LocalProviderManager.getAllFolders().isNotEmpty()) {
+            val songs = getLocalSongs()
+            val artistIds = songs.mapNotNull {
+                it.mediaMetadata.extras?.getString("artistId")
+            }.toSet()
+
+            artists.filter { artist ->
+                artistIds.contains(artist.navidromeID.removePrefix("Local_"))
+            }
+        } else {
+            artists
+        }
     }
 }

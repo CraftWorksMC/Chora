@@ -47,7 +47,7 @@
     <string name="Label_Confirm_Delete_Playlist">Sei sicuro/a di voler cancellare questa playlist?</string>
     <string name="Label_MoreSongsFrom">Altre Canzoni Da</string>
     <string name="Label_NoDescription">Nessuna Descrizione Disponibile.</string>
-    <string name="Screen_Recent_Albums">Album Recenti</string>
+    <string name="Screen_Discography">Discografia</string>
     <string name="Screen_Top_Songs">Canzoni Popolari</string>
     <string name="Setting_Transcoding">Bitrate Massimo</string>
     <string name="Setting_Transcoding_Data">Bitrate Massimo (Dati mobili)</string>
@@ -56,7 +56,7 @@
     <string name="Label_Sorting">Ordina Per</string>
     <string name="Navidrome_Error">Nessuna connessione al server Navidrome.</string>
     <string name="Setting_NavidromeLogo">Mostra Logo Navidrome</string>
-    <string name="Navidrome_Sync">Sincronizzazione con Navidrome in corso…</string>
+    <string name="Navidrome_Sync">Caricamento...</string>
     <string name="No_Providers_Splash">Non hai aggiunto nessun media provider. Aggiungine uno ora per iniziare ad ascoltare!</string>
     <string name="Action_Go">Andiamo!</string>
     <string name="Background_Anim">Animato</string>
@@ -78,4 +78,6 @@
     <string name="Theme_Dark">Scuro</string>
     <string name="Theme_Light">Chiaro</string>
     <string name="Action_Download">Scarica</string>
+    <string name="Setting_ProviderDividers">Mostra Divisori Provider</string>
+    <string name="Setting_LyricsAnimationSpeed">Velocità Animazione Testo</string>
 </resources>

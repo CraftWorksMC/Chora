@@ -1,6 +1,5 @@
 package com.craftworks.music
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
@@ -9,9 +8,14 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -37,14 +41,15 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -62,18 +67,18 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.data.BottomNavItem
-import com.craftworks.music.data.Screen
+import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
-import com.craftworks.music.player.MediaControllerManager
-import com.craftworks.music.player.SongHelper
+import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
 import com.craftworks.music.ui.playing.NowPlayingContent
@@ -84,18 +89,19 @@ import com.gigamole.composefadingedges.FadingEdgesGravity
 import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
 import com.gigamole.composefadingedges.verticalFadingEdges
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.system.exitProcess
 
-var sliderPos = mutableIntStateOf(0)
-var shuffleSongs = mutableStateOf(false)
-
 var showNoProviderDialog = mutableStateOf(false)
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     lateinit var navController: NavHostController
+
+    private val playerState = MutableStateFlow<MediaMetadata?>(null)
 
     @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(ExperimentalMaterial3Api::class)
@@ -104,19 +110,38 @@ class MainActivity : ComponentActivity() {
 
         val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
         this@MainActivity.startService(serviceIntent)
-        //handleSearchIntent(intent)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
 
         setContent {
             MusicPlayerTheme {
-                // BOTTOM NAVIGATION + NOW-PLAYING UI
                 navController = rememberNavController()
-                //val mediaController = rememberManagedMediaController()
-                val mediaController = MediaControllerManager.getInstance(applicationContext).controller
 
-                println("Recomposing EVERYTHING!!!!! VERY BAD")
+                val mediaController by rememberManagedMediaController()
+                var metadata by remember { mutableStateOf<MediaMetadata?>(null) }
 
+                val coroutineScope = rememberCoroutineScope()
+
+                // Update metadata from mediaController.
+                LaunchedEffect(mediaController) {
+                    if (mediaController?.currentMediaItem != null) {
+                        metadata = mediaController?.currentMediaItem?.mediaMetadata
+                    }
+                }
+                DisposableEffect(mediaController) {
+                    val listener = object : Player.Listener {
+                        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                            super.onMediaItemTransition(mediaItem, reason)
+                            metadata = mediaController?.currentMediaItem?.mediaMetadata
+                        }
+                    }
+
+                    mediaController?.addListener(listener)
+
+                    onDispose {
+                        mediaController?.removeListener(listener)
+                    }
+                }
                 // Set background color to colorScheme.background
                 window.decorView.setBackgroundColor(
                     MaterialTheme.colorScheme.background.toArgb()
@@ -129,9 +154,21 @@ class MainActivity : ComponentActivity() {
                             initialValue = SheetValue.PartiallyExpanded,
                             skipHiddenState = true,
                             density = Density(this)
-                        ),
-                        snackbarHostState = SnackbarHostState()
+                        ), snackbarHostState = SnackbarHostState()
                     )
+                }
+                val peekHeight by animateDpAsState(
+                    targetValue = if (metadata?.title != null) 72.dp else 0.dp,
+                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                    label = "sheetPeekAnimation"
+                )
+
+                BackHandler(
+                    enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
+                ) {
+                    coroutineScope.launch {
+                        scaffoldState.bottomSheetState.partialExpand()
+                    }
                 }
 
                 Scaffold(
@@ -139,71 +176,72 @@ class MainActivity : ComponentActivity() {
                         AnimatedBottomNavBar(navController, scaffoldState)
                     },
                     contentColor = MaterialTheme.colorScheme.onBackground,
-                    containerColor = Color.Transparent // So we can use transparent here. this eliminates 1 level of overdraw.
+                    containerColor = Color.Transparent
                 ) { paddingValues ->
-                    SetupNavGraph(navController, paddingValues, mediaController.value)
-
-                    Log.d("RECOMPOSITION", "Recomposing scaffold!")
-
-                    // No BottomSheetScaffold for Android TV
-                    if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION) &&
-                        LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
-                    ) {
+                    if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION) && LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
                         BottomSheetScaffold(
                             sheetContainerColor = Color.Transparent,
                             containerColor = Color.Transparent,
-                            sheetPeekHeight = if (SongHelper.currentSong.title == "" && SongHelper.currentSong.duration == 0 && SongHelper.currentSong.imageUrl == "") 0.dp
-                            else 72.dp + 80.dp + WindowInsets.navigationBars.asPaddingValues()
+                            sheetPeekHeight = peekHeight + 80.dp + WindowInsets.navigationBars.asPaddingValues()
                                 .calculateBottomPadding(),
-                            sheetShadowElevation = 4.dp,
+                            //sheetShadowElevation = 6.dp,
                             sheetShape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
                             sheetDragHandle = { },
                             scaffoldState = scaffoldState,
                             sheetContent = {
-                                Log.d("RECOMPOSITION", "Recomposing SheetContent!")
-                                Box {
-                                    val coroutineScope = rememberCoroutineScope()
+                                val coroutineScope = rememberCoroutineScope()
 
-                                    NowPlayingMiniPlayer(scaffoldState, mediaController.value) {
-                                        coroutineScope.launch {
-                                            if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded) scaffoldState.bottomSheetState.expand()
-                                            else scaffoldState.bottomSheetState.partialExpand()
-                                        }
+                                Box {
+                                    NowPlayingMiniPlayer(
+                                        scaffoldState = scaffoldState,
+                                        metadata = metadata,
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                scaffoldState.bottomSheetState.expand()
+                                            }
+                                        })
+
+                                    println("Recomposing sheetcontent")
+                                    NowPlayingContent(
+                                        mediaController = mediaController,
+                                        metadata = metadata
+                                    )
+                                }
+
+                                val currentView = LocalView.current
+                                DisposableEffect(scaffoldState.bottomSheetState.currentValue) {
+                                    if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
+                                        currentView.keepScreenOn = true
+                                        Log.d("NOW-PLAYING", "KeepScreenOn: True")
+                                    } else {
+                                        currentView.keepScreenOn = false
+                                        Log.d("NOW-PLAYING", "KeepScreenOn: False")
                                     }
 
-                                    NowPlayingContent(
-                                        context = this@MainActivity,
-                                        navHostController = navController,
-                                        mediaController = mediaController.value
-                                    )
-
-                                    val currentView = LocalView.current
-                                    DisposableEffect(scaffoldState.bottomSheetState.currentValue) {
-                                        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
-                                            currentView.keepScreenOn = true
-                                            Log.d("NOW-PLAYING", "KeepScreenOn: True")
-                                        }
-                                        else {
-                                            currentView.keepScreenOn = false
-                                            Log.d("NOW-PLAYING", "KeepScreenOn: False")
-                                        }
-
-                                        onDispose {
-                                            currentView.keepScreenOn = false
-                                            Log.d("NOW-PLAYING", "KeepScreenOn: False")
-                                        }
+                                    onDispose {
+                                        currentView.keepScreenOn = false
+                                        Log.d("NOW-PLAYING", "KeepScreenOn: False")
                                     }
                                 }
                             }) {
+                            SetupNavGraph(
+                                navController,
+                                peekHeight + paddingValues.calculateBottomPadding(),
+                                mediaController
+                            )
                         }
-                    }
-
-                    if (showNoProviderDialog.value)
-                        NoMediaProvidersDialog(
-                            setShowDialog = { showNoProviderDialog.value = it },
-                            navController
+                    } else {
+                        SetupNavGraph(
+                            navController,
+                            0.dp,
+                            mediaController
                         )
+                    }
                 }
+
+                if (showNoProviderDialog.value) NoMediaProvidersDialog(
+                    setShowDialog = { showNoProviderDialog.value = it }, navController
+                )
             }
         }
 
@@ -245,7 +283,8 @@ class MainActivity : ComponentActivity() {
 
                 @androidx.annotation.OptIn(UnstableApi::class)
                 override fun onActivityDestroyed(activity: Activity) {
-                    ChoraMediaLibraryService().onDestroy()
+                    ChoraMediaLibraryService.getInstance()?.saveState()
+
                     this@MainActivity.stopService(serviceIntent)
                     println("Destroyed, Goodbye :(")
                 }
@@ -265,8 +304,7 @@ fun AnimatedBottomNavBar(
     val context = LocalContext.current
 
     val orderedNavItems = SettingsManager(context).bottomNavItemsFlow.collectAsState(
-        initial = //region Default Items
-        listOf(
+        initial = listOf(
             BottomNavItem(
                 "Home", R.drawable.rounded_home_24, "home_screen"
             ), BottomNavItem(
@@ -281,7 +319,6 @@ fun AnimatedBottomNavBar(
                 "Playlists", R.drawable.placeholder, "playlist_screen"
             )
         )
-        //endregion
     ).value
 
     if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -305,7 +342,6 @@ fun AnimatedBottomNavBar(
                         if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationBarItem
                         navController.navigate(item.screenRoute) {
                             launchSingleTop = true
-                            //popUpTo(navController.graph.findStartDestination().id)
                         }
                         coroutineScope.launch {
                             if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
@@ -339,11 +375,6 @@ fun AnimatedBottomNavBar(
                             if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationRailItem
                             navController.navigate(item.screenRoute) {
                                 launchSingleTop = true
-                                //restoreState = true
-                                popUpTo(navController.graph.findStartDestination().id)
-//                            {
-//                                saveState = true
-//                            }
                             }
                             coroutineScope.launch {
                                 if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
@@ -363,7 +394,6 @@ fun AnimatedBottomNavBar(
                             if (Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route) return@NavigationRailItem
                             navController.navigate(Screen.NowPlayingLandscape.route) {
                                 launchSingleTop = true
-                                //popUpTo(navController.graph.findStartDestination().id)
                             }
                             coroutineScope.launch {
                                 if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
@@ -403,8 +433,6 @@ fun AnimatedBottomNavBar(
 }
 
 fun formatMilliseconds(seconds: Int): String {
-    //val format = SimpleDateFormat("mm:ss", Locale.getDefault())
-    //return format.format(Date(milliseconds.toLong()))
     return String.format(Locale.getDefault(), "%02d:%02d", seconds / 60, seconds % 60)
 }
 

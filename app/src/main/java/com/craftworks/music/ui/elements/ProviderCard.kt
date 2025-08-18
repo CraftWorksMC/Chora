@@ -41,9 +41,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
 import com.craftworks.music.data.NavidromeProvider
+import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.ui.viewmodels.GlobalViewModels
+import com.craftworks.music.managers.SettingsManager
+import kotlinx.coroutines.runBlocking
 
 @Preview
 @Composable
@@ -121,10 +123,16 @@ fun LocalProviderCard(local: String = "", context: Context = LocalContext.curren
 
 @Preview
 @Composable
-fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","https://demo.navidrome.org", "CraftWorks", "demo",
-    enabled = true,
-    allowSelfSignedCert = true
-), context: Context = LocalContext.current){
+fun NavidromeProviderCard(
+    server: NavidromeProvider = NavidromeProvider(
+        "0",
+        "https://demo.navidrome.org",
+        "CraftWorks",
+        "demo",
+        enabled = true,
+        allowSelfSignedCert = true
+    )
+) {
 
     rememberCoroutineScope()
 
@@ -185,18 +193,64 @@ fun NavidromeProviderCard(server: NavidromeProvider = NavidromeProvider("0","htt
         // Enabled Checkbox
         Checkbox(
             checked = checked,
-            onCheckedChange = { checked = it
-                Log.d("NAVIDROME", "Navidrome Current Server: ${server.id}")
-                if (it){
-                    NavidromeManager.setCurrentServer(server.id)
-                    GlobalViewModels.refreshAll()
-                }
-                else {
+            onCheckedChange = {
+                checked = it
+                if (!checked && NavidromeManager.getAllServers().size == 1)
                     NavidromeManager.setCurrentServer(null)
-                    GlobalViewModels.refreshAll()
+                else
+                    NavidromeManager.setCurrentServer(server.id)
+                Log.d("NAVIDROME", "Navidrome Current Server: ${server.id}")
+            }
+        )
+    }
+}
+
+@Preview
+@Composable
+fun LRCLIBProviderCard(
+    context: Context = LocalContext.current
+){
+    Row(modifier = Modifier
+        .padding(bottom = 12.dp)
+        .height(64.dp)
+        .clip(RoundedCornerShape(12.dp))
+        .background(MaterialTheme.colorScheme.surfaceVariant)
+        .selectableGroup(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Provider Icon
+        Image(
+            painter = painterResource(R.drawable.lrclib_logo),
+            contentDescription = "LRCLIB.net logo",
+            modifier = Modifier
+                .padding(horizontal = 6.dp)
+                .size(32.dp)
+        )
+        // Provider Name
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "Lyrics",
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Normal,
+                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                modifier = Modifier
+            )
+            Text(
+                text = "LRCLIB.net",
+                color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
+                fontWeight = FontWeight.Normal,
+                fontSize = MaterialTheme.typography.labelMedium.fontSize,
+            )
+        }
+
+        // Enabled Checkbox
+        Checkbox(
+            checked = LyricsManager.useLrcLib,
+            onCheckedChange = {
+                LyricsManager.useLrcLib = it
+                runBlocking {
+                    SettingsManager(context).setUseLrcLib(it)
                 }
-                // Update checked
-                //checked = (server.id == NavidromeManager.getCurrentServer()?.id)
             }
         )
     }

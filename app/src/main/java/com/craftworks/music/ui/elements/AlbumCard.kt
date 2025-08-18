@@ -1,7 +1,5 @@
 package com.craftworks.music.ui.elements
 
-import android.content.Context
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -35,36 +33,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.getAlbum
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @Stable
 @Composable
 fun AlbumCard(
-    album: MediaData.Album = MediaData.Album(
-        navidromeID = "",
-        parent = "",
-        album = "",
-        title = "",
-        name = "",
-        songCount = 0,
-        duration = 0,
-        artistId = "",
-        artist = "",
-        coverArt = ""
-    ),
+    album: MediaItem,
     mediaController: MediaController? = null,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = { },
+    onPlay: (album: MediaItem) -> Unit = { },
+    modifier: Modifier = Modifier
 ) {
+    if (album.mediaMetadata.mediaType != MediaMetadata.MEDIA_TYPE_ALBUM) return
     val context = LocalContext.current
     Column(
-        modifier = Modifier
+        modifier = modifier
             .padding(12.dp, 12.dp, 0.dp, 0.dp)
             .width(128.dp)
             .height(172.dp)
@@ -77,22 +64,36 @@ fun AlbumCard(
                 .fillMaxWidth()
                 .aspectRatio(1f)
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(album.coverArt)
+            SubcomposeAsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(album.mediaMetadata.artworkUri)
                     .crossfade(true)
+                    .diskCacheKey(
+                        album.mediaMetadata.extras?.getString("navidromeID") ?: album.mediaId
+                    )
                     .build(),
                 contentDescription = "Album Image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clip(RoundedCornerShape(8.dp)),
             )
 
             val coroutineScope = rememberCoroutineScope()
 
             IconButton(
-                onClick = { playSelectedAlbum(context, coroutineScope, mediaController, album.navidromeID) },
+                onClick = {
+                    onPlay(album)
+//                    coroutineScope.launch {
+//                        val mediaItems = getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+//                        SongHelper.play(
+//                            mediaItems = mediaItems?.subList(1, mediaItems.size) ?: emptyList(),
+//                            index = 0,
+//                            mediaController = mediaController
+//                        )
+//                    }
+                },
                 modifier = Modifier
                     .padding(6.dp)
                     .background(
@@ -115,7 +116,7 @@ fun AlbumCard(
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = album.name ?: "",
+            text = album.mediaMetadata.albumTitle.toString(),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
@@ -124,35 +125,12 @@ fun AlbumCard(
         )
 
         Text(
-            text = album.artist,
+            text = album.mediaMetadata.albumArtist.toString(),
             style = MaterialTheme.typography.bodySmall,
             color = LocalContentColor.current.copy(alpha = 0.75f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
-        )
-    }
-}
-
-private fun playSelectedAlbum(
-    context: Context,
-    coroutineScope: CoroutineScope,
-    mediaController: MediaController?,
-    albumId: String
-) {
-    coroutineScope.launch {
-        val currentAlbum = getAlbum(albumId)
-
-        // Try to play song
-        if (currentAlbum?.songs.isNullOrEmpty()) return@launch
-
-        //SongHelper.currentSong = currentAlbum?.songs?.get(0)!!
-        SongHelper.currentList = currentAlbum.songs ?: emptyList()
-        SongHelper.playStream(
-            context,
-            Uri.parse(currentAlbum.songs?.get(0)!!.media ?: ""),
-            false,
-            mediaController
         )
     }
 }

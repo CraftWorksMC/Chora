@@ -1,16 +1,15 @@
 package com.craftworks.music.providers.navidrome
 
-import com.craftworks.music.data.MediaData
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.minutes
 
-data class CachedResponse(val data: List<MediaData>, val timestamp: Long)
+data class CachedResponse(val data: List<Any>, val timestamp: Long)
 
 object NavidromeCache {
     private val cache = ConcurrentHashMap<String, CachedResponse>()
     val cacheDuration = 15.minutes
 
-    fun get(key: String) : List<MediaData>? {
+    fun get(key: String) : List<Any>? {
         val cachedResponse = cache[key] ?: return null
         val now = System.currentTimeMillis()
         if (now - cachedResponse.timestamp > cacheDuration.inWholeMilliseconds) {
@@ -20,7 +19,15 @@ object NavidromeCache {
         return cachedResponse.data
     }
 
-    fun put(key: String, data: List<MediaData>) {
+    fun put(key: String, data: List<Any>) {
         cache[key] = CachedResponse(data, System.currentTimeMillis())
+    }
+
+    fun delByPrefix(prefix: String) {
+        // Iterate over the keys in the cache
+        val keysToRemove = cache.keys.filter { it.startsWith(prefix) }
+
+        // Remove all the keys that match the prefix
+        keysToRemove.forEach { cache.remove(it) }
     }
 }

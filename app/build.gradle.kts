@@ -1,20 +1,27 @@
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     kotlin("plugin.serialization") version "2.0.0"
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.hilt) // Apply the Hilt plugin
+    kotlin("kapt") // Add kapt for annotation processing
 }
 
 android {
     namespace = "com.craftworks.music"
-    compileSdk = 35
+    compileSdk = 36
+
+    androidResources {
+        generateLocaleConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.craftworks.music"
         minSdk = 23
-        targetSdk = 35
-        versionCode = 260
-        versionName = "1.26"
+        targetSdk = 36
+        versionCode = 280
+        versionName = "1.28.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -33,7 +40,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
         debug {
-            isDebuggable = true
+            isDebuggable = false
             isProfileable = true
         }
     }
@@ -96,4 +103,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
 }

@@ -1,11 +1,13 @@
 package com.craftworks.music.providers.navidrome
 
 import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.albumList
-import com.craftworks.music.data.artistList
-import com.craftworks.music.data.songsList
+import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.albumList
+import com.craftworks.music.data.model.artistList
+import com.craftworks.music.data.model.songsList
+import com.craftworks.music.data.model.toMediaItem
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -24,7 +26,7 @@ fun parseNavidromeSearch3JSON(
     navidromeUrl: String,
     navidromeUsername: String,
     navidromePassword: String,
-) : List<MediaData> {
+) : List<Any> {
 
     val jsonParser = Json { ignoreUnknownKeys = true }
     val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
@@ -37,28 +39,33 @@ fun parseNavidromeSearch3JSON(
 
     subsonicResponse.searchResult3?.song?.map {
         it.media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.12.0&c=Chora"
-        it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora"
+        it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora&size=128"
     }
 
     subsonicResponse.searchResult3?.album?.map {
-        it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora"
+        it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora&size=128"
     }
 
-    var mediaDataSongs = emptyList<MediaData.Song>()
-    var mediaDataAlbums = emptyList<MediaData.Album>()
+    var mediaDataSongs = emptyList<MediaItem>()
+    var mediaDataAlbums = emptyList<MediaItem>()
     var mediaDataArtists = emptyList<MediaData.Artist>()
 
     subsonicResponse.searchResult3?.song?.filterNot { newSong ->
         songsList.any { existingSong ->
             existingSong.navidromeID == newSong.navidromeID
         }
-    }?.let { mediaDataSongs = it }
+    }?.let { mediaDataSongs = it.map {
+        it.copy(
+            media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.12.0&c=Chora"
+        ).toMediaItem()
+        }
+    }
 
     subsonicResponse.searchResult3?.album?.filterNot { newAlbum ->
         albumList.any { existingAlbum ->
             existingAlbum.navidromeID == newAlbum.navidromeID
         }
-    }?.let { mediaDataAlbums = it }
+    }?.let { mediaDataAlbums = it.map { it.toMediaItem() } }
 
     subsonicResponse.searchResult3?.artist?.filterNot { newArtist ->
         artistList.any { existingArtist ->
@@ -66,11 +73,9 @@ fun parseNavidromeSearch3JSON(
         }
     }?.let { mediaDataArtists = it }
 
-    // Prioritize songs, then albums, then artists
     return when {
         mediaDataSongs.isNotEmpty() -> mediaDataSongs
         mediaDataAlbums.isNotEmpty() -> mediaDataAlbums
         else -> mediaDataArtists
     }
 }
-

@@ -27,47 +27,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.media3.common.MediaItem
 import com.craftworks.music.R
-import com.craftworks.music.data.MediaData
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.providers.createRadio
-import com.craftworks.music.providers.deleteRadio
-import com.craftworks.music.providers.modifyRadio
 import com.craftworks.music.ui.elements.bounceClick
-import kotlinx.coroutines.launch
-
-//region PREVIEWS
-@Preview(showBackground = true)
-@Composable
-fun PreviewAddRadioDialog(){
-    AddRadioDialog(setShowDialog = { })
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewModifyRadioDialog(){
-    ModifyRadioDialog(setShowDialog = {}, radio = MediaData.Radio("", "", ""))
-}
-//endregion
 
 @Composable
-fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
+fun AddRadioDialog(
+    setShowDialog: (Boolean) -> Unit,
+    onAdded: (name: String, url: String, homePageUrl: String, addToNavidrome: Boolean) -> Unit
+) {
     var radioName by remember { mutableStateOf("") }
     var radioUrl by remember { mutableStateOf("") }
     var radioPage by remember { mutableStateOf("") }
@@ -168,15 +147,12 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
                             onClick = {
                                 if (radioName.isBlank() && radioUrl.isBlank()) return@Button
 
-                                coroutineScope.launch {
-                                    createRadio(
-                                        radioName,
-                                        radioUrl,
-                                        radioPage,
-                                        context,
-                                        addToNavidrome
-                                    )
-                                }
+                                onAdded(
+                                    radioName,
+                                    radioUrl,
+                                    radioPage,
+                                    addToNavidrome
+                                )
 
                                 setShowDialog(false)
                             },
@@ -201,13 +177,15 @@ fun AddRadioDialog(setShowDialog: (Boolean) -> Unit) {
 }
 
 @Composable
-fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
-    var radioName by remember { mutableStateOf(radio.name) }
-    var radioUrl by remember { mutableStateOf(radio.media) }
-    var radioPage by remember { mutableStateOf(radio.homePageUrl ?: "") }
+fun ModifyRadioDialog(
+    setShowDialog: (Boolean) -> Unit,
+    radio: MediaItem?,
+    onModified: (id: String, name: String, url: String, homepage: String) -> Unit,
+    onDeleted: (id: String) -> Unit = {}
+) {
+    var radioName by remember { mutableStateOf(radio?.mediaMetadata?.station) }
+    var radioUrl by remember { mutableStateOf(radio?.mediaId) }
+    var radioPage by remember { mutableStateOf(radio?.mediaMetadata?.extras?.getString("homepage") ?: "") }
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
@@ -246,13 +224,13 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) 
                     Spacer(modifier = Modifier.height(20.dp))
 
                     OutlinedTextField(
-                        value = radioName,
+                        value = radioName.toString(),
                         onValueChange = { radioName = it },
                         label = { Text(stringResource(id = R.string.Label_Radio_Name)) },
                         singleLine = true
                     )
                     OutlinedTextField(
-                        value = radioUrl,
+                        value = radioUrl.toString(),
                         onValueChange = { radioUrl = it },
                         label = { Text(stringResource(id = R.string.Label_Radio_URL)) },
                         singleLine = true
@@ -274,9 +252,7 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) 
                         Button(
                             onClick = {
                                 setShowDialog(false)
-                                coroutineScope.launch {
-                                    deleteRadio(radio, context)
-                                }
+                                onDeleted(radio?.mediaId ?: "null")
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -293,11 +269,14 @@ fun ModifyRadioDialog(setShowDialog: (Boolean) -> Unit, radio: MediaData.Radio) 
                         }
                         Button(
                             onClick = {
-                                if (radioName.isBlank() && radioUrl.isBlank()) return@Button
-                                coroutineScope.launch {
-                                    modifyRadio(radio, context)
-                                }
                                 setShowDialog(false)
+
+                                onModified(
+                                    radio?.mediaMetadata?.extras?.getString("navidromeID") ?: "Local",
+                                    radioName.toString(),
+                                    radioUrl.toString(),
+                                    radioPage
+                                )
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(

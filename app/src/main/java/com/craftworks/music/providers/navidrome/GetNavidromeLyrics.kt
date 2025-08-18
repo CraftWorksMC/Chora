@@ -1,10 +1,10 @@
 package com.craftworks.music.providers.navidrome
 
-import com.craftworks.music.data.Lyric
-import com.craftworks.music.data.MediaData
-import com.craftworks.music.data.toLyric
-import com.craftworks.music.data.toLyrics
-import com.craftworks.music.player.SongHelper
+import androidx.media3.common.MediaMetadata
+import com.craftworks.music.data.model.Lyric
+import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.toLyric
+import com.craftworks.music.data.model.toLyrics
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -20,13 +20,12 @@ data class SyncedLyrics(
     val start: Int, val value: String
 )
 
-suspend fun getNavidromePlainLyrics(): List<Lyric> {
-    // Get plain lyrics from navidrome, if it doesn't exist, return an empty list
-    return sendNavidromeGETRequest("getLyrics.view?artist=${SongHelper.currentSong.artist}&title=${SongHelper.currentSong.title}&f=json").filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.content.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
+suspend fun getNavidromePlainLyrics(metadata: MediaMetadata?): List<Lyric> {
+    return sendNavidromeGETRequest("getLyrics.view?artist=${metadata?.artist}&title=${metadata?.title}&f=json").filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.content.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
 }
 
-suspend fun getNavidromeSyncedLyrics(): List<Lyric> {
-    return sendNavidromeGETRequest("getLyricsBySongId.view?id=${SongHelper.currentSong.navidromeID}&f=json")
+suspend fun getNavidromeSyncedLyrics(navidromeId: String): List<Lyric> {
+    return sendNavidromeGETRequest("getLyricsBySongId.view?id=${navidromeId}&f=json")
         .filterIsInstance<MediaData.StructuredLyrics>().flatMap { it.toLyrics() }
 }
 

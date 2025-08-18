@@ -2,6 +2,8 @@
 
 A simple and light-weight app that streams music from a Subsonic or Navidrome server, or from the phone's storage.
 
+*Please do not use as a learning resource. This was my first Kotlin project, and the code is not well-organized at all.*
+
 <a href='https://play.google.com/store/apps/details?id=com.craftworks.music&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img width=256px alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
 
 ## Features
@@ -22,7 +24,6 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 ## Known Issues
 
 - After changing some settings, all the data is cleared from screens and need to be manually refreshed.
-- After selecting a radio, selecting an album always plays the first song.
 
 ## Roadmap
 

@@ -22,3 +22,7 @@
 -dontwarn javax.xml.stream.Location
 -dontwarn javax.xml.stream.XMLInputFactory
 -dontwarn javax.xml.stream.XMLStreamReader
+
+-keepclassmembers class * extends androidx.datastore.preferences.protobuf.GeneratedMessageLite {
+    <fields>;
+}

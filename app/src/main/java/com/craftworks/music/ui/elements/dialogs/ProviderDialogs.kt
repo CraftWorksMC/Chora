@@ -54,13 +54,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.craftworks.music.R
 import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.data.Screen
+import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.ui.elements.bounceClick
-import com.craftworks.music.ui.viewmodels.GlobalViewModels
 import kotlinx.coroutines.launch
 
 //region PREVIEWS
@@ -292,7 +292,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                         Button(
                             onClick = {
                                 val server = NavidromeProvider(
-                                    url, //Set numerical ID.
+                                    url,
                                     url,
                                     username,
                                     password,
@@ -306,10 +306,8 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                 contentColor = MaterialTheme.colorScheme.onBackground
                             ),
                             modifier = Modifier
-                                //.padding(top = 24.dp)
                                 .padding(6.dp)
                                 .height(50.dp)
-                                //.widthIn(max = 64.dp)
                                 .weight(1f)
                                 .fillMaxWidth()
                                 .bounceClick(),
@@ -321,7 +319,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                         Button(
                             onClick = {
                                 val server = NavidromeProvider(
-                                    url, //Set numerical ID.
+                                    url,
                                     url,
                                     username,
                                     password,
@@ -329,8 +327,9 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                     allowCerts
                                 )
                                 NavidromeManager.addServer(server)
-
-                                GlobalViewModels.refreshAll()
+                                coroutineScope.launch {
+                                    SettingsManager(context).setUsername(username)
+                                }
 
                                 navidromeStatus.value = ""
                                 setShowDialog(false)
@@ -342,7 +341,6 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                             modifier = Modifier
                                 .padding(6.dp)
                                 .height(50.dp)
-                                //.widthIn(max = 320.dp)
                                 .weight(1f)
                                 .fillMaxWidth()
                                 .bounceClick(),

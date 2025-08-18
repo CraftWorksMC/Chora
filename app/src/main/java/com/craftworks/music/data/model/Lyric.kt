@@ -1,4 +1,4 @@
-package com.craftworks.music.data
+package com.craftworks.music.data.model
 
 import android.util.Log
 import androidx.compose.runtime.Stable

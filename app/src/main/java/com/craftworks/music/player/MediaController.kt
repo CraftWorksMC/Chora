@@ -13,10 +13,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * A Singleton class that manages a MediaController instance.
@@ -27,9 +32,17 @@ import com.google.common.util.concurrent.MoreExecutors
 class MediaControllerManager private constructor(context: Context) : RememberObserver {
     private val appContext = context.applicationContext
     private var factory: ListenableFuture<MediaController>? = null
+
+    private val _currentMetadata = MutableStateFlow<MediaMetadata?>(null)
+    val currentMetadata: StateFlow<MediaMetadata?> = _currentMetadata.asStateFlow()
+
     var controller = mutableStateOf<MediaController?>(null)
 
     init { initialize() }
+
+    private fun publishCurrentMetadata(controller: MediaController?) {
+        _currentMetadata.value = controller?.currentMediaItem?.mediaMetadata
+    }
 
     /**
      * Initializes the MediaController.
@@ -53,6 +66,7 @@ class MediaControllerManager private constructor(context: Context) : RememberObs
                     else
                         null
                 }
+                publishCurrentMetadata(controller.value)
             },
             MoreExecutors.directExecutor()
         )
@@ -124,4 +138,28 @@ fun rememberManagedMediaController(
     }
 
     return controllerManager.controller
+}
+
+@Composable
+fun rememberCurrentMetadata(
+    lifecycle: Lifecycle = LocalLifecycleOwner.current.lifecycle
+): State<MediaMetadata?> {
+    val appContext = LocalContext.current.applicationContext
+    val manager = remember { MediaControllerManager.getInstance(appContext) }
+
+    // Lifecycle‑aware init/release – unchanged
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> manager.initialize()
+                Lifecycle.Event.ON_DESTROY -> manager.release()
+                else -> {}
+            }
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+
+    // Collect the metadata flow once and expose it as a State
+    return manager.currentMetadata.collectAsStateWithLifecycle()
 }
