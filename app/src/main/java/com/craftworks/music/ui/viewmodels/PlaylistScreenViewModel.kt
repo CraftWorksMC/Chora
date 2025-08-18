@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.repository.PlaylistRepository
+import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -35,6 +36,12 @@ class PlaylistScreenViewModel @Inject constructor(
 
     init {
         loadPlaylists()
+
+        viewModelScope.launch {
+            DataRefreshManager.dataSourceChangedEvent.collect {
+                loadPlaylists()
+            }
+        }
     }
 
     fun loadPlaylists() {

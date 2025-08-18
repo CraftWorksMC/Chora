@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.data.repository.ArtistRepository
+import com.craftworks.music.managers.DataRefreshManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -32,9 +33,11 @@ class ArtistsScreenViewModel @Inject constructor(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
+        getArtists()
+
         viewModelScope.launch {
-            coroutineScope {
-                _allArtists.value = artistRepository.getArtists()
+            DataRefreshManager.dataSourceChangedEvent.collect {
+                getArtists()
             }
         }
     }

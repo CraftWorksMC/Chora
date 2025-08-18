@@ -329,18 +329,65 @@ fun AlbumRow(
 //region Artists
 @ExperimentalFoundationApi
 @Composable
-fun ArtistsGrid(artists: List<MediaData.Artist>,
-                onArtistSelected: (artist: MediaData.Artist) -> Unit){
+fun ArtistsGrid(
+    artists: List<MediaData.Artist>,
+    onArtistSelected: (artist: MediaData.Artist) -> Unit
+){
+    val gridState = rememberLazyGridState()
+    val showProviderDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
+
+    val groupedArtists = artists.groupBy { artist ->
+        if (artist.navidromeID.startsWith("Local_")) "Local" else "Navidrome"
+    }
+
     LazyVerticalGrid(
         columns = GridCells.Adaptive(128.dp),
         modifier = Modifier
             .wrapContentWidth()
-            .fillMaxHeight(),
+            .fillMaxHeight()
+            .padding(end = 12.dp),
+        state = gridState
     ) {
-        items(artists) {artist ->
-            ArtistCard(artist = artist, onClick = {
+        if (showProviderDividers && groupedArtists.size > 1) {
+            groupedArtists.forEach { (groupName, artistsInGroup) ->
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Column(Modifier.padding(start = 12.dp)) {
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .height(1.dp)
+                                .fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                        )
+                        Text(
+                            text = when (groupName) {
+                                "Navidrome" -> stringResource(R.string.Source_Navidrome)
+                                "Local" -> stringResource(R.string.Source_Local)
+                                else -> ""
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        )
+                    }
+
+                }
+                itemsIndexed(artistsInGroup) { index, artist ->
+                    ArtistCard(artist = artist, onClick = {
+                        onArtistSelected(artist)
+                    })
+                }
+            }
+        } else {
+            items(
+                items = artists,
+                key = { it.navidromeID }
+            ) { artist ->
+                ArtistCard(artist = artist, onClick = {
                     onArtistSelected(artist)
                 })
+            }
         }
     }
 }

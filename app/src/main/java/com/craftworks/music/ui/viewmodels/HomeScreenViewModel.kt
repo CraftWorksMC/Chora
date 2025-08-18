@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.repository.AlbumRepository
+import com.craftworks.music.managers.DataRefreshManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -34,6 +35,12 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         loadHomeScreenData()
+
+        viewModelScope.launch {
+            DataRefreshManager.dataSourceChangedEvent.collect {
+                loadHomeScreenData()
+            }
+        }
     }
 
     fun loadHomeScreenData() {

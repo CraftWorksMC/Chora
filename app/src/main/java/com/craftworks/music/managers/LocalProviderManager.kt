@@ -26,7 +26,7 @@ object LocalProviderManager {
         return folders.isNotEmpty()
     }
 
-    fun getAllFolders(): List<String> = folders
+    fun getAllFolders(): List<String> = folders.toList()
 
     // Save and load local folders.
     private lateinit var sharedPreferences: SharedPreferences
@@ -41,6 +41,7 @@ object LocalProviderManager {
     }
 
     private fun saveFolders() {
+        DataRefreshManager.notifyDataSourcesChanged()
         val serversJson = json.encodeToString(folders as List<String>)
         sharedPreferences.edit { putString(PREF_FOLDERS, serversJson) }
     }

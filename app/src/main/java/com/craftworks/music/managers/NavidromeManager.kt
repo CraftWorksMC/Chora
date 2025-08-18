@@ -65,6 +65,7 @@ object NavidromeManager {
     }
 
     private fun saveServers() {
+        DataRefreshManager.notifyDataSourcesChanged()
         val serversJson = json.encodeToString(servers as Map<String, NavidromeProvider>)
         sharedPreferences.edit { putString(PREF_SERVERS, serversJson) }
         sharedPreferences.edit { putString(PREF_CURRENT_SERVER, currentServerId) }

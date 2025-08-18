@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.repository.SongRepository
+import com.craftworks.music.managers.DataRefreshManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,12 @@ class SongsScreenViewModel @Inject constructor(
 
     init {
         getSongs()
+
+        viewModelScope.launch {
+            DataRefreshManager.dataSourceChangedEvent.collect {
+                getSongs()
+            }
+        }
     }
 
     fun getSongs() {

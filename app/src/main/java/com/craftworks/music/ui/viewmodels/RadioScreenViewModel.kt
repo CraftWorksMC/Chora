@@ -6,6 +6,7 @@ import androidx.media3.common.MediaItem
 import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.repository.RadioRepository
+import com.craftworks.music.managers.DataRefreshManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +30,12 @@ class RadioScreenViewModel @Inject constructor(
 
     init {
         getRadioStations()
+
+        viewModelScope.launch {
+            DataRefreshManager.dataSourceChangedEvent.collect {
+                getRadioStations()
+            }
+        }
     }
 
     fun getRadioStations() {
