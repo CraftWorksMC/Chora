@@ -12,33 +12,35 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 - Transcoding.
 - Material 3 UI.
 - Offline Mode [Download songs from server].
-- Internet Radio. [Metadata IceCast only]
+- Internet Radio. [Metadata only from IceCast servers]
 - Synced And Unsynced Lyrics. [From lrclib.net]
 - Navidrome and Local playlists.
 - Android Auto.
 
 ## W.I.P
 
-- Plain lyrics auto-scrolling.
-
-## Known Issues
-
-- After changing some settings, all the data is cleared from screens and need to be manually refreshed.
+- Refactoring, better performance, Material 3 Expressive UI.
+- Local DB for local files and Navidrome offline mode.
 
 ## Roadmap
 
 - Jellyfin (Music) Support.
+- Chromecast
+
+## Known Issues
+
+- After changing some settings, all the data is cleared from screens and need to be manually refreshed. (Fixed in refactor, wait for new update)
 
 ## Screenshots
 <p align="center">
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/Now-Playing-Screen.png?raw=true" width=200>
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/Now-Playing-SyncedLyrics.png?raw=true" width=200>
-    <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/Now-Playing-PlainLyrics.png?raw=true" width=200>
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/HomeScreen.png?raw=true" width=200>
-    <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/PlaylistScreen.png?raw=true" width=200>
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/AlbumScreen.png?raw=true" width=200>
+    <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/ArtistScreen.png?raw=true" width=200>
     <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/RadioScreen.png?raw=true" width=200>
-    <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/SettingScreen.png?raw=true" width=200>
+    <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/PlaylistScreen.png?raw=true" width=200>
+    <img src="https://github.com/CraftWorksMC/Chora/blob/master/Github/Images/SongScreen.png?raw=true" width=200>
 </p>
 
 
