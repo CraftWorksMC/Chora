@@ -11,9 +11,11 @@ import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -76,7 +78,7 @@ fun LyricsView(
 
     // State holding the current position
     val currentPosition = remember { mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0) }
-    val currentLyricIndex = remember { mutableIntStateOf(0) }
+    val currentLyricIndex = remember { mutableIntStateOf(-1) }
 
     val state = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -132,7 +134,7 @@ fun LyricsView(
             val newCurrentLyricIndex = lyrics.indexOfFirst { it.timestamp > (currentPosition.intValue + lyricsAnimationSpeed / 2) }
                 .takeIf { it >= 0 } ?: lyrics.size
 
-            val targetIndex = (newCurrentLyricIndex - 1).coerceAtLeast(0)
+            val targetIndex = (newCurrentLyricIndex - 1).coerceAtLeast(-1)
 
             if (targetIndex != currentLyricIndex.intValue) {
                 currentLyricIndex.intValue = targetIndex
@@ -204,6 +206,9 @@ fun LyricsView(
 //        }
         // Synced Lyrics
         if (lyrics.size > 1) {
+            item {
+                Spacer(Modifier.height(64.dp))
+            }
             itemsIndexed(
                 lyrics,
                 key = { index, lyric -> "${index}:${lyric.content}" }

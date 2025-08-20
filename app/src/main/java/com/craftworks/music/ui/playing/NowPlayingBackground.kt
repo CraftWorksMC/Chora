@@ -44,7 +44,7 @@ fun NowPlaying_Background(
         "Animated Blur" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) AnimatedGradientBG(
             color1 = colorPalette.elementAtOrNull(0) ?: Color.Black,
             color2 = colorPalette.elementAtOrNull(1) ?: Color.Black,
-            color3 = colorPalette.elementAtOrNull(2) ?: Color.Black, // Sometimes palette doesn't generate all colors
+            color3 = colorPalette.elementAtOrNull(2) ?: Color.Black,
             overlayColor = overlayColor,
             modifier = Modifier.fillMaxSize()
         )
@@ -113,118 +113,6 @@ private fun StaticBlurBG(
     }
 }
 
-/*
-@Composable
-@Preview
-@Stable
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-fun AnimatedGradientBG(
-    color1: Color  = Color.Blue,
-    color2: Color = Color.Black,
-    color3: Color = Color.Cyan,
-    modifier: Modifier = Modifier.fillMaxSize()
-) {
-    println("RECOMPOSITION: Animated Gradient BG")
-    println("Colors: $color1, $color2, $color3")
-
-    val shaderCode = """
-    uniform float2 iResolution;
-    uniform float iTime;
-    uniform float3 color1;
-    uniform float3 color2;
-    uniform float3 color3;
-
-    half4 main(vec2 fragCoord) {
-        float mr = min(iResolution.x, iResolution.y);
-        vec2 uv = (fragCoord * 2 - iResolution.xy) / mr;
-
-        float d = -iTime * 0.5;
-        float a = 0.0;
-        for (float i = 0.0; i < 4; ++i) {
-            a += cos(i - d - a * uv.x);
-            d += sin(uv.y * i + a);
-        }
-        d += iTime * 0.5;
-        
-        //float mixFactor = (cos(uv.x * d) + sin(uv.y * a)) * 0.5 + 0.5;
-        //float3 col = mix(color1, color2, mixFactor);
-
-        vec3 col = vec3(cos(uv * vec2(d, a)).x * 0.6 + 0.4, cos(a + d) * 0.5 + 0.5, 0.0);
-        float blendValue = (col.x + col.y) * 0.5;
-        
-        col = mix(color1, color2, blendValue);
-        col = mix(col, color3, smoothstep(0.0, 1.0, sin(d) * 0.5 + 0.5));
-        
-        return half4(col, 1.0);
-    }
-"""
-
-    var time by remember { mutableFloatStateOf(0f) }
-
-    val currentColor1 by animateColorAsState(
-        targetValue = color1,
-        animationSpec = tween(durationMillis = 1000),
-        label = "Smooth color transition"
-    )
-
-    val currentColor2 by animateColorAsState(
-        targetValue = color2,
-        animationSpec = tween(durationMillis = 1000),
-        label = "Smooth color transition"
-    )
-
-    val currentColor3 by animateColorAsState(
-        targetValue = color3,
-        animationSpec = tween(durationMillis = 1000),
-        label = "Smooth color transition"
-    )
-
-    val scope = rememberCoroutineScope()
-    LaunchedEffect(Unit) {
-        scope.launch {
-            while (true) {
-                withFrameMillis { frameTime ->
-                    time = frameTime / 10000f
-                }
-            }
-        }
-    }
-
-    val shader = remember { RuntimeShader(shaderCode) }
-
-    Canvas(modifier = modifier) {
-        shader.setFloatUniform(
-            "iResolution",
-            size.width * 2,
-            size.height * 2
-        )
-        shader.setFloatUniform("iTime", time)
-        shader.setFloatUniform(
-            "color1",
-            currentColor1.red,
-            currentColor1.green,
-            currentColor1.blue
-        )
-        shader.setFloatUniform(
-            "color2",
-            currentColor2.red,
-            currentColor2.green,
-            currentColor2.blue
-        )
-        shader.setFloatUniform(
-            "color3",
-            currentColor3.red,
-            currentColor3.green,
-            currentColor3.blue
-        )
-        drawRect(
-            brush = ShaderBrush(shader),
-            size = size
-        )
-    }
-}
-*/
-
 @Composable
 @Preview
 @Stable
@@ -276,7 +164,6 @@ fun AnimatedGradientBG(
     )
 }
 
-// It's good practice to move large, static strings out of the composable function.
 private const val SHADER_CODE = """
     uniform float2 iResolution;
     uniform float iTime;
