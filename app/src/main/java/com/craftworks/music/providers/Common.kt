@@ -18,15 +18,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
-
-suspend fun getAlbum(albumId: String, ignoreCachedResponse: Boolean = false): List<MediaItem>? = coroutineScope {
-    val deferredAlbum = async {
-        sendNavidromeGETRequest("getAlbum.view?id=${albumId}&f=json", ignoreCachedResponse)
-            .filterIsInstance<MediaItem>()
-    }
-    deferredAlbum.await()
-}
-
 //region Playlists
 suspend fun getPlaylists(context: Context, ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
     val deferredPlaylists = mutableListOf<Deferred<List<MediaItem>>>()
