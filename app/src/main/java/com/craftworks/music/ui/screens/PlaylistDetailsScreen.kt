@@ -151,7 +151,6 @@ fun PlaylistDetails(
                                     playlistMetadata.artworkData else
                                     playlistMetadata?.artworkUri
                             )
-                            .size(128)
                             .crossfade(true)
                             .diskCacheKey(
                                 playlistMetadata?.extras?.getString("navidromeID")

@@ -151,8 +151,9 @@ fun ArtistDetails(
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(artist?.artistImageUrl)
-                                .allowHardware(false)
-                                .size(256)
+                                .diskCacheKey(
+                                    artist?.navidromeID
+                                )
                                 .crossfade(true)
                                 .build(),
                             placeholder = painterResource(R.drawable.s_a_username),
@@ -161,7 +162,6 @@ fun ArtistDetails(
                             contentDescription = "Artist Image",
                             modifier = Modifier
                                 .fillMaxWidth()
-                                //.fadingEdge(imageFadingEdge)
                                 .clip(
                                     if (artist?.description != "") RoundedCornerShape(
                                         12.dp,
