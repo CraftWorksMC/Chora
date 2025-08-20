@@ -1,10 +1,8 @@
 package com.craftworks.music.ui.playing
 
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,36 +16,27 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.common.Timeline
-import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
-import com.craftworks.music.R
-import com.craftworks.music.player.ChoraMediaLibraryService
+import com.craftworks.music.player.SongHelper
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -58,32 +47,17 @@ fun PlayQueueContent(
 ) {
     if (mediaController == null) return
 
-    var playlist by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
     var currentMediaItem by remember { mutableStateOf<MediaItem?>(null) }
-
-    val refreshPlaylistState = {
-        playlist = List(mediaController.mediaItemCount) { i ->
-            mediaController.getMediaItemAt(i)
-        }
-    }
 
     // Observe controller changes
     DisposableEffect(mediaController) {
         val callback = object : Player.Listener {
-            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-                super.onTimelineChanged(timeline, reason)
-                refreshPlaylistState()
-            }
-
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 currentMediaItem = mediaItem
             }
         }
 
         // Initial state
-        playlist = List(mediaController.mediaItemCount) { i ->
-            mediaController.getMediaItemAt(i)
-        }
         currentMediaItem = mediaController.currentMediaItem
 
         mediaController.addListener(callback)
@@ -102,10 +76,10 @@ fun PlayQueueContent(
         modifier = Modifier.fillMaxWidth(),
         state = lazyListState
     ) {
-        items(playlist, key = { it.mediaId }) { mediaItem ->
+        items(SongHelper.currentTracklist, key = { it.mediaId }) { mediaItem ->
             ReorderableItem(reorderableLazyColumnState, mediaItem.mediaId) {
                 val isPlaying = mediaItem.mediaId == currentMediaItem?.mediaId
-                val index = playlist.indexOf(mediaItem)
+                val index = SongHelper.currentTracklist.indexOf(mediaItem)
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -162,12 +136,12 @@ fun PlayQueueContent(
                         )
                     }
 
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.baseline_drag_handle_24),
-                        contentDescription = "Reorder",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.draggableHandle()
-                    )
+//                    Icon(
+//                        imageVector = ImageVector.vectorResource(R.drawable.baseline_drag_handle_24),
+//                        contentDescription = "Reorder",
+//                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+//                        modifier = Modifier.draggableHandle()
+//                    )
                 }
             }
         }

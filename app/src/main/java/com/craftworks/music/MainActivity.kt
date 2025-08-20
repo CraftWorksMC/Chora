@@ -143,14 +143,17 @@ class MainActivity : ComponentActivity() {
                     MaterialTheme.colorScheme.background.toArgb()
                 )
 
+                val positionalThreshold = dpToPx(56).toFloat()
+                val velocityThreshold = dpToPx(125).toFloat()
+
                 val scaffoldState = remember {
                     BottomSheetScaffoldState(
                         bottomSheetState = SheetState(
                             skipPartiallyExpanded = false,
                             initialValue = SheetValue.PartiallyExpanded,
                             skipHiddenState = true,
-                            velocityThreshold = {0f},
-                            positionalThreshold = {0f}
+                            velocityThreshold = { positionalThreshold },
+                            positionalThreshold = { velocityThreshold }
                         ), snackbarHostState = SnackbarHostState()
                     )
                 }

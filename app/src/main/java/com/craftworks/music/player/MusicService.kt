@@ -299,45 +299,45 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             val connectivityManager =
                 this@ChoraMediaLibraryService.baseContext.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
 
-            val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-            var bitrate: String? = null
+            val networkCapabilities =
+                connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
 
-            runBlocking {
-                if (networkCapabilities != null) {
-                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+            val bitrate: String? = runBlocking {
+                when {
+                    networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> {
                         Log.d("NetworkCheck", "Device is on Wi-Fi")
-                        bitrate = settingsManager.wifiTranscodingBitrateFlow.first()
-                    } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                        settingsManager.wifiTranscodingBitrateFlow.first()
+                    }
+                    networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> {
                         Log.d("NetworkCheck", "Device is on Mobile Data")
-                        bitrate = settingsManager.mobileDataTranscodingBitrateFlow.first()
-                    } else {
+                        settingsManager.mobileDataTranscodingBitrateFlow.first()
+                    }
+                    else -> {
                         Log.d("NetworkCheck", "Device is on another network type")
-                        bitrate = settingsManager.wifiTranscodingBitrateFlow.first()
+                        settingsManager.wifiTranscodingBitrateFlow.first()
                     }
                 }
             }
+
             val bitrateOptions = if (bitrate != null && bitrate != "No Transcoding" && bitrate.isNotEmpty()) {
                 "&maxBitRate=$bitrate&format=aac"
             } else {
                 ""
             }
 
-            val updatedMediaItems: List<MediaItem> =
+            val result = MediaItemsWithStartPosition(
                 currentTracklist.map { mediaItem ->
                     MediaItem.Builder()
                         .setMediaId(mediaItem.mediaId)
                         .setMediaMetadata(mediaItem.mediaMetadata)
                         .setUri(mediaItem.mediaId + bitrateOptions)
                         .build()
-                }
-
-            return super.onSetMediaItems(
-                mediaSession,
-                controller,
-                updatedMediaItems,
-                updatedStartIndex,
+                },
+                if (updatedStartIndex != -1) updatedStartIndex else startIndex,
                 startPositionMs
             )
+
+            return Futures.immediateFuture(result)
         }
 
 
