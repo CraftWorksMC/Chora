@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.repository.PlaylistRepository
+import com.craftworks.music.data.repository.StarredRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +21,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlaylistScreenViewModel @Inject constructor(
-    private val playlistRepository: PlaylistRepository
+    private val playlistRepository: PlaylistRepository,
+    private val starredRepository: StarredRepository
 ) : ViewModel() {
     private val _allPlaylists = MutableStateFlow<List<MediaItem>>(emptyList())
     val allPlaylists: StateFlow<List<MediaItem>> = _allPlaylists.asStateFlow()
@@ -93,7 +95,7 @@ class PlaylistScreenViewModel @Inject constructor(
             loadingJob.start()
             coroutineScope {
                 if (playlistId == "favourites") {
-                    //TODO: favourites
+                    _selectedPlaylistSongs.value = async { starredRepository.getStarredItems() }.await()
                 }
                 else {true
                     _selectedPlaylistSongs.value = async { playlistRepository.getPlaylistSongs(playlistId) }.await()

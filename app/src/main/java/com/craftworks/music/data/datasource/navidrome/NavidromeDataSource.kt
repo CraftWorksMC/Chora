@@ -219,10 +219,14 @@ class NavidromeDataSource @Inject constructor() {
     }
 
     //TODO: Navidrome Starred Items (with UI updates)
-    suspend fun getNavidromeStarred(ignoreCachedResponse: Boolean = false): List<MediaItem> =
-        withContext(Dispatchers.IO) {
-            emptyList()
-        }
+    suspend fun getNavidromeStarred(
+        ignoreCachedResponse: Boolean = false
+    ): List<MediaItem> = withContext(Dispatchers.IO) {
+        sendNavidromeGETRequest(
+            "getStarred.view?f=json",
+            ignoreCachedResponse
+        ).filterIsInstance<MediaItem>()
+    }
 
     suspend fun starNavidromeItem(itemId: String, ignoreCachedResponse: Boolean = false): Boolean =
         withContext(Dispatchers.IO) {
