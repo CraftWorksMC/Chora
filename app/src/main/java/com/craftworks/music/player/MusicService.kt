@@ -2,6 +2,8 @@ package com.craftworks.music.player
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
@@ -41,6 +43,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -293,12 +296,38 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     mediaItems
                 }
 
+            val connectivityManager =
+                this@ChoraMediaLibraryService.baseContext.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+
+            val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            var bitrate: String? = null
+
+            runBlocking {
+                if (networkCapabilities != null) {
+                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                        Log.d("NetworkCheck", "Device is on Wi-Fi")
+                        bitrate = settingsManager.wifiTranscodingBitrateFlow.first()
+                    } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                        Log.d("NetworkCheck", "Device is on Mobile Data")
+                        bitrate = settingsManager.mobileDataTranscodingBitrateFlow.first()
+                    } else {
+                        Log.d("NetworkCheck", "Device is on another network type")
+                        bitrate = settingsManager.wifiTranscodingBitrateFlow.first()
+                    }
+                }
+            }
+            val bitrateOptions = if (bitrate != null && bitrate != "No Transcoding" && bitrate.isNotEmpty()) {
+                "&maxBitRate=$bitrate&format=aac"
+            } else {
+                ""
+            }
+
             val updatedMediaItems: List<MediaItem> =
                 currentTracklist.map { mediaItem ->
                     MediaItem.Builder()
                         .setMediaId(mediaItem.mediaId)
                         .setMediaMetadata(mediaItem.mediaMetadata)
-                        .setUri(mediaItem.mediaId)
+                        .setUri(mediaItem.mediaId + bitrateOptions)
                         .build()
                 }
 
