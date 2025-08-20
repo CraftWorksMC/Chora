@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.screens
 
-import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -32,7 +31,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -46,7 +44,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -68,10 +65,8 @@ import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.HorizontalSongCard
-import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -83,8 +78,6 @@ fun PlaylistDetails(
     mediaController: MediaController? = rememberManagedMediaController().value,
     viewModel: PlaylistScreenViewModel = hiltViewModel()
 ) {
-    val leftPadding =
-        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red, Color.Transparent))
 
     val requester = remember { FocusRequester() }
@@ -109,8 +102,7 @@ fun PlaylistDetails(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(start = leftPadding),
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -137,7 +129,6 @@ fun PlaylistDetails(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = leftPadding)
                 .dialogFocusable(),
             contentPadding = PaddingValues(
                 top = WindowInsets.statusBars

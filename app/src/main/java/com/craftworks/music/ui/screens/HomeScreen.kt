@@ -66,7 +66,6 @@ import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.AlbumRow
-import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
@@ -80,9 +79,6 @@ fun HomeScreen(
     mediaController: MediaController? = null,
     viewModel: HomeScreenViewModel = hiltViewModel()
 ) {
-    val leftPadding =
-        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-
     val context = LocalContext.current
 
     val recentlyPlayedAlbums by viewModel.recentlyPlayedAlbums.collectAsStateWithLifecycle()
@@ -109,7 +105,6 @@ fun HomeScreen(
     ) {
         Column(
             modifier = Modifier
-                .padding(start = leftPadding)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
@@ -153,8 +148,6 @@ fun HomeScreen(
                     )
                 }
             }
-
-            HorizontalLineWithNavidromeCheck()
 
             Spacer(modifier = Modifier.height(12.dp))
 

@@ -27,20 +27,6 @@ suspend fun getAlbum(albumId: String, ignoreCachedResponse: Boolean = false): Li
     deferredAlbum.await()
 }
 
-suspend fun searchAlbum(
-    query: String? = ""
-) : List<MediaItem> = coroutineScope {
-    val deferredAlbums = mutableListOf<Deferred<List<MediaItem>>>()
-
-    if (NavidromeManager.checkActiveServers()) {
-        deferredAlbums.add(async {
-            sendNavidromeGETRequest("search3.view?query=$query&songCount=0&songOffset=0&artistCount=0&albumCount=100&f=json").filterIsInstance<MediaItem>()
-        })
-    }
-
-    deferredAlbums.awaitAll().flatten()
-}
-
 //region Playlists
 suspend fun getPlaylists(context: Context, ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
     val deferredPlaylists = mutableListOf<Deferred<List<MediaItem>>>()

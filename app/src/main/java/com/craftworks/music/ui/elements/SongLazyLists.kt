@@ -3,7 +3,6 @@ package com.craftworks.music.ui.elements
 import android.os.Bundle
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -106,12 +105,12 @@ fun SongsHorizontalColumn(
 
         groupedSongs.forEach { (groupName, songsInGroup) ->
             if (showDividers && groupedSongs.size > 1) {
-                stickyHeader {
+                item {
                     HorizontalDivider(
                         modifier = Modifier
                             .height(1.dp)
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.background),
+                            .fillMaxWidth(),
+                            //.background(MaterialTheme.colorScheme.background),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                     )
                     Text(
@@ -124,7 +123,7 @@ fun SongsHorizontalColumn(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.background) // Add background color for visibility
+                            //.background(MaterialTheme.colorScheme.background)
                             .padding(8.dp)
                     )
                 }
@@ -146,7 +145,7 @@ fun SongsHorizontalColumn(
 @ExperimentalFoundationApi
 @Composable
 fun AlbumGrid(
-    //albums: List<MediaData.Album>,
+    albums: List<MediaItem>,
     mediaController: MediaController?,
     onAlbumSelected: (album: MediaData.Album) -> Unit,
     isSearch: Boolean? = false,
@@ -156,7 +155,6 @@ fun AlbumGrid(
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
 
-    val albums by viewModel.allAlbums.collectAsStateWithLifecycle()
     val showDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
     // Group songs by their source (Local or Navidrome)
@@ -344,8 +342,7 @@ fun ArtistsGrid(
         columns = GridCells.Adaptive(128.dp),
         modifier = Modifier
             .wrapContentWidth()
-            .fillMaxHeight()
-            .padding(end = 12.dp),
+            .fillMaxHeight(),
         state = gridState
     ) {
         if (showProviderDividers && groupedArtists.size > 1) {

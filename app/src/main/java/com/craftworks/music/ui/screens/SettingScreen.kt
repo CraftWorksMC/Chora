@@ -33,7 +33,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,19 +43,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 
 @Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
 )
 @Composable
 fun SettingScreen(navHostController: NavHostController = rememberNavController()) {
-    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(
-            start = leftPadding,
             top = WindowInsets.statusBars
                 .asPaddingValues()
                 .calculateTopPadding()
@@ -87,8 +82,6 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                     modifier = Modifier.size(32.dp))
             }
         }
-
-        HorizontalLineWithNavidromeCheck()
 
         /* Settings */
         Column {

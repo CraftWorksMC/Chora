@@ -18,7 +18,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -140,12 +139,12 @@ fun HorizontalSongCard(
                 IconButton(
                     modifier = Modifier,
                     onClick = { expanded = true },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        contentColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = MaterialTheme.colorScheme.background,
-                        disabledContentColor = MaterialTheme.colorScheme.onBackground
-                    )
+//                    colors = IconButtonDefaults.iconButtonColors(
+//                        containerColor = MaterialTheme.colorScheme.background,
+//                        contentColor = MaterialTheme.colorScheme.primary,
+//                        disabledContainerColor = MaterialTheme.colorScheme.background,
+//                        disabledContentColor = MaterialTheme.colorScheme.onBackground
+//                    )
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.MoreVert,

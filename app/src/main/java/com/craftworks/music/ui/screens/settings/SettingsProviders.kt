@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.screens.settings
 
-import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -44,7 +42,6 @@ import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.providers.navidrome.navidromeStatus
-import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.LRCLIBProviderCard
 import com.craftworks.music.ui.elements.LocalProviderCard
 import com.craftworks.music.ui.elements.NavidromeProviderCard
@@ -56,7 +53,6 @@ import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 @Preview(showSystemUi = false, showBackground = true)
 fun S_ProviderScreen(navHostController: NavHostController = rememberNavController()) {
     val context = LocalContext.current.applicationContext
-    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
 
     var showNavidromeServerDialog by remember { mutableStateOf(false) }
 
@@ -64,7 +60,6 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
         modifier = Modifier
             .fillMaxSize()
             .padding(
-                start = leftPadding,
                 top = WindowInsets.statusBars
                     .asPaddingValues()
                     .calculateTopPadding()
@@ -102,8 +97,6 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 }
             }
         }
-
-        HorizontalLineWithNavidromeCheck()
 
         Column(
             Modifier

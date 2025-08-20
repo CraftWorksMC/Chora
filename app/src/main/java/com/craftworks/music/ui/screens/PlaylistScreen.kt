@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.screens
 
-import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -39,7 +37,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.PlaylistGrid
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.dialogs.DeletePlaylist
@@ -56,8 +53,6 @@ fun PlaylistScreen(
     navHostController: NavHostController = rememberNavController(),
     viewModel: PlaylistScreenViewModel = hiltViewModel()
 ) {
-    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-
     val playlists by viewModel.allPlaylists.collectAsStateWithLifecycle()
 
     val state = rememberPullToRefreshState()
@@ -84,7 +79,6 @@ fun PlaylistScreen(
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(
-                start = leftPadding,
                 top = WindowInsets.statusBars
                     .asPaddingValues()
                     .calculateTopPadding()
@@ -103,8 +97,6 @@ fun PlaylistScreen(
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize
                 )
             }
-
-            HorizontalLineWithNavidromeCheck()
 
             PlaylistGrid(playlists, onPlaylistSelected = { playlist ->
                 viewModel.setCurrentPlaylist(playlist)

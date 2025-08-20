@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.screens
 
 import android.content.Intent
-import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
@@ -51,7 +50,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -87,13 +85,12 @@ fun ArtistDetails(
     mediaController: MediaController? = null,
     viewModel: ArtistsScreenViewModel = hiltViewModel()
 ) {
-    val leftPadding =
-        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-
     val showLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val artist = viewModel.selectedArtist.collectAsStateWithLifecycle().value
     val artistAlbums = viewModel.artistAlbums.collectAsStateWithLifecycle().value
     val context = LocalContext.current
+
+    val coroutineScope = rememberCoroutineScope()
 
     // Loading spinner
     AnimatedVisibility(
@@ -103,8 +100,7 @@ fun ArtistDetails(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(start = leftPadding),
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -131,7 +127,6 @@ fun ArtistDetails(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = leftPadding,
                     top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
                     end = 12.dp
                 )
@@ -272,7 +267,6 @@ fun ArtistDetails(
 
             // Play and shuffle buttons
             item(span = { GridItemSpan(maxLineSpan) }) {
-                val coroutineScope = rememberCoroutineScope()
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -285,7 +279,7 @@ fun ArtistDetails(
                             coroutineScope.launch {
                                 val allArtistSongsList = artistAlbums.map {
                                     it.mediaMetadata.extras?.getString("navidromeID").let {
-                                        val album = viewModel.getAlbums(it ?: "")
+                                        val album = viewModel.getAlbum(it ?: "")
                                         if (album.isNotEmpty())
                                             album.subList(1, album.size)
                                         else
@@ -319,7 +313,7 @@ fun ArtistDetails(
                             coroutineScope.launch {
                                 val allArtistSongsList = artistAlbums.map {
                                     it.mediaMetadata.extras?.getString("navidromeID").let {
-                                        val album = viewModel.getAlbums(it ?: "")
+                                        val album = viewModel.getAlbum(it ?: "")
                                         if (album.isNotEmpty())
                                             album.subList(1, album.size)
                                         else
@@ -390,15 +384,15 @@ fun ArtistDetails(
                             }
                         },
                         onPlay = {
-//                            coroutineScope.launch {
-//                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
-//                                if (mediaItems.isNotEmpty())
-//                                    SongHelper.play(
-//                                        mediaItems = mediaItems.subList(1, mediaItems.size),
-//                                        index = 0,
-//                                        mediaController = mediaController
-//                                    )
-//                            }
+                            coroutineScope.launch {
+                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                                if (mediaItems.isNotEmpty())
+                                    SongHelper.play(
+                                        mediaItems = mediaItems.subList(1, mediaItems.size),
+                                        index = 0,
+                                        mediaController = mediaController
+                                    )
+                            }
                         }
                     )
                 }

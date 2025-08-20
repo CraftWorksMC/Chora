@@ -73,9 +73,7 @@ fun NowPlayingLandscape(
         label = "Animated text color"
     )
 
-    Row (
-        Modifier.padding(start = 80.dp)
-    ) {
+    Row {
         Column(
             Modifier.weight(1f).widthIn(min = 512.dp).fillMaxHeight(),
             verticalArrangement = Arrangement.SpaceEvenly,

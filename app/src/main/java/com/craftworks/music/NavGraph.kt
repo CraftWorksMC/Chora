@@ -10,7 +10,11 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +27,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -75,10 +81,13 @@ fun SetupNavGraph(
     LyricsManager.useLrcLib =
         SettingsManager(context).lrcLibLyricsFlow.collectAsStateWithLifecycle(true).value
 
+    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp + WindowInsets.safeDrawing.asPaddingValues().calculateLeftPadding(
+        LayoutDirection.Ltr)
+
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route,
-        modifier = Modifier.padding(bottom = bottomPadding),
+        modifier = Modifier.padding(bottom = bottomPadding, start = leftPadding),
         enterTransition = {
             scaleIn(tween(300), 0.95f) + fadeIn(tween(400))
         },

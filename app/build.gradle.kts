@@ -4,8 +4,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
     kotlin("plugin.serialization") version "2.0.0"
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.hilt) // Apply the Hilt plugin
-    kotlin("kapt") // Add kapt for annotation processing
+    alias(libs.plugins.hilt)
+    kotlin("kapt")
 }
 
 android {
@@ -81,6 +81,8 @@ dependencies {
 
     implementation(libs.reorderable)
     implementation(libs.androidx.media)
+
+    implementation(libs.androidx.material.icons.core)
 
     implementation(libs.konsume.xml)
     implementation(libs.kotlinx.serialization.json)

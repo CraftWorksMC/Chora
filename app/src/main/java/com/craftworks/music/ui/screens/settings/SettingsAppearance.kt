@@ -63,7 +63,6 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
 import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
 import com.craftworks.music.ui.elements.dialogs.ThemeDialog
@@ -75,9 +74,6 @@ import kotlinx.coroutines.runBlocking
 @Composable
 @Preview(showSystemUi = false, showBackground = true)
 fun S_AppearanceScreen(navHostController: NavHostController = rememberNavController()) {
-    val leftPadding =
-        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-
     var showBackgroundDialog by remember { mutableStateOf(false) }
     var showThemesDialog by remember { mutableStateOf(false) }
     var showNavbarItemsDialog by remember { mutableStateOf(false) }
@@ -92,7 +88,6 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(
-                start = leftPadding,
                 top = WindowInsets.statusBars
                     .asPaddingValues()
                     .calculateTopPadding()
@@ -133,8 +128,6 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 }
             }
         }
-
-        HorizontalLineWithNavidromeCheck()
 
         Column(Modifier.padding(12.dp,12.dp,24.dp,12.dp)){
 

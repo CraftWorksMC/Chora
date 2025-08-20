@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.screens
 
-import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -51,7 +50,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -68,7 +66,6 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
@@ -81,8 +78,6 @@ import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.viewmodels.AlbumDetailsViewModel
 import kotlinx.coroutines.launch
 
-var selectedAlbum by mutableStateOf<MediaData.Album?>(MediaData.Album(navidromeID = "", parent = "", album = "", title = "", name = "", songCount = 0, duration = 0, artistId = "", artist = "", coverArt = ""))
-
 @OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalFoundationApi
 @Composable
@@ -93,7 +88,6 @@ fun AlbumDetails(
     mediaController: MediaController? = null,
     viewModel: AlbumDetailsViewModel = hiltViewModel()
 ) {
-    val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
     var showLoading by remember { mutableStateOf(false) }
@@ -111,8 +105,7 @@ fun AlbumDetails(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(start = leftPadding),
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -146,8 +139,7 @@ fun AlbumDetails(
         LazyColumn(modifier = Modifier
             .fillMaxWidth()
             .padding(
-                start = leftPadding + 12.dp,
-                end = 12.dp,
+                horizontal = 12.dp
             )
             .dialogFocusable(),
             contentPadding = PaddingValues(bottom = 16.dp, top = WindowInsets.statusBars

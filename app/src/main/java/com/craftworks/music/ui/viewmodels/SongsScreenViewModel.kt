@@ -21,6 +21,9 @@ class SongsScreenViewModel @Inject constructor(
     private val _allSongs = MutableStateFlow<List<MediaItem>>(emptyList())
     val allSongs: StateFlow<List<MediaItem>> = _allSongs.asStateFlow()
 
+    private val _searchResults = MutableStateFlow<List<MediaItem>>(emptyList())
+    val searchResults: StateFlow<List<MediaItem>> = _searchResults.asStateFlow()
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -55,7 +58,17 @@ class SongsScreenViewModel @Inject constructor(
         }
     }
 
-    suspend fun search(query: String){
-        _allSongs.value = songRepository.getSongs(query, 500)
+    fun search(query: String){
+        if (query.isBlank()) {
+            _searchResults.value = emptyList()
+            return
+        }
+        viewModelScope.launch {
+            _isLoading.value = true
+            coroutineScope {
+                _searchResults.value = songRepository.searchSongs(query)
+            }
+            _isLoading.value = false
+        }
     }
 }

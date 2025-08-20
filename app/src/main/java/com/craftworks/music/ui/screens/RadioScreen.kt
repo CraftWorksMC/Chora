@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.screens
 
-import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -51,7 +49,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.RadioCard
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.dialogs.AddRadioDialog
@@ -68,9 +65,6 @@ fun RadioScreen(
     mediaController: MediaController? = null,
     viewModel: RadioScreenViewModel = hiltViewModel()
 ) {
-    val leftPadding =
-        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-
     val coroutineScope = rememberCoroutineScope()
 
     val state = rememberPullToRefreshState()
@@ -101,7 +95,6 @@ fun RadioScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = leftPadding,
                     top = WindowInsets.statusBars
                         .asPaddingValues()
                         .calculateTopPadding()
@@ -141,8 +134,6 @@ fun RadioScreen(
                     )
                 }
             }
-
-            HorizontalLineWithNavidromeCheck()
 
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(128.dp),

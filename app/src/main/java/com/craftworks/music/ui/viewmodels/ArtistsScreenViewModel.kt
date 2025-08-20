@@ -4,21 +4,28 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.data.repository.ArtistRepository
 import com.craftworks.music.managers.DataRefreshManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ArtistsScreenViewModel @Inject constructor(
-    private val artistRepository: ArtistRepository
+    private val artistRepository: ArtistRepository,
+    private val albumRepository: AlbumRepository
 ) : ViewModel() {
     private val _allArtists = MutableStateFlow<List<MediaData.Artist>>(emptyList())
     val allArtists: StateFlow<List<MediaData.Artist>> = _allArtists.asStateFlow()
@@ -28,6 +35,9 @@ class ArtistsScreenViewModel @Inject constructor(
 
     private val _artistAlbums = MutableStateFlow<List<MediaItem>>(emptyList())
     val artistAlbums: StateFlow<List<MediaItem>> = _artistAlbums.asStateFlow()
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -50,13 +60,34 @@ class ArtistsScreenViewModel @Inject constructor(
         }
     }
 
-    suspend fun getAlbums(id: String): List<MediaItem> {
-        return artistRepository.getArtistAlbums(id)
+    suspend fun getAlbum(id: String): List<MediaItem> {
+        return albumRepository.getAlbum(id) ?: emptyList()
     }
 
-    suspend fun search(query: String) {
-        //_allArtists.value = artistRepository.searchArtist(query)
+//    suspend fun search(query: String) {
+//        _allArtists.value = artistRepository.searchArtists(query)
+//    }
+    fun onSearchQueryChange(query: String) {
+        _searchQuery.value = query
     }
+    @OptIn(FlowPreview::class)
+    val searchResults: StateFlow<List<MediaData.Artist>> = searchQuery
+        .debounce(300L) // Adds a small delay to avoid searching on every keystroke.
+        .combine(allArtists) { query, artists ->
+            if (query.isBlank()) {
+                emptyList()
+            } else {
+                artists.filter { artist ->
+                    artist.name.contains(query, ignoreCase = true)
+                }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
 
     fun setSelectedArtist(artist: MediaData.Artist) {
         _selectedArtist.value = artist

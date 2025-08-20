@@ -64,7 +64,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
@@ -90,7 +89,6 @@ import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
 import com.gigamole.composefadingedges.verticalFadingEdges
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.system.exitProcess
@@ -100,8 +98,6 @@ var showNoProviderDialog = mutableStateOf(false)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     lateinit var navController: NavHostController
-
-    private val playerState = MutableStateFlow<MediaMetadata?>(null)
 
     @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(ExperimentalMaterial3Api::class)
@@ -153,7 +149,8 @@ class MainActivity : ComponentActivity() {
                             skipPartiallyExpanded = false,
                             initialValue = SheetValue.PartiallyExpanded,
                             skipHiddenState = true,
-                            density = Density(this)
+                            velocityThreshold = {0f},
+                            positionalThreshold = {0f}
                         ), snackbarHostState = SnackbarHostState()
                     )
                 }

@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.screens.settings
 
-import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
@@ -41,7 +40,6 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -57,7 +55,6 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.ui.elements.HorizontalLineWithNavidromeCheck
 import com.craftworks.music.ui.elements.dialogs.TranscodingDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import kotlinx.coroutines.runBlocking
@@ -69,9 +66,6 @@ import kotlin.math.roundToInt
 fun S_PlaybackScreen(navHostController: NavHostController = rememberNavController()) {
     val context = LocalContext.current
 
-    val leftPadding =
-        if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp
-
     var showWifiTranscodingDialog by remember { mutableStateOf(false) }
     var showDataTranscodingDialog by remember { mutableStateOf(false) }
 
@@ -80,7 +74,6 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(
-                start = leftPadding,
                 top = WindowInsets.statusBars
                     .asPaddingValues()
                     .calculateTopPadding()
@@ -122,8 +115,6 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                 }
             }
         }
-
-        HorizontalLineWithNavidromeCheck()
 
         Column(Modifier.padding(12.dp, 12.dp, 24.dp, 12.dp)) {
 
