@@ -6,7 +6,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -35,8 +34,6 @@ import com.craftworks.music.ui.elements.TopBarWithSearch
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 
-@RequiresApi(Build.VERSION_CODES.S)
-@OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = false)
 @Composable

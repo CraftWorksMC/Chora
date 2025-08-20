@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -64,6 +63,7 @@ import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
+import com.craftworks.music.ui.viewmodels.RadioScreenViewModel
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import java.net.URLDecoder
 
@@ -117,8 +117,12 @@ fun SetupNavGraph(
             val viewModel: SongsScreenViewModel = hiltViewModel(parentEntry)
             SongsScreen(mediaController, viewModel)
         }
-        composable(route = Screen.Radio.route) {
-            RadioScreen(mediaController)
+        composable(route = Screen.Radio.route) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry("main_graph")
+            }
+            val viewModel: RadioScreenViewModel = hiltViewModel(parentEntry)
+            RadioScreen(mediaController, viewModel)
         }
 
         //Albums
@@ -153,14 +157,14 @@ fun SetupNavGraph(
         navigation(startDestination = Screen.Artists.route, route = "artists_graph") {
             composable(route = Screen.Artists.route) { backStackEntry ->
                 val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry("artists_graph")
+                    navController.getBackStackEntry("main_graph")
                 }
                 val viewModel: ArtistsScreenViewModel = hiltViewModel(parentEntry)
                 ArtistsScreen(navController, viewModel)
             }
             composable(route = Screen.ArtistDetails.route) { backStackEntry ->
                 val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry("artists_graph")
+                    navController.getBackStackEntry("main_graph")
                 }
                 val viewModel: ArtistsScreenViewModel = hiltViewModel(parentEntry)
                 ArtistDetails(navController, mediaController, viewModel)
@@ -171,14 +175,14 @@ fun SetupNavGraph(
         navigation(startDestination = Screen.Playlists.route, route = "playlists_graph") {
             composable(route = Screen.Playlists.route) { backStackEntry ->
                 val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry("playlists_graph")
+                    navController.getBackStackEntry("main_graph")
                 }
                 val viewModel: PlaylistScreenViewModel = hiltViewModel(parentEntry)
                 PlaylistScreen(navController, viewModel)
             }
             composable(route = Screen.PlaylistDetails.route) { backStackEntry ->
                 val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry("playlists_graph")
+                    navController.getBackStackEntry("main_graph")
                 }
                 val viewModel: PlaylistScreenViewModel = hiltViewModel(parentEntry)
 
