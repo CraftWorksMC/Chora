@@ -1,5 +1,7 @@
 package com.craftworks.music.player
 
+import android.app.PendingIntent
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
@@ -20,6 +22,7 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionError
+import com.craftworks.music.MainActivity
 import com.craftworks.music.R
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.repository.AlbumRepository
@@ -194,8 +197,20 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             }
         })
 
+        val mainActivityIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+
+        val sessionActivityPendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            mainActivityIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         session = MediaLibrarySession.Builder(this, player, LibrarySessionCallback())
             .setId("AutoSession")
+            .setSessionActivity(sessionActivityPendingIntent)
             .build()
 
         /*
