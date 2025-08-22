@@ -43,7 +43,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.playlistList
-import com.craftworks.music.lyrics.LyricsManager
+import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.screens.AlbumDetails
@@ -78,7 +78,8 @@ fun SetupNavGraph(
 
     playlistList =
         SettingsManager(context).localPlaylists.collectAsStateWithLifecycle(mutableListOf()).value
-    LyricsManager.useLrcLib =
+
+    LyricsState.useLrcLib =
         SettingsManager(context).lrcLibLyricsFlow.collectAsStateWithLifecycle(true).value
 
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp + WindowInsets.safeDrawing.asPaddingValues().calculateLeftPadding(

@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -41,10 +42,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
 import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.lyrics.LyricsManager
+import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.ui.elements.dialogs.EditLrcLibUrlDialog
 import kotlinx.coroutines.runBlocking
 
 @Preview
@@ -133,7 +135,6 @@ fun NavidromeProviderCard(
         allowSelfSignedCert = true
     )
 ) {
-
     rememberCoroutineScope()
 
     Row(modifier = Modifier
@@ -210,6 +211,7 @@ fun NavidromeProviderCard(
 fun LRCLIBProviderCard(
     context: Context = LocalContext.current
 ){
+    var showEditDialog by remember { mutableStateOf(false) }
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
         .height(64.dp)
@@ -243,15 +245,37 @@ fun LRCLIBProviderCard(
             )
         }
 
+        // Edit Button
+        Button(
+            onClick = { showEditDialog = true },
+            shape = CircleShape,
+            modifier = Modifier
+                .size(32.dp),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Edit,
+                tint = MaterialTheme.colorScheme.onBackground,
+                contentDescription = "Remove Navidrome Server",
+                modifier = Modifier
+                    .height(32.dp)
+                    .size(32.dp)
+            )
+        }
+
         // Enabled Checkbox
         Checkbox(
-            checked = LyricsManager.useLrcLib,
+            checked = LyricsState.useLrcLib,
             onCheckedChange = {
-                LyricsManager.useLrcLib = it
+                LyricsState.useLrcLib = it
                 runBlocking {
                     SettingsManager(context).setUseLrcLib(it)
                 }
             }
         )
+
+        if (showEditDialog)
+            EditLrcLibUrlDialog(setShowDialog = { showEditDialog = it })
     }
 }

@@ -1,7 +1,7 @@
 package com.craftworks.music.data.di
 
-import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.datasource.local.LocalDataSource
+import com.craftworks.music.data.datasource.lrclib.LrclibDataSource
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.providers.local.LocalProvider
@@ -28,5 +28,13 @@ object DataSourceModule {
     @Provides
     fun provideNavidromeDataSource(): NavidromeDataSource {
         return NavidromeDataSource()
+    }
+
+    @Singleton
+    @Provides
+    fun provideLrcLibDataSource(
+        settingsManager: SettingsManager
+    ): LrclibDataSource {
+        return LrclibDataSource(settingsManager)
     }
 }

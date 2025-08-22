@@ -1,8 +1,12 @@
 package com.craftworks.music.data.datasource.navidrome
 
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.data.model.MediaData
-import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest // Corrected import
+import com.craftworks.music.data.model.toLyric
+import com.craftworks.music.data.model.toLyrics
+import com.craftworks.music.providers.navidrome.sendNavidromeGETRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -201,21 +205,16 @@ class NavidromeDataSource @Inject constructor() {
 
     // Lyrics
     suspend fun getNavidromePlainLyrics(
-        songId: String, ignoreCachedResponse: Boolean = false
-    ): MediaData.PlainLyrics? = withContext(Dispatchers.IO) {
-        sendNavidromeGETRequest(
-            "getLyrics.view?id=$songId",
-            ignoreCachedResponse
-        ).filterIsInstance<MediaData.PlainLyrics>().firstOrNull()
+        metadata: MediaMetadata?, ignoreCachedResponse: Boolean = false
+    ): List<Lyric> = withContext(Dispatchers.IO) {
+        sendNavidromeGETRequest("getLyrics.view?artist=${metadata?.artist}&title=${metadata?.title}&f=json").filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.content.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
     }
 
     suspend fun getNavidromeSyncedLyrics(
         songId: String, ignoreCachedResponse: Boolean = false
-    ): MediaData.StructuredLyrics? = withContext(Dispatchers.IO) {
-        sendNavidromeGETRequest(
-            "getLyrics.view?id=$songId",
-            ignoreCachedResponse
-        ).filterIsInstance<MediaData.StructuredLyrics>().firstOrNull()
+    ): List<Lyric> = withContext(Dispatchers.IO) {
+        sendNavidromeGETRequest("getLyricsBySongId.view?id=${songId}&f=json", ignoreCachedResponse)
+            .filterIsInstance<MediaData.StructuredLyrics>().flatMap { it.toLyrics() }
     }
 
     //TODO: Navidrome Starred Items (with UI updates)

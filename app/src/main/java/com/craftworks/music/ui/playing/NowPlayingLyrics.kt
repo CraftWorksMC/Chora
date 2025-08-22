@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import com.craftworks.music.data.model.Lyric
-import com.craftworks.music.lyrics.LyricsManager
+import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.SettingsManager
 import com.gigamole.composefadingedges.FadingEdgesGravity
 import com.gigamole.composefadingedges.content.FadingEdgesContentType
@@ -70,8 +70,7 @@ fun LyricsView(
     mediaController: MediaController?,
     paddingValues: PaddingValues = PaddingValues(),
 ) {
-    val lyrics by LyricsManager.Lyrics.collectAsState()
-
+    val lyrics by LyricsState.lyrics.collectAsState()
 
     val useBlur by SettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
     val lyricsAnimationSpeed by SettingsManager(LocalContext.current).lyricsAnimationSpeedFlow.collectAsState(100)
@@ -154,7 +153,7 @@ fun LyricsView(
                     }
                     else
                         state.animateScrollToItem(
-                            index = targetIndex,
+                            index = targetIndex.coerceAtLeast(0),
                             scrollOffset = -(currentItem?.size ?: 0)
                         )
                 }

@@ -20,7 +20,6 @@ import com.craftworks.music.data.model.playlistList
 import com.craftworks.music.data.model.radioList
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.model.toSong
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -48,6 +47,7 @@ class SettingsManager @Inject constructor(
         private val SHOW_PROVIDER_DIVIDERS = booleanPreferencesKey("provider_dividers")
         private val LYRICS_ANIMATION_SPEED = intPreferencesKey("lyrics_animation_speed")
 
+        private val LRCLIB_ENDPOINT = stringPreferencesKey("lrclib_endpoint")
         private val LRCLIB_LYRICS = booleanPreferencesKey("lrclib_lyrics_enabled")
 
         private val TRANSCODING_BITRATE_WIFI_KEY = stringPreferencesKey("transcoding_bitrate_wifi")
@@ -172,6 +172,16 @@ class SettingsManager @Inject constructor(
     //endregion
 
     //region Media Providers
+
+    val lrcLibEndpointFlow: Flow<String> = context.dataStore.data.map {
+        it[LRCLIB_ENDPOINT] ?: "https://lrclib.net"
+    }
+
+    suspend fun setLrcLibEndpoint(LrcLibEndpoint: String) {
+        context.dataStore.edit { preferences ->
+            preferences[LRCLIB_ENDPOINT] = LrcLibEndpoint
+        }
+    }
 
     val lrcLibLyricsFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[LRCLIB_LYRICS] != false

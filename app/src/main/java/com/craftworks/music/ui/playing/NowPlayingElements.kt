@@ -67,8 +67,8 @@ import androidx.media3.ui.compose.state.rememberPreviousButtonState
 import androidx.media3.ui.compose.state.rememberRepeatButtonState
 import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import com.craftworks.music.R
+import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.formatMilliseconds
-import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
@@ -278,9 +278,9 @@ internal fun NextSongButton(player: Player, color: Color, modifier: Modifier = M
 @Preview
 fun LyricsButton(
     color: Color = Color.Black,
-    size: Dp = 64.dp
+    size: Dp = 64.dp,
 ){
-    val lyrics by LyricsManager.Lyrics.collectAsStateWithLifecycle()
+    val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
 
     Button(
         onClick = { lyricsOpen = !lyricsOpen },

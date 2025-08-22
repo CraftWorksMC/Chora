@@ -54,7 +54,7 @@ import androidx.media3.session.MediaController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.lyrics.LyricsManager
+import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
@@ -241,7 +241,7 @@ fun NowPlayingLandscape(
             }
         }
 
-        val lyrics by LyricsManager.Lyrics.collectAsStateWithLifecycle()
+        val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
 
         if (LocalConfiguration.current.screenHeightDp.dp < 512.dp){
             Crossfade(

@@ -28,10 +28,10 @@ import com.craftworks.music.MainActivity
 import com.craftworks.music.R
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.repository.AlbumRepository
+import com.craftworks.music.data.repository.LyricsRepository
 import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.data.repository.RadioRepository
 import com.craftworks.music.data.repository.SongRepository
-import com.craftworks.music.lyrics.LyricsManager
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.SettingsManager
 import com.google.common.collect.ImmutableList
@@ -68,6 +68,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     @Inject lateinit var songRepository: SongRepository
     @Inject lateinit var radioRepository: RadioRepository
     @Inject lateinit var playlistRepository: PlaylistRepository
+    @Inject lateinit var lyricsRepository: LyricsRepository
 
     companion object {
         private var instance: ChoraMediaLibraryService? = null
@@ -191,7 +192,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 playerScrobbled = false;
 
                 super.onMediaItemTransition(mediaItem, reason)
-                serviceIOScope.launch { LyricsManager.getLyrics(mediaItem?.mediaMetadata) }
+                serviceIOScope.launch {
+                    lyricsRepository.getLyrics(mediaItem?.mediaMetadata)
+                }
             }
 
             override fun onPlayerError(error: PlaybackException) {

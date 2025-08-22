@@ -25,6 +25,9 @@
             <string name="Label_Navidrome_Password">Password:</string>
             <string name="Label_Allow_Self_Signed_Certs">Allow self-signed certs</string>
 
+    <!-- LRCLIB Dialog -->
+    <string name="Dialog_LRCLIB_Url">LRCLIB Url</string>
+
     <!-- Transcoding -->
     <string name="Dialog_Transcoding">Transcoding</string>
         <string name="Option_No_Transcoding">No Transcoding</string>

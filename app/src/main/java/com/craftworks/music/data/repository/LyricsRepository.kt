@@ -1,69 +1,74 @@
-package com.craftworks.music.lyrics
+package com.craftworks.music.data.repository
 
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.media3.common.MediaMetadata
+import com.craftworks.music.data.datasource.lrclib.LrclibDataSource
+import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
 import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.providers.navidrome.getNavidromePlainLyrics
-import com.craftworks.music.providers.navidrome.getNavidromeSyncedLyrics
 import com.craftworks.music.ui.playing.lyricsOpen
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object LyricsManager {
-    private val _Lyrics = MutableStateFlow(listOf<Lyric>())
-    val Lyrics: StateFlow<List<Lyric>> = _Lyrics.asStateFlow()
-
+object LyricsState {
+    val lyrics = MutableStateFlow<List<Lyric>>(emptyList())
     var useLrcLib by mutableStateOf(true)
+}
 
+@Singleton
+class LyricsRepository @Inject constructor(
+    val lrclibDataSource: LrclibDataSource,
+    val navidromeDataSource: NavidromeDataSource
+) {
     suspend fun getLyrics(metadata: MediaMetadata?) {
         // Try getting lyrics through navidrome, first synced then plain.
         // If that fails, try LRCLIB.net.
         // If we turned it off or we cannot find lyrics, then return an empty list
 
         if (metadata?.mediaType == MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
-            _Lyrics.value = listOf()
+            LyricsState.lyrics.value = listOf()
+            lyricsOpen = false
             return
         }
 
         var foundNavidromePlainLyrics by mutableStateOf(false)
 
         if (NavidromeManager.checkActiveServers()) {
-            getNavidromeSyncedLyrics(metadata?.extras?.getString("navidromeID") ?: "").takeIf { it.isNotEmpty() }?.let {
+            navidromeDataSource.getNavidromeSyncedLyrics(metadata?.extras?.getString("navidromeID") ?: "").takeIf { it.isNotEmpty() }?.let {
                 if (it.size == 1)
                     foundNavidromePlainLyrics = true
                 else {
                     Log.d("LYRICS", "Got Navidrome synced lyrics.")
-                    _Lyrics.value = it
+                    LyricsState.lyrics.value = it
                     return
                 }
             }
 
-            getNavidromePlainLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
+            navidromeDataSource.getNavidromePlainLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
                 if (it.size == 1)
                     foundNavidromePlainLyrics = true
 
                 Log.d("LYRICS", "Got Navidrome plain lyrics.")
-                _Lyrics.value = it
+                LyricsState.lyrics.value = it
             }
         }
 
-        if (useLrcLib) {
+        if (LyricsState.useLrcLib) {
             if (foundNavidromePlainLyrics) {
                 Log.d("LYRICS", "Got Navidrome plain lyrics, trying LRCLIB.")
-                getLrcLibLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
-                    if (it.size != 1) _Lyrics.value = it
+                lrclibDataSource.getLrcLibLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
+                    if (it.size != 1) LyricsState.lyrics.value = it
                     return
                 }
             }
 
-            getLrcLibLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
+            lrclibDataSource.getLrcLibLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
                 Log.d("LYRICS", "Got LRCLIB lyrics.")
-                _Lyrics.value = it
+                LyricsState.lyrics.value = it
                 return
             }
         }
@@ -71,6 +76,6 @@ object LyricsManager {
         Log.d("LYRICS", "Didn't find any lyrics.")
         // Hide lyrics panel if we cannot find lyrics.
         lyricsOpen = false
-        _Lyrics.value = listOf()
+        LyricsState.lyrics.value = listOf()
     }
 }

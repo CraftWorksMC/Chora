@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.elements.dialogs
 
 import android.content.Context
+import android.util.Patterns
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -28,6 +29,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,26 +64,117 @@ import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.ui.elements.bounceClick
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 //region PREVIEWS
 @Preview(showBackground = true, device = "id:tv_1080p")
 @Preview(showBackground = true)
 @Composable
-fun PreviewProviderDialog(){
+fun PreviewProviderDialog() {
     CreateMediaProviderDialog(setShowDialog = { })
 }
+
 @Preview(showBackground = true)
 @Composable
-fun PreviewNoMediaProvidersDialog(){
+fun PreviewLrcLibDialog() {
+    EditLrcLibUrlDialog(setShowDialog = { })
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewNoMediaProvidersDialog() {
     NoMediaProvidersDialog(setShowDialog = { }, NavHostController(LocalContext.current))
 }
 //endregion
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class,
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@Composable
+fun EditLrcLibUrlDialog(
+    setShowDialog: (Boolean) -> Unit,
+    context: Context = LocalContext.current
+) {
+    val settingsManager = remember { SettingsManager(context) }
+
+    var url by remember { mutableStateOf("https://lrclib.net") }
+
+    // Launch a coroutine to collect the flow once and update url
+    LaunchedEffect(settingsManager) {
+        settingsManager.lrcLibEndpointFlow.collect { value ->
+            url = value
+        }
+    }
+
+    var isValidUrl: Boolean by remember { mutableStateOf(true) }
+
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Column(
+            modifier = Modifier
+                .shadow(12.dp, RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(24.dp)
+                .dialogFocusable()
+                .selectableGroup(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(R.string.Dialog_LRCLIB_Url),
+                fontWeight = FontWeight.SemiBold,
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            OutlinedTextField(
+                value = url,
+                onValueChange = {
+                    url = it
+                    isValidUrl = Patterns.WEB_URL.matcher(url).matches()
+                },
+                label = { Text(stringResource(R.string.Dialog_LRCLIB_Url)) },
+                singleLine = true,
+                isError = !isValidUrl
+            )
+
+            Button(
+                onClick = {
+                    if (isValidUrl)
+                        runBlocking {
+                            SettingsManager(context).setLrcLibEndpoint(url)
+                        }
+
+                    setShowDialog(false)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onBackground
+                ),
+                modifier = Modifier
+                    .padding(6.dp)
+                    .height(50.dp)
+                    .fillMaxWidth()
+                    .bounceClick(),
+                shape = RoundedCornerShape(12.dp),
+                enabled = isValidUrl
+            ) {
+                Text(
+                    stringResource(R.string.Action_Done),
+                    modifier = Modifier.height(24.dp)
+                )
+            }
+        }
+    }
+}
+
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class,
     ExperimentalFoundationApi::class
 )
 @Composable
-fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context = LocalContext.current) {
+fun CreateMediaProviderDialog(
+    setShowDialog: (Boolean) -> Unit,
+    context: Context = LocalContext.current
+) {
     var url: String by remember { mutableStateOf("") }
     var username: String by remember { mutableStateOf("") }
     var password: String by remember { mutableStateOf("") }
@@ -92,13 +185,14 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
     val coroutineScope = rememberCoroutineScope()
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
-        Column(modifier = Modifier
-            .shadow(12.dp, RoundedCornerShape(24.dp))
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(24.dp)
-            .dialogFocusable()
-            .selectableGroup(),
+        Column(
+            modifier = Modifier
+                .shadow(12.dp, RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(24.dp)
+                .dialogFocusable()
+                .selectableGroup(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -117,7 +211,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
             )
             var selectedOptionText by remember { mutableStateOf(options[1]) }
 
-            ExposedDropdownMenuBox (
+            ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded },
             ) {
@@ -195,7 +289,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
 
             //region Navidrome
             else if (selectedOptionText == stringResource(R.string.Source_Navidrome))
-                Column (
+                Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     /* SERVER URL */
@@ -203,7 +297,7 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                         value = url,
                         onValueChange = { url = it },
                         label = { Text(stringResource(R.string.Label_Navidrome_URL)) },
-                        placeholder = { Text("http://domain.tld:<port>")},
+                        placeholder = { Text("http://domain.tld:<port>") },
                         singleLine = true,
                         isError = navidromeStatus.value == "Invalid URL"
                     )
@@ -243,9 +337,11 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                         isError = navidromeStatus.value == "Wrong username or password"
                     )
                     /* Allow Self Signed Certs */
-                    Row (verticalAlignment = Alignment.CenterVertically,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .padding(vertical = 6.dp)) {
+                            .padding(vertical = 6.dp)
+                    ) {
 //                                Icon(
 //                                    imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
 //                                    contentDescription = "Settings Icon",
@@ -283,12 +379,13 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                         }
                     }
 
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 24.dp)
-                        .selectableGroup(),
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp)
+                            .selectableGroup(),
                         horizontalArrangement = Arrangement.SpaceEvenly
-                    ){
+                    ) {
                         Button(
                             onClick = {
                                 val server = NavidromeProvider(
@@ -313,8 +410,10 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                                 .bounceClick(),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text(stringResource(R.string.Action_Login),
-                                modifier = Modifier.height(24.dp))
+                            Text(
+                                stringResource(R.string.Action_Login),
+                                modifier = Modifier.height(24.dp)
+                            )
                         }
                         Button(
                             onClick = {
@@ -347,8 +446,10 @@ fun CreateMediaProviderDialog(setShowDialog: (Boolean) -> Unit, context: Context
                             shape = RoundedCornerShape(12.dp),
                             enabled = navidromeStatus.value == "ok"
                         ) {
-                            Text(stringResource(R.string.Action_Add),
-                                modifier = Modifier.height(24.dp))
+                            Text(
+                                stringResource(R.string.Action_Add),
+                                modifier = Modifier.height(24.dp)
+                            )
                         }
                     }
 
@@ -367,12 +468,13 @@ fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavH
 //    }
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
-        Column(modifier = Modifier
-            .shadow(12.dp, RoundedCornerShape(24.dp))
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(24.dp)
-            .dialogFocusable()
+        Column(
+            modifier = Modifier
+                .shadow(12.dp, RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(24.dp)
+                .dialogFocusable()
         ) {
             Text(
                 text = stringResource(R.string.Settings_Header_Media),
@@ -390,9 +492,11 @@ fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavH
                 modifier = Modifier.padding(bottom = 12.dp)
             )
             Button(
-                onClick = { navController.navigate(Screen.S_Providers.route) {
-                    launchSingleTop = true
-                }; setShowDialog(false) },
+                onClick = {
+                    navController.navigate(Screen.S_Providers.route) {
+                        launchSingleTop = true
+                    }; setShowDialog(false)
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
                     contentColor = MaterialTheme.colorScheme.onBackground
@@ -404,12 +508,14 @@ fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavH
                     .widthIn(max = 320.dp)
                     .fillMaxWidth()
                     .bounceClick()
-                    //.focusRequester(focusRequester)
+                //.focusRequester(focusRequester)
                 ,
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(stringResource(R.string.Action_Go),
-                    modifier = Modifier.height(24.dp))
+                Text(
+                    stringResource(R.string.Action_Go),
+                    modifier = Modifier.height(24.dp)
+                )
             }
         }
     }
