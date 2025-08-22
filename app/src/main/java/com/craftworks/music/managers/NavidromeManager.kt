@@ -8,11 +8,18 @@ import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.managers.LocalProviderManager.getAllFolders
 import com.craftworks.music.showNoProviderDialog
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 
 object NavidromeManager {
     private val servers = mutableMapOf<String, NavidromeProvider>()
-    private var currentServerId: String? = null
+
+    private var _currentServerId = MutableStateFlow<String?>(null)
+    val currentServerId: StateFlow<String?> = _currentServerId.asStateFlow()
+
+    private val _allServers = MutableStateFlow<List<NavidromeProvider>>(emptyList())
+    val allServers: StateFlow<List<NavidromeProvider>> = _allServers.asStateFlow()
 
     private val _syncStatus = MutableStateFlow(false)
 
@@ -20,30 +27,37 @@ object NavidromeManager {
         Log.d("NAVIDROME", "Added server $server")
         servers[server.id] = server
         // Set newly added server as current
-        if (currentServerId == null) {
-            currentServerId = server.id
+        if (_currentServerId.value == null) {
+            _currentServerId.value = server.id
         }
+        updateServersFlow()
         saveServers()
     }
 
     fun removeServer(id: String) {
         servers.remove(id)
         // If we remove the current server, set the active one to be the first or null.
-        if (currentServerId == id) {
-            currentServerId = servers.keys.firstOrNull()
+        if (_currentServerId.value == id) {
+            _currentServerId.value = servers.keys.firstOrNull()
         }
+        updateServersFlow()
         saveServers()
     }
 
     fun checkActiveServers(): Boolean {
-        return servers.keys.isNotEmpty() && currentServerId != null
+        return servers.keys.isNotEmpty() && _currentServerId.value != null
     }
 
     fun getAllServers(): List<NavidromeProvider> = servers.values.toList()
-    fun getCurrentServer(): NavidromeProvider? = currentServerId?.let { servers[it] }
+    fun getCurrentServer(): NavidromeProvider? = _currentServerId.value?.let { servers[it] }
+
     fun setCurrentServer(serverId: String?) {
-        currentServerId = serverId
+        _currentServerId.value = serverId
         saveServers()
+    }
+
+    private fun updateServersFlow() {
+        _allServers.value = servers.values.toList()
     }
 
     fun setSyncingStatus(status: Boolean) { _syncStatus.value = status }
@@ -68,15 +82,16 @@ object NavidromeManager {
         DataRefreshManager.notifyDataSourcesChanged()
         val serversJson = json.encodeToString(servers as Map<String, NavidromeProvider>)
         sharedPreferences.edit { putString(PREF_SERVERS, serversJson) }
-        sharedPreferences.edit { putString(PREF_CURRENT_SERVER, currentServerId) }
+        sharedPreferences.edit { putString(PREF_CURRENT_SERVER, _currentServerId.value) }
     }
 
     private fun loadServers() {
-        currentServerId = sharedPreferences.getString(PREF_CURRENT_SERVER, null)
+        _currentServerId.value = sharedPreferences.getString(PREF_CURRENT_SERVER, null)
         val serversJson = sharedPreferences.getString(PREF_SERVERS, null)
         if (serversJson != null) {
             val loadedServers: Map<String, NavidromeProvider> = json.decodeFromString(serversJson)
             servers.putAll(loadedServers)
         }
+        updateServersFlow()
     }
 }

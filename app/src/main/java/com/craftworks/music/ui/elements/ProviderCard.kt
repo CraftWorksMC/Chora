@@ -40,6 +40,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.craftworks.music.R
 import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.repository.LyricsState
@@ -189,14 +190,13 @@ fun NavidromeProviderCard(
         }
 
         var checked by remember { mutableStateOf(false) }
-        checked = server.id == NavidromeManager.getCurrentServer()?.id
+        checked = server.id == NavidromeManager.currentServerId.collectAsStateWithLifecycle().value
 
         // Enabled Checkbox
         Checkbox(
             checked = checked,
             onCheckedChange = {
-                checked = it
-                if (!checked && NavidromeManager.getAllServers().size == 1)
+                if (!it && NavidromeManager.getAllServers().size == 1)
                     NavidromeManager.setCurrentServer(null)
                 else
                     NavidromeManager.setCurrentServer(server.id)

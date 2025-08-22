@@ -35,6 +35,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
@@ -65,7 +66,6 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                     .calculateTopPadding()
             )
             .dialogFocusable()
-            //.background(MaterialTheme.colorScheme.background)
     ) {
         /* HEADER */
         Row(
@@ -106,33 +106,19 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
         ){
             LRCLIBProviderCard(context)
 
+            val localProviders by LocalProviderManager.allFolders.collectAsStateWithLifecycle()
+            val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
+
             // Local Providers First
-            for (local in LocalProviderManager.getAllFolders()){
+            for (local in localProviders){
                 LocalProviderCard(local, context)
             }
 
             // Then Navidrome Providers
-            for (server in NavidromeManager.getAllServers()){
+            for (server in navidromeServers){
                 NavidromeProviderCard(server)
             }
         }
-
-//        ExtendedFloatingActionButton(
-//            icon = @Composable { Icon(Icons.Rounded.Add, "Add Media Provider.") },
-//            onClick = {
-//                showNavidromeServerDialog = true
-//                navidromeStatus.value = ""
-//            },
-//            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-//            contentColor = MaterialTheme.colorScheme.secondary,
-//            modifier = Modifier
-//                .padding(12.dp)
-//                .align(Alignment.End)
-//                .bounceClick()
-//                .focusable()
-//        ) {
-//
-//        }
 
         FloatingActionButton(
             onClick = {
@@ -147,21 +133,6 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
         ) {
             Icon(Icons.Rounded.Add, "Add Media Provider.")
         }
-
-//        ExtendedFloatingActionButton(
-//            text = @Composable { },
-//            icon = @Composable { Icon(Icons.Rounded.Add, "Add Media Provider.") },
-//            onClick = {
-//                showNavidromeServerDialog = true
-//                navidromeStatus.value = ""
-//            },
-//            modifier = Modifier.padding(12.dp).align(Alignment.End),
-//            expanded = false,
-//            shape = FloatingActionButtonDefaults.extendedFabShape,
-//            containerColor = FloatingActionButtonDefaults.containerColor,
-//            contentColor = contentColorFor(FloatingActionButtonDefaults.containerColor),
-//            elevation = FloatingActionButtonDefaults.elevation(),
-//        )
     }
 
     if(showNavidromeServerDialog)
