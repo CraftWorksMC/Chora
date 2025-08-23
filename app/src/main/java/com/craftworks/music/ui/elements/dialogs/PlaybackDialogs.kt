@@ -36,13 +36,18 @@ import kotlinx.coroutines.runBlocking
 @Preview(showBackground = true)
 @Composable
 fun PreviewTranscodingDialog(){
-    TranscodingDialog(setShowDialog = { })
+    TranscodingBitrateDialog(setShowDialog = { })
+}
+@Preview(showBackground = true)
+@Composable
+fun PreviewTranscodingFormatDialog(){
+    TranscodingFormatDialog(setShowDialog = { })
 }
 //endregion
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun TranscodingDialog(
+fun TranscodingBitrateDialog(
     setShowDialog: (Boolean) -> Unit,
     isWifiDialog: Boolean = true
 ) {
@@ -118,6 +123,77 @@ fun TranscodingDialog(
                     )
                     Text(
                         text = if (bitrate != "No Transcoding") "$bitrate Kbps" else stringResource(R.string.Option_No_Transcoding),
+                        fontWeight = FontWeight.Normal,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@Composable
+fun TranscodingFormatDialog(
+    setShowDialog: (Boolean) -> Unit
+) {
+    val context = LocalContext.current
+
+    val transcodingFormat by SettingsManager(context).transcodingFormatFlow.collectAsState("")
+
+    val transcodingFormats = listOf(
+        "mp3",
+        "aac",
+        "opus"
+    )
+
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Column(
+            modifier = Modifier
+                .shadow(12.dp, RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(24.dp)
+                .dialogFocusable()
+                .selectableGroup()
+        ) {
+            Text(
+                text = stringResource(R.string.Setting_Transcoding_Format),
+                fontWeight = FontWeight.SemiBold,
+                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+            for (format in transcodingFormats) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .selectable(
+                            selected = format == transcodingFormat,
+                            onClick = {
+                                runBlocking {
+                                    SettingsManager(context).setTranscodingFormat(format)
+                                }
+                                setShowDialog(false)
+                            },
+                            role = Role.RadioButton
+                        ),
+                ) {
+                    RadioButton(
+                        selected = format == transcodingFormat,
+                        onClick = {
+                            runBlocking {
+                                SettingsManager(context).setTranscodingFormat(format)
+                            }
+                            setShowDialog(false)
+                        },
+                        modifier = Modifier.bounceClick()
+                    )
+                    Text(
+                        text = format,
                         fontWeight = FontWeight.Normal,
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         color = MaterialTheme.colorScheme.onBackground,

@@ -7,12 +7,14 @@
         <string name="Setting_NowPlayingLyricsBlur">Lyrics Blur Effect</string>
         <string name="Setting_NavidromeLogo">Show Navidrome Logo</string>
         <string name="Setting_ProviderDividers">Show Provider Dividers</string>
+        <string name="Setting_RefreshAnimation">Show Refresh Animation</string>
         <string name="Setting_LyricsAnimationSpeed">Lyrics Animation Speed</string>
     <string name="Settings_Header_Media">Media Providers</string>
     <string name="Settings_Header_Playback">Playback</string>
         <string name="Setting_Transcoding">Max Bitrate</string>
         <string name="Setting_Transcoding_Wifi">Max Bitrate (WiFi)</string>
         <string name="Setting_Transcoding_Data">Max Bitrate (Mobile data)</string>
+        <string name="Setting_Transcoding_Format">Transcoding Format</string>
         <string name="Setting_Scrobble_Percent">Min. Scrobble Percentage</string>
         <string name="Setting_Scrobble_Description">Navidrome Only.</string>
 </resources>

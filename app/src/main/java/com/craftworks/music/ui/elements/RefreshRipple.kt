@@ -11,13 +11,17 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.craftworks.music.managers.SettingsManager
 import kotlin.math.max
 import kotlin.math.min
 
@@ -38,6 +42,10 @@ fun RippleEffect(
     sparkleStrength: Float = 0.3f,
     onFinished: () -> Unit = {}
 ) {
+    val useRippleEffect by SettingsManager(LocalContext.current).refreshAnimationFlow.collectAsStateWithLifecycle(true)
+    if (!useRippleEffect)
+        return
+
     val shader = remember { StatefulRippleShader() }
     val density = LocalDensity.current
 

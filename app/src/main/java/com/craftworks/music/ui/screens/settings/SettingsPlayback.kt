@@ -55,7 +55,8 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.SettingsManager
-import com.craftworks.music.ui.elements.dialogs.TranscodingDialog
+import com.craftworks.music.ui.elements.dialogs.TranscodingBitrateDialog
+import com.craftworks.music.ui.elements.dialogs.TranscodingFormatDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import kotlinx.coroutines.runBlocking
 import kotlin.math.roundToInt
@@ -69,6 +70,8 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
     var showWifiTranscodingDialog by remember { mutableStateOf(false) }
     var showDataTranscodingDialog by remember { mutableStateOf(false) }
 
+    var showTranscodingFormatDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -79,7 +82,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                     .calculateTopPadding()
             )
             .dialogFocusable()
-            //.background(MaterialTheme.colorScheme.background)
+        //.background(MaterialTheme.colorScheme.background)
     ) {
         /* HEADER */
         Row(
@@ -123,7 +126,8 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
             val transcodingBitrateWifi =
                 SettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("").value
 
-            Row(verticalAlignment = Alignment.CenterVertically,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
                     .clip(RoundedCornerShape(12.dp))
@@ -132,7 +136,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                     }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_p_transcoding),
-                    contentDescription = "Background Style Icon",
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .padding(horizontal = 12.dp)
@@ -165,7 +169,8 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
             val transcodingBitrateData =
                 SettingsManager(context).mobileDataTranscodingBitrateFlow.collectAsState("").value
 
-            Row(verticalAlignment = Alignment.CenterVertically,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
                     .clip(RoundedCornerShape(12.dp))
@@ -174,7 +179,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                     }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.s_p_transcoding),
-                    contentDescription = "Background Style Icon",
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .padding(horizontal = 12.dp)
@@ -204,11 +209,69 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                 }
             }
 
+            val transcodingFormat =
+                SettingsManager(context).transcodingFormatFlow.collectAsState("opus").value
+
+            val transcodingFormatEnabled =
+                transcodingBitrateData != "No Transcoding" || transcodingBitrateWifi != "No Transcoding"
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(vertical = 6.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(
+                        enabled = transcodingFormatEnabled
+                    ) {
+                        showTranscodingFormatDialog = true
+                    }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.s_p_transcoding),
+                    contentDescription = null,
+                    tint = if (transcodingFormatEnabled)
+                        MaterialTheme.colorScheme.onBackground
+                    else
+                        MaterialTheme.colorScheme.onBackground.copy(0.5f),
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .size(32.dp)
+                )
+                Column {
+                    Text(
+                        text = stringResource(R.string.Setting_Transcoding_Format),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Normal,
+                        color = if (transcodingFormatEnabled)
+                            MaterialTheme.colorScheme.onBackground
+                        else
+                            MaterialTheme.colorScheme.onBackground.copy(0.5f),
+                        modifier = Modifier.fillMaxSize(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start
+                    )
+                    Text(
+                        text = transcodingFormat,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (transcodingFormatEnabled)
+                            MaterialTheme.colorScheme.onBackground.copy(0.75f)
+                        else
+                            MaterialTheme.colorScheme.onBackground.copy(0.3f),
+                        modifier = Modifier.fillMaxSize(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start
+                    )
+                }
+            }
+
             // Scrobble Percent
             val sliderValue = SettingsManager(context).scrobblePercentFlow.collectAsState(7)
             val interactionSource = remember { MutableInteractionSource() }
 
-            Row(verticalAlignment = Alignment.CenterVertically,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 6.dp)
                     .clip(RoundedCornerShape(12.dp))
@@ -274,7 +337,14 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
             }
         }
 
-        if (showWifiTranscodingDialog) TranscodingDialog(setShowDialog = { showWifiTranscodingDialog = it }, true)
-        if (showDataTranscodingDialog) TranscodingDialog(setShowDialog = { showDataTranscodingDialog = it }, false)
+        if (showWifiTranscodingDialog) TranscodingBitrateDialog(setShowDialog = {
+            showWifiTranscodingDialog = it
+        }, true)
+        if (showDataTranscodingDialog) TranscodingBitrateDialog(setShowDialog = {
+            showDataTranscodingDialog = it
+        }, false)
+        if (showTranscodingFormatDialog) TranscodingFormatDialog(setShowDialog = {
+            showTranscodingFormatDialog = it
+        })
     }
 }

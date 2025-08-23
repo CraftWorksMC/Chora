@@ -376,6 +376,19 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 }
             )
 
+            //Refresh Ripple
+            val refreshRipple = SettingsManager(context).refreshAnimationFlow.collectAsState(true)
+
+            SettingsSwitch(
+                refreshRipple.value,
+                stringResource(R.string.Setting_RefreshAnimation),
+                toggleEvent = {
+                    coroutineScope.launch {
+                        SettingsManager(context).setUseRefreshAnimation(!refreshRipple.value)
+                    }
+                }
+            )
+
             // Lyrics Animation Speed
             val lyricsAnimationSpeed = SettingsManager(context).lyricsAnimationSpeedFlow.collectAsState(1200)
             val interactionSource = remember { MutableInteractionSource() }

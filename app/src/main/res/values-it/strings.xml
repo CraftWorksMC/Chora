@@ -52,6 +52,7 @@
     <string name="Screen_Top_Songs">Canzoni Popolari</string>
     <string name="Setting_Transcoding">Bitrate Massimo</string>
     <string name="Setting_Transcoding_Data">Bitrate Massimo (Dati mobili)</string>
+    <string name="Setting_Transcoding_Format">Formato di transcodifica</string>
     <string name="Setting_Scrobble_Percent">Min. Percentuale Scrobble</string>
     <string name="Setting_Scrobble_Description">Solo Navidrome.</string>
     <string name="Label_Sorting">Ordina Per</string>
@@ -80,5 +81,6 @@
     <string name="Theme_Light">Chiaro</string>
     <string name="Action_Download">Scarica</string>
     <string name="Setting_ProviderDividers">Mostra Divisori Provider</string>
+    <string name="Setting_RefreshAnimation">Mostra Animazione Refresh</string>
     <string name="Setting_LyricsAnimationSpeed">Velocità Animazione Testo</string>
 </resources>

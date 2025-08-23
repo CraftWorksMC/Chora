@@ -73,9 +73,11 @@
     <string name="Setting_NavidromeLogo">Afficher le logo de Navidrome</string>
     <string name="Settings_Header_Playback">Playback</string>
     <string name="Setting_ProviderDividers">Afficher les séparateurs de fournisseurs</string>
+    <string name="Setting_RefreshAnimation">Afficher l\'animation d\'actualisation</string>
     <string name="Setting_LyricsAnimationSpeed">Vitesse d\'animation du texte</string>
     <string name="Setting_Transcoding">Max Bitrate</string>
     <string name="Setting_Transcoding_Data">Max Bitrate (Mobile data)</string>
+    <string name="Setting_Transcoding_Format">Format de transcodage</string>
     <string name="Setting_Scrobble_Percent">Min. Scrobble Percentage</string>
     <string name="Setting_Scrobble_Description">Navidrome seulement.</string>
     <string name="Background_Plain">Plein</string>

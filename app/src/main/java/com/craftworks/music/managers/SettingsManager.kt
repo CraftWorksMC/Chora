@@ -46,12 +46,14 @@ class SettingsManager @Inject constructor(
         }
         private val SHOW_PROVIDER_DIVIDERS = booleanPreferencesKey("provider_dividers")
         private val LYRICS_ANIMATION_SPEED = intPreferencesKey("lyrics_animation_speed")
+        private val USE_REFRESH_ANIMATION = booleanPreferencesKey("use_refresh_animation")
 
         private val LRCLIB_ENDPOINT = stringPreferencesKey("lrclib_endpoint")
         private val LRCLIB_LYRICS = booleanPreferencesKey("lrclib_lyrics_enabled")
 
         private val TRANSCODING_BITRATE_WIFI_KEY = stringPreferencesKey("transcoding_bitrate_wifi")
         private val TRANSCODING_BITRATE_DATA_KEY = stringPreferencesKey("transcoding_bitrate_data")
+        private val TRANSCODING_FORMAT_KEY = stringPreferencesKey("transcoding_format")
         private val SCROBBLE_PERCENT_KEY = intPreferencesKey("scrobble_percent")
 
         private val LOCAL_RADIOS = stringPreferencesKey("radios_list")
@@ -151,7 +153,7 @@ class SettingsManager @Inject constructor(
     }
 
     val showProviderDividersFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[SHOW_PROVIDER_DIVIDERS] != false
+        preferences[SHOW_PROVIDER_DIVIDERS] ?: true
     }
 
     suspend fun setShowProviderDividers(showDividers: Boolean) {
@@ -169,6 +171,17 @@ class SettingsManager @Inject constructor(
             preferences[LYRICS_ANIMATION_SPEED] = speed
         }
     }
+
+    val refreshAnimationFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[USE_REFRESH_ANIMATION] ?: true
+    }
+
+    suspend fun setUseRefreshAnimation(useRefreshAnimation: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[USE_REFRESH_ANIMATION] = useRefreshAnimation
+        }
+    }
+
     //endregion
 
     //region Media Providers
@@ -213,6 +226,16 @@ class SettingsManager @Inject constructor(
     suspend fun setMobileDataTranscodingBitrate(bitrate: String) {
         context.dataStore.edit { preferences ->
             preferences[TRANSCODING_BITRATE_DATA_KEY] = bitrate
+        }
+    }
+
+    val transcodingFormatFlow: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[TRANSCODING_FORMAT_KEY] ?: "opus"
+    }
+
+    suspend fun setTranscodingFormat(format: String) {
+        context.dataStore.edit { preferences ->
+            preferences[TRANSCODING_FORMAT_KEY] = format
         }
     }
 

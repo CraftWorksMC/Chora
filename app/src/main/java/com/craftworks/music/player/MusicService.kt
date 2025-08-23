@@ -323,7 +323,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             }
 
             val bitrateOptions = if (bitrate != null && bitrate != "No Transcoding" && bitrate.isNotEmpty()) {
-                "&maxBitRate=$bitrate&format=aac"
+                runBlocking {
+                    "&maxBitRate=$bitrate&format=${settingsManager.transcodingFormatFlow.first()}"
+                }
             } else {
                 ""
             }
