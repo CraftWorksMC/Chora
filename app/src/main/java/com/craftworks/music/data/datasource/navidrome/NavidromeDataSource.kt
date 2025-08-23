@@ -68,6 +68,12 @@ class NavidromeDataSource @Inject constructor() {
         ).filterIsInstance<MediaItem>().firstOrNull()
     }
 
+    suspend fun scrobbleSong(songId: String, submission: Boolean) = withContext(Dispatchers.IO) {
+        sendNavidromeGETRequest(
+            "scrobble.view?id=$songId&submission=$submission",
+            true
+        )
+    }
 
     // Artists
     suspend fun getNavidromeArtists(

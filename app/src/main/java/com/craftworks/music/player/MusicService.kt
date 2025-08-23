@@ -41,9 +41,12 @@ import com.google.common.util.concurrent.SettableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -61,6 +64,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     //region Vars
     lateinit var player: Player
     var session: MediaLibrarySession? = null
+
+    private var scrobbleJob: Job? = null
 
     @Inject lateinit var settingsManager: SettingsManager
 
@@ -193,6 +198,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
                 super.onMediaItemTransition(mediaItem, reason)
                 serviceIOScope.launch {
+                    songRepository.scrobbleSong(mediaItem?.mediaMetadata?.extras?.getString("navidromeID") ?: "", false)
                     lyricsRepository.getLyrics(mediaItem?.mediaMetadata)
                 }
             }
@@ -219,39 +225,32 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             .setSessionActivity(sessionActivityPendingIntent)
             .build()
 
-        /*
-        // Thread to check if we should scrobble.
-        Thread {
-            val defaultThread = CoroutineScope(Dispatchers.Main)
-            while (true) {
-                defaultThread.launch {
-                    val duration = player.duration
-                    val mediaItem = player.currentMediaItem
+        scrobbleJob = serviceMainScope.launch {
+            while (isActive) {
+                val duration = player.duration
+                val mediaItem = player.currentMediaItem
 
-                    println("Scrobble duration: $duration")
-                    if (duration > 0 && !playerScrobbled) {
-                        val currentPosition = player.currentPosition
-                        val progress = (currentPosition * 100 / duration).toInt()
+                if (duration > 0 && !playerScrobbled) {
+                    val currentPosition = player.currentPosition
+                    val progress = (currentPosition * 100 / duration).toInt()
+                    val scrobblePercentage = settingsManager.scrobblePercentFlow.first() * 10
 
-                        println("Scrobble Percentage: $progress")
-
-                        if (progress >= SongHelper.minPercentageScrobble.intValue) {
-                            playerScrobbled = true
-                            if (NavidromeManager.checkActiveServers() &&
-                                mediaItem?.mediaMetadata?.extras?.getString("navidromeID")?.startsWith("Local") == false &&
-                                mediaItem.mediaMetadata.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION
-                            ) {
-                                serviceMainScope.launch {
-                                    sendNavidromeGETRequest("scrobble.view?id=${mediaItem.mediaMetadata.extras?.getString("navidromeID")}&submission=true", true) // Never cache scrobbles
-                                }
+                    if (progress >= scrobblePercentage) {
+                        playerScrobbled = true
+                        if (NavidromeManager.checkActiveServers() &&
+                            mediaItem?.mediaMetadata?.extras?.getString("navidromeID")
+                                ?.startsWith("Local") == false &&
+                            mediaItem.mediaMetadata.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION
+                        ) {
+                            serviceIOScope.launch {
+                                songRepository.scrobbleSong(mediaItem.mediaMetadata.extras?.getString("navidromeID") ?: "", true)
                             }
                         }
                     }
                 }
-                Thread.sleep(10_000) // sleep 10 seconds
+                delay(1000)
             }
-        }.start()
-        */
+        }
 
         Log.d("AA", "Initialized MediaLibraryService.")
     }
@@ -264,8 +263,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         override fun onPostConnect(session: MediaSession, controller: MediaSession.ControllerInfo) {
             serviceIOScope.launch {
                 println("ONPOSTCONNTECT MUSIC SERVICE!")
-                //NavidromeManager.init(this@ChoraMediaLibraryService)
-                //LocalProviderManager.init(this@ChoraMediaLibraryService)
 
                 if (session.isAutoCompanionController(controller))
                     getHomeScreenItems()
@@ -512,6 +509,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     override fun onDestroy() {
         saveState()
         session?.release()
+        scrobbleJob?.cancel()
         instance = null
         super.onDestroy()
     }

@@ -56,4 +56,11 @@ class SongRepository @Inject constructor(
 
         deferredSongs.awaitAll().flatten()
     }
+
+    suspend fun scrobbleSong(songId: String, submission: Boolean) {
+        if (songId.startsWith("Local_"))
+            return
+
+        navidromeDataSource.scrobbleSong(songId, submission)
+    }
 }
