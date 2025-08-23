@@ -52,6 +52,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.repository.LyricsState
@@ -87,10 +88,10 @@ fun NowPlayingLandscape(
                     /* Album Cover + Lyrics */
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(metadata?.artworkUri)
+                            .data(metadata?.artworkUri.toString().replace("size=128", "size=500"))
                             .crossfade(true)
-                            .diskCacheKey(
-                                metadata?.extras?.getString("navidromeID")
+                            .diskCachePolicy(
+                                CachePolicy.DISABLED
                             )
                             .build(),
                         contentDescription = "Album Cover Art",
@@ -115,9 +116,10 @@ fun NowPlayingLandscape(
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(metadata?.artworkUri)
-                            .allowHardware(false)
-                            .size(256)
+                            .data(metadata?.artworkUri.toString().replace("size=128", "size=500"))
+                            .diskCachePolicy(
+                                CachePolicy.DISABLED
+                            )
                             .crossfade(true)
                             .build(),
                         contentDescription = "Album Cover Art",
@@ -266,9 +268,10 @@ fun NowPlayingLandscape(
                     /* Album Cover + Lyrics */
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(metadata?.artworkUri)
-                            .allowHardware(false)
-                            .size(1024)
+                            .data(metadata?.artworkUri.toString().replace("size=128", "size=500"))
+                            .diskCachePolicy(
+                                CachePolicy.DISABLED
+                            )
                             .crossfade(true)
                             .build(),
                         contentDescription = "Album Cover Art",

@@ -75,12 +75,12 @@ fun NowPlayingMiniPlayer(
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(metadata?.artworkUri)
-                .size(128)
+                .diskCacheKey(
+                    metadata?.extras?.getString("navidromeID")
+                )
                 .crossfade(true)
                 .build(),
             contentDescription = "Album Cover",
-            //placeholder = painterResource(R.drawable.placeholder),
-            //fallback = painterResource(R.drawable.placeholder),
             contentScale = ContentScale.FillWidth,
             alignment = Alignment.Center,
             modifier = Modifier
