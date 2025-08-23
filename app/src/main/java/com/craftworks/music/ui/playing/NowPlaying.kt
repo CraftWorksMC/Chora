@@ -91,30 +91,17 @@ fun NowPlayingContent(
         NowPlayingPortrait(mediaController, iconTextColor, metadata)
     }
 
-    // Modal Bottom Sheet for Play Queue
+    // Play Queue
     val playQueueSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true // Makes it fully expand or hide, no half-state
+        skipPartiallyExpanded = true
     )
     if (playQueueOpen) {
         ModalBottomSheet(
             onDismissRequest = { playQueueOpen = false },
             sheetState = playQueueSheetState,
-            // You can customize containerColor, contentColor, scrimColor etc.
-            // scrimColor = Color.Black.copy(alpha = 0.6f) // Example for scrim
         ) {
-            // Content of your Bottom Sheet
             PlayQueueContent(mediaController = mediaController)
-            // Add a button inside the sheet to close it, or rely on swipe down/back press
-            /*Button(onClick = {
-                scope.launch { playQueueSheetState.hide() }.invokeOnCompletion {
-                    if (!playQueueSheetState.isVisible) {
-                        showPlayQueueSheet = false
-                    }
-                }
-            }) {
-                Text("Close Queue")
-            }*/
-            Spacer(modifier = Modifier.height(16.dp)) // Some padding at the bottom of the sheet
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
