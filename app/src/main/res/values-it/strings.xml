@@ -58,7 +58,7 @@
     <string name="Label_Sorting">Ordina Per</string>
     <string name="Navidrome_Error">Nessuna connessione al server Navidrome.</string>
     <string name="Setting_NavidromeLogo">Mostra Logo Navidrome</string>
-    <string name="Navidrome_Sync">Caricamento...</string>
+    <string name="Navidrome_Sync">Caricamento…</string>
     <string name="No_Providers_Splash">Non hai aggiunto nessun media provider. Aggiungine uno ora per iniziare ad ascoltare!</string>
     <string name="Action_Go">Andiamo!</string>
     <string name="Background_Anim">Animato</string>

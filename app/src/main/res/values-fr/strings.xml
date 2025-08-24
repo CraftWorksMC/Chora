@@ -54,7 +54,7 @@
     <string name="Label_Sorting">Trier par</string>
         <!-- Connection Errors -->
     <string name="Navidrome_Error">Serveur Navidrome indisponible.</string>
-    <string name="Navidrome_Sync">Chargement...</string>
+    <string name="Navidrome_Sync">Chargement…</string>
         <!-- Home -->
     <string name="welcome_text">Bienvenue</string>
     <string name="recently_added">Récemment ajoutés</string>

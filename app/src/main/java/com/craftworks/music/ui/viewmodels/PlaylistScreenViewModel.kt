@@ -8,6 +8,7 @@ import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.data.repository.StarredRepository
 import com.craftworks.music.managers.DataRefreshManager
+import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -22,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlaylistScreenViewModel @Inject constructor(
     private val playlistRepository: PlaylistRepository,
+    private val settingsManager: SettingsManager,
     private val starredRepository: StarredRepository
 ) : ViewModel() {
     private val _allPlaylists = MutableStateFlow<List<MediaItem>>(emptyList())
@@ -62,7 +64,7 @@ class PlaylistScreenViewModel @Inject constructor(
 
     suspend fun updatePlaylistsImages(context: Context) {
         _allPlaylists.value = _allPlaylists.value.map {
-            if (it.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true) {
+            if (it.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true && it.mediaMetadata.artworkData == null) {
                 val songs = playlistRepository.getPlaylistSongs(it.mediaMetadata.extras?.getString("navidromeID") ?: "", true)
                 it.buildUpon()
                     .setMediaMetadata(

@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -59,6 +61,7 @@ fun PlaylistScreen(
     val isRefreshing by viewModel.isLoading.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     var showRipple by remember { mutableIntStateOf(0) }
     val rippleXOffset = LocalWindowInfo.current.containerSize.width / 2
@@ -69,6 +72,10 @@ fun PlaylistScreen(
             viewModel.loadPlaylists()
         }
         showRipple++
+    }
+
+    LaunchedEffect(playlists) {
+        viewModel.updatePlaylistsImages(context)
     }
 
     PullToRefreshBox(

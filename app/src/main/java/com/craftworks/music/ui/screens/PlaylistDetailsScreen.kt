@@ -122,10 +122,9 @@ fun PlaylistDetails(
 
     // Main Content
     AnimatedVisibility(
-        visible = !isLoading,
+        visible = !isLoading && playlistSongs.isNotEmpty(),
         enter = fadeIn()
     ) {
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()

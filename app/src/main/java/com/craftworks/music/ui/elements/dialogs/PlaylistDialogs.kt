@@ -49,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.playlistList
 import com.craftworks.music.fadingEdge
@@ -158,9 +159,19 @@ fun AddSongToPlaylist(
                                     setShowDialog(false)
                                 }, verticalAlignment = Alignment.CenterVertically
                             ) {
+                                val artwork = if (playlist.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local") == true)
+                                    playlist.mediaMetadata.artworkData
+                                else
+                                    playlist.mediaMetadata.artworkUri
+
                                 SubcomposeAsyncImage (
-                                    model = if (playlist.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local") == true)
-                                        playlist.mediaMetadata.artworkData else playlist.mediaMetadata.artworkUri,
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(artwork)
+                                        .crossfade(true)
+                                        .diskCacheKey(
+                                            playlist.mediaMetadata.extras?.getString("navidromeID") ?: playlist.mediaId
+                                        )
+                                        .build(),
                                     contentScale = ContentScale.FillHeight,
                                     contentDescription = "Album Image",
                                     alpha = if (disabled) 0.5f else 1f,
