@@ -163,22 +163,15 @@ class MainActivity : ComponentActivity() {
                     label = "sheetPeekAnimation"
                 )
 
-                val backCallback = object : OnBackPressedCallback(true) {
+                val backCallback = object : OnBackPressedCallback(false) {
                     override fun handleOnBackPressed() {
-                        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
-                            coroutineScope.launch {
-                                scaffoldState.bottomSheetState.partialExpand()
-                            }
-                        } else {
-                            isEnabled = false
-                            onBackPressedDispatcher.onBackPressed()
-                            isEnabled = true
+                        coroutineScope.launch {
+                            scaffoldState.bottomSheetState.partialExpand()
                         }
                     }
                 }
 
                 onBackPressedDispatcher.addCallback(this, backCallback)
-
 
                 Scaffold(
                     bottomBar = {
@@ -218,12 +211,14 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 val currentView = LocalView.current
-                                DisposableEffect(scaffoldState.bottomSheetState.currentValue) {
-                                    if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
+                                DisposableEffect(scaffoldState.bottomSheetState.targetValue) {
+                                    if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
                                         currentView.keepScreenOn = true
+                                        backCallback.isEnabled  = true
                                         Log.d("NOW-PLAYING", "KeepScreenOn: True")
                                     } else {
                                         currentView.keepScreenOn = false
+                                        backCallback.isEnabled = false
                                         Log.d("NOW-PLAYING", "KeepScreenOn: False")
                                     }
 

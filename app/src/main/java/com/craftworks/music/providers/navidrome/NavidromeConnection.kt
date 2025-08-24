@@ -141,7 +141,7 @@ suspend fun sendNavidromeGETRequest(
                 requestMethod = "GET"
                 instanceFollowRedirects = true // Might fix issues with reverse proxies.
 
-                Log.d("NAVIDROME", "\nSent 'GET' request to URL : ${url}; Response Code : $responseCode")
+                Log.d("NAVIDROME", "\nSent 'GET' request to URL : ${endpoint}; Response Code : $responseCode")
 
                 if (responseCode != 200){
                     Log.d("NAVIDROME", responseCode.toString())
