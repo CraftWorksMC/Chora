@@ -194,9 +194,17 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     Log.d("REPLAY GAIN", "Setting ReplayGain to ${player.volume}")
                 }
 
+
                 playerScrobbled = false;
 
                 super.onMediaItemTransition(mediaItem, reason)
+
+                Log.d("MediaItemTransition", "MediaItem: $mediaItem")
+                Log.d("MediaItemTransition", "MediaType: ${mediaItem?.mediaMetadata?.mediaType}")
+                Log.d("MediaItemTransition", "ArtworkUri: ${mediaItem?.mediaMetadata?.artworkUri}")
+                Log.d("MediaItemTransition", "Station: ${mediaItem?.mediaMetadata?.station}")
+                Log.d("MediaItemTransition", "SongHelper.currentTrackList station: ${SongHelper.currentTracklist[0].mediaMetadata.station}")
+
                 serviceIOScope.launch {
                     songRepository.scrobbleSong(mediaItem?.mediaMetadata?.extras?.getString("navidromeID") ?: "", false)
                     lyricsRepository.getLyrics(mediaItem?.mediaMetadata)
@@ -487,10 +495,10 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 runBlocking {
                     songRepository.getSongs(query).size +
                             albumRepository.searchAlbum(query).size +
-                            radioRepository.getRadios().fastFilter {
-                                it.name.contains(
+                            radioRepository.getRadios().map { it.toMediaItem() }.fastFilter {
+                                it.mediaMetadata.station?.contains(
                                     query
-                                )
+                                ) ?: false
                             }.size +
                             playlistRepository.getPlaylists().fastFilter {
                                 it.mediaMetadata.title?.contains(
@@ -567,11 +575,14 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     private fun getRadioItems(): MutableList<MediaItem> {
         runBlocking {
-            if (aRadioScreenItems.isEmpty()) {
-                radioRepository.getRadios().forEach { radio ->
-                    aRadioScreenItems.add(radio.toMediaItem())
+            aRadioScreenItems.clear()
+            aRadioScreenItems.addAll(
+                radioRepository.getRadios().map { radio ->
+                    Log.d("MediaItemTransition", radio.toString())
+                    radio.toMediaItem()
                 }
-            }
+            )
+            Log.d("MediaItemTransition", "aRadioScreenItems: ${aRadioScreenItems.map { it.mediaMetadata }}")
             SongHelper.currentTracklist = aRadioScreenItems
         }
         return aRadioScreenItems

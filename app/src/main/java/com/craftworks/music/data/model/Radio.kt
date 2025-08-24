@@ -1,11 +1,10 @@
 package com.craftworks.music.data.model
 
 import android.os.Bundle
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
 import com.craftworks.music.R
 
 fun MediaData.Radio.toMediaItem(): MediaItem {
@@ -22,11 +21,15 @@ fun MediaData.Radio.toMediaItem(): MediaItem {
             .setExtras(Bundle().apply {
                 putString("navidromeID", this@toMediaItem.navidromeID)
                 putString("homepage", this@toMediaItem.homePageUrl ?: "")
-            }).build()
+            })
+            .build()
+
+    println(".toMediaItem() : station: ${this@toMediaItem.name} mediaitem station: ${mediaMetadata.station}")
 
     return MediaItem.Builder()
+        .setMediaMetadata(mediaMetadata)
         .setMediaId(this@toMediaItem.media)
         .setUri(this@toMediaItem.media)
-        .setMediaMetadata(mediaMetadata)
+        .setMimeType(MimeTypes.AUDIO_MPEG)
         .build()
 }
