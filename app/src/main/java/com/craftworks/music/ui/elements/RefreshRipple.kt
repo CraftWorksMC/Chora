@@ -29,8 +29,6 @@ import kotlin.math.min
  * Adapted from AOSP SystemUI:
  * https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/packages/SystemUI/animation/src/com/android/systemui/surfaceeffects/ripple/RippleShader.kt
 */
-
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun RippleEffect(
     modifier: Modifier = Modifier,
@@ -42,7 +40,10 @@ fun RippleEffect(
     sparkleStrength: Float = 0.3f,
     onFinished: () -> Unit = {}
 ) {
-    val useRippleEffect by SettingsManager(LocalContext.current).refreshAnimationFlow.collectAsStateWithLifecycle(true)
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU)
+        return
+
+    val useRippleEffect by SettingsManager(LocalContext.current).refreshAnimationFlow.collectAsStateWithLifecycle(false)
     if (!useRippleEffect)
         return
 

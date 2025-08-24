@@ -171,7 +171,7 @@ class SettingsManager @Inject constructor(
     }
 
     val refreshAnimationFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[USE_REFRESH_ANIMATION] ?: true
+        preferences[USE_REFRESH_ANIMATION] ?: (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
     }
 
     suspend fun setUseRefreshAnimation(useRefreshAnimation: Boolean) {

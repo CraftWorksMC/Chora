@@ -386,7 +386,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     coroutineScope.launch {
                         SettingsManager(context).setUseRefreshAnimation(!refreshRipple.value)
                     }
-                }
+                },
+                enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
             )
 
             // Lyrics Animation Speed
