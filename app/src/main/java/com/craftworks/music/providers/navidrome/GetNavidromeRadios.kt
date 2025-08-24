@@ -2,7 +2,6 @@ package com.craftworks.music.providers.navidrome
 
 import android.util.Log
 import com.craftworks.music.data.model.MediaData
-import com.craftworks.music.data.model.radioList
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -21,15 +20,7 @@ fun parseNavidromeRadioJSON(
         jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
     )
 
-    var mediaDataRadios = emptyList<MediaData.Radio>()
-
-    subsonicResponse.internetRadioStations?.internetRadioStation?.filterNot { newRadio ->
-        radioList.any { existingRadio ->
-            existingRadio.navidromeID == newRadio.navidromeID
-        }
-    }?.let {
-        mediaDataRadios = it
-    }
+    val mediaDataRadios = subsonicResponse.internetRadioStations?.internetRadioStation ?: emptyList()
 
     Log.d("NAVIDROME", "Added radios. Total: ${mediaDataRadios.size}")
 

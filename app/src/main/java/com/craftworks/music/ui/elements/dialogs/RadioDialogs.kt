@@ -252,7 +252,7 @@ fun ModifyRadioDialog(
                         Button(
                             onClick = {
                                 setShowDialog(false)
-                                onDeleted(radio?.mediaId ?: "null")
+                                onDeleted(radio?.mediaMetadata?.extras?.getString("navidromeID") ?: "null")
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(

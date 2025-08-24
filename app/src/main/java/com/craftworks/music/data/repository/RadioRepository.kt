@@ -3,7 +3,6 @@ package com.craftworks.music.data.repository
 import com.craftworks.music.data.datasource.local.LocalDataSource
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
 import com.craftworks.music.data.model.MediaData
-import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -24,8 +23,8 @@ class RadioRepository @Inject constructor(
         if (NavidromeManager.checkActiveServers())
             deferredRadios.add(async { navidromeDataSource.getNavidromeRadios(ignoreCachedResponse) })
 
-        if (LocalProviderManager.checkActiveFolders())
-            deferredRadios.add(async { localDataSource.getLocalRadios() })
+        //if (LocalProviderManager.checkActiveFolders())
+        deferredRadios.add(async { localDataSource.getLocalRadios() })
 
         deferredRadios.awaitAll().flatten()
     }
@@ -37,13 +36,13 @@ class RadioRepository @Inject constructor(
             localDataSource.createLocalRadio(name,url,homePage)
     }
     suspend fun modifyRadio(radio: MediaData.Radio) {
-        if (NavidromeManager.checkActiveServers() && radio.navidromeID != "Local")
+        if (NavidromeManager.checkActiveServers() && !radio.navidromeID.startsWith("Local_"))
             navidromeDataSource.updateNavidromeRadio(radio.navidromeID, radio.name, radio.media, radio.homePageUrl)
         else
             localDataSource.updateLocalRadio(radio)
     }
     suspend fun deleteRadio(id: String){
-        if (NavidromeManager.checkActiveServers() && id != "Local")
+        if (NavidromeManager.checkActiveServers() && !id.startsWith("Local_"))
             navidromeDataSource.deleteNavidromeRadio(id)
         else
             localDataSource.deleteLocalRadio(id)

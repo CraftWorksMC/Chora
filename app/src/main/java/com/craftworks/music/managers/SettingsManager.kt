@@ -17,7 +17,6 @@ import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.data.model.playlistList
-import com.craftworks.music.data.model.radioList
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.model.toSong
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -254,8 +253,8 @@ class SettingsManager @Inject constructor(
         Json.decodeFromString<List<MediaData.Radio>>(preferences[LOCAL_RADIOS] ?: "[]").toMutableList()
     }
 
-    suspend fun saveLocalRadios() {
-        val radiosListJson = Json.encodeToString(radioList.filter { it.navidromeID == "Local" })
+    suspend fun saveLocalRadios(radios: List<MediaData.Radio>) {
+        val radiosListJson = Json.encodeToString(radios.filter { it.navidromeID.startsWith("Local_") })
         context.dataStore.edit { preferences ->
             preferences[LOCAL_RADIOS] = radiosListJson
         }

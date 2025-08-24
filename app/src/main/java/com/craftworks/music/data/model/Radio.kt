@@ -8,8 +8,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.R
 
-var radioList:SnapshotStateList<MediaData.Radio> = mutableStateListOf()
-
 fun MediaData.Radio.toMediaItem(): MediaItem {
     val mediaMetadata =
         MediaMetadata.Builder()
@@ -27,7 +25,7 @@ fun MediaData.Radio.toMediaItem(): MediaItem {
             }).build()
 
     return MediaItem.Builder()
-        .setMediaId(this@toMediaItem.media.toString())
+        .setMediaId(this@toMediaItem.media)
         .setUri(this@toMediaItem.media)
         .setMediaMetadata(mediaMetadata)
         .build()

@@ -3,7 +3,6 @@ package com.craftworks.music.data.datasource.local
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.data.model.playlistList
-import com.craftworks.music.data.model.radioList
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.providers.local.LocalProvider
@@ -176,9 +175,7 @@ class LocalDataSource @Inject constructor(
         val currentRadiosFromStore = settingsManager.localRadios.first().toMutableList()
         currentRadiosFromStore.add(newRadio)
 
-        radioList.clear()
-        radioList.addAll(currentRadiosFromStore)
-        settingsManager.saveLocalRadios()
+        settingsManager.saveLocalRadios(currentRadiosFromStore)
         return true
     }
 
@@ -188,9 +185,7 @@ class LocalDataSource @Inject constructor(
         if (index != -1) {
             currentRadiosFromStore[index] = radio
 
-            radioList.clear()
-            radioList.addAll(currentRadiosFromStore)
-            settingsManager.saveLocalRadios()
+            settingsManager.saveLocalRadios(currentRadiosFromStore)
             return true
         }
         return false
@@ -200,9 +195,7 @@ class LocalDataSource @Inject constructor(
         val currentRadiosFromStore = settingsManager.localRadios.first().toMutableList()
         val removed = currentRadiosFromStore.removeAll { it.navidromeID == id }
         if (removed) {
-            radioList.clear()
-            radioList.addAll(currentRadiosFromStore)
-            settingsManager.saveLocalRadios()
+            settingsManager.saveLocalRadios(currentRadiosFromStore)
         }
         return removed
     }

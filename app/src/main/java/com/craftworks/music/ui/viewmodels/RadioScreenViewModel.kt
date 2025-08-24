@@ -55,6 +55,7 @@ class RadioScreenViewModel @Inject constructor(
             _isLoading.value = true
             radioRepository.createRadio(name = name, url = url, homePage = homepage, addToNavidrome = addToNavidrome)
             _isLoading.value = false
+            getRadioStations()
         }
     }
 
@@ -63,6 +64,7 @@ class RadioScreenViewModel @Inject constructor(
             _isLoading.value = true
             radioRepository.modifyRadio(MediaData.Radio(id, name, url, homepage))
             _isLoading.value = false
+            getRadioStations()
         }
     }
 
@@ -71,6 +73,7 @@ class RadioScreenViewModel @Inject constructor(
             _isLoading.value = true
             radioRepository.deleteRadio(id)
             _isLoading.value = false
+            getRadioStations()
         }
     }
 }
