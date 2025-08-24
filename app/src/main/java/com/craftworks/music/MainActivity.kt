@@ -8,7 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -163,13 +163,22 @@ class MainActivity : ComponentActivity() {
                     label = "sheetPeekAnimation"
                 )
 
-                BackHandler(
-                    enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
-                ) {
-                    coroutineScope.launch {
-                        scaffoldState.bottomSheetState.partialExpand()
+                val backCallback = object : OnBackPressedCallback(true) {
+                    override fun handleOnBackPressed() {
+                        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
+                            coroutineScope.launch {
+                                scaffoldState.bottomSheetState.partialExpand()
+                            }
+                        } else {
+                            isEnabled = false
+                            onBackPressedDispatcher.onBackPressed()
+                            isEnabled = true
+                        }
                     }
                 }
+
+                onBackPressedDispatcher.addCallback(this, backCallback)
+
 
                 Scaffold(
                     bottomBar = {
