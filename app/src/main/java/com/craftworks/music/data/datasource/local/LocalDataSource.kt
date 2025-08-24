@@ -2,8 +2,8 @@ package com.craftworks.music.data.datasource.local
 
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.model.MediaData
-import com.craftworks.music.data.model.playlistList
 import com.craftworks.music.data.model.toMediaItem
+import com.craftworks.music.data.model.toSong
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.providers.local.LocalProvider
 import kotlinx.coroutines.flow.first
@@ -48,7 +48,7 @@ class LocalDataSource @Inject constructor(
     }
 
     fun getLocalSong(songId: String): MediaItem? {
-        return localProvider.getLocalSongs().find { it.mediaId == songId }
+        return localProvider.getLocalSongs().find { it.mediaMetadata.extras?.getString("navidromeID") == songId }
     }
 
     fun getLocalArtists(): List<MediaData.Artist> {
@@ -73,13 +73,16 @@ class LocalDataSource @Inject constructor(
 
     suspend fun getLocalPlaylistSongs(playlistId: String): List<MediaItem> {
         val playlist = settingsManager.localPlaylists.first().find { it.navidromeID == playlistId }
+        println("Found playlist: $playlist")
         return playlist?.songs?.map { it.toMediaItem() } ?: emptyList()
     }
 
     suspend fun createLocalPlaylist(
         playlistName: String,
-        initialSong: MediaData.Song?
+        initialSongId: String?
     ): Boolean {
+        val initialSong = getLocalSong(initialSongId ?: "")?.toSong()
+
         val newPlaylist = MediaData.Playlist(
             navidromeID = "Local_${UUID.randomUUID()}",
             name = playlistName,
@@ -97,29 +100,36 @@ class LocalDataSource @Inject constructor(
         val currentPlaylistsFromStore = settingsManager.localPlaylists.first().toMutableList()
         currentPlaylistsFromStore.add(newPlaylist)
 
-        playlistList.clear()
-        playlistList.addAll(currentPlaylistsFromStore)
-
-        settingsManager.saveLocalPlaylists()
+        settingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
         return true
     }
 
     suspend fun addSongToLocalPlaylist(
         playlistId: String,
-        song: MediaData.Song
+        songId: String
     ): Boolean {
+        val song = getLocalSong(songId)?.toSong() ?: return false
         val currentPlaylistsFromStore = settingsManager.localPlaylists.first().toMutableList()
-        val playlistToModify = currentPlaylistsFromStore.find { it.navidromeID == playlistId }
-            ?: return false
+        val playlistIndex = currentPlaylistsFromStore.indexOfFirst { it.navidromeID == playlistId }
+        if (playlistIndex == -1) return false
 
-        if (playlistToModify.songs?.any { it.navidromeID == song.navidromeID } == true)
+        println("Found playlist to modify: ${currentPlaylistsFromStore[playlistIndex]}")
+
+        val playlistToModify = currentPlaylistsFromStore[playlistIndex]
+
+        val updatedSongs = (playlistToModify.songs ?: emptyList()).toMutableList()
+
+        if (updatedSongs.any { it.navidromeID == song.navidromeID })
             return false
 
-        playlistToModify.songs?.add(song)
-        playlistList.clear()
-        playlistList.addAll(currentPlaylistsFromStore)
+        updatedSongs.add(song)
 
-        settingsManager.saveLocalPlaylists()
+        val updatedPlaylist = playlistToModify.copy(songs = updatedSongs)
+        currentPlaylistsFromStore[playlistIndex] = updatedPlaylist
+
+        println("modified playlist: ${currentPlaylistsFromStore[playlistIndex]}")
+
+        settingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
         return true
     }
 
@@ -134,10 +144,7 @@ class LocalDataSource @Inject constructor(
         val songRemoved = playlistToModify.songs?.removeAll { it.navidromeID == songId }
 
         if (songRemoved == true) {
-            playlistList.clear()
-            playlistList.addAll(currentPlaylistsFromStore)
-
-            settingsManager.saveLocalPlaylists()
+            settingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
             return true
         }
         return false
@@ -148,10 +155,7 @@ class LocalDataSource @Inject constructor(
         val removed = currentPlaylistsFromStore.removeAll { it.navidromeID == playlistId }
 
         if (removed) {
-            playlistList.clear()
-            playlistList.addAll(currentPlaylistsFromStore)
-
-            settingsManager.saveLocalPlaylists()
+            settingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
         }
         return removed
     }

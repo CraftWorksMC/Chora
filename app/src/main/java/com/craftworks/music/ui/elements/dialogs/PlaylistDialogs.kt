@@ -22,12 +22,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,18 +45,16 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import coil.compose.SubcomposeAsyncImage
 import com.craftworks.music.R
 import com.craftworks.music.data.model.playlistList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.providers.addSongToPlaylist
-import com.craftworks.music.providers.createPlaylist
-import com.craftworks.music.providers.deletePlaylist
-import com.craftworks.music.providers.getPlaylists
 import com.craftworks.music.ui.elements.bounceClick
-import kotlinx.coroutines.launch
+import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 
 //region PREVIEWS
 @Preview(showBackground = true)
@@ -71,7 +66,7 @@ fun PreviewAddToPlaylistDialog(){
 @Preview(showBackground = true)
 @Composable
 fun PreviewNewPlaylistDialog(){
-    NewPlaylist(setShowDialog = {})
+    NewPlaylist(hiltViewModel(),setShowDialog = {})
 }
 
 @Preview(showBackground = true)
@@ -88,15 +83,11 @@ var showDeletePlaylistDialog = mutableStateOf(false)
 var playlistToDelete = mutableStateOf("")
 
 @Composable
-fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
-    var playlists = remember { mutableStateListOf<MediaItem>() }
-
-    LaunchedEffect(Unit) {
-        playlists.addAll(getPlaylists(context, true))
-    }
+fun AddSongToPlaylist(
+    setShowDialog: (Boolean) -> Unit,
+    viewModel: PlaylistScreenViewModel = hiltViewModel()
+) {
+    val playlists by viewModel.allPlaylists.collectAsStateWithLifecycle()
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
@@ -144,23 +135,26 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                         println("there are ${playlists.size} playlists")
 
                         for (playlist in playlists) {
+                            // Allow ONLY adding local songs to local playlists and navidrome songs to navidrome playlists.
+                            val disabled = songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true xor
+                                    (playlist.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true)
+
                             Row(modifier = Modifier
                                 .padding(bottom = 12.dp)
                                 .height(64.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                //.background(MaterialTheme.colorScheme.surfaceVariant)
-                                .clickable {
-                                    if (playlist.mediaMetadata.extras?.getString("navidromeID") == songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID"))
+                                .clickable(
+                                    enabled = !disabled
+                                ) {
+                                    if (playlist.mediaMetadata.extras?.getString("navidromeID") ==
+                                        songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID"))
                                         return@clickable
 
-                                    coroutineScope.launch {
-                                        addSongToPlaylist(
-                                            playlist.mediaMetadata.extras?.getString("navidromeID")
-                                                ?: "",
-                                            songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID") ?: "",
-                                            context
-                                        )
-                                    }
+                                    viewModel.addSongToPlaylist(playlist.mediaMetadata.extras?.getString("navidromeID")
+                                        ?: "",
+                                        songToAddToPlaylist.value.mediaMetadata.extras?.getString(
+                                            "navidromeID"
+                                        ) ?: "")
                                     setShowDialog(false)
                                 }, verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -169,6 +163,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                         playlist.mediaMetadata.artworkData else playlist.mediaMetadata.artworkUri,
                                     contentScale = ContentScale.FillHeight,
                                     contentDescription = "Album Image",
+                                    alpha = if (disabled) 0.5f else 1f,
                                     modifier = Modifier
                                         .height(64.dp)
                                         .width(64.dp)
@@ -178,7 +173,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                                     text = playlist.mediaMetadata.title.toString(),
                                     fontWeight = FontWeight.Normal,
                                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                    color = MaterialTheme.colorScheme.onBackground,
+                                    color = if (disabled) MaterialTheme.colorScheme.onBackground.copy(0.5f) else MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier
                                         .padding(horizontal = 12.dp)
                                         .weight(1f)
@@ -210,7 +205,7 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
                     }
 
                     if (showNewPlaylistDialog.value) {
-                        NewPlaylist { showNewPlaylistDialog.value = it }
+                        NewPlaylist(viewModel) { showNewPlaylistDialog.value = it }
                     }
                 }
             }
@@ -220,10 +215,11 @@ fun AddSongToPlaylist(setShowDialog: (Boolean) -> Unit) {
 
 
 @Composable
-fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
+fun NewPlaylist(
+    viewModel: PlaylistScreenViewModel,
+    setShowDialog: (Boolean) -> Unit
+) {
     var name: String by remember { mutableStateOf("") }
-
-    val context = LocalContext.current
 
     var addToNavidrome by remember { mutableStateOf(NavidromeManager.checkActiveServers()) }
 
@@ -277,12 +273,18 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
                             }
                         }
 
-                        val coroutineScope = rememberCoroutineScope()
+                        val context = LocalContext.current
                         Button(
                             onClick = {
                                 if (playlistList.firstOrNull { it.name == name } != null) return@Button
 
-                                coroutineScope.launch { createPlaylist(name, addToNavidrome, context) }
+                                viewModel.createPlaylist(
+                                    name,
+                                    songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                                    addToNavidrome,
+                                    context
+                                )
+
                                 showAddSongToPlaylistDialog.value = false
                                 setShowDialog(false)
                             },
@@ -314,11 +316,8 @@ fun NewPlaylist(setShowDialog: (Boolean) -> Unit) {
 @Composable
 fun DeletePlaylist(
     setShowDialog: (Boolean) -> Unit,
-    onDeleted: () -> Unit = { }
+    viewModel: PlaylistScreenViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -346,10 +345,7 @@ fun DeletePlaylist(
 
                         Button(
                             onClick = {
-                                coroutineScope.launch {
-                                    deletePlaylist(playlistToDelete.value, context)
-                                    onDeleted()
-                                }
+                                viewModel.deletePlaylist(playlistToDelete.value)
                                 setShowDialog(false)
                             },
                             colors = ButtonDefaults.buttonColors(

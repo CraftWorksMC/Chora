@@ -62,7 +62,7 @@ class PlaylistScreenViewModel @Inject constructor(
 
     suspend fun updatePlaylistsImages(context: Context) {
         _allPlaylists.value = _allPlaylists.value.map {
-            if (it.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local") == true) {
+            if (it.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true) {
                 val songs = playlistRepository.getPlaylistSongs(it.mediaMetadata.extras?.getString("navidromeID") ?: "", true)
                 it.buildUpon()
                     .setMediaMetadata(
@@ -103,6 +103,34 @@ class PlaylistScreenViewModel @Inject constructor(
             }
             loadingJob.cancel()
             _isLoading.value = false
+        }
+    }
+
+    fun createPlaylist(name: String, songstoAdd: String, addToNavidrome: Boolean, context: Context) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            playlistRepository.createPlaylist(name, songstoAdd, addToNavidrome)
+            _isLoading.value = false
+            updatePlaylistsImages(context)
+            loadPlaylists()
+        }
+    }
+
+    fun addSongToPlaylist(playlistId: String, songId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            playlistRepository.addSongToPlaylist(playlistId, songId)
+            _isLoading.value = false
+            loadPlaylists()
+        }
+    }
+
+    fun deletePlaylist(playlistId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            playlistRepository.deletePlaylist(playlistId)
+            _isLoading.value = false
+            loadPlaylists()
         }
     }
 }

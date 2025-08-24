@@ -16,7 +16,6 @@ import androidx.media3.session.MediaSession
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.model.MediaData
-import com.craftworks.music.data.model.playlistList
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.model.toSong
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -264,8 +263,8 @@ class SettingsManager @Inject constructor(
         Json.decodeFromString<List<MediaData.Playlist>>(preferences[LOCAL_PLAYLISTS] ?: "[]").toMutableList()
     }
 
-    suspend fun saveLocalPlaylists(){
-        val playlistJson = Json.encodeToString(playlistList.filter { it.navidromeID.startsWith("Local_") })
+    suspend fun saveLocalPlaylists(playlists: List<MediaData.Playlist>){
+        val playlistJson = Json.encodeToString(playlists.filter { it.navidromeID.startsWith("Local_") })
         context.dataStore.edit { preferences ->
             preferences[LOCAL_PLAYLISTS] = playlistJson
         }

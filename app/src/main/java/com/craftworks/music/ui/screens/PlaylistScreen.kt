@@ -108,7 +108,7 @@ fun PlaylistScreen(
             if(showDeletePlaylistDialog.value)
                 DeletePlaylist(
                     setShowDialog =  { showDeletePlaylistDialog.value = it },
-                    onDeleted = { onRefresh.invoke()}
+                    viewModel
                 )
         }
     }
