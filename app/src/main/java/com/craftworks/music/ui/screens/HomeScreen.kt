@@ -53,7 +53,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
@@ -128,7 +127,7 @@ fun HomeScreen(
                         modifier = Modifier.padding(
                             start = if (showNavidromeLogo) 42.dp else 12.dp
                         ),
-                        lineHeight = 32.sp
+                        lineHeight = MaterialTheme.typography.headlineLarge.lineHeight
                     )
                 }
                 IconButton(
@@ -149,7 +148,7 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             AlbumRow(stringResource(R.string.recently_played), recentlyPlayedAlbums, mediaController, navHostController, viewModel)
             AlbumRow(stringResource(R.string.recently_added), recentAlbums, mediaController, navHostController, viewModel)
@@ -215,10 +214,10 @@ fun HomeScreen(
             .height(256.dp)
     ) {
         Text(
-            text = "$title:",
+            text = title,
             color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.SemiBold,
-            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
             modifier = Modifier.padding(start = 12.dp)
         )
 

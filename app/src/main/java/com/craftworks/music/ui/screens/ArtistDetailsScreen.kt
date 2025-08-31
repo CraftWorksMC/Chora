@@ -353,10 +353,10 @@ fun ArtistDetails(
             /* Discography header */
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Text(
-                    text = stringResource(R.string.Screen_Discography) + ":",
+                    text = stringResource(R.string.Screen_Discography),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                     modifier = Modifier.padding(start = 12.dp, top = 6.dp)
                 )
             }

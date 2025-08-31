@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -196,11 +197,12 @@ fun AlbumDetails(
                             modifier = Modifier.fillMaxWidth(),
                             lineHeight = 32.sp,
                         )
+                        Spacer(Modifier.height(8.dp))
                         Text(
                             text = currentAlbum[0].mediaMetadata.artist.toString() + " • " + formatMilliseconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0),
                             color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Normal,
-                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )

@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.elements
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -32,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -62,29 +64,52 @@ fun TopBarWithSearch(
                     onSearch(it)
                 },
                 leadingIcon = {
-                    if (searchBarState.currentValue == SearchBarValue.Expanded) {
-                        TooltipBox(
-                            positionProvider =
-                                TooltipDefaults.rememberTooltipPositionProvider(
-                                    TooltipAnchorPosition.Above
-                                ),
-                            tooltip = { PlainTooltip { Text("Back") } },
-                            state = rememberTooltipState(),
+                    TooltipBox(
+                        positionProvider =
+                            TooltipDefaults.rememberTooltipPositionProvider(
+                                TooltipAnchorPosition.Above
+                            ),
+                        tooltip = { PlainTooltip { Text("Back") } },
+                        state = rememberTooltipState(),
+                    ) {
+                        IconButton(
+                            onClick = { scope.launch { searchBarState.animateToCollapsed() } },
                         ) {
-                            IconButton(
-                                onClick = { scope.launch { searchBarState.animateToCollapsed() } },
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Rounded.ArrowBack,
-                                    contentDescription = "Back",
-                                )
-                            }
+                            Icon(
+                                Icons.AutoMirrored.Rounded.ArrowBack,
+                                contentDescription = "Back",
+                            )
                         }
-                    } else {
-                        Icon(Icons.Rounded.Search, contentDescription = null)
                     }
                 },
             )
+        }
+
+    val inputIcon =
+        @Composable {
+            Box(
+                modifier = Modifier.size(56.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (searchBarState.currentValue == SearchBarValue.Collapsed) {
+                    TooltipBox(
+                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                            TooltipAnchorPosition.Above
+                        ),
+                        tooltip = { PlainTooltip { Text("Search") } },
+                        state = rememberTooltipState()
+                    ) {
+                        IconButton(onClick = {
+                            scope.launch { searchBarState.animateToExpanded() }
+                        }) {
+                            Icon(
+                                Icons.Rounded.Search, "Search",
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
 
     Row(
@@ -101,6 +126,7 @@ fun TopBarWithSearch(
                 )
                 .size(48.dp)
         )
+        Spacer(Modifier.width(6.dp))
         Text(
             text = headerText,
             color = MaterialTheme.colorScheme.onBackground,
@@ -113,9 +139,10 @@ fun TopBarWithSearch(
         Spacer(Modifier.weight(1f))
         TopSearchBar(
             state = searchBarState,
-            inputField = inputField,
-            modifier = Modifier
-                .width(256.dp),
+            inputField = inputIcon,
+            colors = SearchBarDefaults.colors(containerColor = Color.Transparent),
+            // Should be the same as size of inputIcon box
+            modifier = Modifier.width(56.dp)
         )
     }
     ExpandedFullScreenSearchBar(
