@@ -50,6 +50,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
@@ -66,7 +67,6 @@ import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
 import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
 import com.craftworks.music.ui.elements.dialogs.ThemeDialog
-import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -81,7 +81,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val focusRequester = FocusRequester()
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
 
     Column(
         modifier = Modifier
@@ -92,7 +93,11 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     .asPaddingValues()
                     .calculateTopPadding()
             )
-            .dialogFocusable()
+            .clickable(
+                onClick = { focusManager.clearFocus() },
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            )
             //.background(MaterialTheme.colorScheme.background)
     ) {
 
