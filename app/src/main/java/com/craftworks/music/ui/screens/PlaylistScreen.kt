@@ -3,12 +3,15 @@ package com.craftworks.music.ui.screens
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -91,12 +94,17 @@ fun PlaylistScreen(
                     .calculateTopPadding()
             )) {
             /* HEADER */
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                    .height(70.dp)
+            ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.placeholder),
                     contentDescription = "Songs Icon",
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(48.dp))
+                Spacer(Modifier.width(6.dp))
                 Text(
                     text = stringResource(R.string.playlists),
                     color = MaterialTheme.colorScheme.onBackground,

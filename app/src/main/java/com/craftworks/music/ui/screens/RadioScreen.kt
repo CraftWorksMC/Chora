@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -110,6 +111,7 @@ fun RadioScreen(
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(48.dp)
                 )
+                Spacer(Modifier.width(6.dp))
                 Text(
                     text = stringResource(R.string.radios),
                     color = MaterialTheme.colorScheme.onBackground,
@@ -120,7 +122,7 @@ fun RadioScreen(
                 Button(
                     onClick = { showRadioAddDialog = true },
                     shape = CircleShape,
-                    modifier = Modifier.size(48.dp),
+                    modifier = Modifier.size(56.dp, 70.dp),
                     contentPadding = PaddingValues(2.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                 ) {

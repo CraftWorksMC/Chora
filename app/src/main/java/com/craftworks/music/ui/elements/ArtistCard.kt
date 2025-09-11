@@ -85,9 +85,7 @@ fun ArtistCard(artist: MediaData.Artist, onClick: () -> Unit) {
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 3.dp),
+            modifier = Modifier.fillMaxWidth(),
             maxLines = 1, overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center
         )

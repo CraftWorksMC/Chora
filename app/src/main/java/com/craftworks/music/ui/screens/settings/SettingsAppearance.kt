@@ -9,12 +9,14 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -107,6 +109,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(48.dp)
             )
+            Spacer(Modifier.width(6.dp))
             Text(
                 text = stringResource(R.string.Settings_Header_Appearance),
                 color = MaterialTheme.colorScheme.onBackground,
@@ -119,7 +122,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     launchSingleTop = true
                 } },
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(56.dp, 70.dp)
                         .focusRequester(focusRequester)
                         .focusProperties { left = FocusRequester.Cancel }) {
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack,

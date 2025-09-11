@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
@@ -64,6 +65,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                 contentDescription = "Settings Icon",
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(48.dp))
+            Spacer(Modifier.width(6.dp))
             Text(
                 text = stringResource(R.string.settings),
                 color = MaterialTheme.colorScheme.onBackground,
@@ -75,7 +77,7 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
                 launchSingleTop = true
             } },
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(56.dp, 70.dp)
             ) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back To Home",

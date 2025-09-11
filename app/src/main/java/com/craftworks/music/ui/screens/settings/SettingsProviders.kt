@@ -4,12 +4,14 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
@@ -78,6 +80,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(48.dp)
             )
+            Spacer(Modifier.width(6.dp))
             Text(
                 text = stringResource(R.string.Settings_Header_Media),
                 color = MaterialTheme.colorScheme.onBackground,
@@ -90,7 +93,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                     launchSingleTop = true
                 } },
                     modifier = Modifier
-                        .size(48.dp)) {
+                        .size(56.dp, 70.dp)) {
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack,
                         contentDescription = "Back To Settings",
                         modifier = Modifier.size(32.dp))
