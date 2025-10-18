@@ -263,6 +263,105 @@ fun AlbumGrid(
 
 @ExperimentalFoundationApi
 @Composable
+fun AlbumGrid(
+    albums: List<MediaItem>,
+    mediaController: MediaController?,
+    onAlbumSelected: (album: MediaData.Album) -> Unit,
+    onGetAlbum: (albumID: String) -> List<MediaItem>
+) {
+    val gridState = rememberLazyGridState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val showDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
+
+    // Group songs by their source (Local or Navidrome)
+    val groupedAlbums = albums.groupBy { song ->
+        if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
+    }
+
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(128.dp),
+        modifier = Modifier
+            .wrapContentWidth()
+            .fillMaxHeight()
+            .padding(end = 12.dp),
+        state = gridState
+    ) {
+        if (showDividers && groupedAlbums.size > 1) {
+            groupedAlbums.forEach { (groupName, albumsInGroup) ->
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Column (Modifier.padding(start = 12.dp)) {
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .height(1.dp)
+                                .fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                        )
+                        Text(
+                            text = when (groupName) {
+                                "Navidrome" -> stringResource(R.string.Source_Navidrome)
+                                "Local" -> stringResource(R.string.Source_Local)
+                                else -> ""
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        )
+                    }
+
+                }
+                itemsIndexed(albumsInGroup) { index, album ->
+                    AlbumCard(album = album,
+                        mediaController = mediaController,
+                        onClick = {
+                            onAlbumSelected(album.toAlbum())
+                        },
+                        onPlay = {
+                            coroutineScope.launch {
+                                val mediaItems = onGetAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                                if (mediaItems.isNotEmpty())
+                                    SongHelper.play(
+                                        mediaItems = mediaItems.subList(1, mediaItems.size),
+                                        index = 0,
+                                        mediaController = mediaController
+                                    )
+                            }
+                        }
+                    )
+                }
+            }
+        }
+        else {
+            items(
+                items = albums,
+                key = { it.mediaId }
+            ) { album ->
+                AlbumCard(album = album,
+                    mediaController = mediaController,
+                    onClick = {
+                        onAlbumSelected(album.toAlbum())
+                    },
+                    onPlay = {
+                        coroutineScope.launch {
+                            val mediaItems = onGetAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                            if (mediaItems.isNotEmpty())
+                                SongHelper.play(
+                                    mediaItems = mediaItems.subList(1, mediaItems.size),
+                                    index = 0,
+                                    mediaController = mediaController
+                                )
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@ExperimentalFoundationApi
+@Composable
 fun AlbumRow(
     albums: List<MediaItem>,
     mediaController: MediaController?,
@@ -275,7 +374,6 @@ fun AlbumRow(
     LazyRow(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
-            top = 32.dp,
             end = 12.dp
         )
     ) {

@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +52,7 @@ import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
 import com.craftworks.music.ui.screens.ArtistDetails
 import com.craftworks.music.ui.screens.ArtistsScreen
+import com.craftworks.music.ui.screens.HomeListsScreen
 import com.craftworks.music.ui.screens.HomeScreen
 import com.craftworks.music.ui.screens.PlaylistDetails
 import com.craftworks.music.ui.screens.PlaylistScreen
@@ -111,6 +114,33 @@ fun SetupNavGraph(
             val viewModel: HomeScreenViewModel = hiltViewModel(parentEntry)
             HomeScreen(navController, mediaController, viewModel)
         }
+        composable(
+            route = Screen.HomeLists.route + "/{category}",
+            arguments = listOf(navArgument("category") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry("main_graph")
+            }
+            val viewModel: HomeScreenViewModel = hiltViewModel(parentEntry)
+
+            val category = backStackEntry.arguments?.getString("category") ?: "recently_played"
+
+            val albums = when (category) {
+                "recently_played" -> viewModel.recentlyPlayedAlbums.collectAsStateWithLifecycle().value
+                "recently_added" -> viewModel.recentAlbums.collectAsStateWithLifecycle().value
+                "most_played" -> viewModel.mostPlayedAlbums.collectAsStateWithLifecycle().value
+                "random_songs" -> viewModel.shuffledAlbums.collectAsStateWithLifecycle().value
+                else -> emptyList()
+            }
+
+            HomeListsScreen(
+                albums = albums,
+                viewModel = viewModel,
+                categoryKey = category,
+                navHostController = navController,
+            )
+        }
+
         composable(route = Screen.Song.route) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry("main_graph")

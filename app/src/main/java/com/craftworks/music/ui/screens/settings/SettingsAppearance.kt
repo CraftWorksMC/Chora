@@ -83,7 +83,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val focusRequester = FocusRequester()
+    val focusRequester = remember { FocusRequester() }
 
     Column(
         modifier = Modifier
@@ -97,7 +97,6 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             .dialogFocusable()
             //.background(MaterialTheme.colorScheme.background)
     ) {
-
         /* HEADER */
         Row(
             verticalAlignment = Alignment.CenterVertically,

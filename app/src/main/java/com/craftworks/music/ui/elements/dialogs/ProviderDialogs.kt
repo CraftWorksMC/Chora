@@ -426,7 +426,7 @@ fun CreateMediaProviderDialog(
                                     allowCerts
                                 )
                                 NavidromeManager.addServer(server)
-                                coroutineScope.launch {
+                                runBlocking {
                                     SettingsManager(context).setUsername(username)
                                 }
 

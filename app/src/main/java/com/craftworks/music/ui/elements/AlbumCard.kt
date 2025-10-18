@@ -52,7 +52,7 @@ fun AlbumCard(
     val context = LocalContext.current
     Column(
         modifier = modifier
-            .padding(12.dp, 12.dp, 0.dp, 0.dp)
+            .padding(12.dp, 0.dp, 0.dp, 0.dp)
             .width(128.dp)
             .height(172.dp)
             .clip(RoundedCornerShape(12.dp))

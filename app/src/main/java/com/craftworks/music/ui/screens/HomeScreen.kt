@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,6 +72,13 @@ import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
+
+enum class AlbumCategory(val key: String, val displayNameRes: Int) {
+    RECENTLY_PLAYED("recently_played", R.string.recently_played),
+    RECENTLY_ADDED("recently_added", R.string.recently_added),
+    MOST_PLAYED("most_played", R.string.most_played),
+    RANDOM_SONGS("random_songs", R.string.random_songs)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -148,12 +157,12 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            AlbumRow(stringResource(R.string.recently_played), recentlyPlayedAlbums, mediaController, navHostController, viewModel)
-            AlbumRow(stringResource(R.string.recently_added), recentAlbums, mediaController, navHostController, viewModel)
-            AlbumRow(stringResource(R.string.most_played), mostPlayedAlbums, mediaController, navHostController, viewModel)
-            AlbumRow(stringResource(R.string.random_songs), shuffledAlbums, mediaController, navHostController, viewModel)
+            AlbumRow(AlbumCategory.RECENTLY_PLAYED, recentlyPlayedAlbums, mediaController, navHostController, viewModel)
+            AlbumRow(AlbumCategory.RECENTLY_ADDED, recentAlbums, mediaController, navHostController, viewModel)
+            AlbumRow(AlbumCategory.MOST_PLAYED, mostPlayedAlbums, mediaController, navHostController, viewModel)
+            AlbumRow(AlbumCategory.RANDOM_SONGS, shuffledAlbums, mediaController, navHostController, viewModel)
         }
     }
 
@@ -201,25 +210,53 @@ fun HomeScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable fun AlbumRow(
-    title: String,
+    title: AlbumCategory,
     albums: List<MediaItem>,
     mediaController: MediaController?,
     navHostController: NavHostController,
     viewModel: HomeScreenViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
-    Box(
+    Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(256.dp)
+            .fillMaxWidth().padding(bottom = 6.dp)
     ) {
-        Text(
-            text = title,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-            modifier = Modifier.padding(start = 12.dp)
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    val category = when (title) {
+                        AlbumCategory.RECENTLY_PLAYED  -> "recently_played"
+                        AlbumCategory.RECENTLY_ADDED -> "recently_added"
+                        AlbumCategory.MOST_PLAYED -> "most_played"
+                        AlbumCategory.RANDOM_SONGS -> "random_songs"
+                    }
+
+                    navHostController.navigate(Screen.HomeLists.route + "/$category") {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+                .padding(horizontal = 12.dp, vertical = 12.dp)
+        ) {
+            Text(
+                text = stringResource(title.displayNameRes),
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = MaterialTheme.typography.headlineSmall.fontSize
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier
+                    .size(MaterialTheme.typography.headlineSmall.fontSize.value.dp * 1.2f)
+            )
+        }
 
         AlbumRow(
             albums,
