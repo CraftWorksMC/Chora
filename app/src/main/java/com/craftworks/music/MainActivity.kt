@@ -173,6 +173,7 @@ class MainActivity : ComponentActivity() {
 
                 onBackPressedDispatcher.addCallback(this, backCallback)
 
+
                 Scaffold(
                     bottomBar = {
                         AnimatedBottomNavBar(navController, scaffoldState)
@@ -224,6 +225,7 @@ class MainActivity : ComponentActivity() {
 
                                     onDispose {
                                         currentView.keepScreenOn = false
+                                        backCallback.isEnabled = false
                                         Log.d("NOW-PLAYING", "KeepScreenOn: False")
                                     }
                                 }
