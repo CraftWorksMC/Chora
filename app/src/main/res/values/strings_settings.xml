@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="Settings_Header_Appearance">Appearance</string>
+        <string name="Setting_Username">Name</string>
         <string name="Setting_Background">Background Style</string>
         <string name="Setting_Navbar_Items">Navigation Bar Items</string>
         <string name="Setting_MoreInfo">Show More Info</string>

@@ -67,6 +67,7 @@
         <!-- Settings -->
     <string name="Settings_Header_Appearance">Apparence</string>
     <string name="Settings_Header_Media">Fournisseurs de médias</string>
+    <string name="Setting_Username">Nom</string>
     <string name="Setting_Background">Types de fonds</string>
     <string name="Setting_Navbar_Items">Éléments de la barre de navigation</string>
     <string name="Setting_MoreInfo">Afficher plus d\'informations</string>

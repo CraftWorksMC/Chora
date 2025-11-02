@@ -45,7 +45,7 @@ class HomeScreenViewModel @Inject constructor(
 
     fun loadHomeScreenData() {
         viewModelScope.launch {
-            _isLoading.value = true // Set loading to true
+            _isLoading.value = true
             coroutineScope {
                 val recentlyPlayedDeferred = async { albumRepository.getAlbums("recent", 20, 0, true) }
                 val recentDeferred = async { albumRepository.getAlbums("newest", 20, 0, true) }

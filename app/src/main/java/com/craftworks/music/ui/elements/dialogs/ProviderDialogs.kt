@@ -396,7 +396,9 @@ fun CreateMediaProviderDialog(
                                     true,
                                     allowCerts
                                 )
-                                coroutineScope.launch { getNavidromeStatus(server) }
+                                coroutineScope.launch {
+                                    getNavidromeStatus(server)
+                                }
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,

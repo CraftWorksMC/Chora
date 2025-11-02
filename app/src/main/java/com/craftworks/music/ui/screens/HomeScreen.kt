@@ -7,7 +7,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,7 +53,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -80,7 +79,7 @@ enum class AlbumCategory(val key: String, val displayNameRes: Int) {
     RANDOM_SONGS("random_songs", R.string.random_songs)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HomeScreen(
     navHostController: NavHostController = rememberNavController(),
@@ -121,7 +120,7 @@ fun HomeScreen(
                         top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
                     )
             ) {
-                Box(Modifier.weight(1f)) {
+                Row (Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     val username = SettingsManager(context).usernameFlow.collectAsState("Username")
                     val showNavidromeLogo =
                         SettingsManager(context).showNavidromeLogoFlow.collectAsState(true).value && NavidromeManager.checkActiveServers()
@@ -131,12 +130,9 @@ fun HomeScreen(
                     Text(
                         text = "${stringResource(R.string.welcome_text)},\n${username.value}!",
                         color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                        modifier = Modifier.padding(
-                            start = if (showNavidromeLogo) 42.dp else 12.dp
-                        ),
-                        lineHeight = MaterialTheme.typography.headlineLarge.lineHeight
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(start = 12.dp).offset(x = if (showNavidromeLogo)(-36).dp else 0.dp),
                     )
                 }
                 IconButton(
@@ -183,7 +179,6 @@ fun HomeScreen(
         ),
         label = "Navidrome Logo Rotate"
     )
-    val offsetX = dpToPx(-36)
     val clickAction = rememberUpdatedState {
         rotation += 180f
     }
@@ -198,8 +193,8 @@ fun HomeScreen(
         painter = painterResource(R.drawable.s_m_navidrome),
         contentDescription = "Navidrome Icon",
         modifier = Modifier
-            .size(72.dp)
-            .offset { IntOffset(offsetX, 0) }
+            .size(76.dp)
+            .offset(x = (-36).dp)
             .shadow(24.dp, CircleShape)
             .graphicsLayer {
                 rotationZ = animatedRotation

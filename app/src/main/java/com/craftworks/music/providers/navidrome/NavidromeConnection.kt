@@ -33,6 +33,7 @@ import javax.net.ssl.X509TrustManager
 @SerialName("subsonic-response")
 data class SubsonicResponse(
     val status: String,
+    val error: SubsonicError? = null,
     val version: String,
     val type: String,
     val serverVersion: String,
@@ -72,7 +73,7 @@ suspend fun sendNavidromeGETRequest(
 ) : List<Any> {
     // Check if data is in the cache
     val cachedData = NavidromeCache.get(endpoint)
-    if (cachedData != null && ignoreCachedResponse == false) {
+    if (cachedData != null && !ignoreCachedResponse) {
         Log.d("NAVIDROME", "Returning data from cache for endpoint: $endpoint")
         setSyncingStatus(false)
         return cachedData
@@ -153,7 +154,7 @@ suspend fun sendNavidromeGETRequest(
                 inputStream.bufferedReader().use {
                     val responseContent = it.readText()
                     when {
-                        endpoint.startsWith("ping")         -> parseNavidromeStatusXML(responseContent)
+                        endpoint.startsWith("ping")         -> parsedData.addAll(parseNavidromeStatus(responseContent))
                         endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON(responseContent, server.url, server.username, server.password))
 
                         // Albums

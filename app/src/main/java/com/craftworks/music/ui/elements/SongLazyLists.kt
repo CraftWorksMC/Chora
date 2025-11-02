@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -372,7 +373,7 @@ fun AlbumRow(
     val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_") }
 
     LazyRow(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().heightIn(min = 172.dp),
         contentPadding = PaddingValues(
             end = 12.dp
         )
@@ -385,7 +386,7 @@ fun AlbumRow(
             if (showProviderDividers) {
                 if (index == dividerIndex && index != albums.lastIndex && index != 0) {
                     Row(
-                        modifier = Modifier.padding(12.dp, 12.dp, 0.dp, 0.dp),
+                        modifier = Modifier.padding(start = 12.dp),
                         verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.Start
                     ) {

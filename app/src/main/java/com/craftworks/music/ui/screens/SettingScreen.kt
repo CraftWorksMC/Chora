@@ -1,20 +1,20 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
@@ -24,15 +24,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -45,13 +39,15 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 
-@Preview(showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
+@Preview(
+    showSystemUi = false, showBackground = true, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
 )
 @Composable
 fun SettingScreen(navHostController: NavHostController = rememberNavController()) {
     Column(modifier = Modifier
         .fillMaxSize()
+        .background(MaterialTheme.colorScheme.surfaceContainer)
         .padding(
             top = WindowInsets.statusBars
                 .asPaddingValues()
@@ -86,7 +82,12 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
         }
 
         /* Settings */
-        Column {
+        Column (
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .clip(RoundedCornerShape(16.dp)),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
             SettingsButton(
                 Screen.S_Appearance.route,
                 R.drawable.s_a_palette,
@@ -110,52 +111,34 @@ fun SettingScreen(navHostController: NavHostController = rememberNavController()
 
 @Composable
 private fun SettingsButton(route: String, icon: Int, text: Int, navHostController: NavHostController){
-    var isFocused by remember { mutableStateOf(false) }
     Button(
         onClick = { navHostController.navigate(route) {
             launchSingleTop = true
         } },
-        modifier = Modifier
-            .height(76.dp)
-            .fillMaxWidth()
-            .padding(vertical = 6.dp, horizontal = 12.dp)
-            .onFocusChanged { focusState ->
-                isFocused = focusState.isFocused
-            },
         contentPadding = PaddingValues(0.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent,
+            containerColor = MaterialTheme.colorScheme.background,
             contentColor = MaterialTheme.colorScheme.onBackground
-        )
+        ),
+        shape = RoundedCornerShape(4.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()){
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ){
             Icon(
                 imageVector = ImageVector.vectorResource(icon),
-                contentDescription = stringResource(text),
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
-                    .size(48.dp)
-                    .padding(start = 12.dp)
+                    .padding(start = 20.dp, end = 16.dp)
+                    .size(32.dp)
             )
             Text(
                 text = stringResource(text),
                 color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold,
-                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                modifier = Modifier.padding(start = 12.dp)
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(vertical = 20.dp).weight(1f)
             )
-            Spacer(
-                Modifier
-                    .weight(1f)
-                    .fillMaxHeight())
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.chevron_down),
-                contentDescription = stringResource(R.string.Settings_Header_Appearance),
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier
-                    .size(48.dp)
-                    .padding(end = 12.dp)
-                    .rotate(-90f))
         }
     }
 }

@@ -70,6 +70,7 @@ class ArtistsScreenViewModel @Inject constructor(
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
     }
+
     @OptIn(FlowPreview::class)
     val searchResults: StateFlow<List<MediaData.Artist>> = searchQuery
         .debounce(300L) // Adds a small delay to avoid searching on every keystroke.

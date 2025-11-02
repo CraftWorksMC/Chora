@@ -7,9 +7,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,7 +39,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,9 +56,8 @@ import kotlinx.coroutines.runBlocking
 fun LocalProviderCard(local: String = "", context: Context = LocalContext.current){
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
-        .height(64.dp)
         .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.surfaceVariant),
+        .background(MaterialTheme.colorScheme.background),
         verticalAlignment = Alignment.CenterVertically) {
         // Provider Icon
         Icon(
@@ -65,24 +65,22 @@ fun LocalProviderCard(local: String = "", context: Context = LocalContext.curren
             tint = MaterialTheme.colorScheme.primary,
             contentDescription = "Folder Icon",
             modifier = Modifier
-                .padding(horizontal = 6.dp)
+                .padding(start = 20.dp, end = 16.dp)
                 .height(32.dp)
                 .size(32.dp)
         )
         // Provider Name
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f).padding(vertical = 10.dp)) {
             Text(
                 text = stringResource(R.string.Source_Local),
                 color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Normal,
-                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
             )
             Text(
                 text = local,
                 color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
-                fontWeight = FontWeight.Normal,
-                fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
 
@@ -104,6 +102,8 @@ fun LocalProviderCard(local: String = "", context: Context = LocalContext.curren
                     .size(32.dp)
             )
         }
+
+        Spacer(Modifier.width(20.dp))
         // Enabled Checkbox
 //        var enabled by remember { mutableStateOf(false) }
 //        enabled = true
@@ -140,9 +140,8 @@ fun NavidromeProviderCard(
 
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
-        .height(64.dp)
         .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.surfaceVariant)
+        .background(MaterialTheme.colorScheme.background)
         .selectableGroup(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -151,25 +150,39 @@ fun NavidromeProviderCard(
             painter = painterResource(R.drawable.s_m_navidrome),
             contentDescription = "Navidrome Icon",
             modifier = Modifier
-                .padding(horizontal = 6.dp)
+                .padding(start = 20.dp, end = 16.dp)
                 .size(32.dp)
         )
         // Provider Name
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f).padding(vertical = 10.dp)) {
             Text(
                 text = server.username,
                 color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Normal,
-                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
             )
             Text(
                 text = server.url,
                 color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
-                fontWeight = FontWeight.Normal,
-                fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
+
+        var checked by remember { mutableStateOf(false) }
+        checked = server.id == NavidromeManager.currentServerId.collectAsStateWithLifecycle().value
+
+        // Enabled Checkbox
+        Checkbox(
+            checked = checked,
+            onCheckedChange = {
+                if (!it && NavidromeManager.getAllServers().size == 1)
+                    NavidromeManager.setCurrentServer(null)
+                else
+                    NavidromeManager.setCurrentServer(server.id)
+                Log.d("NAVIDROME", "Navidrome Current Server: ${server.id}")
+            }
+        )
+
         // Delete Button
         Button(
             onClick = { NavidromeManager.removeServer(server.id) },
@@ -189,20 +202,7 @@ fun NavidromeProviderCard(
             )
         }
 
-        var checked by remember { mutableStateOf(false) }
-        checked = server.id == NavidromeManager.currentServerId.collectAsStateWithLifecycle().value
-
-        // Enabled Checkbox
-        Checkbox(
-            checked = checked,
-            onCheckedChange = {
-                if (!it && NavidromeManager.getAllServers().size == 1)
-                    NavidromeManager.setCurrentServer(null)
-                else
-                    NavidromeManager.setCurrentServer(server.id)
-                Log.d("NAVIDROME", "Navidrome Current Server: ${server.id}")
-            }
-        )
+        Spacer(Modifier.width(20.dp))
     }
 }
 
@@ -214,9 +214,8 @@ fun LRCLIBProviderCard(
     var showEditDialog by remember { mutableStateOf(false) }
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
-        .height(64.dp)
         .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.surfaceVariant)
+        .background(MaterialTheme.colorScheme.background)
         .selectableGroup(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -225,25 +224,37 @@ fun LRCLIBProviderCard(
             painter = painterResource(R.drawable.lrclib_logo),
             contentDescription = "LRCLIB.net logo",
             modifier = Modifier
-                .padding(horizontal = 6.dp)
+                .padding(start = 20.dp, end = 16.dp)
                 .size(32.dp)
         )
         // Provider Name
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f).padding(vertical = 10.dp)) {
             Text(
                 text = "Lyrics",
                 color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Normal,
-                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
             )
             Text(
                 text = "LRCLIB.net",
                 color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
-                fontWeight = FontWeight.Normal,
-                fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
+
+        // Enabled Checkbox
+        Checkbox(
+            checked = LyricsState.useLrcLib,
+            onCheckedChange = {
+                LyricsState.useLrcLib = it
+                runBlocking {
+                    SettingsManager(context).setUseLrcLib(it)
+                }
+            }
+        )
+
+        if (showEditDialog)
+            EditLrcLibUrlDialog(setShowDialog = { showEditDialog = it })
 
         // Edit Button
         Button(
@@ -264,18 +275,6 @@ fun LRCLIBProviderCard(
             )
         }
 
-        // Enabled Checkbox
-        Checkbox(
-            checked = LyricsState.useLrcLib,
-            onCheckedChange = {
-                LyricsState.useLrcLib = it
-                runBlocking {
-                    SettingsManager(context).setUseLrcLib(it)
-                }
-            }
-        )
-
-        if (showEditDialog)
-            EditLrcLibUrlDialog(setShowDialog = { showEditDialog = it })
+        Spacer(Modifier.width(20.dp))
     }
 }

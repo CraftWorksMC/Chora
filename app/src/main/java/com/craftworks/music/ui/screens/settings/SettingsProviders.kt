@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.screens.settings
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -61,6 +62,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
 
     Column(
         modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceContainer)
             .fillMaxSize()
             .padding(
                 top = WindowInsets.statusBars
@@ -103,8 +105,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
 
         Column(
             Modifier
-                .padding(12.dp)
-                .weight(1f),
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             LRCLIBProviderCard(context)
@@ -122,6 +123,8 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 NavidromeProviderCard(server)
             }
         }
+
+        Spacer(Modifier.weight(1f))
 
         FloatingActionButton(
             onClick = {

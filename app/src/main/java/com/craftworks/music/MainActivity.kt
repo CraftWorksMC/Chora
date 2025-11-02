@@ -78,7 +78,6 @@ import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.rememberManagedMediaController
-import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
 import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.playing.NowPlayingMiniPlayer
@@ -343,7 +342,7 @@ fun AnimatedBottomNavBar(
                 if (!item.enabled) return@forEachIndexed
                 NavigationBarItem(
                     selected = item.screenRoute == backStackEntry?.destination?.route,
-                    modifier = Modifier.bounceClick(),
+                    //modifier = Modifier.bounceClick(),
                     onClick = {
                         if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationBarItem
                         navController.navigate(item.screenRoute) {
