@@ -70,6 +70,7 @@
     <string name="Setting_Username">Nom</string>
     <string name="Setting_Background">Types de fonds</string>
     <string name="Setting_Navbar_Items">Éléments de la barre de navigation</string>
+    <string name="Setting_Home_Items">Home Screen Items</string>
     <string name="Setting_MoreInfo">Afficher plus d\'informations</string>
     <string name="Setting_NavidromeLogo">Afficher le logo de Navidrome</string>
     <string name="Settings_Header_Playback">Playback</string>

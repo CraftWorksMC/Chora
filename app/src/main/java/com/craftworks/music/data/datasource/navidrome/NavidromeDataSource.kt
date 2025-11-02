@@ -31,6 +31,7 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.logging.SIMPLE
 import io.ktor.client.request.get
+import io.ktor.client.request.headers
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -113,7 +114,15 @@ class NavidromeDataSource @Inject constructor() {
         val parsedData = mutableListOf<Any>()
 
         try {
-            val response: HttpResponse = activeClient.get(url)
+            val response: HttpResponse = activeClient.get(url) {
+                // Force network request if ignoreCachedResponse is true
+                if (ignoreCachedResponse) {
+                    headers {
+                        append("Cache-Control", "no-cache")
+                    }
+                }
+            }
+
             if (response.status != HttpStatusCode.OK) {
                 Log.w("NAVIDROME", "HTTP ${response.status}")
                 return@withContext emptyList<Any>()

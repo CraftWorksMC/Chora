@@ -18,6 +18,7 @@ import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.model.toSong
+import com.craftworks.music.ui.screens.HomeItem
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -38,6 +39,7 @@ class SettingsManager @Inject constructor(
         private val SHOW_MORE_INFO_KEY = booleanPreferencesKey("show_more_info")
         private val NOW_PLAYING_LYRIC_BLUR_KEY = booleanPreferencesKey("now_playing_lyrics_blur")
         private val BOTTOM_NAV_ITEMS_KEY = stringPreferencesKey("bottom_nav_order")
+        private val HOME_ITEMS_KEY = stringPreferencesKey("home_items_order")
         private val APP_THEME = stringPreferencesKey("theme")
         enum class AppTheme {
             LIGHT, DARK, SYSTEM
@@ -110,6 +112,40 @@ class SettingsManager @Inject constructor(
     suspend fun setShowNavidromeLogo(showNavidromeLogo: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[SHOW_NAVIDROME_KEY] = showNavidromeLogo
+        }
+    }
+
+    val homeItemsItemsFlow: Flow<List<HomeItem>> = context.dataStore.data.map { preferences ->
+        val jsonString = preferences[HOME_ITEMS_KEY]
+        jsonString?.let { Json.decodeFromString<List<HomeItem>>(it) } ?: //region Default Items
+        listOf(
+            HomeItem(
+                "recently_played",
+                R.string.recently_played,
+                true
+            ),
+            HomeItem(
+                "recently_added",
+                R.string.recently_added,
+                true
+            ),
+            HomeItem(
+                "most_played",
+                R.string.most_played,
+                true
+            ),
+            HomeItem(
+                "random_songs",
+                R.string.random_songs,
+                true
+            )
+        )
+        //endregion
+    }
+
+    suspend fun setHomeItems(items: List<HomeItem>) {
+        context.dataStore.edit { preferences ->
+            preferences[HOME_ITEMS_KEY] = Json.encodeToString(items)
         }
     }
 

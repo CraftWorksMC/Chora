@@ -1,6 +1,6 @@
 [versions]
 activityCompose = "1.11.0"
-composeBom = "2025.10.00"
+composeBom = "2025.10.01"
 coreKtx = "1.17.0"
 espressoCore = "3.7.0"
 githubComposefadingedges = "1.0.4"

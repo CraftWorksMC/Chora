@@ -64,6 +64,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
+import com.craftworks.music.ui.elements.dialogs.HomeItemsDialog
 import com.craftworks.music.ui.elements.dialogs.NameDialog
 import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
 import com.craftworks.music.ui.elements.dialogs.ThemeDialog
@@ -79,6 +80,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
     var showBackgroundDialog by remember { mutableStateOf(false) }
     var showThemesDialog by remember { mutableStateOf(false) }
     var showNavbarItemsDialog by remember { mutableStateOf(false) }
+    var showHomeItemsDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -196,7 +198,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     stringResource(
                         id = backgroundTypeStrings[backgroundTypes.indexOf(backgroundType)]
                     ),
-                    ImageVector.vectorResource(R.drawable.s_a_palette),
+                    ImageVector.vectorResource(R.drawable.s_a_background),
                     toggleEvent = {
                         showBackgroundDialog = true
                     }
@@ -216,6 +218,20 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     toggleEvent = {
                         if (navBarItemsEnabled)
                             showNavbarItemsDialog = true
+                    }
+                )
+
+                //Navbar Items
+                val enabledHomeItems =
+                    SettingsManager(context).homeItemsItemsFlow.collectAsState(emptyList()).value
+                        .filter { it.enabled }
+                        .joinToString(", ") { context.getString(it.name) }
+                SettingsDialogButton(
+                    stringResource(R.string.Setting_Home_Items),
+                    enabledHomeItems,
+                    ImageVector.vectorResource(R.drawable.s_a_home_items),
+                    toggleEvent = {
+                        showHomeItemsDialog = true
                     }
                 )
             }
@@ -353,8 +369,6 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             }
         }
 
-
-
         if(showNameDialog)
             NameDialog(setShowDialog = { showNameDialog = it })
 
@@ -366,5 +380,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 
         if(showNavbarItemsDialog)
             NavbarItemsDialog(setShowDialog = { showNavbarItemsDialog = it })
+
+        if(showHomeItemsDialog)
+            HomeItemsDialog(setShowDialog = { showHomeItemsDialog = it })
     }
 }

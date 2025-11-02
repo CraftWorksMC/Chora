@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -70,14 +71,16 @@ import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.net.URLEncoder
 
-enum class AlbumCategory(val key: String, val displayNameRes: Int) {
-    RECENTLY_PLAYED("recently_played", R.string.recently_played),
-    RECENTLY_ADDED("recently_added", R.string.recently_added),
-    MOST_PLAYED("most_played", R.string.most_played),
-    RANDOM_SONGS("random_songs", R.string.random_songs)
-}
+@Stable
+@Serializable
+data class HomeItem(
+    var key: String,
+    var name: Int,
+    var enabled: Boolean = true
+)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -155,10 +158,51 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            AlbumRow(AlbumCategory.RECENTLY_PLAYED, recentlyPlayedAlbums, mediaController, navHostController, viewModel)
-            AlbumRow(AlbumCategory.RECENTLY_ADDED, recentAlbums, mediaController, navHostController, viewModel)
-            AlbumRow(AlbumCategory.MOST_PLAYED, mostPlayedAlbums, mediaController, navHostController, viewModel)
-            AlbumRow(AlbumCategory.RANDOM_SONGS, shuffledAlbums, mediaController, navHostController, viewModel)
+            val orderedHomeItems = SettingsManager(context).homeItemsItemsFlow.collectAsState(
+                initial = listOf(
+                    HomeItem(
+                        "recently_played",
+                        R.string.recently_played,
+                        true
+                    ),
+                    HomeItem(
+                        "recently_added",
+                        R.string.recently_added,
+                        true
+                    ),
+                    HomeItem(
+                        "most_played",
+                        R.string.most_played,
+                        true
+                    ),
+                    HomeItem(
+                        "random_songs",
+                        R.string.random_songs,
+                        true
+                    )
+                )
+            ).value
+
+            orderedHomeItems.forEach() { item ->
+                if (item.enabled) {
+                    val albums = when (item.key) {
+                        "recently_played" -> recentlyPlayedAlbums
+                        "recently_added" -> recentAlbums
+                        "most_played" -> mostPlayedAlbums
+                        "random_songs" -> shuffledAlbums
+                        else -> emptyList()
+                    }
+
+                    AlbumRow(
+                        item.key,
+                        item.name,
+                        albums,
+                        mediaController,
+                        navHostController,
+                        viewModel
+                    )
+                }
+            }
         }
     }
 
@@ -205,7 +249,8 @@ fun HomeScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable fun AlbumRow(
-    title: AlbumCategory,
+    key: String,
+    title: Int,
     albums: List<MediaItem>,
     mediaController: MediaController?,
     navHostController: NavHostController,
@@ -221,14 +266,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    val category = when (title) {
-                        AlbumCategory.RECENTLY_PLAYED  -> "recently_played"
-                        AlbumCategory.RECENTLY_ADDED -> "recently_added"
-                        AlbumCategory.MOST_PLAYED -> "most_played"
-                        AlbumCategory.RANDOM_SONGS -> "random_songs"
-                    }
-
-                    navHostController.navigate(Screen.HomeLists.route + "/$category") {
+                    navHostController.navigate(Screen.HomeLists.route + "/$key") {
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -236,7 +274,7 @@ fun HomeScreen(
                 .padding(horizontal = 12.dp, vertical = 12.dp)
         ) {
             Text(
-                text = stringResource(title.displayNameRes),
+                text = stringResource(title),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = MaterialTheme.typography.headlineSmall.fontSize

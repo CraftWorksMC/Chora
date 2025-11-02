@@ -52,6 +52,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.managers.SettingsManager
 import com.craftworks.music.ui.elements.bounceClick
+import com.craftworks.music.ui.screens.HomeItem
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import sh.calvin.reorderable.ReorderableItem
@@ -68,6 +69,11 @@ fun PreviewBackgroundDialog(){
 @Composable
 fun PreviewNavbarItemsDialog(){
     NavbarItemsDialog(setShowDialog = { })
+}
+@Preview(showBackground = true)
+@Composable
+fun PreviewHomeItemsDialog(){
+    HomeItemsDialog(setShowDialog = { })
 }
 
 @Preview(showBackground = true)
@@ -177,7 +183,6 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
         confirmButton = { }
     )
 }
-
 
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class,
@@ -398,6 +403,125 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
                                     "Playlists",
                                     R.drawable.placeholder,
                                     "playlist_screen"
+                                )
+                            ) //endregion
+                        )
+                        setShowDialog(false)
+                    }
+                }
+            ) {
+                Text(stringResource(R.string.Action_Reset))
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val homeItems =
+        (SettingsManager(context).homeItemsItemsFlow.collectAsState(null).value ?: emptyList()).toMutableList()
+
+    AlertDialog(
+        onDismissRequest = { setShowDialog(false) },
+        title = { Text(stringResource(R.string.Setting_Home_Items)) },
+        text = {
+            val lazyListState = rememberLazyListState()
+            val reorderableLazyColumnState =
+                rememberReorderableLazyListState(lazyListState) { from, to ->
+                    SettingsManager(context).setHomeItems(homeItems.toMutableList()
+                        .apply {
+                            add(to.index, removeAt(from.index))
+                        })
+                }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                state = lazyListState
+            ) {
+                items(homeItems, key = { it.key }) { item ->
+                    ReorderableItem(reorderableLazyColumnState, item.key) {
+                        val interactionSource = remember { MutableInteractionSource() }
+                        val index = homeItems.indexOf(item)
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .height(48.dp)
+                        ) {
+                            Checkbox(
+                                checked = homeItems[index].enabled,
+                                onCheckedChange = {
+                                    coroutineScope.launch {
+                                        homeItems[index] = homeItems[index].copy(enabled = it)
+                                        SettingsManager(context).setHomeItems(homeItems)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .bounceClick()
+                            )
+                            Text(
+                                text = stringResource(item.name),
+                                fontWeight = FontWeight.Normal,
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(
+                                modifier = Modifier.draggableHandle(
+                                    onDragStarted = {
+                                    },
+                                    onDragStopped = {
+                                    },
+                                    interactionSource = interactionSource,
+                                ),
+                                onClick = {},
+                            ) {
+                                Icon(
+                                    ImageVector.vectorResource(R.drawable.baseline_drag_handle_24),
+                                    contentDescription = "Reorder"
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                setShowDialog(false)
+            }) {
+                Text(stringResource(R.string.Action_Done))
+            }
+        },
+        dismissButton = {
+            OutlinedButton(
+                onClick = {
+                    coroutineScope.launch {
+                        SettingsManager(context).setHomeItems(
+                            //region Default Values
+                            mutableStateListOf(
+                                HomeItem(
+                                    "recently_played",
+                                    R.string.recently_played,
+                                    true
+                                ),
+                                HomeItem(
+                                    "recently_added",
+                                    R.string.recently_added,
+                                    true
+                                ),
+                                HomeItem(
+                                    "most_played",
+                                    R.string.most_played,
+                                    true
+                                ),
+                                HomeItem(
+                                    "random_songs",
+                                    R.string.random_songs,
+                                    true
                                 )
                             ) //endregion
                         )

@@ -4,6 +4,7 @@
         <string name="Setting_Username">Name</string>
         <string name="Setting_Background">Background Style</string>
         <string name="Setting_Navbar_Items">Navigation Bar Items</string>
+        <string name="Setting_Home_Items">Home Screen Items</string>
         <string name="Setting_MoreInfo">Show More Info</string>
         <string name="Setting_NowPlayingLyricsBlur">Lyrics Blur Effect</string>
         <string name="Setting_NavidromeLogo">Show Navidrome Logo</string>
