@@ -41,6 +41,6 @@ fun parseNavidromeStatus(
         navidromeStatus.value = "Error $errorCode: $errorMessage"
         return listOf(subsonicResponse.error?.message ?: "")
     }
-
+    navidromeStatus.value = "ok"
     return listOf(subsonicResponse.status)
 }

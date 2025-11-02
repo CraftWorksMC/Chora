@@ -171,8 +171,6 @@ class NavidromeDataSource @Inject constructor() {
 
                 // Favourites
                 endpoint.startsWith("getStarred") -> { parsedData.addAll(parseNavidromeFavouritesJSON(responseContent, server.url, server.username, server.password)) }
-
-                else -> { NavidromeManager.setSyncingStatus(false) }
             }
         } catch (e: Exception) {
             Log.e("NAVIDROME", "Network error", e)
@@ -184,9 +182,8 @@ class NavidromeDataSource @Inject constructor() {
         parsedData
     }
 
-    // Utility
-    suspend fun pingNavidromeServer() {
-
+    suspend fun pingNavidromeServer(): List<String> = withContext(Dispatchers.IO) {
+        getRequest("ping.view?f=json").filterIsInstance<String>()
     }
 
     // Albums

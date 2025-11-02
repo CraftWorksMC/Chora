@@ -462,8 +462,16 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
                                 modifier = Modifier
                                     .bounceClick()
                             )
+                            val titleMap = remember {
+                                mapOf(
+                                    "recently_played" to R.string.recently_played,
+                                    "recently_added" to R.string.recently_added,
+                                    "most_played" to R.string.most_played,
+                                    "random_songs" to R.string.random_songs
+                                )
+                            }
                             Text(
-                                text = stringResource(item.name),
+                                text = stringResource(titleMap[item.key] ?: androidx.media3.session.R.string.error_message_fallback),
                                 fontWeight = FontWeight.Normal,
                                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                 color = MaterialTheme.colorScheme.onBackground,
@@ -505,22 +513,18 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
                             mutableStateListOf(
                                 HomeItem(
                                     "recently_played",
-                                    R.string.recently_played,
                                     true
                                 ),
                                 HomeItem(
                                     "recently_added",
-                                    R.string.recently_added,
                                     true
                                 ),
                                 HomeItem(
                                     "most_played",
-                                    R.string.most_played,
                                     true
                                 ),
                                 HomeItem(
                                     "random_songs",
-                                    R.string.random_songs,
                                     true
                                 )
                             ) //endregion

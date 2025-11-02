@@ -10,4 +10,7 @@
     <!-- Artist Details -->
     <string name="Screen_Discography">Discography</string>
     <string name="Screen_Top_Songs">Top Songs</string>
+
+    <!-- Album Details -->
+    <string name="Album_Disc_Number">Disc </string>
 </resources>

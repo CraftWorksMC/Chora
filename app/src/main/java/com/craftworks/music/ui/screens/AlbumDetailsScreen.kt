@@ -30,6 +30,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -319,20 +320,63 @@ fun AlbumDetails(
             }
 
             // Album Songs
-            items(currentAlbum.subList(1, currentAlbum.size)) { song ->
-                HorizontalSongCard(
-                    song = song,
-                    modifier = Modifier.animateItem(),
-                    onClick = {
-                        coroutineScope.launch {
-                            SongHelper.play(
-                                currentAlbum.subList(1, currentAlbum.size),
-                                currentAlbum.subList(1, currentAlbum.size).indexOf(song),
-                                mediaController
+            val groupedAlbums = currentAlbum.subList(1, currentAlbum.size).groupBy { song ->
+                song.mediaMetadata.discNumber
+            }
+
+            if (groupedAlbums.size > 1) {
+                groupedAlbums.forEach { (discNumber, albumsInGroup) ->
+                    item() {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.Album_Disc_Number) + discNumber.toString(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier
+                                    .height(1.dp)
+                                    .fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                             )
                         }
                     }
-                )
+                    items(albumsInGroup) { song ->
+                        HorizontalSongCard(
+                            song = song,
+                            modifier = Modifier.animateItem(),
+                            onClick = {
+                                coroutineScope.launch {
+                                    SongHelper.play(
+                                        currentAlbum.subList(1, currentAlbum.size),
+                                        currentAlbum.subList(1, currentAlbum.size).indexOf(song),
+                                        mediaController
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+            else {
+                items(currentAlbum.subList(1, currentAlbum.size)) { song ->
+                    HorizontalSongCard(
+                        song = song,
+                        modifier = Modifier.animateItem(),
+                        onClick = {
+                            coroutineScope.launch {
+                                SongHelper.play(
+                                    currentAlbum.subList(1, currentAlbum.size),
+                                    currentAlbum.subList(1, currentAlbum.size).indexOf(song),
+                                    mediaController
+                                )
+                            }
+                        }
+                    )
+                }
             }
         }
     }

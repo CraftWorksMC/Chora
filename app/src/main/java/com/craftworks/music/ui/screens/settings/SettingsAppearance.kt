@@ -222,10 +222,19 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 )
 
                 //Navbar Items
+                val titleMap = remember {
+                    mapOf(
+                        "recently_played" to R.string.recently_played,
+                        "recently_added" to R.string.recently_added,
+                        "most_played" to R.string.most_played,
+                        "random_songs" to R.string.random_songs
+                    )
+                }
                 val enabledHomeItems =
                     SettingsManager(context).homeItemsItemsFlow.collectAsState(emptyList()).value
                         .filter { it.enabled }
-                        .joinToString(", ") { context.getString(it.name) }
+                        .joinToString(", ") { context.getString(titleMap[it.key] ?: androidx.media3.session.R.string.error_message_fallback) }
+
                 SettingsDialogButton(
                     stringResource(R.string.Setting_Home_Items),
                     enabledHomeItems,

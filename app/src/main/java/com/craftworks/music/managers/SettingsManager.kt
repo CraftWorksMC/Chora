@@ -121,22 +121,18 @@ class SettingsManager @Inject constructor(
         listOf(
             HomeItem(
                 "recently_played",
-                R.string.recently_played,
                 true
             ),
             HomeItem(
                 "recently_added",
-                R.string.recently_added,
                 true
             ),
             HomeItem(
                 "most_played",
-                R.string.most_played,
                 true
             ),
             HomeItem(
                 "random_songs",
-                R.string.random_songs,
                 true
             )
         )

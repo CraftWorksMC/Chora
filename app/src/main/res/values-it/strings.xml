@@ -85,4 +85,5 @@
     <string name="Setting_ProviderDividers">Mostra Divisori Provider</string>
     <string name="Setting_RefreshAnimation">Mostra Animazione Refresh</string>
     <string name="Setting_LyricsAnimationSpeed">Velocità Animazione Testo</string>
+    <string name="Album_Disc_Number">"Disco "</string>
 </resources>

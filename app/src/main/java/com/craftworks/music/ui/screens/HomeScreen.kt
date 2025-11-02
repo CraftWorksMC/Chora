@@ -78,7 +78,6 @@ import java.net.URLEncoder
 @Serializable
 data class HomeItem(
     var key: String,
-    var name: Int,
     var enabled: Boolean = true
 )
 
@@ -162,22 +161,18 @@ fun HomeScreen(
                 initial = listOf(
                     HomeItem(
                         "recently_played",
-                        R.string.recently_played,
                         true
                     ),
                     HomeItem(
                         "recently_added",
-                        R.string.recently_added,
                         true
                     ),
                     HomeItem(
                         "most_played",
-                        R.string.most_played,
                         true
                     ),
                     HomeItem(
                         "random_songs",
-                        R.string.random_songs,
                         true
                     )
                 )
@@ -193,9 +188,18 @@ fun HomeScreen(
                         else -> emptyList()
                     }
 
+                    val titleMap = remember {
+                        mapOf(
+                            "recently_played" to R.string.recently_played,
+                            "recently_added" to R.string.recently_added,
+                            "most_played" to R.string.most_played,
+                            "random_songs" to R.string.random_songs
+                        )
+                    }
+
                     AlbumRow(
                         item.key,
-                        item.name,
+                        titleMap[item.key],
                         albums,
                         mediaController,
                         navHostController,
@@ -250,7 +254,7 @@ fun HomeScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable fun AlbumRow(
     key: String,
-    title: Int,
+    title: Int?,
     albums: List<MediaItem>,
     mediaController: MediaController?,
     navHostController: NavHostController,
@@ -274,7 +278,7 @@ fun HomeScreen(
                 .padding(horizontal = 12.dp, vertical = 12.dp)
         ) {
             Text(
-                text = stringResource(title),
+                text = stringResource(title ?: androidx.media3.session.R.string.error_message_fallback),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = MaterialTheme.typography.headlineSmall.fontSize
