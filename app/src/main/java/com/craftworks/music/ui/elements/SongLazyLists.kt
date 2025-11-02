@@ -187,7 +187,8 @@ fun AlbumGrid(
             .wrapContentWidth()
             .fillMaxHeight()
             .padding(end = 12.dp),
-        state = gridState
+        state = gridState,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         if (showDividers && groupedAlbums.size > 1) {
             groupedAlbums.forEach { (groupName, albumsInGroup) ->
