@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -46,7 +44,8 @@ import androidx.navigation.navArgument
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.playlistList
 import com.craftworks.music.data.repository.LyricsState
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.LocalDataSettingsManager
+import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
@@ -80,10 +79,10 @@ fun SetupNavGraph(
     val context = LocalContext.current
 
     playlistList =
-        SettingsManager(context).localPlaylists.collectAsStateWithLifecycle(mutableListOf()).value
+        LocalDataSettingsManager(context).localPlaylists.collectAsStateWithLifecycle(mutableListOf()).value
 
     LyricsState.useLrcLib =
-        SettingsManager(context).lrcLibLyricsFlow.collectAsStateWithLifecycle(true).value
+        MediaProviderSettingsManager(context).lrcLibLyricsFlow.collectAsStateWithLifecycle(true).value
 
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp + WindowInsets.safeDrawing.asPaddingValues().calculateLeftPadding(
         LayoutDirection.Ltr)

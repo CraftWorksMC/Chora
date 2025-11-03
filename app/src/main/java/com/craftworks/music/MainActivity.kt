@@ -2,6 +2,7 @@ package com.craftworks.music
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
@@ -66,6 +67,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -75,7 +79,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
@@ -93,6 +97,7 @@ import java.util.Locale
 import kotlin.system.exitProcess
 
 var showNoProviderDialog = mutableStateOf(false)
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -308,7 +313,7 @@ fun AnimatedBottomNavBar(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val orderedNavItems = SettingsManager(context).bottomNavItemsFlow.collectAsState(
+    val orderedNavItems = AppearanceSettingsManager(context).bottomNavItemsFlow.collectAsState(
         initial = listOf(
             BottomNavItem(
                 "Home", R.drawable.rounded_home_24, "home_screen"

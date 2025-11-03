@@ -4,7 +4,8 @@ import androidx.media3.common.MediaItem
 import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.model.toSong
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import com.craftworks.music.providers.local.LocalProvider
 import kotlinx.coroutines.flow.first
 import java.util.UUID
@@ -14,7 +15,8 @@ import javax.inject.Singleton
 @Singleton
 class LocalDataSource @Inject constructor(
     private val localProvider: LocalProvider,
-    private val settingsManager: SettingsManager,
+    private val localDataSettingsManager: LocalDataSettingsManager,
+    private val appearanceSettingsManager: AppearanceSettingsManager
 ) {
 
     suspend fun getLocalAlbums(sort: String?): List<MediaItem> {
@@ -68,11 +70,11 @@ class LocalDataSource @Inject constructor(
 
     // Playlists
     suspend fun getLocalPlaylists(): List<MediaItem> {
-        return settingsManager.localPlaylists.first().map { it.toMediaItem() }
+        return localDataSettingsManager.localPlaylists.first().map { it.toMediaItem() }
     }
 
     suspend fun getLocalPlaylistSongs(playlistId: String): List<MediaItem> {
-        val playlist = settingsManager.localPlaylists.first().find { it.navidromeID == playlistId }
+        val playlist = localDataSettingsManager.localPlaylists.first().find { it.navidromeID == playlistId }
         println("Found playlist: $playlist")
         return playlist?.songs?.map { it.toMediaItem() } ?: emptyList()
     }
@@ -87,7 +89,7 @@ class LocalDataSource @Inject constructor(
             navidromeID = "Local_${UUID.randomUUID()}",
             name = playlistName,
             comment = "",
-            owner = settingsManager.usernameFlow.first(),
+            owner = appearanceSettingsManager.usernameFlow.first(),
             public = false,
             songCount = if (initialSong == null) 0 else 1,
             coverArt = initialSong?.imageUrl,
@@ -97,10 +99,10 @@ class LocalDataSource @Inject constructor(
             songs = if (initialSong != null) mutableListOf(initialSong) else mutableListOf()
         )
 
-        val currentPlaylistsFromStore = settingsManager.localPlaylists.first().toMutableList()
+        val currentPlaylistsFromStore = localDataSettingsManager.localPlaylists.first().toMutableList()
         currentPlaylistsFromStore.add(newPlaylist)
 
-        settingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
+        localDataSettingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
         return true
     }
 
@@ -109,7 +111,7 @@ class LocalDataSource @Inject constructor(
         songId: String
     ): Boolean {
         val song = getLocalSong(songId)?.toSong() ?: return false
-        val currentPlaylistsFromStore = settingsManager.localPlaylists.first().toMutableList()
+        val currentPlaylistsFromStore = localDataSettingsManager.localPlaylists.first().toMutableList()
         val playlistIndex = currentPlaylistsFromStore.indexOfFirst { it.navidromeID == playlistId }
         if (playlistIndex == -1) return false
 
@@ -129,7 +131,7 @@ class LocalDataSource @Inject constructor(
 
         println("modified playlist: ${currentPlaylistsFromStore[playlistIndex]}")
 
-        settingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
+        localDataSettingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
         return true
     }
 
@@ -137,32 +139,32 @@ class LocalDataSource @Inject constructor(
         playlistId: String,
         songId: String
     ): Boolean {
-        val currentPlaylistsFromStore = settingsManager.localPlaylists.first().toMutableList()
+        val currentPlaylistsFromStore = localDataSettingsManager.localPlaylists.first().toMutableList()
         val playlistToModify = currentPlaylistsFromStore.find { it.navidromeID == playlistId }
             ?: return false
 
         val songRemoved = playlistToModify.songs?.removeAll { it.navidromeID == songId }
 
         if (songRemoved == true) {
-            settingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
+            localDataSettingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
             return true
         }
         return false
     }
 
     suspend fun deleteLocalPlaylist(playlistId: String): Boolean {
-        val currentPlaylistsFromStore = settingsManager.localPlaylists.first().toMutableList()
+        val currentPlaylistsFromStore = localDataSettingsManager.localPlaylists.first().toMutableList()
         val removed = currentPlaylistsFromStore.removeAll { it.navidromeID == playlistId }
 
         if (removed) {
-            settingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
+            localDataSettingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
         }
         return removed
     }
 
     // Radios
     suspend fun getLocalRadios(): List<MediaData.Radio> {
-        return settingsManager.localRadios.first()
+        return localDataSettingsManager.localRadios.first()
     }
 
     suspend fun createLocalRadio(
@@ -176,30 +178,30 @@ class LocalDataSource @Inject constructor(
             homePageUrl = homePageUrl ?: "",
             navidromeID = "Local_${UUID.randomUUID()}"
         )
-        val currentRadiosFromStore = settingsManager.localRadios.first().toMutableList()
+        val currentRadiosFromStore = localDataSettingsManager.localRadios.first().toMutableList()
         currentRadiosFromStore.add(newRadio)
 
-        settingsManager.saveLocalRadios(currentRadiosFromStore)
+        localDataSettingsManager.saveLocalRadios(currentRadiosFromStore)
         return true
     }
 
     suspend fun updateLocalRadio(radio: MediaData.Radio): Boolean {
-        val currentRadiosFromStore = settingsManager.localRadios.first().toMutableList()
+        val currentRadiosFromStore = localDataSettingsManager.localRadios.first().toMutableList()
         val index = currentRadiosFromStore.indexOfFirst { it.navidromeID == radio.navidromeID }
         if (index != -1) {
             currentRadiosFromStore[index] = radio
 
-            settingsManager.saveLocalRadios(currentRadiosFromStore)
+            localDataSettingsManager.saveLocalRadios(currentRadiosFromStore)
             return true
         }
         return false
     }
 
     suspend fun deleteLocalRadio(id: String): Boolean {
-        val currentRadiosFromStore = settingsManager.localRadios.first().toMutableList()
+        val currentRadiosFromStore = localDataSettingsManager.localRadios.first().toMutableList()
         val removed = currentRadiosFromStore.removeAll { it.navidromeID == id }
         if (removed) {
-            settingsManager.saveLocalRadios(currentRadiosFromStore)
+            localDataSettingsManager.saveLocalRadios(currentRadiosFromStore)
         }
         return removed
     }

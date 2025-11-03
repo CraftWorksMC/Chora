@@ -7,6 +7,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,8 +24,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,11 +36,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -64,7 +70,7 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.RippleEffect
@@ -106,6 +112,17 @@ fun HomeScreen(
         showRipple++
     }
 
+    val libraries by NavidromeManager.libraries.collectAsStateWithLifecycle()
+
+    // Trigger data refresh whenever the libraries state changes for the current server
+    LaunchedEffect(libraries, NavidromeManager.currentServerId.collectAsState().value) {
+        // Only load if there's an active server and libraries are loaded
+        if (NavidromeManager.checkActiveServers() && libraries.isNotEmpty()) {
+            viewModel.loadHomeScreenData()
+        }
+    }
+
+
     PullToRefreshBox(
         modifier = Modifier,
         state = state,
@@ -123,9 +140,9 @@ fun HomeScreen(
                     )
             ) {
                 Row (Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                    val username = SettingsManager(context).usernameFlow.collectAsState("Username")
+                    val username = AppearanceSettingsManager(context).usernameFlow.collectAsState("Username")
                     val showNavidromeLogo =
-                        SettingsManager(context).showNavidromeLogoFlow.collectAsState(true).value && NavidromeManager.checkActiveServers()
+                        AppearanceSettingsManager(context).showNavidromeLogoFlow.collectAsState(true).value && NavidromeManager.checkActiveServers()
 
                     if (showNavidromeLogo) NavidromeLogo()
 
@@ -134,7 +151,9 @@ fun HomeScreen(
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(start = 12.dp).offset(x = if (showNavidromeLogo)(-36).dp else 0.dp),
+                        modifier = Modifier
+                            .padding(start = 12.dp)
+                            .offset(x = if (showNavidromeLogo) (-36).dp else 0.dp),
                     )
                 }
                 IconButton(
@@ -157,7 +176,54 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            val orderedHomeItems = SettingsManager(context).homeItemsItemsFlow.collectAsState(
+            var selected by remember { mutableStateOf(false) }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(horizontal = 12.dp)
+                    .horizontalScroll(rememberScrollState()) // Make filter chips horizontally scrollable
+            ) {
+                if (libraries.isEmpty()) {
+                    Text(
+                        text = "stringResource(R.string.no_libraries_found)", // You need to add this string resource
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                } else {
+                    libraries.forEach { (library, isSelected) -> // Destructure the Pair
+                        FilterChip(
+                            onClick = {
+                                // Toggle the library's enabled status for the current server
+                                NavidromeManager.currentServerId.value?.let { serverId ->
+                                    NavidromeManager.toggleServerLibraryEnabled(serverId, library.id, !isSelected)
+                                    // Data will automatically refresh due to LaunchedEffect observing `libraries`
+                                }
+                            },
+                            label = {
+                                Text(library.name)
+                            },
+                            selected = isSelected, // Use the actual `isSelected` from the Pair
+                            leadingIcon = if (isSelected) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Filled.Done,
+                                        contentDescription = "Done icon",
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                    )
+                                }
+                            } else {
+                                null
+                            },
+                            modifier = Modifier.padding(end = 8.dp) // Add spacing between chips
+                        )
+                    }
+                }
+            }
+
+
+            val orderedHomeItems = AppearanceSettingsManager(context).homeItemsItemsFlow.collectAsState(
                 initial = listOf(
                     HomeItem(
                         "recently_played",
@@ -263,7 +329,8 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
-            .fillMaxWidth().padding(bottom = 6.dp)
+            .fillMaxWidth()
+            .padding(bottom = 6.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

@@ -4,7 +4,7 @@ import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.model.LrcLibLyrics
 import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.data.model.toLyrics
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -17,7 +17,7 @@ import javax.net.ssl.HttpsURLConnection
 
 @Singleton
 class LrclibDataSource @Inject constructor(
-    private val settingsManager: SettingsManager
+    private val settingsManager: MediaProviderSettingsManager
 ) {
     suspend fun getLrcLibLyrics(metadata: MediaMetadata?): List<Lyric> = withContext(Dispatchers.IO) {
         val baseUrl = settingsManager.lrcLibEndpointFlow.first()

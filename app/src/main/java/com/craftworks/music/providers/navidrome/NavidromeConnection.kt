@@ -39,6 +39,9 @@ data class SubsonicResponse(
     val serverVersion: String,
     val openSubsonic: Boolean,
 
+    // Music folders
+    val musicFolders: MusicFolder? = null,
+
     // Songs
     val song: MediaData.Song? = null,
     val searchResult3: SearchResult3? = null,

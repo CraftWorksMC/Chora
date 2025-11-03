@@ -50,7 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.screens.HomeItem
 import kotlinx.coroutines.launch
@@ -88,7 +88,7 @@ fun PreviewThemeDialog(){
 @Composable
 fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
     val context = LocalContext.current
-    val username by SettingsManager(context).usernameFlow.collectAsState("Username")
+    val username by AppearanceSettingsManager(context).usernameFlow.collectAsState("Username")
     var usernameTextField by remember(username) { mutableStateOf(username) }
 
     AlertDialog(
@@ -99,7 +99,7 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
                 value = usernameTextField,
                 onValueChange = {
                     runBlocking {
-                        SettingsManager(context).setUsername(it)
+                        AppearanceSettingsManager(context).setUsername(it)
                     }
                 },
                 label = { stringResource(R.string.Setting_Username) },
@@ -109,7 +109,7 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
         confirmButton = {
             Button(onClick = {
                 runBlocking {
-                    SettingsManager(context).setUsername(username)
+                    AppearanceSettingsManager(context).setUsername(username)
                 }
             }) {
                 Text(stringResource(R.string.Action_Done))
@@ -123,7 +123,7 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
 fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
 
-    val backgroundType by SettingsManager(context).npBackgroundFlow.collectAsState("")
+    val backgroundType by AppearanceSettingsManager(context).npBackgroundFlow.collectAsState("")
 
     val backgroundTypes = listOf(
         "Plain", "Static Blur", "Animated Blur"
@@ -146,7 +146,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                                 selected = (option == backgroundType),
                                 onClick = {
                                     runBlocking {
-                                        SettingsManager(context).setBackgroundType(option)
+                                        AppearanceSettingsManager(context).setBackgroundType(option)
                                     }
                                     setShowDialog(false)
                                 },
@@ -159,7 +159,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                             selected = option == backgroundType,
                             onClick = {
                                 runBlocking {
-                                    SettingsManager(context).setBackgroundType(option)
+                                    AppearanceSettingsManager(context).setBackgroundType(option)
                                 }
                                 setShowDialog(false)
                             },
@@ -192,12 +192,13 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
 fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
 
-    val selectedTheme by SettingsManager(context).appTheme.collectAsState(SettingsManager.Companion.AppTheme.SYSTEM.name)
+    val selectedTheme by AppearanceSettingsManager(context).appTheme.collectAsState(
+        AppearanceSettingsManager.Companion.AppTheme.SYSTEM.name)
 
     val themes = listOf(
-        SettingsManager.Companion.AppTheme.DARK,
-        SettingsManager.Companion.AppTheme.LIGHT,
-        SettingsManager.Companion.AppTheme.SYSTEM
+       AppearanceSettingsManager.Companion.AppTheme.DARK,
+       AppearanceSettingsManager.Companion.AppTheme.LIGHT,
+       AppearanceSettingsManager.Companion.AppTheme.SYSTEM
     )
 
     val themeStrings = listOf(
@@ -217,23 +218,23 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
                                 selected = (option.name == selectedTheme),
                                 onClick = {
                                     runBlocking {
-                                        SettingsManager(context).setAppTheme(option)
+                                        AppearanceSettingsManager(context).setAppTheme(option)
                                         val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
 
                                         when (option) {
-                                            SettingsManager.Companion.AppTheme.DARK -> {
+                                           AppearanceSettingsManager.Companion.AppTheme.DARK -> {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                     uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_YES)
                                                 else
                                                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
                                             }
-                                            SettingsManager.Companion.AppTheme.LIGHT -> {
+                                           AppearanceSettingsManager.Companion.AppTheme.LIGHT -> {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                     uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_NO)
                                                 else
                                                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                                             }
-                                            SettingsManager.Companion.AppTheme.SYSTEM -> {
+                                           AppearanceSettingsManager.Companion.AppTheme.SYSTEM -> {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                     uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_AUTO)
                                                 else
@@ -251,23 +252,23 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
                             selected = option.name == selectedTheme,
                             onClick = {
                                 runBlocking {
-                                    SettingsManager(context).setAppTheme(option)
+                                    AppearanceSettingsManager(context).setAppTheme(option)
                                     val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
 
                                     when (option) {
-                                        SettingsManager.Companion.AppTheme.DARK -> {
+                                       AppearanceSettingsManager.Companion.AppTheme.DARK -> {
                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                 uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_YES)
                                             else
                                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
                                         }
-                                        SettingsManager.Companion.AppTheme.LIGHT -> {
+                                       AppearanceSettingsManager.Companion.AppTheme.LIGHT -> {
                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                 uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_NO)
                                             else
                                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                                         }
-                                        SettingsManager.Companion.AppTheme.SYSTEM -> {
+                                       AppearanceSettingsManager.Companion.AppTheme.SYSTEM -> {
                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                 uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_AUTO)
                                             else
@@ -300,7 +301,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val bottomNavigationItems =
-        (SettingsManager(context).bottomNavItemsFlow.collectAsState(null).value ?: emptyList()).toMutableList()
+        (AppearanceSettingsManager(context).bottomNavItemsFlow.collectAsState(null).value ?: emptyList()).toMutableList()
 
     AlertDialog(
         onDismissRequest = { setShowDialog(false) },
@@ -309,7 +310,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
             val lazyListState = rememberLazyListState()
             val reorderableLazyColumnState =
                 rememberReorderableLazyListState(lazyListState) { from, to ->
-                    SettingsManager(context).setBottomNavItems(bottomNavigationItems.toMutableList()
+                    AppearanceSettingsManager(context).setBottomNavItems(bottomNavigationItems.toMutableList()
                         .apply {
                             add(to.index, removeAt(from.index))
                         })
@@ -335,7 +336,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
                                 onCheckedChange = {
                                     coroutineScope.launch {
                                         bottomNavigationItems[index] = bottomNavigationItems[index].copy(enabled = it)
-                                        SettingsManager(context).setBottomNavItems(bottomNavigationItems)
+                                        AppearanceSettingsManager(context).setBottomNavItems(bottomNavigationItems)
                                     }
                                 },
                                 modifier = Modifier
@@ -380,7 +381,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
             OutlinedButton(
                 onClick = {
                     coroutineScope.launch {
-                        SettingsManager(context).setBottomNavItems(
+                        AppearanceSettingsManager(context).setBottomNavItems(
                             //region Default Values
                             mutableStateListOf(
                                 BottomNavItem(
@@ -422,7 +423,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val homeItems =
-        (SettingsManager(context).homeItemsItemsFlow.collectAsState(null).value ?: emptyList()).toMutableList()
+        (AppearanceSettingsManager(context).homeItemsItemsFlow.collectAsState(null).value ?: emptyList()).toMutableList()
 
     AlertDialog(
         onDismissRequest = { setShowDialog(false) },
@@ -431,7 +432,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
             val lazyListState = rememberLazyListState()
             val reorderableLazyColumnState =
                 rememberReorderableLazyListState(lazyListState) { from, to ->
-                    SettingsManager(context).setHomeItems(homeItems.toMutableList()
+                    AppearanceSettingsManager(context).setHomeItems(homeItems.toMutableList()
                         .apply {
                             add(to.index, removeAt(from.index))
                         })
@@ -456,7 +457,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
                                 onCheckedChange = {
                                     coroutineScope.launch {
                                         homeItems[index] = homeItems[index].copy(enabled = it)
-                                        SettingsManager(context).setHomeItems(homeItems)
+                                        AppearanceSettingsManager(context).setHomeItems(homeItems)
                                     }
                                 },
                                 modifier = Modifier
@@ -508,7 +509,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
             OutlinedButton(
                 onClick = {
                     coroutineScope.launch {
-                        SettingsManager(context).setHomeItems(
+                        AppearanceSettingsManager(context).setHomeItems(
                             //region Default Values
                             mutableStateListOf(
                                 HomeItem(

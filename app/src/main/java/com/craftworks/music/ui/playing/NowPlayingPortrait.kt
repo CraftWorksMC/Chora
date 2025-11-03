@@ -54,7 +54,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
@@ -79,7 +79,7 @@ fun NowPlayingPortrait(
     )
 
     val context = LocalContext.current
-    val settingsManager = remember { SettingsManager(context) }
+    val settingsManager = remember { AppearanceSettingsManager(context) }
     val showMoreInfo by settingsManager.showMoreInfoFlow.collectAsStateWithLifecycle(true)
     Column {
         // Top padding

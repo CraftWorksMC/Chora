@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import kotlin.math.max
 import kotlin.math.min
 
@@ -43,7 +43,7 @@ fun RippleEffect(
     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU)
         return
 
-    val useRippleEffect by SettingsManager(LocalContext.current).refreshAnimationFlow.collectAsStateWithLifecycle(false)
+    val useRippleEffect by AppearanceSettingsManager(LocalContext.current).refreshAnimationFlow.collectAsStateWithLifecycle(false)
     if (!useRippleEffect)
         return
 

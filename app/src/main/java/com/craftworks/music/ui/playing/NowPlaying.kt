@@ -33,7 +33,7 @@ import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.request.SuccessResult
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -49,7 +49,7 @@ fun NowPlayingContent(
     metadata: MediaMetadata? = null
 ) {
     val context = LocalContext.current
-    val settingsManager = remember { SettingsManager(context) }
+    val settingsManager = remember { AppearanceSettingsManager(context) }
     val backgroundStyle by settingsManager.npBackgroundFlow.collectAsStateWithLifecycle("Animated Blur")
     var backgroundDarkMode by remember { mutableStateOf(false) }
 

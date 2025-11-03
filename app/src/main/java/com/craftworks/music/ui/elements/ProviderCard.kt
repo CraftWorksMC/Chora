@@ -47,7 +47,8 @@ import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.ui.elements.dialogs.EditLrcLibUrlDialog
 import kotlinx.coroutines.runBlocking
 
@@ -172,6 +173,7 @@ fun NavidromeProviderCard(
         checked = server.id == NavidromeManager.currentServerId.collectAsStateWithLifecycle().value
 
         // Enabled Checkbox
+        val context = LocalContext.current
         Checkbox(
             checked = checked,
             onCheckedChange = {
@@ -179,6 +181,9 @@ fun NavidromeProviderCard(
                     NavidromeManager.setCurrentServer(null)
                 else
                     NavidromeManager.setCurrentServer(server.id)
+                runBlocking {
+                    AppearanceSettingsManager(context).setUsername(server.username)
+                }
                 Log.d("NAVIDROME", "Navidrome Current Server: ${server.id}")
             }
         )
@@ -248,7 +253,7 @@ fun LRCLIBProviderCard(
             onCheckedChange = {
                 LyricsState.useLrcLib = it
                 runBlocking {
-                    SettingsManager(context).setUseLrcLib(it)
+                    MediaProviderSettingsManager(context).setUseLrcLib(it)
                 }
             }
         )

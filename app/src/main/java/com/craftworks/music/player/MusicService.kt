@@ -33,7 +33,8 @@ import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.data.repository.RadioRepository
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.LocalDataSettingsManager
+import com.craftworks.music.managers.settings.PlaybackSettingsManager
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -67,7 +68,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     private var scrobbleJob: Job? = null
 
-    @Inject lateinit var settingsManager: SettingsManager
+    @Inject lateinit var playbackSettingsManager: PlaybackSettingsManager
 
     @Inject lateinit var albumRepository: AlbumRepository
     @Inject lateinit var songRepository: SongRepository
@@ -241,7 +242,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 if (duration > 0 && !playerScrobbled) {
                     val currentPosition = player.currentPosition
                     val progress = (currentPosition * 100 / duration).toInt()
-                    val scrobblePercentage = settingsManager.scrobblePercentFlow.first() * 10
+                    val scrobblePercentage = playbackSettingsManager.scrobblePercentFlow.first() * 10
 
                     if (progress >= scrobblePercentage) {
                         playerScrobbled = true
@@ -314,22 +315,22 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 when {
                     networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> {
                         Log.d("NetworkCheck", "Device is on Wi-Fi")
-                        settingsManager.wifiTranscodingBitrateFlow.first()
+                        playbackSettingsManager.wifiTranscodingBitrateFlow.first()
                     }
                     networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> {
                         Log.d("NetworkCheck", "Device is on Mobile Data")
-                        settingsManager.mobileDataTranscodingBitrateFlow.first()
+                        playbackSettingsManager.mobileDataTranscodingBitrateFlow.first()
                     }
                     else -> {
                         Log.d("NetworkCheck", "Device is on another network type")
-                        settingsManager.wifiTranscodingBitrateFlow.first()
+                        playbackSettingsManager.wifiTranscodingBitrateFlow.first()
                     }
                 }
             }
 
             val bitrateOptions = if (bitrate != null && bitrate != "No Transcoding" && bitrate.isNotEmpty()) {
                 runBlocking {
-                    "&maxBitRate=$bitrate&format=${settingsManager.transcodingFormatFlow.first()}"
+                    "&maxBitRate=$bitrate&format=${playbackSettingsManager.transcodingFormatFlow.first()}"
                 }
             } else {
                 ""
@@ -440,7 +441,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             val settable = SettableFuture.create<MediaItemsWithStartPosition>()
             serviceMainScope.launch {
                 Log.d("RESUMPTION", "Getting onPlaybackResumption")
-                SettingsManager(applicationContext).playbackResumptionPlaylistWithStartPosition.collectLatest { playbackResumptionList ->
+                LocalDataSettingsManager(applicationContext).playbackResumptionPlaylistWithStartPosition.collectLatest { playbackResumptionList ->
                     settable.set(playbackResumptionList)
                     Log.d("RESUMPTION", "Got mediaitems")
                     withContext(Dispatchers.Main) {
@@ -529,7 +530,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 "Saving state! Playlist: ${List(player.mediaItemCount) { i -> player.getMediaItemAt(i) }.map { it.mediaMetadata.title }}, current index: ${player.currentMediaItemIndex}, current position: ${player.currentPosition}"
             )
 
-            SettingsManager(applicationContext).setPlaybackResumption(
+            LocalDataSettingsManager(applicationContext).setPlaybackResumption(
                 List(player.mediaItemCount) { i ->
                     player.getMediaItemAt(i)
                 },

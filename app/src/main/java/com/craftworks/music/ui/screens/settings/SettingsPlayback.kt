@@ -44,7 +44,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.PlaybackSettingsManager
 import com.craftworks.music.ui.elements.dialogs.TranscodingBitrateDialog
 import com.craftworks.music.ui.elements.dialogs.TranscodingFormatDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
@@ -120,7 +120,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 val transcodingBitrateWifi =
-                    SettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("").value
+                    PlaybackSettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("").value
 
                 SettingsDialogButton(
                     settingsName = stringResource(R.string.Setting_Transcoding_Wifi),
@@ -131,7 +131,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
 
 
                 val transcodingBitrateData =
-                    SettingsManager(context).mobileDataTranscodingBitrateFlow.collectAsState("").value
+                    PlaybackSettingsManager(context).mobileDataTranscodingBitrateFlow.collectAsState("").value
 
                 SettingsDialogButton(
                     settingsName = stringResource(R.string.Setting_Transcoding_Data),
@@ -141,7 +141,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                 )
 
                 val transcodingFormat =
-                    SettingsManager(context).transcodingFormatFlow.collectAsState("opus").value
+                    PlaybackSettingsManager(context).transcodingFormatFlow.collectAsState("opus").value
 
                 val transcodingFormatEnabled =
                     transcodingBitrateData != "No Transcoding" || transcodingBitrateWifi != "No Transcoding"
@@ -160,7 +160,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                 modifier = Modifier.clip(RoundedCornerShape(16.dp)),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                val sliderValue = SettingsManager(context).scrobblePercentFlow.collectAsState(7)
+                val sliderValue = PlaybackSettingsManager(context).scrobblePercentFlow.collectAsState(7)
 
                 SettingsSlider(
                     settingsName = stringResource(R.string.Setting_Scrobble_Percent),
@@ -169,7 +169,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                     minValue = 1f, maxValue = 10f,
                     onValueChange = {
                         runBlocking {
-                            SettingsManager(context).setScrobblePercent(it.roundToInt())
+                            PlaybackSettingsManager(context).setScrobblePercent(it.roundToInt())
                         }
                     }
                 )

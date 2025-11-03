@@ -19,7 +19,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -64,14 +64,14 @@ fun MusicPlayerTheme(
     // Kinda hacky solution, but should work.
     if(LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) {
         val theme =
-            SettingsManager(LocalContext.current).appTheme.collectAsState(SettingsManager.Companion.AppTheme.SYSTEM.name).value
+            AppearanceSettingsManager(LocalContext.current).appTheme.collectAsState(AppearanceSettingsManager.Companion.AppTheme.SYSTEM.name).value
         colorScheme = when {
             dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
                 val context = LocalContext.current
-                if (theme == SettingsManager.Companion.AppTheme.DARK.name) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+                if (theme == AppearanceSettingsManager.Companion.AppTheme.DARK.name) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             }
-            theme == SettingsManager.Companion.AppTheme.DARK.name -> DarkColorScheme
-            theme == SettingsManager.Companion.AppTheme.SYSTEM.name -> DarkColorScheme
+            theme == AppearanceSettingsManager.Companion.AppTheme.DARK.name -> DarkColorScheme
+            theme == AppearanceSettingsManager.Companion.AppTheme.SYSTEM.name -> DarkColorScheme
             else -> when (LocalConfiguration.current.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
                 Configuration.UI_MODE_NIGHT_NO -> LightColorScheme
                 Configuration.UI_MODE_NIGHT_YES -> DarkColorScheme

@@ -27,7 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.craftworks.music.R
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.PlaybackSettingsManager
 import com.craftworks.music.ui.elements.bounceClick
 import kotlinx.coroutines.runBlocking
 
@@ -53,8 +53,8 @@ fun TranscodingBitrateDialog(
 ) {
     val context = LocalContext.current
 
-    val transcodingBitrateWifi by SettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("")
-    val transcodingBitrateData by SettingsManager(context).mobileDataTranscodingBitrateFlow.collectAsState("")
+    val transcodingBitrateWifi by PlaybackSettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("")
+    val transcodingBitrateData by PlaybackSettingsManager(context).mobileDataTranscodingBitrateFlow.collectAsState("")
 
     val transcodingBitrateList = listOf(
         "1",
@@ -96,9 +96,9 @@ fun TranscodingBitrateDialog(
                             onClick = {
                                 runBlocking {
                                     if (isWifiDialog)
-                                        SettingsManager(context).setWifiTranscodingBitrate(bitrate)
+                                        PlaybackSettingsManager(context).setWifiTranscodingBitrate(bitrate)
                                     else
-                                        SettingsManager(context).setMobileDataTranscodingBitrate(bitrate)
+                                        PlaybackSettingsManager(context).setMobileDataTranscodingBitrate(bitrate)
                                 }
                                 setShowDialog(false)
                             },
@@ -113,9 +113,9 @@ fun TranscodingBitrateDialog(
                         onClick = {
                             runBlocking {
                                 if (isWifiDialog)
-                                    SettingsManager(context).setWifiTranscodingBitrate(bitrate)
+                                    PlaybackSettingsManager(context).setWifiTranscodingBitrate(bitrate)
                                 else
-                                    SettingsManager(context).setMobileDataTranscodingBitrate(bitrate)
+                                    PlaybackSettingsManager(context).setMobileDataTranscodingBitrate(bitrate)
                             }
                             setShowDialog(false)
                         },
@@ -141,7 +141,7 @@ fun TranscodingFormatDialog(
 ) {
     val context = LocalContext.current
 
-    val transcodingFormat by SettingsManager(context).transcodingFormatFlow.collectAsState("")
+    val transcodingFormat by PlaybackSettingsManager(context).transcodingFormatFlow.collectAsState("")
 
     val transcodingFormats = listOf(
         "mp3",
@@ -175,7 +175,7 @@ fun TranscodingFormatDialog(
                             selected = format == transcodingFormat,
                             onClick = {
                                 runBlocking {
-                                    SettingsManager(context).setTranscodingFormat(format)
+                                    PlaybackSettingsManager(context).setTranscodingFormat(format)
                                 }
                                 setShowDialog(false)
                             },
@@ -186,7 +186,7 @@ fun TranscodingFormatDialog(
                         selected = format == transcodingFormat,
                         onClick = {
                             runBlocking {
-                                SettingsManager(context).setTranscodingFormat(format)
+                                PlaybackSettingsManager(context).setTranscodingFormat(format)
                             }
                             setShowDialog(false)
                         },

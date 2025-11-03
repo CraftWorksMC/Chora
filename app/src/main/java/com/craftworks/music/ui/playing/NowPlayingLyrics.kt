@@ -39,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,7 +49,7 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.data.repository.LyricsState
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.gigamole.composefadingedges.FadingEdgesGravity
 import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
@@ -72,8 +71,8 @@ fun LyricsView(
 ) {
     val lyrics by LyricsState.lyrics.collectAsState()
 
-    val useBlur by SettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
-    val lyricsAnimationSpeed by SettingsManager(LocalContext.current).lyricsAnimationSpeedFlow.collectAsState(100)
+    val useBlur by AppearanceSettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
+    val lyricsAnimationSpeed by AppearanceSettingsManager(LocalContext.current).lyricsAnimationSpeedFlow.collectAsState(100)
 
     // State holding the current position
     val currentPosition = remember { mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0) }
@@ -85,9 +84,6 @@ fun LyricsView(
 
     val scrollOffset = dpToPx(128)
 
-    val configuration = LocalConfiguration.current
-    val appViewHeightDp = configuration.screenHeightDp.dp
-  
     // Update current position only each lyrics change.
     LaunchedEffect(mediaController, lyrics) {
         var trackingJob: Job = Job()

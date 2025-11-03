@@ -59,7 +59,8 @@ import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.providers.navidrome.getNavidromeStatus
 import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.ui.elements.bounceClick
@@ -93,7 +94,7 @@ fun EditLrcLibUrlDialog(
     setShowDialog: (Boolean) -> Unit,
     context: Context = LocalContext.current
 ) {
-    val settingsManager = remember { SettingsManager(context) }
+    val settingsManager = remember { MediaProviderSettingsManager(context) }
 
     var url by remember { mutableStateOf("https://lrclib.net") }
 
@@ -140,7 +141,7 @@ fun EditLrcLibUrlDialog(
                 onClick = {
                     if (isValidUrl)
                         runBlocking {
-                            SettingsManager(context).setLrcLibEndpoint(url)
+                            MediaProviderSettingsManager(context).setLrcLibEndpoint(url)
                         }
 
                     setShowDialog(false)
@@ -429,7 +430,7 @@ fun CreateMediaProviderDialog(
                                 )
                                 NavidromeManager.addServer(server)
                                 runBlocking {
-                                    SettingsManager(context).setUsername(username)
+                                    AppearanceSettingsManager(context).setUsername(username)
                                 }
 
                                 navidromeStatus.value = ""

@@ -52,7 +52,7 @@ import com.craftworks.music.data.model.albumList
 import com.craftworks.music.data.model.songsList
 import com.craftworks.music.data.model.toAlbum
 import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.managers.SettingsManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
@@ -70,7 +70,7 @@ fun SongsHorizontalColumn(
 ){
     val listState = rememberLazyListState()
 
-    val showDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
+    val showDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
     // Load more songs at scroll
     if (NavidromeManager.checkActiveServers() && isSearch == false){
@@ -95,7 +95,8 @@ fun SongsHorizontalColumn(
     LazyColumn(
         modifier = Modifier
             .wrapContentHeight()
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
         state = listState,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -156,7 +157,7 @@ fun AlbumGrid(
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
 
-    val showDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
+    val showDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
     // Group songs by their source (Local or Navidrome)
     val groupedAlbums = albums.groupBy { song ->
@@ -274,7 +275,7 @@ fun AlbumGrid(
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
 
-    val showDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
+    val showDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
     // Group songs by their source (Local or Navidrome)
     val groupedAlbums = albums.groupBy { song ->
@@ -370,7 +371,7 @@ fun AlbumRow(
     onAlbumSelected: (album: MediaData.Album) -> Unit,
     onPlay: (album: MediaItem) -> Unit,
 ){
-    val showProviderDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
+    val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
     val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_") }
 
     LazyRow(
@@ -432,7 +433,7 @@ fun ArtistsGrid(
     onArtistSelected: (artist: MediaData.Artist) -> Unit
 ){
     val gridState = rememberLazyGridState()
-    val showProviderDividers by SettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
+    val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
     val groupedArtists = artists.groupBy { artist ->
         if (artist.navidromeID.startsWith("Local_")) "Local" else "Navidrome"
