@@ -19,8 +19,9 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 
 ## W.I.P
 
-- Refactoring, better performance, Material 3 Expressive UI.
+- Refactoring, Material 3 Expressive UI.
 - Local DB for local files and Navidrome offline mode.
+- Navidrome multi library support.
 
 ## Roadmap
 
