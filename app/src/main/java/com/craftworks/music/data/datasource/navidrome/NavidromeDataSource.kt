@@ -106,7 +106,7 @@ class NavidromeDataSource @Inject constructor() {
 
     private suspend fun getRequest(
         endpoint: String,
-        musicFolderIds: List<Int>? = null, // Added musicFolderIds parameter
+        musicFolderIds: List<Int>? = null,
         ignoreCachedResponse: Boolean = false
     ): List<Any> = withContext(Dispatchers.IO) {
         val server = NavidromeManager.getCurrentServer() ?: throw IllegalArgumentException("No active Navidrome server")
@@ -144,21 +144,25 @@ class NavidromeDataSource @Inject constructor() {
                 endpoint.startsWith("ping")         -> parsedData.addAll(parseNavidromeStatus(responseContent))
                 endpoint.startsWith("getMusicFolders") -> parsedData.addAll(parseNavidromeLibrariesJSON(responseContent))
 
-                // Endpoints that can take musicFolderId parameter
                 endpoint.startsWith("search3")      -> parsedData.addAll(parseNavidromeSearch3JSON(responseContent, server.url, server.username, server.password))
+
                 endpoint.startsWith("getAlbumList") -> parsedData.addAll(parseNavidromeAlbumListJSON(responseContent, server.url, server.username, server.password))
                 endpoint.startsWith("getAlbum.")    -> parsedData.addAll(parseNavidromeAlbumJSON(responseContent, server.url, server.username, server.password)) // Note: getAlbum.view takes an album ID, typically not musicFolderId
+
                 endpoint.startsWith("getArtists")   -> parsedData.addAll(parseNavidromeArtistsJSON(responseContent))
                 endpoint.startsWith("getArtist.")   -> parsedData.addAll(parseNavidromeArtistAlbumsJSON(responseContent, server.url, server.username, server.password))
                 endpoint.startsWith("getArtistInfo")-> parsedData.addAll(listOf(parseNavidromeArtistBiographyJSON(responseContent)))
+
                 endpoint.startsWith("getPlaylists") -> parsedData.addAll(parseNavidromePlaylistsJSON(responseContent, server.url, server.username, server.password))
                 endpoint.startsWith("getPlaylist.") -> parsedData.addAll(parseNavidromePlaylistJSON(responseContent, server.url, server.username, server.password))
+
                 endpoint.startsWith("getInternetRadioStations") -> parsedData.addAll(parseNavidromeRadioJSON(responseContent))
+
                 endpoint.startsWith("getLyrics.") -> parsedData.addAll(listOf(parseNavidromePlainLyricsJSON(responseContent)))
                 endpoint.startsWith("getLyricsBySongId.") -> parsedData.addAll(parseNavidromeSyncedLyricsJSON(responseContent))
+
                 endpoint.startsWith("getStarred") -> { parsedData.addAll(parseNavidromeFavouritesJSON(responseContent, server.url, server.username, server.password)) }
 
-                // Star/unstar operations do not typically take musicFolderId
                 endpoint.startsWith("star") -> { NavidromeManager.setSyncingStatus(false) }
                 endpoint.startsWith("unstar") -> { NavidromeManager.setSyncingStatus(false) }
             }
@@ -244,7 +248,7 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun scrobbleSong(songId: String, submission: Boolean) = withContext(Dispatchers.IO) {
         getRequest(
             "scrobble.view?id=$songId&submission=$submission",
-            null, // No musicFolderIds for scrobble
+            null,
             true
         )
     }
