@@ -182,29 +182,24 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(horizontal = 12.dp)
-                    .horizontalScroll(rememberScrollState()) // Make filter chips horizontally scrollable
+                    .horizontalScroll(rememberScrollState())
             ) {
-                if (libraries.isEmpty()) {
-                    Text(
-                        text = "stringResource(R.string.no_libraries_found)", // You need to add this string resource
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                } else {
-                    libraries.forEach { (library, isSelected) -> // Destructure the Pair
+                if (libraries.size > 1) {
+                    libraries.forEach { (library, isSelected) ->
                         FilterChip(
                             onClick = {
-                                // Toggle the library's enabled status for the current server
                                 NavidromeManager.currentServerId.value?.let { serverId ->
-                                    NavidromeManager.toggleServerLibraryEnabled(serverId, library.id, !isSelected)
-                                    // Data will automatically refresh due to LaunchedEffect observing `libraries`
+                                    NavidromeManager.toggleServerLibraryEnabled(
+                                        serverId,
+                                        library.id,
+                                        !isSelected
+                                    )
                                 }
                             },
                             label = {
                                 Text(library.name)
                             },
-                            selected = isSelected, // Use the actual `isSelected` from the Pair
+                            selected = isSelected,
                             leadingIcon = if (isSelected) {
                                 {
                                     Icon(
@@ -216,7 +211,7 @@ fun HomeScreen(
                             } else {
                                 null
                             },
-                            modifier = Modifier.padding(end = 8.dp) // Add spacing between chips
+                            modifier = Modifier.padding(end = 8.dp)
                         )
                     }
                 }

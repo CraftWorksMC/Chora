@@ -36,12 +36,15 @@ object NavidromeManager {
         if (_currentServerId.value == null) {
             _currentServerId.value = server.id
         }
-
+        // Not really ideal.
+        val oldServerId = _currentServerId.value
+        _currentServerId.value = server.id
         val fetchedLibraries = runBlocking {
             NavidromeDataSource().getNavidromeLibraries().map {
                 Pair(it, true)
             }
         }
+        _currentServerId.value = oldServerId
         setServerLibraries(server.id, fetchedLibraries)
         if (server.id == _currentServerId.value) {
             _libraries.value = fetchedLibraries
@@ -58,7 +61,6 @@ object NavidromeManager {
         saveServers()
     }
 
-    // Renamed and modified to use libraryId (String) and explicitly set enable state
     fun toggleServerLibraryEnabled(serverId: String, libraryId: Int, isEnabled: Boolean) {
         servers[serverId]?.let { server ->
             val updatedLibraries = server.libraryIds.map { (library, currentEnabled) ->
@@ -142,8 +144,8 @@ object NavidromeManager {
     fun getEnabledLibraryIdsForCurrentServer(): List<Int> {
         return _currentServerId.value?.let { serverId ->
             servers[serverId]?.libraryIds
-                ?.filter { it.second } // Filter for enabled libraries
-                ?.map { it.first.id } // Get their IDs
+                ?.filter { it.second }
+                ?.map { it.first.id }
         } ?: emptyList()
     }
 }

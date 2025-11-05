@@ -403,7 +403,6 @@ class NavidromeDataSource @Inject constructor() {
         )
     }
 
-
     // Lyrics
     suspend fun getNavidromePlainLyrics(
         metadata: MediaMetadata?, ignoreCachedResponse: Boolean = false
