@@ -66,6 +66,7 @@
     <string name="Screen_Top_Songs">Top titres</string>
         <!-- Settings -->
     <string name="Settings_Header_Appearance">Apparence</string>
+    <string name="Setting_TrackNumbersAlbum">Afficher les numéros de piste de l\'album</string>
     <string name="Settings_Header_Media">Fournisseurs de médias</string>
     <string name="Setting_Username">Nom</string>
     <string name="Setting_Background">Types de fonds</string>
@@ -96,10 +97,15 @@
     <string name="Notification_Download_Failure">Oh oh, quelque chose s\'est mal passé lors du téléchargement de</string>
     <string name="Setting_NowPlayingLyricsBlur">Flou du texte</string>
     <string name="Setting_Transcoding_Wifi">Max Bitrate (WiFi)</string>
+    <string name="Background_Anim_Simple">Animé Simple</string>
     <string name="Dialog_Theme">Thème</string>
     <string name="Theme_Dark">Sombre</string>
     <string name="Theme_Light">Clair</string>
     <string name="Action_Download">Téléchargement</string>
     <string name="Label_Radio_Add_To_Navidrome">Ajouter au Navidrome</string>
-    <string name="Album_Disc_Number">"Disc "</string>
+    <string name="Album_Disc_Number">"Disque "</string>
+    <string name="Setting_NowPlayingTitleAlignment">Titre en cours de lecture Alignement</string>
+    <string name="NowPlayingTitleAlignment_Left">Gauche</string>
+    <string name="NowPlayingTitleAlignment_Center">Centre</string>
+    <string name="NowPlayingTitleAlignment_Right">Droit</string>
 </resources>

@@ -82,7 +82,7 @@ fun SongsHorizontalColumn(
                 val totalItemsCount = listState.layoutInfo.totalItemsCount
 
                 lastVisibleItemIndex != null && totalItemsCount > 0 &&
-                        (totalItemsCount - lastVisibleItemIndex) <= 10
+                        (totalItemsCount - lastVisibleItemIndex) <= 25
             }
                 .filter { it }
                 .collect {
@@ -218,7 +218,6 @@ fun AlbumGrid(
                 }
                 itemsIndexed(albumsInGroup) { index, album ->
                     AlbumCard(album = album,
-                        mediaController = mediaController,
                         onClick = {
                             onAlbumSelected(album.toAlbum())
                         },
@@ -243,7 +242,6 @@ fun AlbumGrid(
                 key = { it.mediaId }
             ) { album ->
                 AlbumCard(album = album,
-                    mediaController = mediaController,
                     onClick = {
                         onAlbumSelected(album.toAlbum())
                     },
@@ -317,7 +315,6 @@ fun AlbumGrid(
                 }
                 itemsIndexed(albumsInGroup) { index, album ->
                     AlbumCard(album = album,
-                        mediaController = mediaController,
                         onClick = {
                             onAlbumSelected(album.toAlbum())
                         },
@@ -342,7 +339,6 @@ fun AlbumGrid(
                 key = { it.mediaId }
             ) { album ->
                 AlbumCard(album = album,
-                    mediaController = mediaController,
                     onClick = {
                         onAlbumSelected(album.toAlbum())
                     },
@@ -367,7 +363,6 @@ fun AlbumGrid(
 @Composable
 fun AlbumRow(
     albums: List<MediaItem>,
-    mediaController: MediaController?,
     onAlbumSelected: (album: MediaData.Album) -> Unit,
     onPlay: (album: MediaItem) -> Unit,
 ){
@@ -411,7 +406,6 @@ fun AlbumRow(
 
             AlbumCard(
                 album = album,
-                mediaController = mediaController,
                 onClick = {
                     onAlbumSelected(album.toAlbum())
                 },

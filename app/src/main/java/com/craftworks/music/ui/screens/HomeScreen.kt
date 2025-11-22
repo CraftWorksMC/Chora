@@ -36,13 +36,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -61,7 +59,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
@@ -113,15 +111,6 @@ fun HomeScreen(
     }
 
     val libraries by NavidromeManager.libraries.collectAsStateWithLifecycle()
-
-    // Trigger data refresh whenever the libraries state changes for the current server
-    LaunchedEffect(libraries, NavidromeManager.currentServerId.collectAsState().value) {
-        // Only load if there's an active server and libraries are loaded
-        if (NavidromeManager.checkActiveServers() && libraries.isNotEmpty()) {
-            viewModel.loadHomeScreenData()
-        }
-    }
-
 
     PullToRefreshBox(
         modifier = Modifier,
@@ -175,8 +164,6 @@ fun HomeScreen(
             }
 
             Spacer(modifier = Modifier.height(6.dp))
-
-            var selected by remember { mutableStateOf(false) }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -239,7 +226,7 @@ fun HomeScreen(
                 )
             ).value
 
-            orderedHomeItems.forEach() { item ->
+            orderedHomeItems.forEach { item ->
                 if (item.enabled) {
                     val albums = when (item.key) {
                         "recently_played" -> recentlyPlayedAlbums
@@ -359,7 +346,6 @@ fun HomeScreen(
 
         AlbumRow(
             albums,
-            mediaController,
             onAlbumSelected = { album ->
                 val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
                 navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {

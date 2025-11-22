@@ -38,6 +38,7 @@
     <string name="recently_played">Ascoltate Recentemente</string>
     <string name="random_songs">Esplora La Tua Libreria</string>
     <string name="Settings_Header_Appearance">Aspetto</string>
+    <string name="Setting_TrackNumbersAlbum">Mostra Numero di Traccia negli Album</string>
     <string name="Settings_Header_Media">Fonti Media</string>
     <string name="Setting_Username">Nome</string>
     <string name="Setting_Background">Stile Sfondo</string>
@@ -78,6 +79,7 @@
     <string name="Notification_Download_Failure">Uh oh, qualcosa è andato storto nel scaricare</string>
     <string name="Setting_NowPlayingLyricsBlur">Sfocatura Testi</string>
     <string name="Setting_Transcoding_Wifi">Bitrate Massimo (WiFi)</string>
+    <string name="Background_Anim_Simple">Animato Semplice</string>
     <string name="Dialog_Theme">Tema</string>
     <string name="Theme_Dark">Scuro</string>
     <string name="Theme_Light">Chiaro</string>
@@ -86,4 +88,8 @@
     <string name="Setting_RefreshAnimation">Mostra Animazione Refresh</string>
     <string name="Setting_LyricsAnimationSpeed">Velocità Animazione Testo</string>
     <string name="Album_Disc_Number">"Disco "</string>
+    <string name="Setting_NowPlayingTitleAlignment">Allineamento Now Playing</string>
+    <string name="NowPlayingTitleAlignment_Left">Sinistra</string>
+    <string name="NowPlayingTitleAlignment_Center">Centro</string>
+    <string name="NowPlayingTitleAlignment_Right">Destra</string>
 </resources>

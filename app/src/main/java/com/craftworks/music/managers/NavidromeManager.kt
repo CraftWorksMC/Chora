@@ -9,9 +9,13 @@ import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
 import com.craftworks.music.managers.LocalProviderManager.getAllFolders
 import com.craftworks.music.showNoProviderDialog
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
@@ -25,7 +29,13 @@ object NavidromeManager {
     val allServers: StateFlow<List<NavidromeProvider>> = _allServers.asStateFlow()
 
     private var _libraries = MutableStateFlow<List<Pair<NavidromeLibrary, Boolean>>>(emptyList())
-    val libraries: StateFlow<List<Pair<NavidromeLibrary, Boolean>>> = _libraries.asStateFlow()
+    val libraries: StateFlow<List<Pair<NavidromeLibrary, Boolean>>> =
+        _libraries
+            .stateIn(
+                CoroutineScope(Dispatchers.Main.immediate),
+                SharingStarted.Eagerly,
+                emptyList()
+            )
 
     private val _syncStatus = MutableStateFlow(false)
 
@@ -72,7 +82,9 @@ object NavidromeManager {
             }
             server.libraryIds = updatedLibraries
             if (serverId == _currentServerId.value) {
-                _libraries.value = updatedLibraries
+                if (_libraries.value != updatedLibraries) {
+                    _libraries.value = updatedLibraries
+                }
             }
             saveServers()
         }

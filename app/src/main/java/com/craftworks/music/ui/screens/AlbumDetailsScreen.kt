@@ -33,6 +33,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,7 +61,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
@@ -70,6 +71,7 @@ import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.setNavidromeStar
 import com.craftworks.music.ui.elements.GenrePill
@@ -94,6 +96,7 @@ fun AlbumDetails(
 
     var showLoading by remember { mutableStateOf(false) }
     val currentAlbum = viewModel.songsInAlbum.collectAsStateWithLifecycle().value
+    val showTrackNumbers by AppearanceSettingsManager(LocalContext.current).showTrackNumbersFlow.collectAsStateWithLifecycle(false)
 
     LaunchedEffect(selectedAlbumId) {
         viewModel.loadAlbumDetails(selectedAlbumId)
@@ -192,8 +195,7 @@ fun AlbumDetails(
                         Text(
                             text = currentAlbum[0].mediaMetadata.title.toString(),
                             color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                            style = MaterialTheme.typography.headlineMedium,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth(),
                             lineHeight = 32.sp,
@@ -249,13 +251,15 @@ fun AlbumDetails(
                                         .height(28.dp)
                                         .size(28.dp)
                                 )
-                                else Icon(
-                                    imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
-                                    contentDescription = "Unstar Album",
-                                    modifier = Modifier
-                                        .height(28.dp)
-                                        .size(28.dp)
-                                )
+                                else
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
+                                        contentDescription = "Unstar Album",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .height(28.dp)
+                                            .size(28.dp)
+                                    )
                             }
                         }
                     }
@@ -280,9 +284,6 @@ fun AlbumDetails(
                                 )
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground),
                         modifier = Modifier
                             .widthIn(min = 128.dp, max = 320.dp)
                             .focusRequester(requester)
@@ -294,7 +295,7 @@ fun AlbumDetails(
                             Text(stringResource(R.string.Action_Play), maxLines = 1)
                         }
                     }
-                    Button(
+                    OutlinedButton(
                         onClick = {
                             mediaController?.shuffleModeEnabled = true
                             coroutineScope.launch {
@@ -306,9 +307,6 @@ fun AlbumDetails(
                             )
                                 }
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground),
                         modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(24.dp)) {
@@ -348,6 +346,7 @@ fun AlbumDetails(
                         HorizontalSongCard(
                             song = song,
                             modifier = Modifier.animateItem(),
+                            showTrackNumber = showTrackNumbers,
                             onClick = {
                                 coroutineScope.launch {
                                     SongHelper.play(
@@ -366,6 +365,7 @@ fun AlbumDetails(
                     HorizontalSongCard(
                         song = song,
                         modifier = Modifier.animateItem(),
+                        showTrackNumber = showTrackNumbers,
                         onClick = {
                             coroutineScope.launch {
                                 SongHelper.play(

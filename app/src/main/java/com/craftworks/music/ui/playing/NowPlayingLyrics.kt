@@ -1,24 +1,32 @@
 package com.craftworks.music.ui.playing
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -61,6 +69,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.sin
 
 @Composable
 fun LyricsView(
@@ -106,7 +115,7 @@ fun LyricsView(
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
                 if (isPlaying) {
-                    if (trackingJob.isActive == true) return
+                    if (trackingJob.isActive) return
 
                     trackingJob = scope.launch {
                         var position = mediaController.currentPosition.toInt()
@@ -184,7 +193,7 @@ fun LyricsView(
         } else {
             Modifier
                 .fillMaxWidth()
-                .aspectRatio(0.95f)
+                .fillMaxHeight()
         }
             .padding(paddingValues)
             .verticalFadingEdges(
@@ -192,18 +201,13 @@ fun LyricsView(
                 FadingEdgesGravity.All,
                 96.dp
             ),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
         state = state,
     ) {
-//        item {
-//            Spacer(modifier = Modifier.height(appViewHeightDp / 3))
-//        }
-        // Synced Lyrics
+        item { Spacer(Modifier.height(32.dp)) }
+
         if (lyrics.size > 1) {
-            item {
-                Spacer(Modifier.height(64.dp))
-            }
             itemsIndexed(
                 lyrics,
                 key = { index, lyric -> "${index}:${lyric.content}" }
@@ -215,39 +219,28 @@ fun LyricsView(
                     useBlur = useBlur,
                     visibleItemsInfo = visibleItemsInfo,
                     color = color,
-                    lyricsAnimationSpeed = lyricsAnimationSpeed
-                ) {
-                    mediaController?.seekTo(lyric.timestamp.toLong())
-                    currentPosition.intValue = lyric.timestamp
-                    currentLyricIndex.intValue = index
-
-                    coroutineScope.launch {
-                        state.animateScrollToItem(
-                            index = index,
-                            scrollOffset = -scrollOffset + (visibleItemsInfo.firstOrNull { it.index == index }?.size ?: 0)
-                        )
+                    lyricsAnimationSpeed = lyricsAnimationSpeed,
+                    onClick = {
+                        mediaController?.seekTo(lyric.timestamp.toLong())
+                        currentPosition.intValue = lyric.timestamp
                     }
-                }
+                )
             }
-        }
-        // plain lyrics
-        else if (lyrics.isNotEmpty()) {
-            println("Added plain lyrics item. ${lyrics[0]}")
+        } else if (lyrics.isNotEmpty()) {
             item {
                 Text(
                     text = lyrics[0].content,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineMedium,
                     color = color,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                    textAlign = TextAlign.Center,
-                    lineHeight = MaterialTheme.typography.titleLarge.lineHeight.times(1.2f)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    textAlign = TextAlign.Center
                 )
             }
         }
-//        item {
-//            Spacer(modifier = Modifier.height(appViewHeightDp / 3))
-//        }
+
+        item { Spacer(Modifier.height(32.dp)) }
     }
 }
 
@@ -282,27 +275,93 @@ fun SyncedLyricItem(
         animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
     )
 
-    Box(modifier = Modifier
-        .padding(vertical = 12.dp)
-        .heightIn(min = 48.dp)
-        .focusable(false)
-        .graphicsLayer {
-            scaleX = scale
-            scaleY = scale
+    if (lyric.content == "") {
+        AnimatedContent(
+            targetState = currentLyricIndex == index
+        ) {
+            if (it) {
+                Box(modifier = Modifier
+                    .focusable(false)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    },
+                    contentAlignment = Alignment.Center
+                ) {
+                    InterludeIndicator(color)
+                }
+            }
         }
-        .blur(lyricBlur)
-        .clickable {
-            onClick()
-        }, contentAlignment = Alignment.Center
+    }
+    else {
+        Box(modifier = Modifier
+            .padding(vertical = 12.dp)
+            .heightIn(min = 48.dp)
+            .focusable(false)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .blur(lyricBlur)
+            .clickable {
+                onClick()
+            }, contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = lyric.content,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = color.copy(lyricAlpha),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                lineHeight = 32.sp
+            )
+        }
+    }
+}
+
+// Bouncing dots for interlude.
+@Composable
+fun InterludeIndicator(
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "wave_master")
+    val phase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 2f * Math.PI.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "phase"
+    )
+
+    Row(
+        modifier = modifier
+            .height(48.dp)
+            .wrapContentWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = if (lyric.content == "") "• • •" else lyric.content,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = color.copy(lyricAlpha),
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            lineHeight = 32.sp
+        Dot(color, phase, 0)
+        Dot(color, phase, 1)
+        Dot(color, phase, 2)
+    }
+}
+
+@Composable
+fun Dot(color: Color, phase: Float, index: Int) {
+    Canvas(modifier = Modifier.size(8.dp)) {
+        val offset = index * 0.8f
+        val sineValue = sin(phase - offset)
+        val yOffset = sineValue * 6f
+        val alpha = 0.4f + ((sineValue + 1) / 2) * 0.6f
+
+        drawCircle(
+            color = color.copy(alpha = alpha),
+            radius = size.minDimension / 2,
+            center = center.copy(y = center.y + yOffset)
         )
     }
 }

@@ -5,6 +5,7 @@
         <string name="Background_Plain">Plain</string>
         <string name="Background_Blur">Blurred</string>
         <string name="Background_Anim">Animated</string>
+        <string name="Background_Anim_Simple">Simple Animated</string>
 
     <!-- App Theme Dialog -->
     <string name="Dialog_Theme">Theme</string>
@@ -66,4 +67,10 @@
     <string name="Notification_Download_Progress">Downloading</string>
     <string name="Notification_Download_Success">downloaded successfully!</string>
     <string name="Notification_Download_Failure">Uh oh, something went wrong while downloading</string>
+
+    <!-- Now Playing Title Alignment -->
+    <string name="Setting_NowPlayingTitleAlignment">Now Playing Title Alignment</string>
+    <string name="NowPlayingTitleAlignment_Left">Left</string>
+    <string name="NowPlayingTitleAlignment_Center">Center</string>
+    <string name="NowPlayingTitleAlignment_Right">Right</string>
 </resources>

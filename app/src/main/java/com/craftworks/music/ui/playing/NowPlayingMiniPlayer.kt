@@ -97,8 +97,7 @@ fun NowPlayingMiniPlayer(
         ) {
             Text(
                 text = metadata?.title.toString(),
-                fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -108,7 +107,7 @@ fun NowPlayingMiniPlayer(
             Row(modifier = Modifier.width(IntrinsicSize.Max)) {
                 Text(
                     text = metadata?.artist.toString(),
-                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Light,
                     color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
@@ -119,7 +118,7 @@ fun NowPlayingMiniPlayer(
                 if (metadata?.recordingYear != 0 && metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
                     Text(
                         text = " • " + metadata?.recordingYear.toString(),
-                        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Light,
                         color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 1,

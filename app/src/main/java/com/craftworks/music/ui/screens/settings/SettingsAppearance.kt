@@ -67,8 +67,11 @@ import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
 import com.craftworks.music.ui.elements.dialogs.HomeItemsDialog
 import com.craftworks.music.ui.elements.dialogs.NameDialog
 import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
+import com.craftworks.music.ui.elements.dialogs.NowPlayingTitleAlignmentDialog
 import com.craftworks.music.ui.elements.dialogs.ThemeDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
+import com.craftworks.music.ui.playing.NowPlayingBackground
+import com.craftworks.music.ui.playing.NowPlayingTitleAlignment
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -81,6 +84,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
     var showThemesDialog by remember { mutableStateOf(false) }
     var showNavbarItemsDialog by remember { mutableStateOf(false) }
     var showHomeItemsDialog by remember { mutableStateOf(false) }
+    var showNowPlayingTitleAlignmentDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -183,20 +187,18 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 )
 
                 //Background Style
-                val backgroundType by AppearanceSettingsManager(context).npBackgroundFlow.collectAsState("Animated Blur")
-                val backgroundTypes = listOf(
-                    "Plain", "Static Blur", "Animated Blur"
-                )
-                val backgroundTypeStrings = listOf(
-                    R.string.Background_Plain,
-                    R.string.Background_Blur,
-                    R.string.Background_Anim
+                val backgroundType by AppearanceSettingsManager(context).npBackgroundFlow.collectAsState(
+                    NowPlayingBackground.SIMPLE_ANIMATED_BLUR)
+
+                val backgroundTypeLabels = mapOf(
+                    NowPlayingBackground.PLAIN to R.string.Background_Plain,
+                    NowPlayingBackground.STATIC_BLUR to R.string.Background_Blur,
+                    NowPlayingBackground.ANIMATED_BLUR to R.string.Background_Anim,
+                    NowPlayingBackground.SIMPLE_ANIMATED_BLUR to R.string.Background_Anim_Simple
                 )
                 SettingsDialogButton(
                     stringResource(R.string.Setting_Background),
-                    stringResource(
-                        id = backgroundTypeStrings[backgroundTypes.indexOf(backgroundType)]
-                    ),
+                    stringResource(backgroundTypeLabels[backgroundType] ?: androidx.media3.session.R.string.error_message_invalid_state),
                     ImageVector.vectorResource(R.drawable.s_a_background),
                     toggleEvent = {
                         showBackgroundDialog = true
@@ -220,7 +222,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     }
                 )
 
-                //Navbar Items
+                //Home Items
                 val titleMap = remember {
                     mapOf(
                         "recently_played" to R.string.recently_played,
@@ -240,6 +242,22 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     ImageVector.vectorResource(R.drawable.s_a_home_items),
                     toggleEvent = {
                         showHomeItemsDialog = true
+                    }
+                )
+
+                // Now Playing Title Alignment
+                val nowPlayingTitleAlignment by AppearanceSettingsManager(context).nowPlayingTitleAlignment.collectAsState(NowPlayingTitleAlignment.LEFT)
+                val alignmentLabels = mapOf(
+                    NowPlayingTitleAlignment.LEFT to R.string.NowPlayingTitleAlignment_Left,
+                    NowPlayingTitleAlignment.CENTER to R.string.NowPlayingTitleAlignment_Center,
+                    NowPlayingTitleAlignment.RIGHT to R.string.NowPlayingTitleAlignment_Right
+                )
+                SettingsDialogButton(
+                    stringResource(R.string.Setting_NowPlayingTitleAlignment),
+                    stringResource(alignmentLabels[nowPlayingTitleAlignment] ?: R.string.NowPlayingTitleAlignment_Left), // Default to Left if not found
+                    Icons.Rounded.Menu, // Placeholder icon
+                    toggleEvent = {
+                        showNowPlayingTitleAlignmentDialog = true
                     }
                 )
             }
@@ -265,6 +283,9 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 // Lyrics Animation Speed
                 val lyricsAnimationSpeed = AppearanceSettingsManager(context).lyricsAnimationSpeedFlow.collectAsState(1200)
                 val interactionSource = remember { MutableInteractionSource() }
+
+                val sliderValue = 2400f - lyricsAnimationSpeed.value.toFloat() + 600f
+
                 Column (
                     Modifier
                         .clip(RoundedCornerShape(2.dp))
@@ -284,18 +305,19 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         modifier = Modifier
                             .padding(horizontal = 20.dp)
                             .padding(bottom = 10.dp)
-                            //.semantics { contentDescription = "Lyrics Animation Speed" }
                             .onKeyEvent { keyEvent ->
                                 when (keyEvent.key) {
                                     Key.DirectionRight if keyEvent.type == KeyEventType.KeyDown -> {
                                         runBlocking {
-                                            AppearanceSettingsManager(context).setLyricsAnimationSpeed((lyricsAnimationSpeed.value + 300).coerceAtMost(2400))
+                                            AppearanceSettingsManager(context)
+                                                .setLyricsAnimationSpeed((lyricsAnimationSpeed.value - 300).coerceAtLeast(600))
                                         }
                                         true
                                     }
                                     Key.DirectionLeft if keyEvent.type == KeyEventType.KeyDown -> {
                                         runBlocking {
-                                            AppearanceSettingsManager(context).setLyricsAnimationSpeed((lyricsAnimationSpeed.value - 300).coerceAtLeast(600))
+                                            AppearanceSettingsManager(context)
+                                                .setLyricsAnimationSpeed((lyricsAnimationSpeed.value + 300).coerceAtMost(2400))
                                         }
                                         true
                                     }
@@ -303,13 +325,15 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                                 }
                             },
                         interactionSource = interactionSource,
-                        value = lyricsAnimationSpeed.value.toFloat(),
+                        value = sliderValue,
                         steps = 5,
-                        onValueChange = {
+                        onValueChange = { uiValue ->
+                            val real = (2400f - (uiValue - 600f)).coerceIn(600f, 2400f)
                             runBlocking {
-                                AppearanceSettingsManager(context).setLyricsAnimationSpeed(it.toInt())
+                                AppearanceSettingsManager(context).setLyricsAnimationSpeed(real.toInt())
                             }
                         },
+
                         valueRange = 600f..2400f
                     )
                 }
@@ -374,6 +398,20 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     },
                     enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 )
+
+                // Track numbers in album view
+                val showTrackNumbers =
+                    AppearanceSettingsManager(context).showTrackNumbersFlow.collectAsState(true)
+                SettingsSwitch(
+                    showTrackNumbers.value,
+                    stringResource(R.string.Setting_TrackNumbersAlbum),
+                    ImageVector.vectorResource(R.drawable.s_p_scrobble),
+                    toggleEvent = {
+                        coroutineScope.launch {
+                            AppearanceSettingsManager(context).setShowTrackNumbers(!showTrackNumbers.value)
+                        }
+                    }
+                )
             }
         }
 
@@ -391,5 +429,8 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 
         if(showHomeItemsDialog)
             HomeItemsDialog(setShowDialog = { showHomeItemsDialog = it })
+
+        if(showNowPlayingTitleAlignmentDialog)
+            NowPlayingTitleAlignmentDialog(setShowDialog = { showNowPlayingTitleAlignmentDialog = it })
     }
 }

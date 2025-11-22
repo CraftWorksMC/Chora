@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -75,11 +74,11 @@ fun PlaylistCard(playlist: MediaItem, onClick: () -> Unit) {
 
         Text(
             text = metadata.title.toString(),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .fillMaxSize()
+                .padding(vertical = 4.dp)
                 .wrapContentHeight(align = Alignment.CenterVertically),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

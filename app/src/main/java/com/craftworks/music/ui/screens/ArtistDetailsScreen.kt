@@ -36,6 +36,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,6 +49,8 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -57,10 +60,11 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
@@ -70,6 +74,7 @@ import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.toAlbum
+import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.AlbumCard
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
@@ -80,6 +85,7 @@ import java.net.URLEncoder
 @OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalFoundationApi
 @Composable
+@Preview
 fun ArtistDetails(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,
@@ -89,6 +95,7 @@ fun ArtistDetails(
     val artist = viewModel.selectedArtist.collectAsStateWithLifecycle().value
     val artistAlbums = viewModel.artistAlbums.collectAsStateWithLifecycle().value
     val context = LocalContext.current
+    val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -128,10 +135,8 @@ fun ArtistDetails(
                 .fillMaxSize()
                 .padding(
                     top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
-                    end = 12.dp
                 )
                 .dialogFocusable(),
-            //verticalArrangement = Arrangement.spacedBy(6.dp),
             columns = GridCells.Adaptive(128.dp)
         ) {
             // Group songs by their source (Local or Navidrome)
@@ -162,6 +167,7 @@ fun ArtistDetails(
                             contentDescription = "Artist Image",
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .fadingEdge(imageFadingEdge)
                                 .clip(
                                     if (artist?.description != "") RoundedCornerShape(
                                         12.dp,
@@ -294,10 +300,6 @@ fun ArtistDetails(
                                 )
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground
-                        ),
                         modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
                     ) {
                         Row(
@@ -308,7 +310,7 @@ fun ArtistDetails(
                             Text(stringResource(R.string.Action_Play))
                         }
                     }
-                    Button(
+                    OutlinedButton (
                         onClick = {
                             coroutineScope.launch {
                                 val allArtistSongsList = artistAlbums.map {
@@ -330,10 +332,6 @@ fun ArtistDetails(
                                 )
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground
-                        ),
                         modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
                     ) {
                         Row(
@@ -356,7 +354,7 @@ fun ArtistDetails(
                     text = stringResource(R.string.Screen_Discography),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                    style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(start = 12.dp, top = 6.dp)
                 )
             }
@@ -365,7 +363,7 @@ fun ArtistDetails(
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Text(
                         text = groupName.toString(),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .padding(horizontal = 12.dp)
@@ -375,7 +373,6 @@ fun ArtistDetails(
                 itemsIndexed(albumsInGroup) { index, album ->
                     AlbumCard(
                         album = album,
-                        mediaController = mediaController,
                         onClick = {
                             val album = album.toAlbum()
                             val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")

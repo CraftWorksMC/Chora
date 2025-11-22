@@ -5,8 +5,6 @@ import android.util.Log
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -14,6 +12,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -69,7 +69,7 @@ import com.craftworks.music.ui.viewmodels.RadioScreenViewModel
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import java.net.URLDecoder
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SetupNavGraph(
     navController: NavHostController,
@@ -87,21 +87,27 @@ fun SetupNavGraph(
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp + WindowInsets.safeDrawing.asPaddingValues().calculateLeftPadding(
         LayoutDirection.Ltr)
 
+    val animationSpec = MaterialTheme.LocalMotionScheme.current.slowSpatialSpec<Float>()
+
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route,
         modifier = Modifier.padding(bottom = bottomPadding, start = leftPadding),
         enterTransition = {
-            scaleIn(tween(300), 0.95f) + fadeIn(tween(400))
+            fadeIn(animationSpec)
+            //scaleIn(tween(300), 0.95f) + fadeIn(tween(400))
         },
         exitTransition = {
-            fadeOut(tween(300))
+            fadeOut(animationSpec)
+            //fadeOut(tween(300))
         },
         popEnterTransition = {
-            scaleIn(tween(300), 1.05f) + fadeIn(tween(400))
+            fadeIn(animationSpec)
+            //scaleIn(tween(300), 1.05f) + fadeIn(tween(400))
         },
         popExitTransition = {
-            scaleOut(tween(300), 0.95f) + fadeOut(tween(400))
+            fadeOut(animationSpec)
+            //scaleOut(tween(300), 0.95f) + fadeOut(tween(400))
         },
         route = "main_graph"
     ) {
@@ -222,20 +228,21 @@ fun SetupNavGraph(
 
         //Settings
         navigation(startDestination = Screen.Setting.route, route = "settings_graph") {
-            composable(route = Screen.Setting.route) {
+            composable(
+                route = Screen.Setting.route,) {
                 SettingScreen(navController)
             }
             composable(
                 route = Screen.S_Appearance.route,
                 enterTransition = {
-                    slideInHorizontally(animationSpec = tween(durationMillis = 200)) { fullWidth ->
-                        fullWidth
-                    }
+                    slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeIn(animationSpec)
                 },
                 exitTransition = {
-                    slideOutHorizontally(animationSpec = tween(durationMillis = 200)) { fullWidth ->
-                        fullWidth
-                    }
+                    slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeOut(animationSpec)
                 }
             ) {
                 S_AppearanceScreen(navController)
@@ -243,14 +250,14 @@ fun SetupNavGraph(
             composable(
                 route = Screen.S_Providers.route,
                 enterTransition = {
-                    slideInHorizontally(animationSpec = tween(durationMillis = 200)) { fullWidth ->
-                        fullWidth
-                    }
+                    slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeIn(animationSpec)
                 },
                 exitTransition = {
-                    slideOutHorizontally(animationSpec = tween(durationMillis = 200)) { fullWidth ->
-                        fullWidth
-                    }
+                    slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeOut(animationSpec)
                 }
             ) {
                 S_ProviderScreen(navController)
@@ -258,14 +265,14 @@ fun SetupNavGraph(
             composable(
                 route = Screen.S_Playback.route,
                 enterTransition = {
-                    slideInHorizontally(animationSpec = tween(durationMillis = 200)) { fullWidth ->
-                        fullWidth
-                    }
+                    slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeIn(tween(300))
                 },
                 exitTransition = {
-                    slideOutHorizontally(animationSpec = tween(durationMillis = 200)) { fullWidth ->
-                        fullWidth
-                    }
+                    slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeOut(tween(300))
                 }
             ) {
                 S_PlaybackScreen(navController)

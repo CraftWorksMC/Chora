@@ -9,6 +9,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.dataStore
+import com.craftworks.music.ui.playing.NowPlayingBackground
+import com.craftworks.music.ui.playing.NowPlayingTitleAlignment
 import com.craftworks.music.ui.screens.HomeItem
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +26,7 @@ class AppearanceSettingsManager @Inject constructor(
     companion object {
         private val USERNAME_KEY = stringPreferencesKey("username")
         private val NP_BACKGROUND_KEY = stringPreferencesKey("np_background_type")
+        private val NP_TITLE_ALIGNMENT = stringPreferencesKey("np_title_alignment")
         private val SHOW_NAVIDROME_KEY = booleanPreferencesKey("show_navidrome_logo")
         private val SHOW_MORE_INFO_KEY = booleanPreferencesKey("show_more_info")
         private val NOW_PLAYING_LYRIC_BLUR_KEY = booleanPreferencesKey("now_playing_lyrics_blur")
@@ -38,6 +41,7 @@ class AppearanceSettingsManager @Inject constructor(
         private val SHOW_PROVIDER_DIVIDERS = booleanPreferencesKey("provider_dividers")
         private val LYRICS_ANIMATION_SPEED = intPreferencesKey("lyrics_animation_speed")
         private val USE_REFRESH_ANIMATION = booleanPreferencesKey("use_refresh_animation")
+        private val SHOW_TRACK_NUMBERS = booleanPreferencesKey("show_track_numbers")
     }
 
     val usernameFlow: Flow<String> = context.dataStore.data.map { preferences ->
@@ -50,19 +54,24 @@ class AppearanceSettingsManager @Inject constructor(
         }
     }
 
-    val npBackgroundFlow: Flow<String> = context.dataStore.data.map { preferences ->
-        preferences[NP_BACKGROUND_KEY]
-            ?: if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) "Animated Blur" else "Static Blur"
+    val npBackgroundFlow: Flow<NowPlayingBackground> = context.dataStore.data.map { preferences ->
+        NowPlayingBackground.valueOf(
+            preferences[NP_BACKGROUND_KEY] ?:
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                    NowPlayingBackground.SIMPLE_ANIMATED_BLUR.name
+                else
+                    NowPlayingBackground.PLAIN.name
+        )
     }
 
-    suspend fun setBackgroundType(backgroundType: String) {
+    suspend fun setBackgroundType(backgroundType: NowPlayingBackground) {
         context.dataStore.edit { preferences ->
-            preferences[NP_BACKGROUND_KEY] = backgroundType
+            preferences[NP_BACKGROUND_KEY] = backgroundType.name
         }
     }
 
     val showMoreInfoFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[SHOW_MORE_INFO_KEY] ?: true // Original used != false, interpreting null as true
+        preferences[SHOW_MORE_INFO_KEY] ?: true
     }
 
     suspend fun setShowMoreInfo(showMoreInfo: Boolean) {
@@ -73,7 +82,7 @@ class AppearanceSettingsManager @Inject constructor(
 
     val nowPlayingLyricsBlurFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[NOW_PLAYING_LYRIC_BLUR_KEY]
-            ?: true // Original used != false, interpreting null as true
+            ?: true
     }
 
     suspend fun setNowPlayingLyricsBlur(blur: Boolean) {
@@ -83,7 +92,7 @@ class AppearanceSettingsManager @Inject constructor(
     }
 
     val showNavidromeLogoFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[SHOW_NAVIDROME_KEY] ?: true // Original used != false, interpreting null as true
+        preferences[SHOW_NAVIDROME_KEY] ?: true
     }
 
     suspend fun setShowNavidromeLogo(showNavidromeLogo: Boolean) {
@@ -164,6 +173,28 @@ class AppearanceSettingsManager @Inject constructor(
     suspend fun setUseRefreshAnimation(useRefreshAnimation: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[USE_REFRESH_ANIMATION] = useRefreshAnimation
+        }
+    }
+
+    val showTrackNumbersFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[SHOW_TRACK_NUMBERS] ?: true
+    }
+
+    suspend fun setShowTrackNumbers(showTrackNumbers: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[SHOW_TRACK_NUMBERS] = showTrackNumbers
+        }
+    }
+
+    val nowPlayingTitleAlignment: Flow<NowPlayingTitleAlignment> = context.dataStore.data.map { preferences ->
+        NowPlayingTitleAlignment.valueOf(
+            preferences[NP_TITLE_ALIGNMENT] ?: NowPlayingTitleAlignment.LEFT.name
+        )
+    }
+
+    suspend fun setNowPlayingTitleAlignment(nowPlayingTitleAlignment: NowPlayingTitleAlignment) {
+        context.dataStore.edit { preferences ->
+            preferences[NP_TITLE_ALIGNMENT] = nowPlayingTitleAlignment.name
         }
     }
 }

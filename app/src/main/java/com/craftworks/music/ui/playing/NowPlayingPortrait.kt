@@ -19,14 +19,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,12 +62,12 @@ import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
-@kotlin.OptIn(ExperimentalAnimationApi::class)
+@kotlin.OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(
-    showSystemUi = false, device = "id:pixel_2",
+    showSystemUi = false, device = "id:pixel",
     wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE,
-    uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true
+    uiMode = Configuration.UI_MODE_TYPE_VR_HEADSET, showBackground = true
 )
 @Composable
 fun NowPlayingPortrait(
@@ -71,19 +75,24 @@ fun NowPlayingPortrait(
     iconColor: Color = Color.Black,
     metadata: MediaMetadata? = null
 ) {
-    // use dark or light colors for icons and text based on the album art luminance.
     val iconTextColor by animateColorAsState(
         targetValue = iconColor,
-        animationSpec = tween(1000, 0, FastOutSlowInEasing),
+        animationSpec = tween(1500, 0, FastOutSlowInEasing),
         label = "Animated text color"
     )
 
     val context = LocalContext.current
     val settingsManager = remember { AppearanceSettingsManager(context) }
     val showMoreInfo by settingsManager.showMoreInfoFlow.collectAsStateWithLifecycle(true)
-    Column {
+    val titleAlignment by settingsManager.nowPlayingTitleAlignment.collectAsStateWithLifecycle(NowPlayingTitleAlignment.LEFT)
+
+    Column (
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         // Top padding
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(WindowInsets.statusBars.asPaddingValues().calculateTopPadding()))
 
         /* Album Cover + Lyrics */
         AnimatedContent(
@@ -91,14 +100,14 @@ fun NowPlayingPortrait(
             label = "Crossfade between lyrics",
             modifier = Modifier
                 .heightIn(min = 256.dp, max = 420.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
         ) { it ->
             if (it) {
                 LyricsView(
                     iconTextColor,
                     false,
                     mediaController,
-                    PaddingValues(horizontal = 32.dp, vertical = 16.dp)
+                    PaddingValues(horizontal = 32.dp)
                 )
             } else {
                 Crossfade(
@@ -118,7 +127,7 @@ fun NowPlayingPortrait(
                         alignment = Alignment.Center,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 32.dp, vertical = 16.dp)
+                            .padding(horizontal = 32.dp)
                             .aspectRatio(1f)
                             .shadow(4.dp, RoundedCornerShape(24.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant)
@@ -128,17 +137,15 @@ fun NowPlayingPortrait(
             }
         }
 
-
         Row(
             Modifier
-                .padding(top = 8.dp)
                 .padding(horizontal = 32.dp)
         ) {
             /* Song Title + Artist */
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Top
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Crossfade(
                     targetState = metadata?.title.toString(),
@@ -147,12 +154,15 @@ fun NowPlayingPortrait(
                 ) { title ->
                     Text(
                         text = title,
-                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.headlineMediumEmphasized,
                         color = iconTextColor,
                         maxLines = 1, overflow = TextOverflow.Visible,
                         softWrap = false,
-                        textAlign = TextAlign.Start,
+                        textAlign = when (titleAlignment) {
+                            NowPlayingTitleAlignment.LEFT -> TextAlign.Start
+                            NowPlayingTitleAlignment.CENTER -> TextAlign.Center
+                            NowPlayingTitleAlignment.RIGHT -> TextAlign.End
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
@@ -166,20 +176,22 @@ fun NowPlayingPortrait(
                 ) { artistInfo ->
                     Text(
                         text = artistInfo,
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.Normal,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = iconTextColor,
                         maxLines = 1,
                         softWrap = false,
-                        textAlign = TextAlign.Start,
+                        textAlign = when (titleAlignment) {
+                            NowPlayingTitleAlignment.LEFT -> TextAlign.Start
+                            NowPlayingTitleAlignment.CENTER -> TextAlign.Center
+                            NowPlayingTitleAlignment.RIGHT -> TextAlign.End
+                        },
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
+                            .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
                     )
                 }
-
-                Spacer(Modifier.height(8.dp))
 
                 if (showMoreInfo && metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
                     Crossfade(
@@ -200,7 +212,12 @@ fun NowPlayingPortrait(
                             fontWeight = FontWeight.Light,
                             color = iconTextColor.copy(alpha = 0.5f),
                             maxLines = 1,
-                            textAlign = TextAlign.Start
+                            textAlign = when (titleAlignment) {
+                                NowPlayingTitleAlignment.LEFT -> TextAlign.Start
+                                NowPlayingTitleAlignment.CENTER -> TextAlign.Center
+                                NowPlayingTitleAlignment.RIGHT -> TextAlign.End
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -218,9 +235,8 @@ fun NowPlayingPortrait(
             // Top buttons
             Row(
                 modifier = Modifier
-                    .height(98.dp)
                     .fillMaxWidth()
-                    .padding(horizontal = 18.dp)
+                    .padding(horizontal = 24.dp)
                     .weight(1f),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -260,7 +276,6 @@ fun NowPlayingPortrait(
 
             Row(
                 modifier = Modifier
-                    .height(64.dp)
                     .width(256.dp)
                     .weight(.75f)
                     .padding(bottom = 12.dp),

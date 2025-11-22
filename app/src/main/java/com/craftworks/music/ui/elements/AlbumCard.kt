@@ -23,19 +23,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.session.MediaController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 
@@ -43,7 +40,6 @@ import coil.request.ImageRequest
 @Composable
 fun AlbumCard(
     album: MediaItem,
-    mediaController: MediaController? = null,
     onClick: () -> Unit = { },
     onPlay: (album: MediaItem) -> Unit = { },
     modifier: Modifier = Modifier
@@ -76,23 +72,13 @@ fun AlbumCard(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             )
-
-            val coroutineScope = rememberCoroutineScope()
 
             IconButton(
                 onClick = {
                     onPlay(album)
-//                    coroutineScope.launch {
-//                        val mediaItems = getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
-//                        SongHelper.play(
-//                            mediaItems = mediaItems?.subList(1, mediaItems.size) ?: emptyList(),
-//                            index = 0,
-//                            mediaController = mediaController
-//                        )
-//                    }
                 },
                 modifier = Modifier
                     .padding(6.dp)
@@ -117,8 +103,7 @@ fun AlbumCard(
 
         Text(
             text = album.mediaMetadata.albumTitle.toString(),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.titleSmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,

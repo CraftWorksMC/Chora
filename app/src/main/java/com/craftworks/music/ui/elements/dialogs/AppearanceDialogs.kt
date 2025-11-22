@@ -52,6 +52,8 @@ import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.ui.elements.bounceClick
+import com.craftworks.music.ui.playing.NowPlayingBackground
+import com.craftworks.music.ui.playing.NowPlayingTitleAlignment
 import com.craftworks.music.ui.screens.HomeItem
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -123,14 +125,13 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
 fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
 
-    val backgroundType by AppearanceSettingsManager(context).npBackgroundFlow.collectAsState("")
+    val backgroundType by AppearanceSettingsManager(context).npBackgroundFlow.collectAsState(NowPlayingBackground.ANIMATED_BLUR)
 
-    val backgroundTypes = listOf(
-        "Plain", "Static Blur", "Animated Blur"
-    )
-
-    val backgroundTypeStrings = listOf(
-        R.string.Background_Plain, R.string.Background_Blur, R.string.Background_Anim
+    val backgroundTypeLabels = mapOf(
+        NowPlayingBackground.PLAIN to R.string.Background_Plain,
+        NowPlayingBackground.STATIC_BLUR to R.string.Background_Blur,
+        NowPlayingBackground.ANIMATED_BLUR to R.string.Background_Anim,
+        NowPlayingBackground.SIMPLE_ANIMATED_BLUR to R.string.Background_Anim_Simple
     )
 
     AlertDialog(
@@ -138,7 +139,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
         title = { Text(stringResource(R.string.Setting_Background)) },
         text = {
             Column{
-                for ((index, option) in backgroundTypes.withIndex()) {
+                NowPlayingBackground.entries.forEach { option ->
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
@@ -151,7 +152,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                                     setShowDialog(false)
                                 },
                                 role = Role.RadioButton,
-                                enabled = !(option == "Animated Blur" && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+                                enabled = !((option == NowPlayingBackground.ANIMATED_BLUR || option == NowPlayingBackground.SIMPLE_ANIMATED_BLUR) && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
                             ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -164,11 +165,11 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                                 setShowDialog(false)
                             },
                             modifier = Modifier.bounceClick(),
-                            enabled = !(option == "Animated Blur" && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+                            enabled = !((option == NowPlayingBackground.ANIMATED_BLUR || option == NowPlayingBackground.SIMPLE_ANIMATED_BLUR) && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
                         )
                         Text(
-                            text = stringResource(id = backgroundTypeStrings[index]) +
-                                    if (option == "Animated Blur" && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+                            text = stringResource(id = backgroundTypeLabels[option] ?: androidx.media3.session.R.string.error_message_invalid_state) +
+                                    if ((option == NowPlayingBackground.ANIMATED_BLUR || option == NowPlayingBackground.SIMPLE_ANIMATED_BLUR) && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
                                         " (Android 13+)"
                                     else "",
                             fontWeight = FontWeight.Normal,
@@ -219,26 +220,41 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
                                 onClick = {
                                     runBlocking {
                                         AppearanceSettingsManager(context).setAppTheme(option)
-                                        val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+                                        val uiModeManager =
+                                            context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
 
                                         when (option) {
-                                           AppearanceSettingsManager.Companion.AppTheme.DARK -> {
+                                            AppearanceSettingsManager.Companion.AppTheme.DARK -> {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                                    uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_YES)
+                                                    uiModeManager.setApplicationNightMode(
+                                                        UiModeManager.MODE_NIGHT_YES
+                                                    )
                                                 else
-                                                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                                                    AppCompatDelegate.setDefaultNightMode(
+                                                        AppCompatDelegate.MODE_NIGHT_YES
+                                                    )
                                             }
-                                           AppearanceSettingsManager.Companion.AppTheme.LIGHT -> {
+
+                                            AppearanceSettingsManager.Companion.AppTheme.LIGHT -> {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                                    uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_NO)
+                                                    uiModeManager.setApplicationNightMode(
+                                                        UiModeManager.MODE_NIGHT_NO
+                                                    )
                                                 else
-                                                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                                                    AppCompatDelegate.setDefaultNightMode(
+                                                        AppCompatDelegate.MODE_NIGHT_NO
+                                                    )
                                             }
-                                           AppearanceSettingsManager.Companion.AppTheme.SYSTEM -> {
+
+                                            AppearanceSettingsManager.Companion.AppTheme.SYSTEM -> {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                                    uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_AUTO)
+                                                    uiModeManager.setApplicationNightMode(
+                                                        UiModeManager.MODE_NIGHT_AUTO
+                                                    )
                                                 else
-                                                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                                                    AppCompatDelegate.setDefaultNightMode(
+                                                        AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                                                    )
                                             }
                                         }
                                     }
@@ -537,5 +553,72 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
                 Text(stringResource(R.string.Action_Reset))
             }
         }
+    )
+}
+
+@Composable
+@Preview
+fun NowPlayingTitleAlignmentDialog(setShowDialog: (Boolean) -> Unit = { }) {
+    val context = LocalContext.current
+
+    val nowPlayingTitleAlignment by AppearanceSettingsManager(context).nowPlayingTitleAlignment.collectAsState(
+        NowPlayingTitleAlignment.LEFT
+    )
+
+    AlertDialog(
+        onDismissRequest = { setShowDialog(false) },
+        title = { Text(stringResource(R.string.Setting_NowPlayingTitleAlignment)) },
+        text = {
+            Column {
+                NowPlayingTitleAlignment.entries.forEach { alignment ->
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .selectable(
+                                selected = (alignment == nowPlayingTitleAlignment),
+                                onClick = {
+                                    runBlocking {
+                                        AppearanceSettingsManager(context).setNowPlayingTitleAlignment(
+                                            alignment
+                                        )
+                                    }
+                                    setShowDialog(false)
+                                },
+                                role = Role.RadioButton
+                            ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = alignment == nowPlayingTitleAlignment,
+                            onClick = {
+                                runBlocking {
+                                    runBlocking {
+                                        AppearanceSettingsManager(context).setNowPlayingTitleAlignment(
+                                            alignment
+                                        )
+                                    }
+                                    setShowDialog(false)
+                                }
+                            },
+                            modifier = Modifier.bounceClick()
+                        )
+                        val alignmentStringRes = when (alignment) {
+                            NowPlayingTitleAlignment.LEFT -> R.string.NowPlayingTitleAlignment_Left
+                            NowPlayingTitleAlignment.CENTER -> R.string.NowPlayingTitleAlignment_Center
+                            NowPlayingTitleAlignment.RIGHT -> R.string.NowPlayingTitleAlignment_Right
+                        }
+
+                        Text(
+                            text = stringResource(id = alignmentStringRes),
+                            fontWeight = FontWeight.Normal,
+                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = { }
     )
 }

@@ -42,7 +42,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -149,8 +148,7 @@ fun NowPlayingLandscape(
                 ) {
                     Text(
                         text = metadata?.title.toString(),
-                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.headlineMedium,
                         color = iconTextColor,
                         maxLines = 1, overflow = TextOverflow.Visible,
                         softWrap = false,
@@ -162,8 +160,7 @@ fun NowPlayingLandscape(
 
                     Text(
                         text = metadata?.artist.toString() + if (metadata?.recordingYear != 0) " • " + metadata?.recordingYear else "",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.Normal,
+                        style = MaterialTheme.typography.titleMedium,
                         color = iconTextColor,
                         maxLines = 1,
                         softWrap = false,
@@ -173,8 +170,6 @@ fun NowPlayingLandscape(
                             .clip(RoundedCornerShape(12.dp))
                             .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
                     )
-
-                    Spacer(Modifier.height(8.dp))
                 }
             }
 
@@ -191,7 +186,7 @@ fun NowPlayingLandscape(
                 modifier = Modifier
                     .wrapContentHeight()
                     .fillMaxWidth()
-                    .padding(horizontal = 18.dp)
+                    .padding(horizontal = 24.dp)
                     .selectableGroup(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically

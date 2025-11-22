@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.TopSearchBar
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
@@ -124,7 +124,7 @@ fun TopBarWithSearch(
                 .padding(
                     top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
                 )
-                .size(48.dp)
+                .size(42.dp)
         )
         Spacer(Modifier.width(6.dp))
         Text(
@@ -137,12 +137,12 @@ fun TopBarWithSearch(
             )
         )
         Spacer(Modifier.weight(1f))
-        TopSearchBar(
+
+        AppBarWithSearch(
             state = searchBarState,
             inputField = inputIcon,
-            colors = SearchBarDefaults.colors(containerColor = Color.Transparent),
-            // Should be the same as size of inputIcon box
-            modifier = Modifier.width(56.dp)
+            colors = SearchBarDefaults.appBarWithSearchColors(searchBarColors = SearchBarDefaults.colors(containerColor = Color.Transparent)),
+            modifier = Modifier.width(50.dp)
         )
     }
     ExpandedFullScreenSearchBar(

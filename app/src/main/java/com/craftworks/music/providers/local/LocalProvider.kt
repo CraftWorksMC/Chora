@@ -350,8 +350,6 @@ class LocalProvider @Inject constructor(
             MediaStore.Audio.Media.TRACK,
             MediaStore.Audio.Media.YEAR,
             MediaStore.Audio.Media.DURATION,
-            MediaStore.Audio.Media.BITRATE,
-            MediaStore.Audio.Media.GENRE
         )
 
         val folders = LocalProviderManager.getAllFolders()

@@ -11,6 +11,7 @@
         <string name="Setting_ProviderDividers">Show Provider Dividers</string>
         <string name="Setting_RefreshAnimation">Show Refresh Animation</string>
         <string name="Setting_LyricsAnimationSpeed">Lyrics Animation Speed</string>
+        <string name="Setting_TrackNumbersAlbum">Show Track Numbers in Album View</string>
     <string name="Settings_Header_Media">Media Providers</string>
     <string name="Settings_Header_Playback">Playback</string>
         <string name="Setting_Transcoding">Max Bitrate</string>

@@ -5,12 +5,15 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.managers.DataRefreshManager
+import com.craftworks.music.managers.NavidromeManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -40,6 +43,17 @@ class HomeScreenViewModel @Inject constructor(
             DataRefreshManager.dataSourceChangedEvent.collect {
                 loadHomeScreenData()
             }
+
+            combine(
+                NavidromeManager.currentServerId,
+                NavidromeManager.libraries
+            ) { serverId, libs -> serverId to libs }
+                .distinctUntilChanged() // This is key!
+                .collect { (serverId, libs) ->
+                    if (serverId != null && libs.isNotEmpty()) {
+                        loadHomeScreenData()
+                    }
+                }
         }
     }
 

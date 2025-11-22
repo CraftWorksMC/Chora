@@ -41,7 +41,7 @@ fun MediaData.Song.toMediaItem(): MediaItem {
             .setArtworkUri(this@toMediaItem.imageUrl.toUri())
             .setRecordingYear(this@toMediaItem.year)
             .setDiscNumber(this@toMediaItem.discNumber)
-            .setTrackNumber(this@toMediaItem.trackIndex)
+            .setTrackNumber(this@toMediaItem.track)
             .setIsBrowsable(false).setIsPlayable(true)
             .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
             .setDurationMs(this@toMediaItem.duration.times(1000).toLong())

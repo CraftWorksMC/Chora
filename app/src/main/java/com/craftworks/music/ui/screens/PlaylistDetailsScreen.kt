@@ -29,6 +29,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -52,7 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
@@ -223,10 +224,6 @@ fun PlaylistDetails(
                                 SongHelper.play(playlistSongs, 0, mediaController)
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground
-                        ),
                         modifier = Modifier
                             .widthIn(min = 128.dp, max = 320.dp)
                             .focusRequester(requester)
@@ -239,7 +236,7 @@ fun PlaylistDetails(
                             Text(stringResource(R.string.Action_Play), maxLines = 1)
                         }
                     }
-                    Button(
+                    OutlinedButton (
                         onClick = {
                             mediaController?.shuffleModeEnabled = true
                             coroutineScope.launch {
@@ -247,10 +244,6 @@ fun PlaylistDetails(
                                 SongHelper.play(playlistSongs, random, mediaController)
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground
-                        ),
                         modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
                     ) {
                         Row(

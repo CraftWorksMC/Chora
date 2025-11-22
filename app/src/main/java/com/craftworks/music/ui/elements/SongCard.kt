@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.elements
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,11 +37,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
@@ -54,6 +56,7 @@ import kotlinx.coroutines.launch
 fun HorizontalSongCard(
     song: MediaItem,
     modifier: Modifier = Modifier,
+    showTrackNumber: Boolean = false,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -73,34 +76,53 @@ fun HorizontalSongCard(
             modifier = Modifier
                 .height(72.dp), verticalAlignment = Alignment.CenterVertically
         ) {
-            SubcomposeAsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(song.mediaMetadata.artworkUri)
-                    .crossfade(true)
-                    .size(64)
-                    .diskCacheKey(
-                        song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
+            if (showTrackNumber) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .padding(8.dp, 0.dp, 0.dp, 0.dp),
+                        //.clip(CircleShape)
+                        //.background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = song.mediaMetadata.trackNumber.toString(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center
                     )
-                    .build(),
-                contentDescription = "Album Image",
-                contentScale = ContentScale.FillHeight,
-                modifier = Modifier
-                    .size(64.dp)
-                    .padding(4.dp, 0.dp, 0.dp, 0.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
+                }
+            }
+            else {
+                SubcomposeAsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(song.mediaMetadata.artworkUri)
+                        .crossfade(true)
+                        .size(64)
+                        .diskCacheKey(
+                            song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
+                        )
+                        .build(),
+                    contentDescription = "Album Image",
+                    contentScale = ContentScale.FillHeight,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .padding(4.dp, 0.dp, 0.dp, 0.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
+            }
 
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(
                 Modifier
                     .padding(end = 12.dp)
-                    .weight(1f)
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
                     text = song.mediaMetadata.title.toString(),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Medium,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -110,7 +132,6 @@ fun HorizontalSongCard(
                 Text(
                     text = song.mediaMetadata.artist.toString() + if (song.mediaMetadata.recordingYear != 0) " • " + song.mediaMetadata.recordingYear else "",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
                     modifier = Modifier,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -125,7 +146,6 @@ fun HorizontalSongCard(
             Text(
                 text = formattedDuration,
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(end = 12.dp),
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -203,4 +223,17 @@ fun HorizontalSongCard(
             }
         }
     }
+}
+
+@Preview(showSystemUi = false, showBackground = true)
+@Composable
+fun PReviewHorizontalSongCard() {
+    HorizontalSongCard(
+        song = MediaItem.Builder()
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle("Lololol")
+                    .build()
+            ).build()
+    ) { }
 }

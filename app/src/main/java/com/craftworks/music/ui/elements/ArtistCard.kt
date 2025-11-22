@@ -24,7 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -69,7 +68,6 @@ fun ArtistCard(artist: MediaData.Artist, onClick: () -> Unit) {
                 )
             },
             error = { painter ->
-                // Artist icon imagevector
                 Icon(
                     painter = painterResource(id = R.drawable.rounded_artist_24),
                     contentDescription = "Artist Icon",
@@ -82,8 +80,7 @@ fun ArtistCard(artist: MediaData.Artist, onClick: () -> Unit) {
 
         Text(
             text = artist.name,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.fillMaxWidth(),
             maxLines = 1, overflow = TextOverflow.Ellipsis,

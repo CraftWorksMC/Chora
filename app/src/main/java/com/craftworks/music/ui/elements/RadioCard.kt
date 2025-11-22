@@ -21,7 +21,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -70,11 +69,11 @@ fun RadioCard(
 
         Text(
             text = radio.mediaMetadata.station.toString(),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .fillMaxSize()
+                .padding(vertical = 4.dp)
                 .wrapContentHeight(align = Alignment.CenterVertically),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
