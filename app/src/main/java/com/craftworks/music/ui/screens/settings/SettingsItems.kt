@@ -52,7 +52,7 @@ fun SettingsSwitch(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .clip(RoundedCornerShape(2.dp))
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceBright)
             .selectable(
                 selected = selected,
                 onClick = toggleEvent,
@@ -102,7 +102,7 @@ fun SettingsDialogButton(
         modifier = Modifier
             .background(
                 if (enabled == true)
-                    MaterialTheme.colorScheme.background
+                    MaterialTheme.colorScheme.surfaceBright
                 else
                     MaterialTheme.colorScheme.surfaceContainerLow
             )
@@ -188,7 +188,7 @@ fun SettingsSlider(
     Column (
         modifier = Modifier
             .clip(RoundedCornerShape(2.dp))
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceBright)
     ) {
         Text(
             text = settingsName,

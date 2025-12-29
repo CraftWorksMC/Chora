@@ -58,7 +58,7 @@ fun LocalProviderCard(local: String = "", context: Context = LocalContext.curren
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
         .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.background),
+        .background(MaterialTheme.colorScheme.surfaceBright),
         verticalAlignment = Alignment.CenterVertically) {
         // Provider Icon
         Icon(
@@ -142,7 +142,7 @@ fun NavidromeProviderCard(
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
         .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.background)
+        .background(MaterialTheme.colorScheme.surfaceBright)
         .selectableGroup(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -220,7 +220,7 @@ fun LRCLIBProviderCard(
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
         .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.background)
+        .background(MaterialTheme.colorScheme.surfaceBright)
         .selectableGroup(),
         verticalAlignment = Alignment.CenterVertically
     ) {

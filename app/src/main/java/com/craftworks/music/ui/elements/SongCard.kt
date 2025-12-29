@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.elements
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -109,6 +110,7 @@ fun HorizontalSongCard(
                         .size(64.dp)
                         .padding(4.dp, 0.dp, 0.dp, 0.dp)
                         .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                 )
             }
 

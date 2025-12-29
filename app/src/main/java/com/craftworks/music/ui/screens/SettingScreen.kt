@@ -118,7 +118,7 @@ private fun SettingsButton(route: String, icon: Int, text: Int, navHostControlle
         } },
         contentPadding = PaddingValues(0.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.surfaceBright,
             contentColor = MaterialTheme.colorScheme.onBackground
         ),
         shape = RoundedCornerShape(4.dp)
