@@ -71,7 +71,7 @@ sealed class MediaData {
 
         val played : String? = "",
         val created : String? = "",
-        val duration : Int,
+        val duration : Int? = 0,
         val playCount : Int? = 0,
 
         val artistId : String?,

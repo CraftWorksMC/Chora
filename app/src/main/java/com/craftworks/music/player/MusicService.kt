@@ -195,16 +195,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     Log.d("REPLAY GAIN", "Setting ReplayGain to ${player.volume}")
                 }
 
-
                 playerScrobbled = false;
 
                 super.onMediaItemTransition(mediaItem, reason)
-
-                Log.d("MediaItemTransition", "MediaItem: $mediaItem")
-                Log.d("MediaItemTransition", "MediaType: ${mediaItem?.mediaMetadata?.mediaType}")
-                Log.d("MediaItemTransition", "ArtworkUri: ${mediaItem?.mediaMetadata?.artworkUri}")
-                Log.d("MediaItemTransition", "Station: ${mediaItem?.mediaMetadata?.station}")
-                Log.d("MediaItemTransition", "SongHelper.currentTrackList station: ${SongHelper.currentTracklist[0].mediaMetadata.station}")
 
                 serviceIOScope.launch {
                     songRepository.scrobbleSong(mediaItem?.mediaMetadata?.extras?.getString("navidromeID") ?: "", false)

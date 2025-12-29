@@ -151,7 +151,6 @@ fun AlbumGrid(
     mediaController: MediaController?,
     onAlbumSelected: (album: MediaData.Album) -> Unit,
     isSearch: Boolean? = false,
-    sort: String? = "alphabeticalByName",
     viewModel: AlbumScreenViewModel = viewModel(),
 ){
     val gridState = rememberLazyGridState()
@@ -177,7 +176,7 @@ fun AlbumGrid(
             }
                 .filter { it }
                 .collect {
-                    viewModel.getMoreAlbums(sort, 50)
+                    viewModel.getMoreAlbums(50)
                 }
         }
     }

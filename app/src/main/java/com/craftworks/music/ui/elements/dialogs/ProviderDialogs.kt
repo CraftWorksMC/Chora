@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -24,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -40,7 +40,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -146,10 +145,6 @@ fun EditLrcLibUrlDialog(
 
                     setShowDialog(false)
                 },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground
-                ),
                 modifier = Modifier
                     .padding(6.dp)
                     .height(50.dp)
@@ -268,10 +263,6 @@ fun CreateMediaProviderDialog(
                                 }
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground
-                        ),
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
                             .padding(top = 24.dp, start = 40.dp, end = 40.dp)
@@ -387,7 +378,7 @@ fun CreateMediaProviderDialog(
                             .selectableGroup(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        Button(
+                        OutlinedButton(
                             onClick = {
                                 val server = NavidromeProvider(
                                     url,
@@ -401,10 +392,6 @@ fun CreateMediaProviderDialog(
                                     getNavidromeStatus(server)
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onBackground
-                            ),
                             modifier = Modifier
                                 .padding(6.dp)
                                 .height(50.dp)
@@ -436,10 +423,6 @@ fun CreateMediaProviderDialog(
                                 navidromeStatus.value = ""
                                 setShowDialog(false)
                             },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onBackground
-                            ),
                             modifier = Modifier
                                 .padding(6.dp)
                                 .height(50.dp)
@@ -500,10 +483,6 @@ fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavH
                         launchSingleTop = true
                     }; setShowDialog(false)
                 },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onBackground
-                ),
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 24.dp, start = 40.dp, end = 40.dp)

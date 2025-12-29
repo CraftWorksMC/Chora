@@ -1,13 +1,13 @@
 package com.craftworks.music.ui.screens
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -17,10 +17,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,6 +33,7 @@ import com.craftworks.music.ui.elements.TopBarWithSearch
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @Preview(showBackground = true, showSystemUi = false)
 @Composable
@@ -56,26 +56,29 @@ fun ArtistsScreen(
         showRipple++
     }
 
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     PullToRefreshBox(
         state = state,
         isRefreshing = isRefreshing,
-        onRefresh = onRefresh,
-        modifier = Modifier.fillMaxSize()
+        onRefresh = onRefresh
     ) {
         Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 TopBarWithSearch(
-                    headerIcon = ImageVector.vectorResource(R.drawable.rounded_artist_24),
-                    headerText = stringResource(R.string.Artists),
+                    headerText = stringResource(R.string.Albums),
+                    scrollBehavior = scrollBehavior,
                     onSearch = { query -> viewModel.onSearchQueryChange(query) },
-                ) {
-                    ArtistsGrid(searchResults, onArtistSelected = { artist ->
-                        viewModel.setSelectedArtist(artist)
-                        navHostController.navigate(Screen.ArtistDetails.route) {
-                            launchSingleTop = true
-                        }
-                    })
-                }
+                    searchResults = {
+                        ArtistsGrid(searchResults, onArtistSelected = { artist ->
+                            viewModel.setSelectedArtist(artist)
+                            navHostController.navigate(Screen.ArtistDetails.route) {
+                                launchSingleTop = true
+                            }
+                        })
+                    }
+                )
             },
         ) { innerPadding ->
             Box(

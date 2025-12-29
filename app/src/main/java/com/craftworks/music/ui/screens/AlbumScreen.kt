@@ -2,21 +2,30 @@ package com.craftworks.music.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -27,6 +36,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.TopBarWithSearch
@@ -56,6 +66,10 @@ fun AlbumScreen(
         viewModel.getAlbums()
         showRipple++
     }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    val sortOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
+    var showSortMenu by remember { mutableStateOf(false) }
 
     PullToRefreshBox(
         state = state,
@@ -63,24 +77,79 @@ fun AlbumScreen(
         onRefresh = onRefresh
     ) {
         Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                TopBarWithSearch(
-                    headerIcon = ImageVector.vectorResource(R.drawable.placeholder),
-                    headerText = stringResource(R.string.Albums),
-                    onSearch = { query -> viewModel.search(query) },
-                ) {
-                    AlbumGrid(
-                        searchResults,
-                        mediaController,
-                        onAlbumSelected = { album ->
-                            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
-                                launchSingleTop = true
-                            }
+                Column {
+                    TopBarWithSearch(
+                        headerText = stringResource(R.string.Albums),
+                        scrollBehavior = scrollBehavior,
+                        onSearch = { query -> viewModel.search(query) },
+                        searchResults = {
+                            AlbumGrid(
+                                searchResults,
+                                mediaController,
+                                onAlbumSelected = { album ->
+                                    val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
+                                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                                        launchSingleTop = true
+                                    }
+                                },
+                                true,
+                                viewModel
+                            )
                         },
-                        true,
-                        "alphabeticalByName",
-                        viewModel
+                        extraAction = {
+                            Box {
+                                IconButton(
+                                    onClick = { showSortMenu = true }
+                                ) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.rounded_sort_24),
+                                        contentDescription = stringResource(R.string.Label_Sorting),
+                                    )
+                                }
+                                DropdownMenu(
+                                    expanded = showSortMenu,
+                                    onDismissRequest = { showSortMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.Label_Sort_Alphabetical)) },
+                                        onClick = {
+                                            viewModel.setSorting(SortOrder.ALPHABETICAL)
+                                            showSortMenu = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.recently_added)) },
+                                        onClick = {
+                                            viewModel.setSorting(SortOrder.NEWEST)
+                                            showSortMenu = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.recently_played)) },
+                                        onClick = {
+                                            viewModel.setSorting(SortOrder.RECENT)
+                                            showSortMenu = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.most_played)) },
+                                        onClick = {
+                                            viewModel.setSorting(SortOrder.FREQUENT)
+                                            showSortMenu = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.Label_Sort_Starred)) },
+                                        onClick = {
+                                            viewModel.setSorting(SortOrder.STARRED)
+                                            showSortMenu = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     )
                 }
             },
@@ -100,7 +169,6 @@ fun AlbumScreen(
                         }
                     },
                     false,
-                    "alphabeticalByName",
                     viewModel
                 )
             }

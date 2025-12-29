@@ -17,7 +17,7 @@ fun MediaData.Album.toMediaItem(): MediaItem {
         .setAlbumArtist(this@toMediaItem.artist)
         .setArtworkUri(this@toMediaItem.coverArt?.toUri())
         .setRecordingYear(this@toMediaItem.year)
-        .setDurationMs(this@toMediaItem.duration.times(1000).toLong())
+        .setDurationMs(this@toMediaItem.duration?.times(1000)?.toLong())
         .setIsBrowsable(true)
         .setIsPlayable(false)
         .setGenre(this@toMediaItem.genres?.joinToString() { it.name ?: "" })
@@ -25,6 +25,7 @@ fun MediaData.Album.toMediaItem(): MediaItem {
         .setExtras(
             Bundle().apply {
                 putString("navidromeID", this@toMediaItem.navidromeID)
+                putString("starred", this@toMediaItem.starred)
             }
         )
         .build()
