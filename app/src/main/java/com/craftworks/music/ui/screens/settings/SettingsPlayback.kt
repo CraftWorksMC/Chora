@@ -1,43 +1,39 @@
 package com.craftworks.music.ui.screens.settings
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -52,7 +48,9 @@ import kotlinx.coroutines.runBlocking
 import kotlin.math.roundToInt
 
 @Preview(showSystemUi = false, showBackground = true)
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class,
+    ExperimentalMaterial3Api::class
+)
 @Composable
 fun S_PlaybackScreen(navHostController: NavHostController = rememberNavController()) {
     val context = LocalContext.current
@@ -62,117 +60,109 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
 
     var showTranscodingFormatDialog by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(
-                top = WindowInsets.statusBars
-                    .asPaddingValues()
-                    .calculateTopPadding()
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        topBar = {
+            TopAppBar(
+                title = { Text(text = stringResource(R.string.Settings_Header_Playback)) },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            navHostController.navigate(Screen.Home.route) {
+                                launchSingleTop = true
+                            }
+                        },
+                        modifier = Modifier.size(56.dp, 70.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            contentDescription = "Previous Song",
+                            modifier = Modifier
+                                .size(24.dp)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
-            .dialogFocusable()
-    ) {
-        /* HEADER */
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 12.dp)
+        },
+    ) { innerPadding ->
+        Box (
+            modifier = Modifier
+                .padding(
+                    top = innerPadding.calculateTopPadding()
+                )
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .dialogFocusable()
         ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.s_m_playback),
-                contentDescription = "Settings Icon",
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.size(48.dp)
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = stringResource(R.string.Settings_Header_Playback),
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold,
-                fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                modifier = Modifier.weight(1f)
-            )
-            Box {
-                IconButton(
-                    onClick = {
-                        navHostController.navigate(Screen.Setting.route) {
-                            launchSingleTop = true
-                        }
-                    }, modifier = Modifier.size(56.dp, 70.dp)
+            Column(
+                Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Transcoding
+                Column(
+                    modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    Icon(
-                        Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = "Back To Settings",
-                        modifier = Modifier.size(32.dp)
+                    val transcodingBitrateWifi =
+                        PlaybackSettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("").value
+
+                    SettingsDialogButton(
+                        settingsName = stringResource(R.string.Setting_Transcoding_Wifi),
+                        settingsSubtitle = if (transcodingBitrateWifi != "No Transcoding") "$transcodingBitrateWifi Kbps" else transcodingBitrateWifi,
+                        settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
+                        toggleEvent = { showWifiTranscodingDialog = true }
+                    )
+
+
+                    val transcodingBitrateData =
+                        PlaybackSettingsManager(context).mobileDataTranscodingBitrateFlow.collectAsState(
+                            ""
+                        ).value
+
+                    SettingsDialogButton(
+                        settingsName = stringResource(R.string.Setting_Transcoding_Data),
+                        settingsSubtitle = if (transcodingBitrateData != "No Transcoding") "$transcodingBitrateData Kbps" else transcodingBitrateData,
+                        settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
+                        toggleEvent = { showDataTranscodingDialog = true }
+                    )
+
+                    val transcodingFormat =
+                        PlaybackSettingsManager(context).transcodingFormatFlow.collectAsState("opus").value
+
+                    val transcodingFormatEnabled =
+                        transcodingBitrateData != "No Transcoding" || transcodingBitrateWifi != "No Transcoding"
+
+                    SettingsDialogButton(
+                        settingsName = stringResource(R.string.Setting_Transcoding_Format),
+                        settingsSubtitle = transcodingFormat,
+                        settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
+                        enabled = transcodingFormatEnabled,
+                        toggleEvent = { showTranscodingFormatDialog = true }
                     )
                 }
-            }
-        }
 
-        Column(
-            Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Transcoding
-            Column (
-                modifier = Modifier.clip(RoundedCornerShape(16.dp)),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                val transcodingBitrateWifi =
-                    PlaybackSettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("").value
+                // Scrobble Percent
+                Column(
+                    modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    val sliderValue =
+                        PlaybackSettingsManager(context).scrobblePercentFlow.collectAsState(7)
 
-                SettingsDialogButton(
-                    settingsName = stringResource(R.string.Setting_Transcoding_Wifi),
-                    settingsSubtitle = if (transcodingBitrateWifi != "No Transcoding") "$transcodingBitrateWifi Kbps" else transcodingBitrateWifi,
-                    settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
-                    toggleEvent = { showWifiTranscodingDialog = true }
-                )
-
-
-                val transcodingBitrateData =
-                    PlaybackSettingsManager(context).mobileDataTranscodingBitrateFlow.collectAsState("").value
-
-                SettingsDialogButton(
-                    settingsName = stringResource(R.string.Setting_Transcoding_Data),
-                    settingsSubtitle = if (transcodingBitrateData != "No Transcoding") "$transcodingBitrateData Kbps" else transcodingBitrateData,
-                    settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
-                    toggleEvent = { showDataTranscodingDialog = true }
-                )
-
-                val transcodingFormat =
-                    PlaybackSettingsManager(context).transcodingFormatFlow.collectAsState("opus").value
-
-                val transcodingFormatEnabled =
-                    transcodingBitrateData != "No Transcoding" || transcodingBitrateWifi != "No Transcoding"
-
-                SettingsDialogButton(
-                    settingsName = stringResource(R.string.Setting_Transcoding_Format),
-                    settingsSubtitle = transcodingFormat,
-                    settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
-                    enabled = transcodingFormatEnabled,
-                    toggleEvent = { showTranscodingFormatDialog = true }
-                )
-            }
-
-            // Scrobble Percent
-            Column (
-                modifier = Modifier.clip(RoundedCornerShape(16.dp)),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                val sliderValue = PlaybackSettingsManager(context).scrobblePercentFlow.collectAsState(7)
-
-                SettingsSlider(
-                    settingsName = stringResource(R.string.Setting_Scrobble_Percent),
-                    value = sliderValue.value.toFloat(),
-                    steps = 8,
-                    minValue = 1f, maxValue = 10f,
-                    onValueChange = {
-                        runBlocking {
-                            PlaybackSettingsManager(context).setScrobblePercent(it.roundToInt())
+                    SettingsSlider(
+                        settingsName = stringResource(R.string.Setting_Scrobble_Percent),
+                        value = sliderValue.value.toFloat(),
+                        steps = 8,
+                        minValue = 1f, maxValue = 10f,
+                        onValueChange = {
+                            runBlocking {
+                                PlaybackSettingsManager(context).setScrobblePercent(it.roundToInt())
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
 

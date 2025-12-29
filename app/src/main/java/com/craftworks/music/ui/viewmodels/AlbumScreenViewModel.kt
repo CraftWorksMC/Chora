@@ -6,18 +6,21 @@ import androidx.media3.common.MediaItem
 import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.managers.DataRefreshManager
+import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AlbumScreenViewModel @Inject constructor(
-    private val albumRepository: AlbumRepository
+    private val albumRepository: AlbumRepository,
+    private val localDataSettingsManager: LocalDataSettingsManager
 ) : ViewModel() {
 
     private val _allAlbums = MutableStateFlow<List<MediaItem>>(emptyList())
@@ -33,9 +36,19 @@ class AlbumScreenViewModel @Inject constructor(
     val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
 
     init {
-        getAlbums()
+        viewModelScope.launch {
+            localDataSettingsManager.sortAlbumOrder.collect { sortOrder ->
+                if (_sortOrder.value != sortOrder) {
+                    _sortOrder.value = sortOrder
+                    getAlbums() // Refresh albums if the sort order changes
+                }
+            }
+        }
 
         viewModelScope.launch {
+            _sortOrder.value = localDataSettingsManager.sortAlbumOrder.first()
+            getAlbums()
+
             DataRefreshManager.dataSourceChangedEvent.collect {
                 getAlbums()
             }
@@ -87,7 +100,8 @@ class AlbumScreenViewModel @Inject constructor(
     }
 
     fun setSorting(newSortOrder: SortOrder) {
-        _sortOrder.value = newSortOrder
-        getAlbums()
+        viewModelScope.launch {
+            localDataSettingsManager.saveSortAlbumOrder(newSortOrder)
+        }
     }
 }

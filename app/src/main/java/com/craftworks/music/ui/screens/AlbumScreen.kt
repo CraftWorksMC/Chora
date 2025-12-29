@@ -68,7 +68,6 @@ fun AlbumScreen(
     }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    val sortOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     var showSortMenu by remember { mutableStateOf(false) }
 
     PullToRefreshBox(
