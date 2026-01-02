@@ -19,11 +19,11 @@
         <string name="Source_Navidrome" translatable="false">Navidrome</string>
         <string name="Source_Local">Local Folder</string>
         <!-- Local -->
-            <string name="Label_Local_Directory">Directory:</string>
+            <string name="Label_Local_Directory">Directory</string>
         <!-- Navidrome -->
-            <string name="Label_Navidrome_URL">Navidrome URL:</string>
-            <string name="Label_Navidrome_Username">Username:</string>
-            <string name="Label_Navidrome_Password">Password:</string>
+            <string name="Label_Navidrome_URL">Navidrome URL</string>
+            <string name="Label_Navidrome_Username">Username</string>
+            <string name="Label_Navidrome_Password">Password</string>
             <string name="Label_Allow_Self_Signed_Certs">Allow self-signed certs</string>
 
     <!-- LRCLIB Dialog -->
@@ -36,9 +36,9 @@
     <!-- Radios -->
     <string name="Dialog_Add_Radio">Add Internet Radio</string>
     <string name="Dialog_Modify_Radio">Modify </string>
-        <string name="Label_Radio_Name">Radio Name:</string>
-        <string name="Label_Radio_URL">Radio URL:</string>
-        <string name="Label_Radio_Homepage">Radio Homepage URL:</string>
+        <string name="Label_Radio_Name">Radio Name</string>
+        <string name="Label_Radio_URL">Radio URL</string>
+        <string name="Label_Radio_Homepage">Radio Homepage URL</string>
         <string name="Label_Radio_Add_To_Navidrome">Add to Navidrome</string>
 
     <!-- Playlists -->
@@ -46,7 +46,7 @@
     <string name="Dialog_Delete_Playlist">Delete Playlist</string>
         <string name="Label_Confirm_Delete_Playlist">Are you sure you want to delete this playlist?</string>
     <string name="Dialog_Add_To_Playlist">Add / To Playlist</string>
-        <string name="Label_Playlist_Name">Playlist Name:</string>
+        <string name="Label_Playlist_Name">Playlist Name</string>
 
     <!-- Albums -->
     <string name="Label_MoreSongsFrom">More Songs From</string>
@@ -64,6 +64,7 @@
     <string name="Navidrome_Sync">Loading…</string>
 
     <!-- Downloading -->
+    <string name="Label_Downloads">Downloads</string>
     <string name="Notification_Download_Name">Download Notifications</string>
     <string name="Notification_Download_Desc">Notifications for download status</string>
     <string name="Notification_Download_Progress">Downloading</string>

@@ -14,12 +14,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,7 +31,6 @@ import coil.request.ImageRequest
 import com.craftworks.music.R
 
 @OptIn(ExperimentalFoundationApi::class)
-@Stable
 @Composable
 fun RadioCard(
     radio: MediaItem,
@@ -57,6 +56,7 @@ fun RadioCard(
             // Use generic radio image as we cannot get the radio's logo reliably.
             model = ImageRequest.Builder(LocalContext.current)
                 .data(("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder).toUri())
+                .size(with(LocalDensity.current) { 256.dp.toPx().toInt() })
                 .crossfade(true).build(),
             fallback = painterResource(R.drawable.placeholder),
             contentScale = ContentScale.FillWidth,

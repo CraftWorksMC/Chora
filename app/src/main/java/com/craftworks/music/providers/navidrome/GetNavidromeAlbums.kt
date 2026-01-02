@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
+import java.net.URLEncoder
 
 @Serializable
 data class albumList(val album: List<MediaData.Album>? = listOf())
@@ -21,15 +22,20 @@ fun parseNavidromeAlbumListJSON(
     navidromePassword: String,
 ) : List<MediaItem> {
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+        ?: return emptyList()
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        return emptyList()
+    }
 
     // Generate password salt and hash for coverArt
     val passwordSaltArt = generateSalt(8)
     val passwordHashArt = md5Hash(navidromePassword + passwordSaltArt)
+    val encodedUsername = URLEncoder.encode(navidromeUsername, "UTF-8")
 
-    val baseCoverArtUrl = "$navidromeUrl/rest/getCoverArt.view?u=$navidromeUsername&t=$passwordHashArt&s=$passwordSaltArt&v=1.16.1&c=Chora&size=128"
+    val baseCoverArtUrl = "$navidromeUrl/rest/getCoverArt.view?u=$encodedUsername&t=$passwordHashArt&s=$passwordSaltArt&v=1.16.1&c=Chora&size=128"
 
     val mediaDataAlbums = subsonicResponse.albumList?.album?.map {
         val mediaItem = it.toMediaItem()
@@ -41,13 +47,6 @@ fun parseNavidromeAlbumListJSON(
     } ?: emptyList()
 
     return mediaDataAlbums
-        //.asSequence()
-//        .filterNot { newAlbum ->
-//            albumList.any { existingAlbum ->
-//                existingAlbum.navidromeID == newAlbum.mediaMetadata.extras?.getString("navidromeID")
-//            }
-//        }
-        //.toList()
 }
 
 @OptIn(UnstableApi::class)
@@ -58,31 +57,35 @@ fun parseNavidromeAlbumJSON(
     navidromePassword: String,
 ): List<MediaItem> {
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+        ?: return emptyList()
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        return emptyList()
+    }
 
     val passwordSalt = generateSalt(8)
     val passwordHash = md5Hash(navidromePassword + passwordSalt)
+    val encodedUsername = URLEncoder.encode(navidromeUsername, "UTF-8")
 
-    val selectedAlbum = subsonicResponse.album
+    val selectedAlbum = subsonicResponse.album ?: return emptyList()
+
     val album = mutableListOf<MediaItem>()
 
-    selectedAlbum?.songs?.map {
-        it.media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora"
-        it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora&size=128"
+    val updatedSongs = selectedAlbum.songs?.map {
+        it.copy(
+            media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$encodedUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora",
+            imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$encodedUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora&size=128"
+        )
     }
 
     // Create the Album MediaItem
-    album.add(selectedAlbum?.toMediaItem() ?: MediaItem.EMPTY)
+    album.add(selectedAlbum.toMediaItem())
 
-    println("Added album: ${selectedAlbum?.navidromeID}")
-
-    album.addAll(selectedAlbum?.songs?.map {
-        println("Added song to album: ${it.title}")
+    album.addAll(updatedSongs?.map {
         it.toMediaItem()
     } ?: emptyList())
 
-    return if (selectedAlbum != null) album
-    else emptyList()
+    return album
 }

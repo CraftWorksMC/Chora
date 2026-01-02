@@ -9,23 +9,33 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,7 +61,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -80,6 +92,7 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.managers.settings.OnboardingSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
@@ -95,6 +108,28 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.system.exitProcess
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
+import com.craftworks.music.ui.elements.DownloadQueueModal
+import com.craftworks.music.ui.elements.FloatingDownloadIndicator
+import com.craftworks.music.ui.elements.FloatingSyncIndicator
+import com.craftworks.music.ui.viewmodels.DownloadViewModel
+import com.craftworks.music.ui.viewmodels.SyncIndicatorViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
+val LocalWindowSizeClass = staticCompositionLocalOf<WindowSizeClass> {
+    error("No WindowSizeClass provided")
+}
+val LocalFoldingFeatures = staticCompositionLocalOf<List<FoldingFeature>> {
+    emptyList()
+}
 
 var showNoProviderDialog = mutableStateOf(false)
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
@@ -102,23 +137,54 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     lateinit var navController: NavHostController
+    private var activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
+    private lateinit var serviceIntent: Intent
 
     @androidx.annotation.OptIn(UnstableApi::class)
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
+        serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
         this@MainActivity.startService(serviceIntent)
 
         enableEdgeToEdge()
 
         setContent {
+            val windowSizeClass = calculateWindowSizeClass(this)
+            var foldingFeatures by remember { mutableStateOf<List<FoldingFeature>>(emptyList()) }
+
+            // Track folding features for foldable devices
+            LaunchedEffect(Unit) {
+                WindowInfoTracker.getOrCreate(this@MainActivity)
+                    .windowLayoutInfo(this@MainActivity)
+                    .collect { layoutInfo ->
+                        foldingFeatures = layoutInfo.displayFeatures.filterIsInstance<FoldingFeature>()
+                    }
+            }
+
+            CompositionLocalProvider(
+                LocalWindowSizeClass provides windowSizeClass,
+                LocalFoldingFeatures provides foldingFeatures
+            ) {
             MusicPlayerTheme {
                 navController = rememberNavController()
 
+                // Check onboarding state
+                val onboardingSettingsManager = remember { OnboardingSettingsManager(this@MainActivity) }
+                val showOnboarding by onboardingSettingsManager.shouldShowOnboardingFlow.collectAsState(initial = false)
+
                 val mediaController by rememberManagedMediaController()
                 var metadata by remember { mutableStateOf<MediaMetadata?>(null) }
+
+                // Download Manager
+                val downloadViewModel: DownloadViewModel = hiltViewModel()
+                var showDownloadModal by remember { mutableStateOf(false) }
+
+                // Sync Indicator
+                val syncIndicatorViewModel: SyncIndicatorViewModel = hiltViewModel()
+                val isSyncing by syncIndicatorViewModel.isSyncing.collectAsStateWithLifecycle()
+                val isPaused by syncIndicatorViewModel.isPaused.collectAsStateWithLifecycle()
 
                 val coroutineScope = rememberCoroutineScope()
 
@@ -150,7 +216,17 @@ class MainActivity : ComponentActivity() {
                 val positionalThreshold = dpToPx(56).toFloat()
                 val velocityThreshold = dpToPx(125).toFloat()
 
-                val scaffoldState = remember {
+                // Compute layout mode variables early so they can be used for scaffoldState keying
+                val configuration = LocalConfiguration.current
+                val isCompactWidth = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact
+                val isTV = configuration.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION
+                val isTableTopMode = foldingFeatures.any { it.state == FoldingFeature.State.HALF_OPENED && it.orientation == FoldingFeature.Orientation.HORIZONTAL }
+                // Show bottom sheet on all non-TV devices (including foldables when unfolded)
+                val useBottomSheet = !isTV && !isTableTopMode && !showOnboarding
+
+                // Key scaffoldState on useBottomSheet to reset sheet state when switching
+                // between bottom sheet layout and non-bottom-sheet layout (e.g., fold/unfold)
+                val scaffoldState = remember(useBottomSheet) {
                     BottomSheetScaffoldState(
                         bottomSheetState = SheetState(
                             skipPartiallyExpanded = false,
@@ -167,108 +243,195 @@ class MainActivity : ComponentActivity() {
                     label = "sheetPeekAnimation"
                 )
 
-                val backCallback = object : OnBackPressedCallback(false) {
-                    override fun handleOnBackPressed() {
-                        coroutineScope.launch {
-                            scaffoldState.bottomSheetState.partialExpand()
-                        }
-                    }
-                }
-
-                onBackPressedDispatcher.addCallback(this, backCallback)
-
-
                 Scaffold(
                     bottomBar = {
-                        AnimatedBottomNavBar(navController, scaffoldState)
+                        // Hide bottom nav during onboarding
+                        if (!showOnboarding) {
+                            AnimatedBottomNavBar(navController, scaffoldState)
+                        }
                     },
                     contentColor = MaterialTheme.colorScheme.onBackground,
                     containerColor = Color.Transparent
                 ) { paddingValues ->
-                    if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION) && LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    if (useBottomSheet) {
                         BottomSheetScaffold(
                             sheetContainerColor = Color.Transparent,
                             containerColor = Color.Transparent,
                             sheetPeekHeight = peekHeight + 80.dp + WindowInsets.navigationBars.asPaddingValues()
                                 .calculateBottomPadding(),
                             //sheetShadowElevation = 6.dp,
-                            sheetShape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
+                            sheetShape = RectangleShape,
                             sheetDragHandle = { },
                             scaffoldState = scaffoldState,
                             sheetContent = {
                                 val coroutineScope = rememberCoroutineScope()
+                                val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+                                val isExpanded = scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded
 
-                                Box {
+                                // Handle back press to close sheet when expanded
+                                BackHandler(enabled = isExpanded) {
+                                    coroutineScope.launch {
+                                        scaffoldState.bottomSheetState.partialExpand()
+                                    }
+                                }
+
+                                // Animated top gap - only when expanded
+                                val topGap by animateDpAsState(
+                                    targetValue = if (isExpanded) screenHeight * 0.06f else 0.dp,
+                                    animationSpec = tween(300),
+                                    label = "topGapAnimation"
+                                )
+
+                                // Animated horizontal padding - 4dp always to match navbar
+                                val horizontalPadding by animateDpAsState(
+                                    targetValue = 4.dp,
+                                    animationSpec = tween(300),
+                                    label = "horizontalPaddingAnimation"
+                                )
+
+                                // Animated corner radius - bottom corners 0 when collapsed
+                                val bottomCornerRadius by animateDpAsState(
+                                    targetValue = if (isExpanded) 12.dp else 0.dp,
+                                    animationSpec = tween(300),
+                                    label = "bottomCornerAnimation"
+                                )
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Transparent)
+                                        .padding(start = horizontalPadding, end = horizontalPadding, top = topGap)
+                                        .clip(RoundedCornerShape(12.dp, 12.dp, bottomCornerRadius, bottomCornerRadius))
+                                ) {
+                                    NowPlayingContent(
+                                        mediaController = mediaController,
+                                        metadata = metadata
+                                    )
+
+                                    // Drag handle on top of card - only when expanded
+                                    androidx.compose.animation.AnimatedVisibility(
+                                        visible = isExpanded,
+                                        modifier = Modifier.align(Alignment.TopCenter)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 8.dp, bottom = 4.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .width(32.dp)
+                                                    .height(4.dp)
+                                                    .clip(RoundedCornerShape(2.dp))
+                                                    .background(Color.White.copy(alpha = 0.5f))
+                                            )
+                                        }
+                                    }
+
                                     NowPlayingMiniPlayer(
                                         scaffoldState = scaffoldState,
                                         metadata = metadata,
+                                        mediaController = mediaController,
                                         onClick = {
                                             coroutineScope.launch {
                                                 scaffoldState.bottomSheetState.expand()
                                             }
                                         })
-
-                                    println("Recomposing sheetcontent")
-                                    NowPlayingContent(
-                                        mediaController = mediaController,
-                                        metadata = metadata
-                                    )
                                 }
 
                                 val currentView = LocalView.current
                                 DisposableEffect(scaffoldState.bottomSheetState.targetValue) {
                                     if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
                                         currentView.keepScreenOn = true
-                                        backCallback.isEnabled  = true
-
-                                        /* Restore nav bars.
-                                        @Suppress("DEPRECATION")
-                                        currentView.systemUiVisibility =
-                                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                                                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                                                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                                                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                                                    View.SYSTEM_UI_FLAG_FULLSCREEN or
-                                                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                                        */
-
                                         Log.d("NOW-PLAYING", "KeepScreenOn: True")
                                     } else {
                                         currentView.keepScreenOn = false
-                                        backCallback.isEnabled = false
-
-                                        /* Restore nav bars.
-                                        @Suppress("DEPRECATION")
-                                        currentView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                        */
                                         Log.d("NOW-PLAYING", "KeepScreenOn: False")
                                     }
 
                                     onDispose {
                                         currentView.keepScreenOn = false
-                                        backCallback.isEnabled = false
                                         Log.d("NOW-PLAYING", "KeepScreenOn: False")
                                     }
                                 }
                             }) {
+                            // Don't add peekHeight - let content scroll behind transparent miniplayer
                             SetupNavGraph(
                                 navController,
-                                peekHeight + paddingValues.calculateBottomPadding(),
-                                mediaController
+                                paddingValues.calculateBottomPadding(),
+                                mediaController,
+                                showOnboarding
                             )
                         }
                     } else {
                         SetupNavGraph(
                             navController,
                             0.dp,
-                            mediaController
+                            mediaController,
+                            showOnboarding
                         )
                     }
                 }
 
-                if (showNoProviderDialog.value) NoMediaProvidersDialog(
+                // Suppress no-provider dialog during onboarding
+                if (showNoProviderDialog.value && !showOnboarding) NoMediaProvidersDialog(
                     setShowDialog = { showNoProviderDialog.value = it }, navController
                 )
+
+                // Floating Download Indicator - hide during onboarding
+                // Adjust bottom padding based on whether the mini player is visible
+                if (!showOnboarding) {
+                    val hasMiniPlayer = useBottomSheet && metadata?.title != null
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.BottomEnd
+                    ) {
+                        FloatingDownloadIndicator(
+                            activeDownloads = downloadViewModel.activeDownloads,
+                            onClick = { showDownloadModal = true },
+                            modifier = Modifier
+                                .padding(end = 16.dp, bottom = if (hasMiniPlayer) 160.dp else 96.dp)
+                        )
+                    }
+                }
+
+                // Floating Sync Indicator - hide during onboarding
+                if (!showOnboarding) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        FloatingSyncIndicator(
+                            isSyncing = isSyncing || isPaused,
+                            onClick = {
+                                navController.navigate(Screen.S_Data.route) {
+                                    launchSingleTop = true
+                                }
+                            },
+                            modifier = Modifier
+                                .statusBarsPadding()
+                                .padding(top = 16.dp)
+                        )
+                    }
+                }
+
+                // Download Queue Modal
+                if (showDownloadModal) {
+                    DownloadQueueModal(
+                        activeDownloads = downloadViewModel.activeDownloads,
+                        completedDownloads = downloadViewModel.completedDownloads,
+                        failedDownloads = downloadViewModel.failedDownloads,
+                        onDismiss = { showDownloadModal = false },
+                        onCancelDownload = downloadViewModel::cancelDownload,
+                        onPauseDownload = downloadViewModel::pauseDownload,
+                        onResumeDownload = downloadViewModel::resumeDownload,
+                        onRetryDownload = downloadViewModel::retryDownload,
+                        onDeleteDownload = downloadViewModel::deleteDownload,
+                        onClearCompleted = downloadViewModel::clearCompleted
+                    )
+                }
+            }
             }
         }
 
@@ -299,7 +462,7 @@ class MainActivity : ComponentActivity() {
 
         // SAVE SETTINGS ON APP EXIT
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+            activityLifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
                 override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) { }
                 override fun onActivityStarted(activity: Activity) { }
                 override fun onActivityResumed(activity: Activity) { }
@@ -310,13 +473,24 @@ class MainActivity : ComponentActivity() {
 
                 @androidx.annotation.OptIn(UnstableApi::class)
                 override fun onActivityDestroyed(activity: Activity) {
-                    ChoraMediaLibraryService.getInstance()?.saveState()
-
-                    this@MainActivity.stopService(serviceIntent)
-                    println("Destroyed, Goodbye :(")
+                    if (activity === this@MainActivity) {
+                        ChoraMediaLibraryService.getInstance()?.saveState()
+                        this@MainActivity.stopService(serviceIntent)
+                        println("Destroyed, Goodbye :(")
+                    }
                 }
-            })
+            }
+            activityLifecycleCallbacks?.let { registerActivityLifecycleCallbacks(it) }
         }
+    }
+
+    override fun onDestroy() {
+        // Unregister lifecycle callbacks to prevent memory leak
+        activityLifecycleCallbacks?.let {
+            unregisterActivityLifecycleCallbacks(it)
+            activityLifecycleCallbacks = null
+        }
+        super.onDestroy()
     }
 }
 
@@ -351,15 +525,21 @@ fun AnimatedBottomNavBar(
     if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
         val expanded by remember { derivedStateOf { scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded } }
 
-        val yTrans by animateIntAsState(
-            targetValue = if (expanded) dpToPx(
-                -80 - WindowInsets.navigationBars.asPaddingValues()
+        val yTrans by animateFloatAsState(
+            targetValue = if (expanded) -dpToPx(
+                80 + WindowInsets.navigationBars.asPaddingValues()
                     .calculateBottomPadding().value.toInt()
-            )
-            else 0, label = "Fullscreen Translation"
+            ).toFloat()
+            else 0f, label = "Fullscreen Translation"
         )
 
-        NavigationBar(modifier = Modifier.offset { IntOffset(x = 0, y = -yTrans) }) {
+        NavigationBar(
+            modifier = Modifier
+                .graphicsLayer {
+                    translationY = -yTrans
+                }
+                .padding(horizontal = 4.dp)
+        ) {
             orderedNavItems.forEachIndexed { _, item ->
                 if (!item.enabled) return@forEachIndexed
                 NavigationBarItem(

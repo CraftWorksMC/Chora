@@ -13,6 +13,7 @@ data class Lyric(
 
 
 // LRCLIB Lyrics
+@Stable
 @Serializable
 data class LrcLibLyrics(
     val id: Int,
@@ -47,7 +48,8 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
         val result = mutableListOf<Lyric>()
 
         syncedLyrics?.lines()?.forEach { lyric ->
-            val timeStampsRaw = getTimeStamps(lyric)[0]
+            val timeStamps = getTimeStamps(lyric)
+            val timeStampsRaw = timeStamps.firstOrNull() ?: return@forEach
             val time = mmssToMilliseconds(timeStampsRaw)
             val lyricText: String = lyric.drop(11)
 
@@ -69,7 +71,7 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
 
 fun mmssToMilliseconds(mmss: String): Long {
     val parts = mmss.split(":", ".")
-    if (parts.size == 3) {
+    if (parts.size >= 3) {
         try {
             val minutes = parts[0].toLong()
             val seconds = parts[1].toLong()

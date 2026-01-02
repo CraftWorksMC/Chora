@@ -1,6 +1,7 @@
 package com.craftworks.music.data.datasource.navidrome
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -21,12 +22,16 @@ import com.craftworks.music.providers.navidrome.parseNavidromePlainLyricsJSON
 import com.craftworks.music.providers.navidrome.parseNavidromePlaylistJSON
 import com.craftworks.music.providers.navidrome.parseNavidromePlaylistsJSON
 import com.craftworks.music.providers.navidrome.parseNavidromeRadioJSON
+import com.craftworks.music.providers.navidrome.parseNavidromeRandomSongsJSON
 import com.craftworks.music.providers.navidrome.parseNavidromeSearch3JSON
 import com.craftworks.music.providers.navidrome.parseNavidromeStatus
 import com.craftworks.music.providers.navidrome.parseNavidromeSyncedLyricsJSON
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
+import io.ktor.client.plugins.cache.storage.FileStorage
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -41,7 +46,10 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import java.io.File
+import java.net.URLEncoder
 import java.security.MessageDigest
+import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,15 +57,47 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
 @Singleton
-class NavidromeDataSource @Inject constructor() {
+class NavidromeDataSource @Inject constructor(
+    @param:ApplicationContext private val context: Context
+) {
     private val json = Json { ignoreUnknownKeys = true }
+
+    private val cacheDir: File by lazy {
+        File(context.cacheDir, "navidrome_http_cache").also {
+            if (!it.exists()) it.mkdirs()
+            // Limit cache size to 50MB by deleting old files if needed
+            limitCacheSize(it, 50L * 1024 * 1024)
+        }
+    }
+
+    private fun limitCacheSize(cacheDir: File, maxSizeBytes: Long) {
+        try {
+            val files = cacheDir.listFiles() ?: return
+            var totalSize = files.sumOf { it.length() }
+            if (totalSize > maxSizeBytes) {
+                // Sort by last modified, oldest first
+                files.sortedBy { it.lastModified() }.forEach { file ->
+                    if (totalSize <= maxSizeBytes * 0.8) return@forEach
+                    totalSize -= file.length()
+                    file.delete()
+                }
+            }
+        } catch (_: Exception) { }
+    }
 
     private val client: HttpClient by lazy {
         HttpClient(CIO) {
             install(ContentNegotiation) {
                 json(json)
             }
-            install(HttpCache)
+            install(HttpCache) {
+                publicStorage(FileStorage(cacheDir))
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 30_000
+                connectTimeoutMillis = 15_000
+                socketTimeoutMillis = 30_000
+            }
             install(Logging) {
                 level = LogLevel.ALL
                 logger = Logger.SIMPLE
@@ -73,10 +113,13 @@ class NavidromeDataSource @Inject constructor() {
 
     private fun generateSalt(length: Int): String {
         val allowedChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-        return (1..length).map { allowedChars.random() }.joinToString("")
+        // Use SecureRandom for cryptographically secure salt generation
+        val secureRandom = SecureRandom()
+        return (1..length).map { allowedChars[secureRandom.nextInt(allowedChars.size)] }.joinToString("")
     }
 
-    private fun buildInsecureClient(): HttpClient {
+    // Cache the insecure client to avoid creating new instances per request
+    private val insecureClient: HttpClient by lazy {
         val trustAllCerts = arrayOf<TrustManager>(
             @SuppressLint("CustomX509TrustManager")
             object : X509TrustManager {
@@ -88,7 +131,11 @@ class NavidromeDataSource @Inject constructor() {
             }
         )
 
-        return HttpClient(CIO.create {
+        val insecureCacheDir = File(context.cacheDir, "navidrome_insecure_cache").also {
+            if (!it.exists()) it.mkdirs()
+        }
+
+        HttpClient(CIO.create {
             https {
                 this.trustManager = trustAllCerts[0]
             }
@@ -96,7 +143,14 @@ class NavidromeDataSource @Inject constructor() {
             install(ContentNegotiation) {
                 json(json)
             }
-            install(HttpCache)
+            install(HttpCache) {
+                publicStorage(FileStorage(insecureCacheDir))
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 30_000
+                connectTimeoutMillis = 15_000
+                socketTimeoutMillis = 30_000
+            }
             install(Logging) {
                 level = LogLevel.ALL
                 logger = Logger.SIMPLE
@@ -112,7 +166,9 @@ class NavidromeDataSource @Inject constructor() {
         val server = NavidromeManager.getCurrentServer() ?: throw IllegalArgumentException("No active Navidrome server")
         val salt = generateSalt(8)
         val token = md5Hash(server.password + salt)
-        var url = "${server.url}/rest/$endpoint&u=${server.username}&t=$token&s=$salt&v=1.16.1&c=Chora"
+        // URL-encode username to prevent URL injection attacks
+        val encodedUsername = URLEncoder.encode(server.username, "UTF-8")
+        var url = "${server.url}/rest/$endpoint&u=$encodedUsername&t=$token&s=$salt&v=1.16.1&c=Chora"
 
         // Append musicFolderId parameters if provided
         musicFolderIds?.forEach { folderId ->
@@ -121,7 +177,7 @@ class NavidromeDataSource @Inject constructor() {
 
         NavidromeManager.setSyncingStatus(true)
 
-        val activeClient = if (server.allowSelfSignedCert == true) buildInsecureClient() else client
+        val activeClient = if (server.allowSelfSignedCert == true) insecureClient else client
         val parsedData = mutableListOf<Any>()
 
         try {
@@ -135,7 +191,8 @@ class NavidromeDataSource @Inject constructor() {
             }
 
             if (response.status != HttpStatusCode.OK) {
-                Log.w("NAVIDROME", "HTTP ${response.status} for URL: $url")
+                // Only log the endpoint, not the full URL which contains auth credentials
+                Log.w("NAVIDROME", "HTTP ${response.status} for endpoint: $endpoint")
                 return@withContext emptyList<Any>()
             }
             val responseContent = response.bodyAsText()
@@ -162,12 +219,14 @@ class NavidromeDataSource @Inject constructor() {
                 endpoint.startsWith("getLyricsBySongId.") -> parsedData.addAll(parseNavidromeSyncedLyricsJSON(responseContent))
 
                 endpoint.startsWith("getStarred") -> { parsedData.addAll(parseNavidromeFavouritesJSON(responseContent, server.url, server.username, server.password)) }
+                endpoint.startsWith("getRandomSongs") -> { parsedData.addAll(parseNavidromeRandomSongsJSON(responseContent, server.url, server.username, server.password)) }
 
                 endpoint.startsWith("star") -> { NavidromeManager.setSyncingStatus(false) }
                 endpoint.startsWith("unstar") -> { NavidromeManager.setSyncingStatus(false) }
             }
         } catch (e: Exception) {
-            Log.e("NAVIDROME", "Network error for URL: $url", e)
+            // Only log the endpoint, not the full URL which contains auth credentials
+            Log.e("NAVIDROME", "Network error for endpoint: $endpoint", e)
         } finally {
             NavidromeManager.setSyncingStatus(false)
         }
@@ -201,8 +260,9 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromeAlbum(
         albumId: String, ignoreCachedResponse: Boolean = false
     ): List<MediaItem>? = withContext(Dispatchers.IO) {
+        val encodedId = URLEncoder.encode(albumId, "UTF-8")
         getRequest(
-            "getAlbum.view?id=${albumId}&f=json",
+            "getAlbum.view?id=$encodedId&f=json",
             null,
             ignoreCachedResponse
         ).filterIsInstance<MediaItem>()
@@ -213,8 +273,9 @@ class NavidromeDataSource @Inject constructor() {
         ignoreCachedResponse: Boolean = false,
         musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
     ): List<MediaItem> = withContext(Dispatchers.IO) {
+        val encodedQuery = URLEncoder.encode(query ?: "", "UTF-8")
         getRequest(
-            "search3.view?query=$query&songCount=0&songOffset=0&artistCount=0&albumCount=100&f=json",
+            "search3.view?query=$encodedQuery&songCount=0&songOffset=0&artistCount=0&albumCount=100&f=json",
             musicFolderIds,
             ignoreCachedResponse
         ).filterIsInstance<MediaItem>()
@@ -228,8 +289,9 @@ class NavidromeDataSource @Inject constructor() {
         ignoreCachedResponse: Boolean = false,
         musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
     ): List<MediaItem> = withContext(Dispatchers.IO) {
+        val encodedQuery = URLEncoder.encode(query ?: "", "UTF-8")
         getRequest(
-            "search3.view?query=$query&songCount=$songCount&songOffset=$songOffset&artistCount=0&albumCount=0&f=json",
+            "search3.view?query=$encodedQuery&songCount=$songCount&songOffset=$songOffset&artistCount=0&albumCount=0&f=json",
             musicFolderIds,
             ignoreCachedResponse
         ).filterIsInstance<MediaItem>()
@@ -238,16 +300,30 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromeSong(
         songId: String, ignoreCachedResponse: Boolean = false
     ): MediaItem? = withContext(Dispatchers.IO) {
+        val encodedId = URLEncoder.encode(songId, "UTF-8")
         getRequest(
-            "getSong.view?id=$songId&f=json",
+            "getSong.view?id=$encodedId&f=json",
             null,
             ignoreCachedResponse
         ).filterIsInstance<MediaItem>().firstOrNull()
     }
 
-    suspend fun scrobbleSong(songId: String, submission: Boolean) = withContext(Dispatchers.IO) {
+    suspend fun getRandomSongs(
+        size: Int = 50,
+        ignoreCachedResponse: Boolean = true,
+        musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
+    ): List<MediaItem> = withContext(Dispatchers.IO) {
         getRequest(
-            "scrobble.view?id=$songId&submission=$submission",
+            "getRandomSongs.view?size=$size&f=json",
+            musicFolderIds,
+            ignoreCachedResponse
+        ).filterIsInstance<MediaItem>()
+    }
+
+    suspend fun scrobbleSong(songId: String, submission: Boolean) = withContext(Dispatchers.IO) {
+        val encodedId = URLEncoder.encode(songId, "UTF-8")
+        getRequest(
+            "scrobble.view?id=$encodedId&submission=$submission",
             null,
             true
         )
@@ -268,8 +344,9 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromeArtistAlbums(
         artistId: String, ignoreCachedResponse: Boolean = false
     ): List<MediaItem> = withContext(Dispatchers.IO) {
+        val encodedId = URLEncoder.encode(artistId, "UTF-8")
         getRequest(
-            "getArtist.view?id=$artistId&f=json",
+            "getArtist.view?id=$encodedId&f=json",
             null,
             ignoreCachedResponse
         ).filterIsInstance<MediaItem>()
@@ -278,8 +355,9 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromeArtistInfo(
         artistId: String, ignoreCachedResponse: Boolean = false
     ): MediaData.ArtistInfo? = withContext(Dispatchers.IO) {
+        val encodedId = URLEncoder.encode(artistId, "UTF-8")
         getRequest(
-            "getArtistInfo.view?id=$artistId&f=json",
+            "getArtistInfo.view?id=$encodedId&f=json",
             null,
             ignoreCachedResponse
         ).filterIsInstance<MediaData.ArtistInfo>().firstOrNull()
@@ -291,11 +369,14 @@ class NavidromeDataSource @Inject constructor() {
         musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
     ): List<MediaData.Artist> = withContext(Dispatchers.IO) {
         if (query.isNullOrBlank()) getNavidromeArtists(musicFolderIds = musicFolderIds, ignoreCachedResponse = ignoreCachedResponse)
-        else getRequest(
-            "search3.view?query=$query&artistCount=100&albumCount=0&songCount=0&f=json",
-            musicFolderIds,
-            ignoreCachedResponse
-        ).filterIsInstance<MediaData.Artist>()
+        else {
+            val encodedQuery = URLEncoder.encode(query, "UTF-8")
+            getRequest(
+                "search3.view?query=$encodedQuery&artistCount=100&albumCount=0&songCount=0&f=json",
+                musicFolderIds,
+                ignoreCachedResponse
+            ).filterIsInstance<MediaData.Artist>()
+        }
     }
 
     // Playlists
@@ -313,8 +394,9 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromePlaylist(
         playlistId: String, ignoreCachedResponse: Boolean = false
     ): List<MediaItem>? = withContext(Dispatchers.IO) {
+        val encodedId = URLEncoder.encode(playlistId, "UTF-8")
         getRequest(
-            "getPlaylist.view?id=$playlistId&f=json",
+            "getPlaylist.view?id=$encodedId&f=json",
             null,
             ignoreCachedResponse
         ).filterIsInstance<MediaItem>()
@@ -323,8 +405,12 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun createNavidromePlaylist(
         name: String, songIds: List<String>? = null, ignoreCachedResponse: Boolean = false
     ): Boolean = withContext(Dispatchers.IO) {
-        var endpoint = "createPlaylist.view?name=$name"
-        songIds?.forEach { songId -> endpoint += "&songId=$songId" }
+        val encodedName = URLEncoder.encode(name, "UTF-8")
+        var endpoint = "createPlaylist.view?name=$encodedName"
+        songIds?.forEach { songId ->
+            val encodedSongId = URLEncoder.encode(songId, "UTF-8")
+            endpoint += "&songId=$encodedSongId"
+        }
         val response = getRequest(endpoint, null, ignoreCachedResponse)
         response.isNotEmpty()
     }
@@ -332,8 +418,10 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun addSongToNavidromePlaylist(
         playlistId: String, songId: String, ignoreCachedResponse: Boolean = false
     ): Boolean = withContext(Dispatchers.IO) {
+        val encodedPlaylistId = URLEncoder.encode(playlistId, "UTF-8")
+        val encodedSongId = URLEncoder.encode(songId, "UTF-8")
         val response = getRequest(
-            "updatePlaylist.view?playlistId=$playlistId&songIdToAdd=$songId",
+            "updatePlaylist.view?playlistId=$encodedPlaylistId&songIdToAdd=$encodedSongId",
             null,
             ignoreCachedResponse
         )
@@ -343,8 +431,9 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun removeSongFromNavidromePlaylist(
         playlistId: String, songIndexToRemove: Int, ignoreCachedResponse: Boolean = false
     ): Boolean = withContext(Dispatchers.IO) {
+        val encodedPlaylistId = URLEncoder.encode(playlistId, "UTF-8")
         val response = getRequest(
-            "updatePlaylist.view?playlistId=$playlistId&songIndexToRemove=$songIndexToRemove",
+            "updatePlaylist.view?playlistId=$encodedPlaylistId&songIndexToRemove=$songIndexToRemove",
             null,
             ignoreCachedResponse
         )
@@ -354,8 +443,9 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun deleteNavidromePlaylist(
         playlistId: String, ignoreCachedResponse: Boolean = false
     ): Boolean = withContext(Dispatchers.IO) {
+        val encodedId = URLEncoder.encode(playlistId, "UTF-8")
         val response = getRequest(
-            "deletePlaylist.view?id=$playlistId",
+            "deletePlaylist.view?id=$encodedId",
             null,
             ignoreCachedResponse
         )
@@ -376,8 +466,11 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun createNavidromeRadio(
         name: String, url: String, homePageUrl: String? = null
     ) = withContext(Dispatchers.IO) {
+        val encodedName = URLEncoder.encode(name, "UTF-8")
+        val encodedUrl = URLEncoder.encode(url, "UTF-8")
+        val encodedHomePage = URLEncoder.encode(homePageUrl ?: "", "UTF-8")
         getRequest(
-            "createInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePageUrl",
+            "createInternetRadioStation.view?name=$encodedName&streamUrl=$encodedUrl&homepageUrl=$encodedHomePage",
             null,
             true
         )
@@ -386,8 +479,12 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun updateNavidromeRadio(
         radioId: String, name: String, url: String, homePageUrl: String? = null
     ) = withContext(Dispatchers.IO) {
+        val encodedId = URLEncoder.encode(radioId, "UTF-8")
+        val encodedName = URLEncoder.encode(name, "UTF-8")
+        val encodedUrl = URLEncoder.encode(url, "UTF-8")
+        val encodedHomePage = URLEncoder.encode(homePageUrl ?: "", "UTF-8")
         getRequest(
-            "updateInternetRadioStation.view?name=$name&streamUrl=$url&homepageUrl=$homePageUrl&id=$radioId",
+            "updateInternetRadioStation.view?name=$encodedName&streamUrl=$encodedUrl&homepageUrl=$encodedHomePage&id=$encodedId",
             null,
             true
         )
@@ -396,8 +493,9 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun deleteNavidromeRadio(
         radioId: String
     ) = withContext(Dispatchers.IO) {
+        val encodedId = URLEncoder.encode(radioId, "UTF-8")
         getRequest(
-            "deleteInternetRadioStation.view?id=$radioId",
+            "deleteInternetRadioStation.view?id=$encodedId",
             null,
             true
         )
@@ -407,7 +505,9 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromePlainLyrics(
         metadata: MediaMetadata?, ignoreCachedResponse: Boolean = false
     ): List<Lyric> = withContext(Dispatchers.IO) {
-        getRequest("getLyrics.view?artist=${metadata?.artist}&title=${metadata?.title}&f=json", null).filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.content.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
+        val artist = URLEncoder.encode(metadata?.artist?.toString() ?: "", "UTF-8")
+        val title = URLEncoder.encode(metadata?.title?.toString() ?: "", "UTF-8")
+        getRequest("getLyrics.view?artist=$artist&title=$title&f=json", null).filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.content.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
     }
 
     suspend fun getNavidromeSyncedLyrics(

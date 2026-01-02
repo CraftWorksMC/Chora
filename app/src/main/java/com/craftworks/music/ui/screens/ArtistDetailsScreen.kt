@@ -78,6 +78,8 @@ import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.AlbumCard
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
+import com.craftworks.music.ui.util.rememberFoldableState
+import com.craftworks.music.ui.util.responsiveGridCells
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
@@ -97,6 +99,8 @@ fun ArtistDetails(
     val context = LocalContext.current
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
+    val foldableState = rememberFoldableState()
+    val gridColumns = responsiveGridCells()
     val coroutineScope = rememberCoroutineScope()
 
     // Loading spinner
@@ -125,6 +129,12 @@ fun ArtistDetails(
         }
     }
 
+    // Group albums by year - use remember to avoid recomputation
+    val groupedAlbums = remember(artistAlbums) {
+        artistAlbums.groupBy { it.mediaMetadata.recordingYear }
+            .toSortedMap(compareByDescending { it })
+    }
+
     // Main Content
     AnimatedVisibility(
         visible = artist?.name?.isNotBlank() == true,
@@ -137,14 +147,10 @@ fun ArtistDetails(
                     top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
                 )
                 .dialogFocusable(),
-            columns = GridCells.Adaptive(128.dp)
+            columns = GridCells.Fixed(gridColumns)
         ) {
-            // Group songs by their source (Local or Navidrome)
-            val groupedAlbums =
-                artistAlbums.groupBy { it.mediaMetadata.recordingYear }
-                    .toSortedMap(compareByDescending { it })
 
-            item(span = { GridItemSpan(maxLineSpan) }) {
+            item(key = "artist_header", span = { GridItemSpan(maxLineSpan) }) {
                 Column {
                     Box(
                         modifier = Modifier
@@ -156,9 +162,8 @@ fun ArtistDetails(
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(artist?.artistImageUrl)
-                                .diskCacheKey(
-                                    artist?.navidromeID
-                                )
+                                .diskCacheKey(artist?.navidromeID)
+                                .memoryCacheKey(artist?.navidromeID)
                                 .crossfade(true)
                                 .build(),
                             placeholder = painterResource(R.drawable.s_a_username),
@@ -272,7 +277,7 @@ fun ArtistDetails(
             }
 
             // Play and shuffle buttons
-            item(span = { GridItemSpan(maxLineSpan) }) {
+            item(key = "play_buttons", span = { GridItemSpan(maxLineSpan) }) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -283,21 +288,16 @@ fun ArtistDetails(
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                val allArtistSongsList = artistAlbums.map {
-                                    it.mediaMetadata.extras?.getString("navidromeID").let {
-                                        val album = viewModel.getAlbum(it ?: "")
-                                        if (album.isNotEmpty())
-                                            album.subList(1, album.size)
-                                        else
-                                            emptyList()
+                                val allArtistSongsList = artistAlbums.mapNotNull {
+                                    it.mediaMetadata.extras?.getString("navidromeID")?.let { id ->
+                                        val album = viewModel.getAlbum(id)
+                                        if (album.size > 1) album.subList(1, album.size) else null
                                     }
-                                }
+                                }.flatten()
 
-                                SongHelper.play(
-                                    allArtistSongsList.flatten(),
-                                    0,
-                                    mediaController
-                                )
+                                if (allArtistSongsList.isNotEmpty()) {
+                                    SongHelper.play(allArtistSongsList, 0, mediaController)
+                                }
                             }
                         },
                         modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
@@ -313,23 +313,18 @@ fun ArtistDetails(
                     OutlinedButton (
                         onClick = {
                             coroutineScope.launch {
-                                val allArtistSongsList = artistAlbums.map {
-                                    it.mediaMetadata.extras?.getString("navidromeID").let {
-                                        val album = viewModel.getAlbum(it ?: "")
-                                        if (album.isNotEmpty())
-                                            album.subList(1, album.size)
-                                        else
-                                            emptyList()
+                                val allArtistSongsList = artistAlbums.mapNotNull {
+                                    it.mediaMetadata.extras?.getString("navidromeID")?.let { id ->
+                                        val album = viewModel.getAlbum(id)
+                                        if (album.size > 1) album.subList(1, album.size) else null
                                     }
-                                }
+                                }.flatten()
 
-                                mediaController?.shuffleModeEnabled = true
-                                val random = allArtistSongsList.indices.random()
-                                SongHelper.play(
-                                    allArtistSongsList.flatten(),
-                                    random,
-                                    mediaController
-                                )
+                                if (allArtistSongsList.isNotEmpty()) {
+                                    mediaController?.shuffleModeEnabled = true
+                                    val random = allArtistSongsList.indices.random()
+                                    SongHelper.play(allArtistSongsList, random, mediaController)
+                                }
                             }
                         },
                         modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
@@ -349,7 +344,7 @@ fun ArtistDetails(
             }
 
             /* Discography header */
-            item(span = { GridItemSpan(maxLineSpan) }) {
+            item(key = "discography_header", span = { GridItemSpan(maxLineSpan) }) {
                 Text(
                     text = stringResource(R.string.Screen_Discography),
                     color = MaterialTheme.colorScheme.onBackground,
@@ -360,7 +355,7 @@ fun ArtistDetails(
             }
 
             groupedAlbums.forEach { (groupName, albumsInGroup) ->
-                item(span = { GridItemSpan(maxLineSpan) }) {
+                item(key = "year_header_$groupName", span = { GridItemSpan(maxLineSpan) }) {
                     Text(
                         text = groupName.toString(),
                         style = MaterialTheme.typography.titleMedium,
@@ -370,20 +365,20 @@ fun ArtistDetails(
                             .padding(top = 12.dp)
                     )
                 }
-                itemsIndexed(albumsInGroup) { index, album ->
+                itemsIndexed(albumsInGroup, key = { _, album -> album.mediaId }) { index, album ->
                     AlbumCard(
                         album = album,
                         onClick = {
-                            val album = album.toAlbum()
-                            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                            val albumData = album.toAlbum()
+                            val encodedImage = URLEncoder.encode(albumData.coverArt ?: "", "UTF-8")
+                            navHostController.navigate(Screen.AlbumDetails.route + "/${albumData.navidromeID}?image=$encodedImage") {
                                 launchSingleTop = true
                             }
                         },
                         onPlay = {
                             coroutineScope.launch {
                                 val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
-                                if (mediaItems.isNotEmpty())
+                                if (mediaItems.size > 1)
                                     SongHelper.play(
                                         mediaItems = mediaItems.subList(1, mediaItems.size),
                                         index = 0,
@@ -392,6 +387,59 @@ fun ArtistDetails(
                             }
                         }
                     )
+                }
+            }
+
+            // Similar Artists section
+            if (!artist?.similarArtist.isNullOrEmpty()) {
+                item(key = "similar_artists_header", span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        text = stringResource(R.string.similar_artists),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(start = 12.dp, top = 24.dp, bottom = 12.dp)
+                    )
+                }
+
+                artist?.similarArtist?.let { similarArtists ->
+                    itemsIndexed(similarArtists, key = { _, artist -> "similar_${artist.navidromeID}" }) { _, similarArtist ->
+                        Column(
+                            modifier = Modifier
+                                .padding(6.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    viewModel.setSelectedArtist(similarArtist)
+                                }
+                                .padding(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(similarArtist.artistImageUrl)
+                                    .diskCacheKey("similar_${similarArtist.navidromeID}")
+                                    .memoryCacheKey("similar_${similarArtist.navidromeID}")
+                                    .crossfade(true)
+                                    .build(),
+                                placeholder = painterResource(R.drawable.s_a_username),
+                                fallback = painterResource(R.drawable.s_a_username),
+                                contentScale = ContentScale.Crop,
+                                contentDescription = similarArtist.name,
+                                modifier = Modifier
+                                    .size(96.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                            )
+                            Text(
+                                text = similarArtist.name,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                    }
                 }
             }
         }

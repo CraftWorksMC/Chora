@@ -15,9 +15,13 @@ fun parseNavidromeLibrariesJSON(
     response: String
 ): List<NavidromeLibrary> {
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+        ?: return emptyList()
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        return emptyList()
+    }
 
     return subsonicResponse.musicFolders?.musicFolder ?: emptyList()
 }

@@ -31,12 +31,18 @@ import kotlinx.coroutines.flow.asStateFlow
 @Stable
 class MediaControllerManager private constructor(context: Context) : RememberObserver {
     private val appContext = context.applicationContext
+    @Volatile
     private var factory: ListenableFuture<MediaController>? = null
+    private val factoryLock = Any()
 
     private val _currentMetadata = MutableStateFlow<MediaMetadata?>(null)
     val currentMetadata: StateFlow<MediaMetadata?> = _currentMetadata.asStateFlow()
 
     var controller = mutableStateOf<MediaController?>(null)
+
+    // Track if we're in a configuration change to avoid premature release
+    @Volatile
+    private var isReleasing = false
 
     init { initialize() }
 
@@ -48,41 +54,67 @@ class MediaControllerManager private constructor(context: Context) : RememberObs
      * Initializes the MediaController.
      *
      * If the MediaController has not been built or has been released, this method will build a new one.
+     * This method is thread-safe and handles concurrent initialization attempts.
      */
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     internal fun initialize() {
-        if (factory == null || factory?.isDone == true) {
-            factory = MediaController.Builder(
-                appContext,
-                SessionToken(appContext, ComponentName(appContext, ChoraMediaLibraryService::class.java))
-            ).buildAsync()
-        }
-        factory?.addListener(
-            {
-                // MediaController is available here with controllerFuture.get()
-                controller.value = factory?.let {
-                    if (it.isDone)
-                        it.get()
-                    else
-                        null
+        isReleasing = false
+
+        synchronized(factoryLock) {
+            // Only create a new factory if one doesn't exist or the previous one completed
+            if (factory == null || factory?.isDone == true) {
+                factory = MediaController.Builder(
+                    appContext,
+                    SessionToken(appContext, ComponentName(appContext, ChoraMediaLibraryService::class.java))
+                ).buildAsync().also { newFactory ->
+                    // Add listener only to newly created factory to prevent duplicate listeners
+                    newFactory.addListener(
+                        {
+                            // MediaController is available here with controllerFuture.get()
+                            // Don't update if we're in the middle of releasing (config change)
+                            if (isReleasing) return@addListener
+
+                            try {
+                                val newController = if (newFactory.isDone && !newFactory.isCancelled) {
+                                    newFactory.get()
+                                } else {
+                                    null
+                                }
+                                controller.value = newController
+                                // Only publish metadata after controller is assigned to avoid race
+                                publishCurrentMetadata(newController)
+                            } catch (e: java.util.concurrent.CancellationException) {
+                                // Expected when future is cancelled during shutdown
+                                if (!isReleasing) controller.value = null
+                            } catch (e: java.util.concurrent.ExecutionException) {
+                                // Service may be unavailable
+                                if (!isReleasing) controller.value = null
+                            } catch (e: Exception) {
+                                if (!isReleasing) controller.value = null
+                            }
+                        },
+                        MoreExecutors.directExecutor()
+                    )
                 }
-                publishCurrentMetadata(controller.value)
-            },
-            MoreExecutors.directExecutor()
-        )
+            }
+        }
     }
 
     /**
      * Releases the MediaController.
      *
      * This method will release the MediaController and set the controller state to null.
+     * Thread-safe and guards against race conditions during configuration changes.
      */
     internal fun release() {
-        factory?.let {
-            MediaController.releaseFuture(it)
-            controller.value = null
+        isReleasing = true
+        synchronized(factoryLock) {
+            factory?.let {
+                MediaController.releaseFuture(it)
+                controller.value = null
+            }
+            factory = null
         }
-        factory = null
     }
 
     // Lifecycle methods for the RememberObserver interface.
@@ -105,6 +137,17 @@ class MediaControllerManager private constructor(context: Context) : RememberObs
                 instance ?: MediaControllerManager(context).also { instance = it }
             }
         }
+
+        /**
+         * Releases the singleton instance. Call this when the app is shutting down
+         * to prevent memory leaks.
+         */
+        fun releaseInstance() {
+            synchronized(this) {
+                instance?.release()
+                instance = null
+            }
+        }
     }
 }
 
@@ -125,11 +168,17 @@ fun rememberManagedMediaController(
     val controllerManager = remember { MediaControllerManager.getInstance(appContext) }
 
     // Observe the lifecycle to initialize and release the MediaController at the appropriate times.
+    // Note: We initialize on ON_START but DO NOT release on ON_DESTROY because during
+    // configuration changes (fold/unfold), the activity is destroyed and immediately recreated.
+    // The MediaController is a singleton that should persist across config changes.
+    // It will be released when the MediaControllerManager singleton is garbage collected
+    // or when the app process is killed.
     DisposableEffect(lifecycle) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> controllerManager.initialize()
-                Lifecycle.Event.ON_DESTROY -> controllerManager.release()
+                // Don't release on ON_DESTROY - the singleton MediaController should persist
+                // across configuration changes. The service manages its own lifecycle.
                 else -> {}
             }
         }
@@ -147,12 +196,12 @@ fun rememberCurrentMetadata(
     val appContext = LocalContext.current.applicationContext
     val manager = remember { MediaControllerManager.getInstance(appContext) }
 
-    // Lifecycle‑aware init/release – unchanged
+    // Lifecycle-aware init - don't release on destroy to survive config changes
     DisposableEffect(lifecycle) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> manager.initialize()
-                Lifecycle.Event.ON_DESTROY -> manager.release()
+                // Don't release on ON_DESTROY - persist across config changes
                 else -> {}
             }
         }

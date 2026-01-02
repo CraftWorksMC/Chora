@@ -55,7 +55,11 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.repository.LyricsState
-import com.craftworks.music.player.ChoraMediaLibraryService
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.ui.util.TextDisplayUtils
+import androidx.compose.runtime.remember
+import com.craftworks.music.ui.util.LayoutMode
+import com.craftworks.music.ui.util.rememberFoldableState
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
 @Preview(device = "id:tv_1080p", showBackground = true, showSystemUi = true)
@@ -66,32 +70,161 @@ fun NowPlayingLandscape(
     iconColor: Color = Color.Black,
     metadata: MediaMetadata? = null
 ){
-    // use dark or light colors for icons and text based on the album art luminance.
+    val foldableState = rememberFoldableState()
+    val isTableTop = foldableState.layoutMode == LayoutMode.TABLE_TOP
+    val isCompactHeight = LocalConfiguration.current.screenHeightDp.dp < 512.dp
+
     val iconTextColor by animateColorAsState(
         targetValue = iconColor,
         animationSpec = tween(1000, 0, FastOutSlowInEasing),
         label = "Animated text color"
     )
 
+    val context = LocalContext.current
+    val settingsManager = remember { AppearanceSettingsManager(context) }
+    val stripTrackNumbers by settingsManager.stripTrackNumbersFromTitlesFlow.collectAsStateWithLifecycle(false)
+
+    if (isTableTop) {
+        NowPlayingTableTop(mediaController, iconTextColor, metadata, stripTrackNumbers)
+    } else {
+        NowPlayingLandscapeContent(mediaController, iconTextColor, metadata, isCompactHeight, stripTrackNumbers)
+    }
+}
+
+@Composable
+private fun NowPlayingTableTop(
+    mediaController: MediaController?,
+    iconTextColor: Color,
+    metadata: MediaMetadata?,
+    stripTrackNumbers: Boolean
+) {
+    val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
+
+    Column(Modifier.fillMaxHeight()) {
+        Box(Modifier.weight(1f)) {
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(metadata?.artworkUri.toString().replace("size=128", "size=500"))
+                        .crossfade(true)
+                        .diskCacheKey("np_${metadata?.extras?.getString("navidromeID")}_500")
+                        .memoryCacheKey("np_${metadata?.extras?.getString("navidromeID")}_500")
+                        .build(),
+                    contentDescription = "Album Cover Art",
+                    placeholder = painterResource(R.drawable.placeholder),
+                    fallback = painterResource(R.drawable.placeholder),
+                    contentScale = ContentScale.FillWidth,
+                    alignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxHeight(0.7f)
+                        .aspectRatio(1f)
+                        .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                Text(
+                    text = TextDisplayUtils.formatSongTitle(metadata?.title.toString(), stripTrackNumbers),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = iconTextColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = TextDisplayUtils.formatArtistName(metadata?.artist?.toString()) + if (metadata?.recordingYear != null && metadata?.recordingYear != 0) " - " + metadata?.recordingYear else "",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = iconTextColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        Box(Modifier.weight(1f)) {
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.SpaceEvenly
+            ) {
+                if (metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
+                    PlaybackProgressSlider(iconTextColor, mediaController, metadata)
+                }
+
+                VolumeSlider(iconTextColor, mediaController)
+
+                Row(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                        .selectableGroup(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    mediaController?.let {
+                        ShuffleButton(it, iconTextColor, Modifier.size(32.dp))
+                        PreviousSongButton(it, iconTextColor, Modifier.size(48.dp))
+                        PlayPauseButton(it, iconTextColor, Modifier.size(92.dp))
+                        NextSongButton(it, iconTextColor, Modifier.size(48.dp))
+                        RepeatButton(it, iconTextColor, Modifier.size(32.dp))
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .selectableGroup(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    LyricsButton(iconTextColor, 48.dp)
+                    FavoriteButton(iconTextColor, 48.dp, metadata, (metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && metadata?.extras?.getString("navidromeID")?.startsWith("Local_") == false))
+                    DownloadButton(iconTextColor, 48.dp, metadata, (metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && metadata?.extras?.getString("navidromeID")?.startsWith("Local_") == false))
+                    PlayQueueButton(iconTextColor, 48.dp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NowPlayingLandscapeContent(
+    mediaController: MediaController?,
+    iconTextColor: Color,
+    metadata: MediaMetadata?,
+    isCompactHeight: Boolean,
+    stripTrackNumbers: Boolean
+) {
+    // Button sizing for landscape
+    val mainButtonSize = 92.dp
+    val secondaryButtonSize = 48.dp
+    val smallButtonSize = 32.dp
+
     Row {
         Column(
-            Modifier.weight(1f).widthIn(min = 512.dp).fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceEvenly,
+            Modifier.weight(1f).fillMaxHeight(),
+            verticalArrangement = Arrangement.Center,
         ) {
-            // Album Art
-            if (LocalConfiguration.current.screenHeightDp.dp > 512.dp){
+            // Album Art - shown on non-compact height screens (like unfolded foldables)
+            if (!isCompactHeight){
                 Column(
                     Modifier.focusable(false).fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    /* Album Cover + Lyrics */
+                    /* Album Cover */
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(metadata?.artworkUri.toString().replace("size=128", "size=500"))
                             .crossfade(true)
-                            .diskCachePolicy(
-                                CachePolicy.DISABLED
-                            )
+                            .diskCacheKey("np_${metadata?.extras?.getString("navidromeID")}_500")
+                            .memoryCacheKey("np_${metadata?.extras?.getString("navidromeID")}_500")
                             .build(),
                         contentDescription = "Album Cover Art",
                         placeholder = painterResource(R.drawable.placeholder),
@@ -99,26 +232,27 @@ fun NowPlayingLandscape(
                         contentScale = ContentScale.FillWidth,
                         alignment = Alignment.Center,
                         modifier = Modifier
-                            .fillMaxHeight(0.6f)
+                            .fillMaxHeight(0.35f)
+                            .widthIn(max = 300.dp)
                             .aspectRatio(1f)
                             .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
                             .background(MaterialTheme.colorScheme.surfaceVariant),
                     )
                 }
+                Spacer(Modifier.height(16.dp))
             }
 
             /* Image (When lyrics open) + Song Title + Artist*/
             Row {
                 AnimatedVisibility(
-                    visible = lyricsOpen && LocalConfiguration.current.screenHeightDp.dp < 512.dp,
+                    visible = lyricsOpen && isCompactHeight,
                     modifier = Modifier
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(metadata?.artworkUri.toString().replace("size=128", "size=500"))
-                            .diskCachePolicy(
-                                CachePolicy.DISABLED
-                            )
+                            .diskCacheKey("np_${metadata?.extras?.getString("navidromeID")}_500")
+                            .memoryCacheKey("np_${metadata?.extras?.getString("navidromeID")}_500")
                             .crossfade(true)
                             .build(),
                         contentDescription = "Album Cover Art",
@@ -135,7 +269,7 @@ fun NowPlayingLandscape(
                     )
                 }
 
-                if (LocalConfiguration.current.screenHeightDp.dp < 512.dp)
+                if (isCompactHeight)
                     Spacer(Modifier.animateContentSize().width(if (lyricsOpen) 0.dp else 24.dp))
                 else
                     Spacer(Modifier.width(24.dp))
@@ -147,7 +281,7 @@ fun NowPlayingLandscape(
                     verticalArrangement = Arrangement.Top
                 ) {
                     Text(
-                        text = metadata?.title.toString(),
+                        text = TextDisplayUtils.formatSongTitle(metadata?.title.toString(), stripTrackNumbers),
                         style = MaterialTheme.typography.headlineMedium,
                         color = iconTextColor,
                         maxLines = 1, overflow = TextOverflow.Visible,
@@ -159,7 +293,7 @@ fun NowPlayingLandscape(
                     )
 
                     Text(
-                        text = metadata?.artist.toString() + if (metadata?.recordingYear != 0) " • " + metadata?.recordingYear else "",
+                        text = TextDisplayUtils.formatArtistName(metadata?.artist?.toString()) + if (metadata?.recordingYear != null && metadata?.recordingYear != 0) " • " + metadata?.recordingYear else "",
                         style = MaterialTheme.typography.titleMedium,
                         color = iconTextColor,
                         maxLines = 1,
@@ -173,14 +307,18 @@ fun NowPlayingLandscape(
                 }
             }
 
-            //Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
 
             if (metadata?.mediaType == MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
                 Spacer(Modifier.height(48.dp))
             }
             else {
-                PlaybackProgressSlider(iconTextColor, mediaController)
+                PlaybackProgressSlider(iconTextColor, mediaController, metadata)
             }
+
+            Spacer(Modifier.height(8.dp))
+            VolumeSlider(iconTextColor, mediaController)
+            Spacer(Modifier.height(8.dp))
 
             Row(
                 modifier = Modifier
@@ -191,56 +329,58 @@ fun NowPlayingLandscape(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ChoraMediaLibraryService.getInstance()?.player?.let {
+                mediaController?.let {
                     ShuffleButton(
                         it,
                         iconTextColor,
-                        Modifier.size(32.dp)
+                        Modifier.size(smallButtonSize)
                     )
 
                     PreviousSongButton(
                         it,
                         iconTextColor,
-                        Modifier.size(48.dp)
+                        Modifier.size(secondaryButtonSize)
                     )
 
                     PlayPauseButton(
                         it,
                         iconTextColor,
-                        Modifier.size(92.dp)
+                        Modifier.size(mainButtonSize)
                     )
 
                     NextSongButton(
                         it,
                         iconTextColor,
-                        Modifier.size(48.dp)
+                        Modifier.size(secondaryButtonSize)
                     )
 
                     RepeatButton(
                         it,
                         iconTextColor,
-                        Modifier.size(32.dp)
+                        Modifier.size(smallButtonSize)
                     )
                 }
             }
-            if (LocalConfiguration.current.screenHeightDp.dp < 512.dp){
-                Row(
-                    modifier = Modifier
-                        .wrapContentHeight()
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                        .selectableGroup(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    LyricsButton(iconTextColor, 48.dp)
-                }
+            // Extra buttons row - always visible
+            Row(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                    .selectableGroup(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                LyricsButton(iconTextColor, secondaryButtonSize)
+                FavoriteButton(iconTextColor, secondaryButtonSize, metadata, (metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && metadata?.extras?.getString("navidromeID")?.startsWith("Local_") == false))
+                DownloadButton(iconTextColor, secondaryButtonSize, metadata, (metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && metadata?.extras?.getString("navidromeID")?.startsWith("Local_") == false))
+                PlayQueueButton(iconTextColor, secondaryButtonSize)
             }
         }
 
         val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
 
-        if (LocalConfiguration.current.screenHeightDp.dp < 512.dp){
+        if (isCompactHeight){
             Crossfade(
                 lyricsOpen,
                 label = ""
@@ -249,6 +389,7 @@ fun NowPlayingLandscape(
                     Box(Modifier
                         .padding(32.dp)
                         .fillMaxHeight()
+                        .widthIn(max = 400.dp)
                         .aspectRatio(1f)
                     ){
                         LyricsView(
@@ -264,9 +405,8 @@ fun NowPlayingLandscape(
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(metadata?.artworkUri.toString().replace("size=128", "size=500"))
-                            .diskCachePolicy(
-                                CachePolicy.DISABLED
-                            )
+                            .diskCacheKey("np_${metadata?.extras?.getString("navidromeID")}_500")
+                            .memoryCacheKey("np_${metadata?.extras?.getString("navidromeID")}_500")
                             .crossfade(true)
                             .build(),
                         contentDescription = "Album Cover Art",
@@ -277,6 +417,7 @@ fun NowPlayingLandscape(
                         modifier = Modifier
                             .padding(32.dp)
                             .fillMaxHeight()
+                            .widthIn(max = 400.dp)
                             .aspectRatio(1f)
                             .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
                             .background(MaterialTheme.colorScheme.surfaceVariant),

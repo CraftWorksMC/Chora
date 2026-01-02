@@ -1,8 +1,10 @@
 package com.craftworks.music.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,8 +34,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -66,7 +73,10 @@ import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.HorizontalSongCard
+import com.craftworks.music.ui.elements.SelectionActionBar
+import com.craftworks.music.ui.elements.SwipeableToQueueSongCard
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
+import com.craftworks.music.ui.viewmodels.DownloadViewModel
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 import kotlinx.coroutines.launch
 
@@ -77,7 +87,8 @@ import kotlinx.coroutines.launch
 fun PlaylistDetails(
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = rememberManagedMediaController().value,
-    viewModel: PlaylistScreenViewModel = hiltViewModel()
+    viewModel: PlaylistScreenViewModel = hiltViewModel(),
+    downloadViewModel: DownloadViewModel = hiltViewModel()
 ) {
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red, Color.Transparent))
 
@@ -92,6 +103,15 @@ fun PlaylistDetails(
         remember(playlistSongs) { playlistSongs.sumOf { it.mediaMetadata.durationMs ?: 0 } }
 
     val coroutineScope = rememberCoroutineScope()
+
+    // Selection state
+    var isInSelectionMode by rememberSaveable { mutableStateOf(false) }
+    val selectedSongIds = remember { mutableStateListOf<String>() }
+
+    fun exitSelectionMode() {
+        isInSelectionMode = false
+        selectedSongIds.clear()
+    }
 
     println("artwork uri: ${playlistMetadata?.artworkUri}; artwork data: ${playlistMetadata?.artworkData}")
 
@@ -153,6 +173,10 @@ fun PlaylistDetails(
                             )
                             .crossfade(true)
                             .diskCacheKey(
+                                playlistMetadata?.extras?.getString("navidromeID")
+                                    ?: playlistMetadata?.title.toString()
+                            )
+                            .memoryCacheKey(
                                 playlistMetadata?.extras?.getString("navidromeID")
                                     ?: playlistMetadata?.title.toString()
                             )
@@ -220,8 +244,10 @@ fun PlaylistDetails(
                 ) {
                     Button(
                         onClick = {
-                            coroutineScope.launch {
-                                SongHelper.play(playlistSongs, 0, mediaController)
+                            if (playlistSongs.isNotEmpty()) {
+                                coroutineScope.launch {
+                                    SongHelper.play(playlistSongs, 0, mediaController)
+                                }
                             }
                         },
                         modifier = Modifier
@@ -238,10 +264,12 @@ fun PlaylistDetails(
                     }
                     OutlinedButton (
                         onClick = {
-                            mediaController?.shuffleModeEnabled = true
-                            coroutineScope.launch {
-                                val random = playlistSongs.indices.random()
-                                SongHelper.play(playlistSongs, random, mediaController)
+                            if (playlistSongs.isNotEmpty()) {
+                                mediaController?.shuffleModeEnabled = true
+                                coroutineScope.launch {
+                                    val random = playlistSongs.indices.random()
+                                    SongHelper.play(playlistSongs, random, mediaController)
+                                }
                             }
                         },
                         modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
@@ -260,17 +288,78 @@ fun PlaylistDetails(
                 }
             }
 
+            // Selection Action Bar
+            item {
+                AnimatedVisibility(
+                    visible = isInSelectionMode,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    SelectionActionBar(
+                        selectedCount = selectedSongIds.size,
+                        onCancel = { exitSelectionMode() },
+                        onSelectAll = {
+                            selectedSongIds.clear()
+                            selectedSongIds.addAll(
+                                playlistSongs.mapNotNull {
+                                    it.mediaMetadata.extras?.getString("navidromeID") ?: it.mediaId
+                                }
+                            )
+                        },
+                        onDownload = {
+                            val selectedSongs = playlistSongs.filter { song ->
+                                val songId = song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
+                                selectedSongIds.contains(songId)
+                            }
+                            downloadViewModel.queueDownloads(selectedSongs.map { it.mediaMetadata })
+                            exitSelectionMode()
+                        }
+                    )
+                }
+            }
+
             items(playlistSongs) { song ->
+                val songId = song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
                 HorizontalSongCard(
                     song = song,
                     modifier = Modifier.animateItem(),
                     onClick = {
-                        coroutineScope.launch {
-                            SongHelper.play(
-                                playlistSongs,
-                                playlistSongs.indexOf(song),
-                                mediaController
-                            )
+                        if (isInSelectionMode) {
+                            if (selectedSongIds.contains(songId)) {
+                                selectedSongIds.remove(songId)
+                                if (selectedSongIds.isEmpty()) {
+                                    isInSelectionMode = false
+                                }
+                            } else {
+                                selectedSongIds.add(songId)
+                            }
+                        } else {
+                            coroutineScope.launch {
+                                val index = playlistSongs.indexOf(song)
+                                if (index != -1) {
+                                    SongHelper.play(
+                                        playlistSongs,
+                                        index,
+                                        mediaController
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    isInSelectionMode = isInSelectionMode,
+                    isSelected = selectedSongIds.contains(songId),
+                    onEnterSelectionMode = {
+                        isInSelectionMode = true
+                        selectedSongIds.add(songId)
+                    },
+                    onSelectionChange = { selected ->
+                        if (selected) {
+                            selectedSongIds.add(songId)
+                        } else {
+                            selectedSongIds.remove(songId)
+                            if (selectedSongIds.isEmpty()) {
+                                isInSelectionMode = false
+                            }
                         }
                     }
                 )

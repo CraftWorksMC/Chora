@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
@@ -7,6 +8,7 @@ import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.managers.NavidromeManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,42 +38,64 @@ class HomeScreenViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    // Track active load job to prevent redundant concurrent loads
+    private var loadJob: Job? = null
+
     init {
         loadHomeScreenData()
 
+        // Separate coroutines for each flow to prevent blocking
         viewModelScope.launch {
-            DataRefreshManager.dataSourceChangedEvent.collect {
-                loadHomeScreenData()
-            }
-
-            combine(
-                NavidromeManager.currentServerId,
-                NavidromeManager.libraries
-            ) { serverId, libs -> serverId to libs }
-                .distinctUntilChanged() // This is key!
-                .collect { (serverId, libs) ->
-                    if (serverId != null && libs.isNotEmpty()) {
-                        loadHomeScreenData()
-                    }
+            try {
+                DataRefreshManager.dataSourceChangedEvent.collect {
+                    loadHomeScreenData()
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        viewModelScope.launch {
+            try {
+                combine(
+                    NavidromeManager.currentServerId,
+                    NavidromeManager.libraries
+                ) { serverId, libs -> serverId to libs }
+                    .distinctUntilChanged()
+                    .collect { (serverId, libs) ->
+                        if (serverId != null && libs.isNotEmpty()) {
+                            loadHomeScreenData()
+                        }
+                    }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
-    fun loadHomeScreenData() {
-        viewModelScope.launch {
+    fun loadHomeScreenData(forceRefresh: Boolean = false) {
+        // Cancel any existing load to prevent redundant concurrent loads
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _isLoading.value = true
-            coroutineScope {
-                val recentlyPlayedDeferred = async { albumRepository.getAlbums("recent", 20, 0, true) }
-                val recentDeferred = async { albumRepository.getAlbums("newest", 20, 0, true) }
-                val mostPlayedDeferred = async { albumRepository.getAlbums("frequent", 20, 0, true) }
-                val shuffledDeferred = async { albumRepository.getAlbums("random", 20, 0, true) }
+            try {
+                coroutineScope {
+                    // Use cache by default, only bypass on explicit refresh
+                    val recentlyPlayedDeferred = async { albumRepository.getAlbums("recent", 20, 0, forceRefresh) }
+                    val recentDeferred = async { albumRepository.getAlbums("newest", 20, 0, forceRefresh) }
+                    val mostPlayedDeferred = async { albumRepository.getAlbums("frequent", 20, 0, forceRefresh) }
+                    val shuffledDeferred = async { albumRepository.getAlbums("random", 20, 0, forceRefresh) }
 
-                _recentlyPlayedAlbums.value = recentlyPlayedDeferred.await()
-                _recentAlbums.value = recentDeferred.await()
-                _mostPlayedAlbums.value = mostPlayedDeferred.await()
-                _shuffledAlbums.value = shuffledDeferred.await()
+                    _recentlyPlayedAlbums.value = recentlyPlayedDeferred.await()
+                    _recentAlbums.value = recentDeferred.await()
+                    _mostPlayedAlbums.value = mostPlayedDeferred.await()
+                    _shuffledAlbums.value = shuffledDeferred.await()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 

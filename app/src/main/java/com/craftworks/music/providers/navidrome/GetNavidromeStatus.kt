@@ -1,5 +1,6 @@
 package com.craftworks.music.providers.navidrome
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import com.craftworks.music.data.NavidromeProvider
@@ -13,9 +14,9 @@ import kotlinx.serialization.json.jsonObject
 
 var navidromeStatus = mutableStateOf("")
 
-suspend fun getNavidromeStatus(server: NavidromeProvider){
+suspend fun getNavidromeStatus(server: NavidromeProvider, context: Context){
     NavidromeManager.addServer(server)
-    NavidromeDataSource().pingNavidromeServer()
+    NavidromeDataSource(context).pingNavidromeServer()
     NavidromeManager.removeServer(server.id)
 }
 
@@ -30,9 +31,17 @@ fun parseNavidromeStatus(
     response: String
 ) : List<String> {
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+    if (jsonElement == null) {
+        navidromeStatus.value = "Invalid response"
+        return listOf("Invalid response")
+    }
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        navidromeStatus.value = "Failed to parse response"
+        return listOf("Failed to parse response")
+    }
 
     if (subsonicResponse.status != "ok") {
         val errorCode = subsonicResponse.error?.code

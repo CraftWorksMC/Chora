@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -30,11 +31,27 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -58,6 +75,7 @@ import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import androidx.compose.material3.MaterialTheme as M3Theme
 
 //region Songs
 @OptIn(ExperimentalFoundationApi::class)
@@ -66,76 +84,260 @@ fun SongsHorizontalColumn(
     songList: List<MediaItem>,
     onSongSelected: (itemsList: List<MediaItem>, index: Int) -> Unit,
     isSearch: Boolean? = false,
-    viewModel: SongsScreenViewModel? = null
+    viewModel: SongsScreenViewModel? = null,
+    useMultiColumn: Boolean = false,
+    enableSelection: Boolean = true,
+    onDownloadSelected: ((List<MediaItem>) -> Unit)? = null,
+    onDownload: ((MediaItem) -> Unit)? = null
 ){
-    val listState = rememberLazyListState()
+    if (songList.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(R.string.Songs_Empty),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+        }
+        return
+    }
+
+    // Selection state
+    var isInSelectionMode by rememberSaveable { mutableStateOf(false) }
+    val selectedSongIds = remember { mutableStateListOf<String>() }
+
+    fun exitSelectionMode() {
+        isInSelectionMode = false
+        selectedSongIds.clear()
+    }
 
     val showDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
-    // Load more songs at scroll
-    if (NavidromeManager.checkActiveServers() && isSearch == false){
-        LaunchedEffect(listState) {
-            if (songsList.size % 100 != 0) return@LaunchedEffect
-
-            snapshotFlow {
-                val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                val totalItemsCount = listState.layoutInfo.totalItemsCount
-
-                lastVisibleItemIndex != null && totalItemsCount > 0 &&
-                        (totalItemsCount - lastVisibleItemIndex) <= 25
-            }
-                .filter { it }
-                .collect {
-                    if (viewModel == null) return@collect
-                    viewModel.getMoreSongs(100)
-                }
+    // Group songs by their source (Local or Navidrome)
+    val groupedSongs = remember(songList) {
+        songList.groupBy { song ->
+            if (song.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true) "Local" else "Navidrome"
         }
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .wrapContentHeight()
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        state = listState,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        // Group songs by their source (Local or Navidrome)
-        val groupedSongs = songList.groupBy { song ->
-            if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Selection Action Bar
+        AnimatedVisibility(
+            visible = isInSelectionMode,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            SelectionActionBar(
+                selectedCount = selectedSongIds.size,
+                onCancel = { exitSelectionMode() },
+                onSelectAll = {
+                    selectedSongIds.clear()
+                    selectedSongIds.addAll(songList.map { it.mediaId })
+                },
+                onDownload = {
+                    val selected = songList.filter { selectedSongIds.contains(it.mediaId) }
+                    onDownloadSelected?.invoke(selected)
+                    exitSelectionMode()
+                }
+            )
         }
 
-        groupedSongs.forEach { (groupName, songsInGroup) ->
-            if (showDividers && groupedSongs.size > 1) {
-                item {
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .height(1.dp)
-                            .fillMaxWidth(),
-                            //.background(MaterialTheme.colorScheme.background),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                    )
-                    Text(
-                        text = when (groupName) {
-                            "Navidrome" -> stringResource(R.string.Source_Navidrome)
-                            "Local" -> stringResource(R.string.Source_Local)
-                            else -> ""
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            //.background(MaterialTheme.colorScheme.background)
-                            .padding(8.dp)
-                    )
-                }
-            }
-            itemsIndexed(songsInGroup) { index, song ->
-                HorizontalSongCard(
-                    song = song,
-                    onClick = {
-                        onSongSelected(songsInGroup, index)
+        if (useMultiColumn) {
+            val gridState = rememberLazyGridState()
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 12.dp, end = 28.dp)
+                        .drawVerticalScrollbar(gridState, color = M3Theme.colorScheme.onSurface),
+                    state = gridState,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    groupedSongs.forEach { (groupName, songsInGroup) ->
+                        if (showDividers && groupedSongs.size > 1) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Column {
+                                    HorizontalDivider(
+                                        modifier = Modifier
+                                            .height(1.dp)
+                                            .fillMaxWidth(),
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                    )
+                                    Text(
+                                        text = when (groupName) {
+                                            "Navidrome" -> stringResource(R.string.Source_Navidrome)
+                                            "Local" -> stringResource(R.string.Source_Local)
+                                            else -> ""
+                                        },
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(8.dp)
+                                    )
+                                }
+                            }
+                        }
+                        itemsIndexed(
+                            items = songsInGroup,
+                            key = { _, song -> song.mediaId }
+                        ) { index, song ->
+                            HorizontalSongCard(
+                                song = song,
+                                isInSelectionMode = isInSelectionMode,
+                                isSelected = selectedSongIds.contains(song.mediaId),
+                                onEnterSelectionMode = if (enableSelection) {
+                                    {
+                                        isInSelectionMode = true
+                                        selectedSongIds.add(song.mediaId)
+                                    }
+                                } else null,
+                                onSelectionChange = { selected ->
+                                    if (selected) selectedSongIds.add(song.mediaId)
+                                    else selectedSongIds.remove(song.mediaId)
+                                },
+                                onClick = {
+                                    onSongSelected(songsInGroup, index)
+                                },
+                                onDownload = onDownload
+                            )
+                        }
                     }
+                }
+
+                AlphabetFastScroller(
+                    items = songList,
+                    getSectionLetter = { it.mediaMetadata.title?.firstOrNull() ?: '#' },
+                    gridState = gridState,
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                )
+            }
+        } else {
+            val listState = rememberLazyListState()
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                        .padding(start = 12.dp, end = 28.dp)
+                        .drawVerticalScrollbar(listState, color = M3Theme.colorScheme.onSurface),
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    groupedSongs.forEach { (groupName, songsInGroup) ->
+                        if (showDividers && groupedSongs.size > 1) {
+                            item {
+                                HorizontalDivider(
+                                    modifier = Modifier
+                                        .height(1.dp)
+                                        .fillMaxWidth(),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                )
+                                Text(
+                                    text = when (groupName) {
+                                        "Navidrome" -> stringResource(R.string.Source_Navidrome)
+                                        "Local" -> stringResource(R.string.Source_Local)
+                                        else -> ""
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp)
+                                )
+                            }
+                        }
+                        itemsIndexed(
+                            items = songsInGroup,
+                            key = { _, song -> song.mediaId }
+                        ) { index, song ->
+                            HorizontalSongCard(
+                                song = song,
+                                isInSelectionMode = isInSelectionMode,
+                                isSelected = selectedSongIds.contains(song.mediaId),
+                                onEnterSelectionMode = if (enableSelection) {
+                                    {
+                                        isInSelectionMode = true
+                                        selectedSongIds.add(song.mediaId)
+                                    }
+                                } else null,
+                                onSelectionChange = { selected ->
+                                    if (selected) selectedSongIds.add(song.mediaId)
+                                    else selectedSongIds.remove(song.mediaId)
+                                },
+                                onClick = {
+                                    onSongSelected(songsInGroup, index)
+                                },
+                                onDownload = onDownload
+                            )
+                        }
+                    }
+                }
+
+                AlphabetFastScrollerList(
+                    items = songList,
+                    getSectionLetter = { it.mediaMetadata.title?.firstOrNull() ?: '#' },
+                    listState = listState,
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SelectionActionBar(
+    selectedCount: Int,
+    onCancel: () -> Unit,
+    onSelectAll: () -> Unit,
+    onDownload: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onCancel) {
+            Icon(
+                imageVector = Icons.Rounded.Close,
+                contentDescription = "Cancel selection",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+        Text(
+            text = "$selectedCount selected",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Row {
+            TextButton(onClick = onSelectAll) {
+                Text(
+                    "All",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            IconButton(
+                onClick = onDownload,
+                enabled = selectedCount > 0
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
+                    contentDescription = "Download selected",
+                    tint = if (selectedCount > 0)
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.38f)
                 )
             }
         }
@@ -152,7 +354,24 @@ fun AlbumGrid(
     onAlbumSelected: (album: MediaData.Album) -> Unit,
     isSearch: Boolean? = false,
     viewModel: AlbumScreenViewModel = viewModel(),
+    gridColumns: Int = 0
 ){
+    if (albums.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(R.string.Albums_Empty),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+        }
+        return
+    }
+
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -160,70 +379,81 @@ fun AlbumGrid(
 
     // Group songs by their source (Local or Navidrome)
     val groupedAlbums = albums.groupBy { song ->
-        if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
+        if (song.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true) "Local" else "Navidrome"
     }
 
-    if (NavidromeManager.checkActiveServers() && isSearch == false) {
-        LaunchedEffect(gridState) {
-            if (albumList.size % 50 != 0) return@LaunchedEffect
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = if (gridColumns > 0) GridCells.Fixed(gridColumns) else GridCells.Adaptive(128.dp),
+            modifier = Modifier
+                .wrapContentWidth()
+                .fillMaxHeight()
+                .padding(end = 28.dp)
+                .drawVerticalScrollbar(gridState, color = M3Theme.colorScheme.onSurface),
+            state = gridState,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            if (showDividers && groupedAlbums.size > 1) {
+                groupedAlbums.forEach { (groupName, albumsInGroup) ->
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Column (Modifier.padding(start = 12.dp)) {
+                            HorizontalDivider(
+                                modifier = Modifier
+                                    .height(1.dp)
+                                    .fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                            )
+                            Text(
+                                text = when (groupName) {
+                                    "Navidrome" -> stringResource(R.string.Source_Navidrome)
+                                    "Local" -> stringResource(R.string.Source_Local)
+                                    else -> ""
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                            )
+                        }
 
-            snapshotFlow {
-                val lastVisibleItemIndex = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                val totalItemsCount = gridState.layoutInfo.totalItemsCount
-
-                lastVisibleItemIndex != null && totalItemsCount > 0 &&
-                        (totalItemsCount - lastVisibleItemIndex) <= 10
-            }
-                .filter { it }
-                .collect {
-                    viewModel.getMoreAlbums(50)
-                }
-        }
-    }
-
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(128.dp),
-        modifier = Modifier
-            .wrapContentWidth()
-            .fillMaxHeight()
-            .padding(end = 12.dp),
-        state = gridState,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        if (showDividers && groupedAlbums.size > 1) {
-            groupedAlbums.forEach { (groupName, albumsInGroup) ->
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Column (Modifier.padding(start = 12.dp)) {
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .height(1.dp)
-                                .fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                        )
-                        Text(
-                            text = when (groupName) {
-                                "Navidrome" -> stringResource(R.string.Source_Navidrome)
-                                "Local" -> stringResource(R.string.Source_Local)
-                                else -> ""
+                    }
+                    itemsIndexed(
+                        items = albumsInGroup,
+                        key = { _, album -> album.mediaId }
+                    ) { index, album ->
+                        AlbumCard(album = album,
+                            onClick = {
+                                onAlbumSelected(album.toAlbum())
                             },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
+                            onPlay = {
+                                coroutineScope.launch {
+                                    val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: album.mediaId)
+                                    if (mediaItems.size > 1)
+                                        SongHelper.play(
+                                            mediaItems = mediaItems.subList(1, mediaItems.size),
+                                            index = 0,
+                                            mediaController = mediaController
+                                        )
+                                }
+                            }
                         )
                     }
-
                 }
-                itemsIndexed(albumsInGroup) { index, album ->
+            }
+            else {
+                items(
+                    items = albums,
+                    key = { it.mediaId }
+                ) { album ->
                     AlbumCard(album = album,
                         onClick = {
                             onAlbumSelected(album.toAlbum())
                         },
                         onPlay = {
                             coroutineScope.launch {
-                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
-                                if (mediaItems.isNotEmpty())
+                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: album.mediaId)
+                                if (mediaItems.size > 1)
                                     SongHelper.play(
                                         mediaItems = mediaItems.subList(1, mediaItems.size),
                                         index = 0,
@@ -235,29 +465,14 @@ fun AlbumGrid(
                 }
             }
         }
-        else {
-            items(
-                items = albums,
-                key = { it.mediaId }
-            ) { album ->
-                AlbumCard(album = album,
-                    onClick = {
-                        onAlbumSelected(album.toAlbum())
-                    },
-                    onPlay = {
-                        coroutineScope.launch {
-                            val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
-                            if (mediaItems.isNotEmpty())
-                                SongHelper.play(
-                                    mediaItems = mediaItems.subList(1, mediaItems.size),
-                                    index = 0,
-                                    mediaController = mediaController
-                                )
-                        }
-                    }
-                )
-            }
-        }
+
+        // iPod-style A-Z fast scroller
+        AlphabetFastScroller(
+            items = albums,
+            getSectionLetter = { it.mediaMetadata.title?.firstOrNull() ?: '#' },
+            gridState = gridState,
+            modifier = Modifier.align(Alignment.CenterEnd)
+        )
     }
 }
 
@@ -267,8 +482,25 @@ fun AlbumGrid(
     albums: List<MediaItem>,
     mediaController: MediaController?,
     onAlbumSelected: (album: MediaData.Album) -> Unit,
-    onGetAlbum: (albumID: String) -> List<MediaItem>
+    onGetAlbum: suspend (albumID: String) -> List<MediaItem>,
+    gridColumns: Int = 0
 ) {
+    if (albums.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(R.string.Albums_Empty),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+        }
+        return
+    }
+
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -276,51 +508,80 @@ fun AlbumGrid(
 
     // Group songs by their source (Local or Navidrome)
     val groupedAlbums = albums.groupBy { song ->
-        if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
+        if (song.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true) "Local" else "Navidrome"
     }
 
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(128.dp),
-        modifier = Modifier
-            .wrapContentWidth()
-            .fillMaxHeight()
-            .padding(end = 12.dp),
-        state = gridState
-    ) {
-        if (showDividers && groupedAlbums.size > 1) {
-            groupedAlbums.forEach { (groupName, albumsInGroup) ->
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Column (Modifier.padding(start = 12.dp)) {
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .height(1.dp)
-                                .fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                        )
-                        Text(
-                            text = when (groupName) {
-                                "Navidrome" -> stringResource(R.string.Source_Navidrome)
-                                "Local" -> stringResource(R.string.Source_Local)
-                                else -> ""
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = if (gridColumns > 0) GridCells.Fixed(gridColumns) else GridCells.Adaptive(128.dp),
+            modifier = Modifier
+                .wrapContentWidth()
+                .fillMaxHeight()
+                .padding(end = 28.dp)
+                .drawVerticalScrollbar(gridState, color = M3Theme.colorScheme.onSurface),
+            state = gridState
+        ) {
+            if (showDividers && groupedAlbums.size > 1) {
+                groupedAlbums.forEach { (groupName, albumsInGroup) ->
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Column (Modifier.padding(start = 12.dp)) {
+                            HorizontalDivider(
+                                modifier = Modifier
+                                    .height(1.dp)
+                                    .fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                            )
+                            Text(
+                                text = when (groupName) {
+                                    "Navidrome" -> stringResource(R.string.Source_Navidrome)
+                                    "Local" -> stringResource(R.string.Source_Local)
+                                    else -> ""
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                            )
+                        }
+
+                    }
+                    itemsIndexed(
+                        items = albumsInGroup,
+                        key = { _, album -> album.mediaId }
+                    ) { index, album ->
+                        AlbumCard(album = album,
+                            onClick = {
+                                onAlbumSelected(album.toAlbum())
                             },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
+                            onPlay = {
+                                coroutineScope.launch {
+                                    val mediaItems = onGetAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: album.mediaId)
+                                    if (mediaItems.size > 1)
+                                        SongHelper.play(
+                                            mediaItems = mediaItems.subList(1, mediaItems.size),
+                                            index = 0,
+                                            mediaController = mediaController
+                                        )
+                                }
+                            }
                         )
                     }
-
                 }
-                itemsIndexed(albumsInGroup) { index, album ->
+            }
+            else {
+                items(
+                    items = albums,
+                    key = { it.mediaId }
+                ) { album ->
                     AlbumCard(album = album,
                         onClick = {
                             onAlbumSelected(album.toAlbum())
                         },
                         onPlay = {
                             coroutineScope.launch {
-                                val mediaItems = onGetAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
-                                if (mediaItems.isNotEmpty())
+                                val mediaItems = onGetAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: album.mediaId)
+                                if (mediaItems.size > 1)
                                     SongHelper.play(
                                         mediaItems = mediaItems.subList(1, mediaItems.size),
                                         index = 0,
@@ -332,29 +593,14 @@ fun AlbumGrid(
                 }
             }
         }
-        else {
-            items(
-                items = albums,
-                key = { it.mediaId }
-            ) { album ->
-                AlbumCard(album = album,
-                    onClick = {
-                        onAlbumSelected(album.toAlbum())
-                    },
-                    onPlay = {
-                        coroutineScope.launch {
-                            val mediaItems = onGetAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
-                            if (mediaItems.isNotEmpty())
-                                SongHelper.play(
-                                    mediaItems = mediaItems.subList(1, mediaItems.size),
-                                    index = 0,
-                                    mediaController = mediaController
-                                )
-                        }
-                    }
-                )
-            }
-        }
+
+        // iPod-style A-Z fast scroller
+        AlphabetFastScroller(
+            items = albums,
+            getSectionLetter = { it.mediaMetadata.title?.firstOrNull() ?: '#' },
+            gridState = gridState,
+            modifier = Modifier.align(Alignment.CenterEnd)
+        )
     }
 }
 
@@ -364,12 +610,32 @@ fun AlbumRow(
     albums: List<MediaItem>,
     onAlbumSelected: (album: MediaData.Album) -> Unit,
     onPlay: (album: MediaItem) -> Unit,
+    cardWidth: Int = 128
 ){
+    val cardHeight = (cardWidth * 1.34f).toInt()
+
+    if (albums.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = cardHeight.dp)
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(
+                text = stringResource(R.string.Home_Coming_Soon),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+        }
+        return
+    }
+
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
-    val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_") }
+    val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true }
 
     LazyRow(
-        modifier = Modifier.fillMaxSize().heightIn(min = 172.dp),
+        modifier = Modifier.fillMaxSize().heightIn(min = cardHeight.dp),
         contentPadding = PaddingValues(
             end = 12.dp
         )
@@ -388,7 +654,7 @@ fun AlbumRow(
                     ) {
                         VerticalDivider(
                             modifier = Modifier
-                                .height(172.dp)
+                                .height(cardHeight.dp)
                                 .width(1.dp),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                         )
@@ -411,7 +677,8 @@ fun AlbumRow(
                 onPlay = {
                     onPlay(album)
                 },
-                modifier = Modifier.animateItem()
+                modifier = Modifier.animateItem(),
+                cardWidth = cardWidth
             )
         }
     }
@@ -425,6 +692,22 @@ fun ArtistsGrid(
     artists: List<MediaData.Artist>,
     onArtistSelected: (artist: MediaData.Artist) -> Unit
 ){
+    if (artists.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(R.string.Artists_Empty),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+        }
+        return
+    }
+
     val gridState = rememberLazyGridState()
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
@@ -432,54 +715,74 @@ fun ArtistsGrid(
         if (artist.navidromeID.startsWith("Local_")) "Local" else "Navidrome"
     }
 
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(128.dp),
-        modifier = Modifier
-            .wrapContentWidth()
-            .fillMaxHeight(),
-        state = gridState
-    ) {
-        if (showProviderDividers && groupedArtists.size > 1) {
-            groupedArtists.forEach { (groupName, artistsInGroup) ->
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Column(Modifier.padding(start = 12.dp)) {
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .height(1.dp)
-                                .fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                        )
-                        Text(
-                            text = when (groupName) {
-                                "Navidrome" -> stringResource(R.string.Source_Navidrome)
-                                "Local" -> stringResource(R.string.Source_Local)
-                                else -> ""
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                        )
-                    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(128.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(end = 28.dp), // Space for fast scroller
+            state = gridState
+        ) {
+            if (showProviderDividers && groupedArtists.size > 1) {
+                groupedArtists.forEach { (groupName, artistsInGroup) ->
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Column(Modifier.padding(start = 12.dp)) {
+                            HorizontalDivider(
+                                modifier = Modifier
+                                    .height(1.dp)
+                                    .fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                            )
+                            Text(
+                                text = when (groupName) {
+                                    "Navidrome" -> stringResource(R.string.Source_Navidrome)
+                                    "Local" -> stringResource(R.string.Source_Local)
+                                    else -> ""
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                            )
+                        }
 
+                    }
+                    itemsIndexed(
+                        items = artistsInGroup,
+                        key = { _, artist -> artist.navidromeID }
+                    ) { index, artist ->
+                        ArtistCard(artist = artist, onClick = {
+                            onArtistSelected(artist)
+                        })
+                    }
                 }
-                itemsIndexed(artistsInGroup) { index, artist ->
+            } else {
+                items(
+                    items = artists,
+                    key = { it.navidromeID }
+                ) { artist ->
                     ArtistCard(artist = artist, onClick = {
                         onArtistSelected(artist)
-                    })
-                }
-            }
-        } else {
-            items(
-                items = artists,
-                key = { it.navidromeID }
-            ) { artist ->
-                ArtistCard(artist = artist, onClick = {
-                    onArtistSelected(artist)
                 })
             }
         }
+        }
+
+        // iPod-style A-Z fast scroller
+        AlphabetFastScroller(
+            items = artists,
+            getSectionLetter = { artist ->
+                val name = artist.name
+                when {
+                    name.isBlank() || name.contains("unknown", ignoreCase = true) -> '?'
+                    name.firstOrNull()?.isLetter() == true -> name.first().uppercaseChar()
+                    else -> '#'
+                }
+            },
+            gridState = gridState,
+            modifier = Modifier.align(Alignment.CenterEnd)
+        )
     }
 }
 //endregion
@@ -487,43 +790,57 @@ fun ArtistsGrid(
 //region Playlists
 @ExperimentalFoundationApi
 @Composable
-fun PlaylistGrid(playlists: List<MediaItem>, onPlaylistSelected: (playlist: MediaItem) -> Unit){
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(128.dp),
-        modifier = Modifier
-            .wrapContentWidth()
-            .fillMaxHeight()
-    ) {
-        item {
-            val favouritesPlaylist = MediaItem.Builder()
-                .setMediaId("favourites")
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle("Favourites")
-                        .setIsPlayable(false)
-                        .setIsBrowsable(true)
-                        .setArtworkUri(("android.resource://com.craftworks.music/" + R.drawable.favourites).toUri())
-                        .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
-                        .setExtras(Bundle().apply {
-                            putString("navidromeID", "favourites")
-                        })
-                        .build()
-                )
-                .build()
+fun PlaylistGrid(playlists: List<MediaItem>, onPlaylistSelected: (playlist: MediaItem) -> Unit, onDeletePlaylist: (String) -> Unit = {}){
+    val gridState = rememberLazyGridState()
 
-            PlaylistCard(playlist = favouritesPlaylist,
-                onClick = {
-                    onPlaylistSelected(favouritesPlaylist)
-                }
-            )
-        }
-        items(playlists) {playlist ->
-            PlaylistCard(playlist = playlist,
-                onClick = {
-                    onPlaylistSelected(playlist)
-                    Log.d("PLAYLISTS", "CLICKED PLAYLIST!")
+    val favouritesPlaylist = MediaItem.Builder()
+        .setMediaId("favourites")
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle("Starred Songs")
+                .setIsPlayable(false)
+                .setIsBrowsable(true)
+                .setArtworkUri(("android.resource://com.craftworks.music/" + R.drawable.favourites).toUri())
+                .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
+                .setExtras(Bundle().apply {
+                    putString("navidromeID", "favourites")
                 })
+                .build()
+        )
+        .build()
+
+    val allPlaylists = listOf(favouritesPlaylist) + playlists
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(128.dp),
+            modifier = Modifier
+                .wrapContentWidth()
+                .fillMaxHeight()
+                .padding(end = 28.dp)
+                .drawVerticalScrollbar(gridState, color = M3Theme.colorScheme.onSurface),
+            state = gridState
+        ) {
+            items(
+                items = allPlaylists,
+                key = { it.mediaId }
+            ) { playlist ->
+                PlaylistCard(playlist = playlist,
+                    onClick = {
+                        onPlaylistSelected(playlist)
+                        Log.d("PLAYLISTS", "CLICKED PLAYLIST!")
+                    },
+                    onDeletePlaylist = onDeletePlaylist)
+            }
         }
+
+        // iPod-style A-Z fast scroller
+        AlphabetFastScroller(
+            items = allPlaylists,
+            getSectionLetter = { it.mediaMetadata.title?.firstOrNull() ?: '#' },
+            gridState = gridState,
+            modifier = Modifier.align(Alignment.CenterEnd)
+        )
     }
 }
 //endregion

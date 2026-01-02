@@ -53,17 +53,13 @@ fun SettingScreen(
                 title = { Text(text = stringResource(R.string.settings)) },
                 actions = {
                     IconButton(
-                        onClick = {
-                            navHostController.navigate(Screen.Home.route) {
-                                launchSingleTop = true
-                            }
-                        },
+                        onClick = { navHostController.popBackStack() },
                         modifier = Modifier.size(56.dp, 70.dp),
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             tint = MaterialTheme.colorScheme.onBackground,
-                            contentDescription = "Previous Song",
+                            contentDescription = "Back",
                             modifier = Modifier
                                 .size(24.dp)
                         )
@@ -93,6 +89,13 @@ fun SettingScreen(
                 )
 
                 SettingsButton(
+                    Screen.S_Artwork.route,
+                    R.drawable.s_a_artwork,
+                    R.string.Settings_Header_Artwork,
+                    navHostController
+                )
+
+                SettingsButton(
                     Screen.S_Providers.route,
                     R.drawable.s_m_media_providers,
                     R.string.Settings_Header_Media,
@@ -103,6 +106,13 @@ fun SettingScreen(
                     Screen.S_Playback.route,
                     R.drawable.s_m_playback,
                     R.string.Settings_Header_Playback,
+                    navHostController
+                )
+
+                SettingsButton(
+                    Screen.S_Data.route,
+                    R.drawable.s_m_data,
+                    R.string.Settings_Header_Data,
                     navHostController
                 )
             }

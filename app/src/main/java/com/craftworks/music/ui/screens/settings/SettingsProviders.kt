@@ -48,6 +48,7 @@ import com.craftworks.music.ui.elements.LocalProviderCard
 import com.craftworks.music.ui.elements.NavidromeProviderCard
 import com.craftworks.music.ui.elements.dialogs.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
+import androidx.compose.runtime.key
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class
@@ -64,19 +65,14 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
         topBar = {
             TopAppBar(
                 title = { Text(text = stringResource(R.string.Settings_Header_Media)) },
-                actions = {
+                navigationIcon = {
                     IconButton(
-                        onClick = {
-                            navHostController.navigate(Screen.Home.route) {
-                                launchSingleTop = true
-                            }
-                        },
-                        modifier = Modifier.size(56.dp, 70.dp),
+                        onClick = { navHostController.popBackStack() },
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             tint = MaterialTheme.colorScheme.onBackground,
-                            contentDescription = "Previous Song",
+                            contentDescription = "Back",
                             modifier = Modifier
                                 .size(24.dp)
                         )
@@ -107,13 +103,17 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
                 val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
 
                 // Local Providers First
-                for (local in localProviders) {
-                    LocalProviderCard(local, context)
+                localProviders.forEach { localPath ->
+                    key(localPath) {
+                        LocalProviderCard(localPath, context)
+                    }
                 }
 
                 // Then Navidrome Providers
-                for (server in navidromeServers) {
-                    NavidromeProviderCard(server)
+                navidromeServers.forEach { server ->
+                    key(server.url) {
+                        NavidromeProviderCard(server)
+                    }
                 }
             }
 

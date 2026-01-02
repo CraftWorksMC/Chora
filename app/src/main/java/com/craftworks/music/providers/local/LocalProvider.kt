@@ -14,18 +14,39 @@ import androidx.media3.common.MediaMetadata
 import com.craftworks.music.R
 import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.managers.LocalProviderManager
+import com.craftworks.music.ui.util.TextDisplayUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class LocalProvider @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     private companion object {
         private const val TAG = "LOCAL_PROVIDER"
         private const val LOCAL_PREFIX = "Local_"
         private const val ALBUM_ART_PATH = "content://media/external/audio/albumart"
+    }
+
+    private val placeholderUri by lazy {
+        "android.resource://com.craftworks.music/${R.drawable.albumplaceholder}".toUri()
+    }
+
+    /**
+     * Safely checks if album artwork exists and returns appropriate URI.
+     * Uses try-with-resources pattern to prevent InputStream leaks.
+     */
+    private fun getArtworkUriSafe(albumId: Long): android.net.Uri {
+        val artUri = "$ALBUM_ART_PATH/$albumId".toUri()
+        return try {
+            context.contentResolver.openInputStream(artUri)?.use {
+                // Stream exists, artwork is available
+            }
+            artUri
+        } catch (e: Exception) {
+            placeholderUri
+        }
     }
 
     //region Albums
@@ -81,14 +102,7 @@ class LocalProvider @Inject constructor(
                 val albumName = it.getString(nameIdx) ?: "Unknown"
                 val artistName = it.getString(artistIdx) ?: "Unknown"
 
-                val artworkUri = "$ALBUM_ART_PATH/$albumId".toUri().let { uri ->
-                    try {
-                        context.contentResolver.openInputStream(uri)?.close()
-                        uri
-                    } catch (e: Exception) {
-                        "android.resource://com.craftworks.music/${R.drawable.albumplaceholder}".toUri()
-                    }
-                }
+                val artworkUri = getArtworkUriSafe(albumId)
 
                 val mediaMetadata = MediaMetadata.Builder()
                     .setTitle(albumName)
@@ -144,10 +158,10 @@ class LocalProvider @Inject constructor(
         return albumIds
     }
 
-    fun getLocalAlbum(albumId: String): List<MediaItem>? {
+    suspend fun getLocalAlbum(albumId: String): List<MediaItem>? = withContext(Dispatchers.IO) {
         val albumIdLong = albumId.removePrefix(LOCAL_PREFIX).toLongOrNull() ?: run {
             Log.e(TAG, "Invalid album ID format: $albumId")
-            return null
+            return@withContext null
         }
 
         Log.d(TAG, "Getting album data for id $albumIdLong")
@@ -180,14 +194,7 @@ class LocalProvider @Inject constructor(
                 val artistName = cursor.getString(artistIdx) ?: "Unknown"
                 val year = cursor.getInt(yearIdx)
 
-                val artworkUri = "$ALBUM_ART_PATH/$albumIdLong".toUri().let { uri ->
-                    try {
-                        context.contentResolver.openInputStream(uri)?.close()
-                        uri
-                    } catch (e: Exception) {
-                        "android.resource://com.craftworks.music/${R.drawable.albumplaceholder}".toUri()
-                    }
-                }
+                val artworkUri = getArtworkUriSafe(albumIdLong)
 
                 val songs = getLocalAlbumSongs(albumIdLong)
                 val totalDuration = songs.sumOf { it.mediaMetadata.durationMs ?: 0L }
@@ -221,7 +228,7 @@ class LocalProvider @Inject constructor(
             }
         }
 
-        return albumWithSongs
+        albumWithSongs
     }
 
     private fun getLocalAlbumSongs(albumId: Long): List<MediaItem> {
@@ -282,24 +289,12 @@ class LocalProvider @Inject constructor(
                 val bitrate = cursor.getIntOrNull(bitrateIdx) ?: 0
                 val genre = cursor.getStringOrNull(genreIdx) ?: ""
 
-                val artworkUri = "$ALBUM_ART_PATH/$albumId".toUri().let { uri ->
-                    try {
-                        context.contentResolver.openInputStream(uri)?.close()
-                        uri
-                    } catch (e: Exception) {
-                        "android.resource://com.craftworks.music/${R.drawable.albumplaceholder}".toUri()
-                    }
-                }
+                val artworkUri = getArtworkUriSafe(albumId)
 
                 val contentUri = ContentUris.withAppendedId(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     id
                 )
-
-                if (yearIdx != -1) {
-                    val rawYearString = cursor.getString(yearIdx)
-                    Log.d(TAG, "Raw year string from MediaStore: $rawYearString")
-                }
 
                 val mediaMetadata = MediaMetadata.Builder()
                     .setTitle(title)
@@ -333,7 +328,7 @@ class LocalProvider @Inject constructor(
     }
     //endregion
 
-    fun getLocalSongs(): List<MediaItem> {
+    suspend fun getLocalSongs(): List<MediaItem> = withContext(Dispatchers.IO) {
         val songs = mutableListOf<MediaItem>()
         val contentResolver = context.contentResolver
         val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -350,10 +345,12 @@ class LocalProvider @Inject constructor(
             MediaStore.Audio.Media.TRACK,
             MediaStore.Audio.Media.YEAR,
             MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.BITRATE,
+            MediaStore.Audio.Media.GENRE,
         )
 
         val folders = LocalProviderManager.getAllFolders()
-        if (folders.isEmpty()) return emptyList()
+        if (folders.isEmpty()) return@withContext emptyList()
 
         val selectionBuilder = StringBuilder("${MediaStore.Audio.Media.IS_MUSIC} != 0 AND (")
         folders.forEachIndexed { index, folder ->
@@ -400,14 +397,7 @@ class LocalProvider @Inject constructor(
                 val bitrate = cursor.getIntOrNull(bitrateIdx) ?: 0
                 val genre = cursor.getStringOrNull(genreIdx) ?: ""
 
-                val artworkUri = "$ALBUM_ART_PATH/$albumId".toUri().let { uri ->
-                    try {
-                        context.contentResolver.openInputStream(uri)?.close()
-                        uri
-                    } catch (e: Exception) {
-                        "android.resource://com.craftworks.music/${R.drawable.albumplaceholder}".toUri()
-                    }
-                }
+                val artworkUri = getArtworkUriSafe(albumId)
 
                 val contentUri = ContentUris.withAppendedId(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -441,10 +431,10 @@ class LocalProvider @Inject constructor(
             }
         }
 
-        return songs
+        songs
     }
 
-    fun getLocalArtists(): List<MediaData.Artist> {
+    suspend fun getLocalArtists(): List<MediaData.Artist> = withContext(Dispatchers.IO) {
         val artists = mutableSetOf<MediaData.Artist>()
         val songs = getLocalSongs()
 
@@ -463,7 +453,7 @@ class LocalProvider @Inject constructor(
             )
         }
 
-        return artists.sortedBy { it.name }
+        artists.sortedBy { TextDisplayUtils.getSortKey(it.name) }
     }
 
     suspend fun getAlbumsByArtistId(artistId: String): List<MediaItem> = withContext(Dispatchers.IO) {
@@ -500,14 +490,7 @@ class LocalProvider @Inject constructor(
                 val thisArtistId = "$LOCAL_PREFIX${artistName.hashCode()}"
                 if (thisArtistId != artistId) continue
 
-                val artworkUri = "$ALBUM_ART_PATH/$albumId".toUri().let { uri ->
-                    try {
-                        context.contentResolver.openInputStream(uri)?.close()
-                        uri
-                    } catch (e: Exception) {
-                        "android.resource://com.craftworks.music/${R.drawable.albumplaceholder}".toUri()
-                    }
-                }
+                val artworkUri = getArtworkUriSafe(albumId)
 
                 albums += MediaItem.Builder()
                     .setMediaId("$LOCAL_PREFIX$albumId")

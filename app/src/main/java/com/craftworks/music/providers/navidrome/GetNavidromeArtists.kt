@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
+import java.net.URLEncoder
 
 @Serializable
 @SerialName("artists")
@@ -22,9 +23,13 @@ fun parseNavidromeArtistsJSON(
     response: String
 ) : List<MediaData.Artist> {
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+        ?: return emptyList()
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        return emptyList()
+    }
 
     val mediaDataArtists = mutableListOf<MediaData.Artist>()
 
@@ -51,27 +56,36 @@ fun parseNavidromeArtistAlbumsJSON(
     navidromePassword: String
 ) : List<MediaItem> {
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+        ?: return emptyList()
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        return emptyList()
+    }
 
     val passwordSaltArt = generateSalt(8)
     val passwordHashArt = md5Hash(navidromePassword + passwordSaltArt)
+    val encodedUsername = URLEncoder.encode(navidromeUsername, "UTF-8")
 
-    subsonicResponse.artist?.album?.map {
-        it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashArt&s=$passwordSaltArt&v=1.16.1&c=Chora"
+    val updatedAlbums = subsonicResponse.artist?.album?.map {
+        it.copy(coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$encodedUsername&t=$passwordHashArt&s=$passwordSaltArt&v=1.16.1&c=Chora")
     }
 
-    return subsonicResponse.artist?.album?.map { it.toMediaItem() } ?: emptyList()
+    return updatedAlbums?.map { it.toMediaItem() } ?: emptyList()
 }
 
 fun parseNavidromeArtistBiographyJSON(
     response: String
 ) : MediaData.ArtistInfo {
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+        ?: return MediaData.ArtistInfo()
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        return MediaData.ArtistInfo()
+    }
 
     val mediaDataArtist = MediaData.ArtistInfo(
         biography = subsonicResponse.artistInfo?.biography,

@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.craftworks.music.R
 import com.craftworks.music.data.NavidromeProvider
@@ -50,7 +51,7 @@ import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.ui.elements.dialogs.EditLrcLibUrlDialog
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 @Preview
 @Composable
@@ -90,7 +91,7 @@ fun LocalProviderCard(local: String = "", context: Context = LocalContext.curren
             onClick = { LocalProviderManager.removeFolder(local) },
             shape = CircleShape,
             modifier = Modifier
-                .size(32.dp),
+                .size(48.dp),
             contentPadding = PaddingValues(2.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
@@ -174,6 +175,7 @@ fun NavidromeProviderCard(
 
         // Enabled Checkbox
         val context = LocalContext.current
+        val coroutineScope = rememberCoroutineScope()
         Checkbox(
             checked = checked,
             onCheckedChange = {
@@ -181,7 +183,7 @@ fun NavidromeProviderCard(
                     NavidromeManager.setCurrentServer(null)
                 else
                     NavidromeManager.setCurrentServer(server.id)
-                runBlocking {
+                coroutineScope.launch {
                     AppearanceSettingsManager(context).setUsername(server.username)
                 }
                 Log.d("NAVIDROME", "Navidrome Current Server: ${server.id}")
@@ -193,7 +195,7 @@ fun NavidromeProviderCard(
             onClick = { NavidromeManager.removeServer(server.id) },
             shape = CircleShape,
             modifier = Modifier
-                .size(32.dp),
+                .size(48.dp),
             contentPadding = PaddingValues(2.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
@@ -248,11 +250,13 @@ fun LRCLIBProviderCard(
         }
 
         // Enabled Checkbox
+        val coroutineScope = rememberCoroutineScope()
+        val useLrcLib by LyricsState.useLrcLib.collectAsState()
         Checkbox(
-            checked = LyricsState.useLrcLib,
+            checked = useLrcLib,
             onCheckedChange = {
-                LyricsState.useLrcLib = it
-                runBlocking {
+                LyricsState.setUseLrcLib(it)
+                coroutineScope.launch {
                     MediaProviderSettingsManager(context).setUseLrcLib(it)
                 }
             }
@@ -266,14 +270,14 @@ fun LRCLIBProviderCard(
             onClick = { showEditDialog = true },
             shape = CircleShape,
             modifier = Modifier
-                .size(32.dp),
+                .size(48.dp),
             contentPadding = PaddingValues(2.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
             Icon(
                 imageVector = Icons.Rounded.Edit,
                 tint = MaterialTheme.colorScheme.onBackground,
-                contentDescription = "Remove Navidrome Server",
+                contentDescription = "Edit LRCLIB URL",
                 modifier = Modifier
                     .height(32.dp)
                     .size(32.dp)

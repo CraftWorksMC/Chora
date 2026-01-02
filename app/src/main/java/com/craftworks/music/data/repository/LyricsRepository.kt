@@ -1,9 +1,6 @@
 package com.craftworks.music.data.repository
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.datasource.lrclib.LrclibDataSource
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
@@ -11,12 +8,19 @@ import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.ui.playing.lyricsOpen
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 object LyricsState {
     val lyrics = MutableStateFlow<List<Lyric>>(emptyList())
-    var useLrcLib by mutableStateOf(true)
+    private val _useLrcLib = MutableStateFlow(true)
+    val useLrcLib: StateFlow<Boolean> = _useLrcLib.asStateFlow()
+
+    fun setUseLrcLib(value: Boolean) {
+        _useLrcLib.value = value
+    }
 }
 
 @Singleton
@@ -35,7 +39,7 @@ class LyricsRepository @Inject constructor(
             return
         }
 
-        var foundNavidromePlainLyrics by mutableStateOf(false)
+        var foundNavidromePlainLyrics = false
 
         if (NavidromeManager.checkActiveServers()) {
             navidromeDataSource.getNavidromeSyncedLyrics(metadata?.extras?.getString("navidromeID") ?: "").takeIf { it.isNotEmpty() }?.let {
@@ -57,7 +61,7 @@ class LyricsRepository @Inject constructor(
             }
         }
 
-        if (LyricsState.useLrcLib) {
+        if (LyricsState.useLrcLib.value) {
             if (foundNavidromePlainLyrics) {
                 Log.d("LYRICS", "Got Navidrome plain lyrics, trying LRCLIB.")
                 lrclibDataSource.getLrcLibLyrics(metadata).takeIf { it.isNotEmpty() }?.let {

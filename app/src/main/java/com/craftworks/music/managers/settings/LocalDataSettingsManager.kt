@@ -22,7 +22,7 @@ import javax.inject.Singleton
 
 @Singleton
 class LocalDataSettingsManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     companion object {
         private val LOCAL_RADIOS = stringPreferencesKey("radios_list")
@@ -37,8 +37,12 @@ class LocalDataSettingsManager @Inject constructor(
 
     val localRadios: Flow<MutableList<MediaData.Radio>> =
         context.dataStore.data.map { preferences ->
-            Json.decodeFromString<List<MediaData.Radio>>(preferences[LOCAL_RADIOS] ?: "[]")
-                .toMutableList()
+            try {
+                Json.decodeFromString<List<MediaData.Radio>>(preferences[LOCAL_RADIOS] ?: "[]")
+                    .toMutableList()
+            } catch (e: Exception) {
+                mutableListOf()
+            }
         }
 
     suspend fun saveLocalRadios(radios: List<MediaData.Radio>) {
@@ -51,8 +55,12 @@ class LocalDataSettingsManager @Inject constructor(
 
     val localPlaylists: Flow<MutableList<MediaData.Playlist>> =
         context.dataStore.data.map { preferences ->
-            Json.decodeFromString<List<MediaData.Playlist>>(preferences[LOCAL_PLAYLISTS] ?: "[]")
-                .toMutableList()
+            try {
+                Json.decodeFromString<List<MediaData.Playlist>>(preferences[LOCAL_PLAYLISTS] ?: "[]")
+                    .toMutableList()
+            } catch (e: Exception) {
+                mutableListOf()
+            }
         }
 
     suspend fun saveLocalPlaylists(playlists: List<MediaData.Playlist>) {
@@ -65,7 +73,6 @@ class LocalDataSettingsManager @Inject constructor(
 
     @UnstableApi
     suspend fun setPlaybackResumption(playlist: List<MediaItem>, currentPos: Int, currentTime: Long) {
-        println(Json.encodeToString(playlist.map { it.toSong() })) // Keeping original debug print
         context.dataStore.edit { preferences ->
             preferences[MEDIA_RESUMPTION_PLAYLIST] = Json.encodeToString(playlist.map { it.toSong() })
             preferences[MEDIA_RESUMPTION_INDEX] = currentPos
@@ -75,12 +82,19 @@ class LocalDataSettingsManager @Inject constructor(
 
     @UnstableApi
     val playbackResumptionPlaylistWithStartPosition: Flow<MediaSession.MediaItemsWithStartPosition> = context.dataStore.data.map { preferences ->
-        println(preferences[MEDIA_RESUMPTION_PLAYLIST]) // Keeping original debug print
-        MediaSession.MediaItemsWithStartPosition(
-            Json.decodeFromString<List<MediaData.Song>>(preferences[MEDIA_RESUMPTION_PLAYLIST] ?: "[]").map {it.toMediaItem()},
-            preferences[MEDIA_RESUMPTION_INDEX] ?: 0,
-            preferences[MEDIA_RESUMPTION_TIME] ?: 0L
-        )
+        try {
+            MediaSession.MediaItemsWithStartPosition(
+                Json.decodeFromString<List<MediaData.Song>>(preferences[MEDIA_RESUMPTION_PLAYLIST] ?: "[]").map {it.toMediaItem()},
+                preferences[MEDIA_RESUMPTION_INDEX] ?: 0,
+                preferences[MEDIA_RESUMPTION_TIME] ?: 0L
+            )
+        } catch (e: Exception) {
+            MediaSession.MediaItemsWithStartPosition(
+                emptyList(),
+                0,
+                0L
+            )
+        }
     }
 
     val sortAlbumOrder: Flow<SortOrder> =

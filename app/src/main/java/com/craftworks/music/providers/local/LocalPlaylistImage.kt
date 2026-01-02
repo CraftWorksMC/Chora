@@ -32,7 +32,10 @@ suspend fun localPlaylistImageGenerator(songs: List<MediaItem>, context: Context
     if (songs.isEmpty()) return null
 
     // Determine grid size
-    val gridSize = if (songs.size == 1) 1 else 2 // 4x4 grid) 2 // 2x2 grid
+    val gridSize = if (songs.size == 1) 1 else 2 // 2x2 grid
+
+    // Track all bitmaps for cleanup
+    val bitmapsToRecycle = mutableListOf<Bitmap>()
 
     try {
         // Load and determine dimensions
@@ -46,6 +49,7 @@ suspend fun localPlaylistImageGenerator(songs: List<MediaItem>, context: Context
                 val bitmap = loadBitmapFromUrl(song.mediaMetadata.artworkUri.toString(), context)
                 if (bitmap != null) {
                     bitmaps.add(bitmap)
+                    bitmapsToRecycle.add(bitmap)
 
                     // Track maximum dimensions
                     maxWidth = maxOf(maxWidth, bitmap.width)
@@ -62,10 +66,16 @@ suspend fun localPlaylistImageGenerator(songs: List<MediaItem>, context: Context
         if (maxWidth == 0) maxWidth = 256
         if (maxHeight == 0) maxHeight = 256
 
+        // Limit maximum size to prevent OOM
+        val maxAllowedSize = 512
+        if (maxWidth > maxAllowedSize) maxWidth = maxAllowedSize
+        if (maxHeight > maxAllowedSize) maxHeight = maxAllowedSize
+
         // Create the combined bitmap
         val totalWidth = maxWidth * gridSize
         val totalHeight = maxHeight * gridSize
         val combinedBitmap = createBitmap(totalWidth, totalHeight)
+        bitmapsToRecycle.add(combinedBitmap)
         val canvas = Canvas(combinedBitmap)
 
         // Fill the grid based on available images
@@ -73,6 +83,7 @@ suspend fun localPlaylistImageGenerator(songs: List<MediaItem>, context: Context
             for (col in 0 until gridSize) {
                 val position = row * gridSize + col
                 val sourceIndex = when (bitmaps.size) {
+                    0 -> -1 // No images available
                     1 -> 0
                     2 -> {
                         // Create checkerboard pattern: A B / B A
@@ -88,22 +99,30 @@ suspend fun localPlaylistImageGenerator(songs: List<MediaItem>, context: Context
                     else -> position
                 }
 
-                if (sourceIndex < bitmaps.size) {
+                if (sourceIndex >= 0 && sourceIndex < bitmaps.size) {
                     val bitmap = bitmaps[sourceIndex]
 
                     // Ensure bitmap is software-compatible before scaling
-                    val softwareBitmap = if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            bitmap.config == Bitmap.Config.HARDWARE
-                        } else {
-                            bitmap.config == Bitmap.Config.ARGB_8888
+                    val needsCopy = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        bitmap.config == Bitmap.Config.HARDWARE
+                    } else {
+                        false
+                    }
+
+                    val softwareBitmap = if (needsCopy) {
+                        val copied = bitmap.copy(Bitmap.Config.ARGB_8888, false)
+                        if (copied != null) {
+                            bitmapsToRecycle.add(copied)
                         }
-                    ) {
-                        bitmap.copy(Bitmap.Config.ARGB_8888, false)
+                        copied ?: bitmap
                     } else {
                         bitmap
                     }
 
                     val scaledBitmap = softwareBitmap.scale(maxWidth, maxHeight)
+                    if (scaledBitmap !== softwareBitmap) {
+                        bitmapsToRecycle.add(scaledBitmap)
+                    }
 
                     val x = col * maxWidth
                     val y = row * maxHeight
@@ -115,11 +134,34 @@ suspend fun localPlaylistImageGenerator(songs: List<MediaItem>, context: Context
         println("Playlist Cover Art Generated Successfully!")
         val stream = ByteArrayOutputStream()
         combinedBitmap.compress(Bitmap.CompressFormat.PNG, 90, stream)
-        return stream.toByteArray()
+        val result = stream.toByteArray()
+        stream.close()
+
+        // Recycle all bitmaps before returning
+        recycleBitmaps(bitmapsToRecycle)
+
+        return result
 
     } catch (e: Exception) {
         e.printStackTrace()
+        // Ensure cleanup on error
+        recycleBitmaps(bitmapsToRecycle)
         return null
+    }
+}
+
+/**
+ * Safely recycles a list of bitmaps, handling any exceptions.
+ */
+private fun recycleBitmaps(bitmaps: List<Bitmap>) {
+    for (bitmap in bitmaps) {
+        try {
+            if (!bitmap.isRecycled) {
+                bitmap.recycle()
+            }
+        } catch (e: Exception) {
+            // Ignore recycling errors
+        }
     }
 }
 
@@ -140,6 +182,8 @@ private suspend fun loadBitmapFromUrl(imageUrl: String, context: Context): Bitma
                     val url = URL(imageUrl)
                     val connection = url.openConnection() as HttpURLConnection
                     try {
+                        connection.connectTimeout = 10_000
+                        connection.readTimeout = 15_000
                         connection.doInput = true
                         connection.connect()
                         val inputStream = connection.inputStream
@@ -168,11 +212,10 @@ private suspend fun loadBitmapFromUrl(imageUrl: String, context: Context): Bitma
                         decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                     }
                 } else {
-                    // For older Android versions
-                    val inputStream = context.contentResolver.openInputStream(uri)
-                    val bitmap = BitmapFactory.decodeStream(inputStream)
-                    inputStream?.close()
-                    bitmap
+                    // For older Android versions - use 'use' to ensure stream is closed
+                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                        BitmapFactory.decodeStream(inputStream)
+                    }
                 }
             }
         }

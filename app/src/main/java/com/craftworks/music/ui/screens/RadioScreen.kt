@@ -86,7 +86,8 @@ fun RadioScreen(
     PullToRefreshBox(
         state = state,
         isRefreshing = isRefreshing,
-        onRefresh = onRefresh
+        onRefresh = onRefresh,
+        indicator = {}
     ) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),

@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.isActive
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
@@ -43,7 +44,7 @@ fun AnimatedGradientBackground(
     val currentOverlayColor by animateColorAsState(overlayColor, tween(1500), label = "overlay")
 
     LaunchedEffect(Unit) {
-        while (true) {
+        while (isActive) {
             withFrameMillis { frameTime ->
                 time = frameTime / 10000f
             }

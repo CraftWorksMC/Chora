@@ -2,6 +2,7 @@ package com.craftworks.music.ui.elements
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -42,7 +43,12 @@ fun TopBarWithSearch(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(textFieldState.text) {
-        onSearch(textFieldState.text.toString())
+        val query = textFieldState.text.toString()
+        if (query.length <= 100) {
+            onSearch(query)
+        } else {
+            onSearch(query.take(100))
+        }
     }
 
     val inputField =
@@ -73,7 +79,7 @@ fun TopBarWithSearch(
                             else
                                 Icon(
                                     Icons.Rounded.Search,
-                                    contentDescription = "Back",
+                                    contentDescription = "Search",
                                 )
                         }
                     }
@@ -85,6 +91,7 @@ fun TopBarWithSearch(
         title = { Text(text = headerText) },
         actions = {
             extraAction()
+            Spacer(modifier = Modifier.width(8.dp))
             AppBarWithSearch(
                 state = searchBarState,
                 inputField = inputField,

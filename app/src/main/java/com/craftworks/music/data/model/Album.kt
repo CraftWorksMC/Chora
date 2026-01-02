@@ -1,12 +1,18 @@
 package com.craftworks.music.data.model
 
 import android.os.Bundle
-import androidx.compose.runtime.mutableStateListOf
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import java.util.Collections
 
-var albumList:MutableList<MediaData.Album> = mutableStateListOf()
+/**
+ * @deprecated Global mutable state is deprecated. Use AlbumRepository instead.
+ * This is kept for backwards compatibility with legacy code.
+ * TODO: Remove once all usages are migrated to repository pattern.
+ */
+@Deprecated("Use AlbumRepository instead of global mutable state")
+val albumList: MutableList<MediaData.Album> = Collections.synchronizedList(mutableListOf())
 
 fun MediaData.Album.toMediaItem(): MediaItem {
     val mediaMetadata = MediaMetadata.Builder()
@@ -49,7 +55,7 @@ fun MediaItem.toAlbum(): MediaData.Album {
         navidromeID = extras?.getString("navidromeID") ?: "",
         name = mediaMetadata.albumTitle.toString(),
         artist = mediaMetadata.artist.toString(),
-        year = mediaMetadata.releaseYear ?: 0,
+        year = mediaMetadata.recordingYear ?: mediaMetadata.releaseYear ?: 0,
         coverArt = mediaMetadata.artworkUri.toString(),
         duration = extras?.getInt("Duration") ?: 0,
         songs = mutableListOf(),

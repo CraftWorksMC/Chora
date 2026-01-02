@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="Settings_Header_Appearance">Appearance</string>
+    <string name="Settings_Header_Artwork">Artwork</string>
         <string name="Setting_Username">Name</string>
         <string name="Setting_Background">Background Style</string>
         <string name="Setting_Navbar_Items">Navigation Bar Items</string>
@@ -12,6 +13,9 @@
         <string name="Setting_RefreshAnimation">Show Refresh Animation</string>
         <string name="Setting_LyricsAnimationSpeed">Lyrics Animation Speed</string>
         <string name="Setting_TrackNumbersAlbum">Show Track Numbers in Album View</string>
+        <string name="Setting_StripTrackNumbers">Hide Track Numbers in Titles</string>
+        <string name="Setting_StripTrackNumbers_Description">Hides track number prefixes like \"01 - \" from song titles</string>
+        <string name="Setting_GeneratedArtwork">Generated Album Art</string>
     <string name="Settings_Header_Media">Media Providers</string>
     <string name="Settings_Header_Playback">Playback</string>
         <string name="Setting_Transcoding">Max Bitrate</string>
@@ -20,4 +24,23 @@
         <string name="Setting_Transcoding_Format">Transcoding Format</string>
         <string name="Setting_Scrobble_Percent">Min. Scrobble Percentage</string>
         <string name="Setting_Scrobble_Description">Navidrome Only.</string>
+        <string name="Setting_Sleep_Timer">Sleep Timer</string>
+        <string name="Setting_Sleep_Timer_Off">Off</string>
+        <string name="Setting_Sleep_Timer_Active">Active</string>
+        <string name="Setting_Queue_Position">Add to Queue Position</string>
+        <string name="Setting_Queue_Bottom">Bottom of queue</string>
+        <string name="Setting_Queue_Top">After current song</string>
+        <string name="Action_Add_To_Queue">Add to Queue</string>
+        <string name="Action_Play_Next">Play Next</string>
+        <string name="Queue_Clear">Clear Queue</string>
+        <string name="Queue_Title">Queue</string>
+    <string name="Settings_Header_Data">Data</string>
+        <string name="Settings_Data_SyncStatus">Sync Status</string>
+        <string name="Settings_Data_Actions">Sync Actions</string>
+        <string name="Settings_Data_SyncNow">Sync Now</string>
+        <string name="Settings_Data_ForceResync">Force Resync</string>
+        <string name="Settings_Data_CancelSync">Cancel</string>
+        <string name="Settings_Data_DangerZone">Danger Zone</string>
+        <string name="Settings_Data_ClearCache">Clear Local Data</string>
+        <string name="Settings_Data_ClearCacheDesc">Deletes all songs, albums, and artists from the local database. Everything will be re-synced from your server.</string>
 </resources>

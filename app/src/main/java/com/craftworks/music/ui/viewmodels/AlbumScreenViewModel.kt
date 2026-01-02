@@ -3,71 +3,132 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import com.craftworks.music.data.database.dao.AlbumDao
+import com.craftworks.music.data.database.dao.SongDao
+import com.craftworks.music.data.database.entity.toMediaDataAlbum
+import com.craftworks.music.data.database.entity.toMediaDataSong
 import com.craftworks.music.data.model.SortOrder
+import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.repository.AlbumRepository
+import com.craftworks.music.data.repository.SyncRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
+import com.craftworks.music.ui.util.TextDisplayUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AlbumScreenViewModel @Inject constructor(
     private val albumRepository: AlbumRepository,
-    private val localDataSettingsManager: LocalDataSettingsManager
+    private val localDataSettingsManager: LocalDataSettingsManager,
+    private val syncRepository: SyncRepository,
+    private val albumDao: AlbumDao,
+    private val songDao: SongDao
 ) : ViewModel() {
-
-    private val _allAlbums = MutableStateFlow<List<MediaItem>>(emptyList())
-    val allAlbums: StateFlow<List<MediaItem>> = _allAlbums.asStateFlow()
-
-    private val _searchResults = MutableStateFlow<List<MediaItem>>(emptyList())
-    val searchResults: StateFlow<List<MediaItem>> = _searchResults.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _sortOrder = MutableStateFlow(SortOrder.ALPHABETICAL)
     val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
 
+    // Observe Room database directly for instant UI updates, combined with sort order
+    val allAlbums: StateFlow<List<MediaItem>> = combine(
+        albumDao.getAllAlbums().map { entities -> entities.map { it.toMediaDataAlbum().toMediaItem() } },
+        _sortOrder
+    ) { albums, order ->
+        when (order) {
+            SortOrder.ALPHABETICAL -> albums.sortedBy {
+                TextDisplayUtils.getSortKey(it.mediaMetadata.title?.toString())
+            }
+            SortOrder.NEWEST -> albums.sortedByDescending {
+                it.mediaMetadata.extras?.getString("created") ?: ""
+            }
+            SortOrder.RECENT -> albums.sortedByDescending {
+                it.mediaMetadata.extras?.getString("lastPlayed") ?: ""
+            }
+            SortOrder.FREQUENT -> albums.sortedByDescending {
+                it.mediaMetadata.extras?.getInt("playCount") ?: 0
+            }
+            SortOrder.STARRED -> {
+                val (starred, unstarred) = albums.partition {
+                    !it.mediaMetadata.extras?.getString("starred").isNullOrEmpty()
+                }
+                starred.sortedBy { TextDisplayUtils.getSortKey(it.mediaMetadata.title?.toString()) } +
+                unstarred.sortedBy { TextDisplayUtils.getSortKey(it.mediaMetadata.title?.toString()) }
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    private val _searchResults = MutableStateFlow<List<MediaItem>>(emptyList())
+    val searchResults: StateFlow<List<MediaItem>> = _searchResults.asStateFlow()
+
+    val isLoading: StateFlow<Boolean> = syncRepository.isSyncing
+
     init {
         viewModelScope.launch {
-            localDataSettingsManager.sortAlbumOrder.collect { sortOrder ->
-                if (_sortOrder.value != sortOrder) {
-                    _sortOrder.value = sortOrder
-                    getAlbums() // Refresh albums if the sort order changes
+            try {
+                localDataSettingsManager.sortAlbumOrder.collect { sortOrder ->
+                    if (_sortOrder.value != sortOrder) {
+                        _sortOrder.value = sortOrder
+                    }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
 
         viewModelScope.launch {
-            _sortOrder.value = localDataSettingsManager.sortAlbumOrder.first()
-            getAlbums()
+            try {
+                _sortOrder.value = localDataSettingsManager.sortAlbumOrder.first()
 
-            DataRefreshManager.dataSourceChangedEvent.collect {
-                getAlbums()
+                // Skip auto-sync if cache was just cleared
+                if (syncRepository.wasJustCleared()) {
+                    return@launch
+                }
+
+                // Load cached data instantly, sync in background (once per day)
+                if (!syncRepository.hasCachedData()) {
+                    syncRepository.syncAll()
+                } else if (syncRepository.shouldSyncToday()) {
+                    launch { syncRepository.syncAll() }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        viewModelScope.launch {
+            try {
+                DataRefreshManager.dataSourceChangedEvent.collect {
+                    // Skip refresh if just cleared
+                    if (!syncRepository.wasJustCleared()) {
+                        // Don't auto-refresh - let user trigger manually
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
-    fun getAlbums() {
-        _allAlbums.value = emptyList()
-
+    fun refreshAlbums() {
         viewModelScope.launch {
-            _isLoading.value = true
-            coroutineScope {
-                val allAlbumsDeferred = async { albumRepository.getAlbums(_sortOrder.value.key, 20, 0, true) }
-
-                _allAlbums.value = allAlbumsDeferred.await().sortedByDescending {
-                    it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")
-                }
+            try {
+                syncRepository.syncAll(forceRefresh = true)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-            _isLoading.value = false
         }
     }
 
@@ -75,14 +136,27 @@ class AlbumScreenViewModel @Inject constructor(
         return albumRepository.getAlbum(id) ?: emptyList()
     }
 
-    fun getMoreAlbums(size: Int){
-        viewModelScope.launch {
-            coroutineScope {
-                val albumOffset = _allAlbums.value.size
-                val newAlbums = albumRepository.getAlbums(_sortOrder.value.key, size, albumOffset)
-                _allAlbums.value += newAlbums
-            }
+    suspend fun getSongsForAlbums(albums: List<MediaItem>): List<MediaItem> {
+        // Use batch query to avoid N+1 problem
+        val albumIds = albums.map { it.mediaId }
+        val localIds = albumIds.filter { it.startsWith("Local_") }
+        val navidromeIds = albumIds.filter { !it.startsWith("Local_") }
+
+        val songs = mutableListOf<MediaItem>()
+
+        // Get cached songs from Room for Navidrome albums
+        if (navidromeIds.isNotEmpty()) {
+            val cachedSongs = songDao.getSongsByAlbumIds(navidromeIds)
+            songs.addAll(cachedSongs.map { it.toMediaDataSong().toMediaItem() })
         }
+
+        // Fallback to repository for local albums
+        for (localId in localIds) {
+            val albumSongs = albumRepository.getAlbum(localId) ?: emptyList()
+            songs.addAll(albumSongs.drop(1)) // Drop album header
+        }
+
+        return songs
     }
 
     fun search(query: String) {
@@ -91,17 +165,21 @@ class AlbumScreenViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            _isLoading.value = true
-            coroutineScope {
+            try {
                 _searchResults.value = albumRepository.searchAlbum(query)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-            _isLoading.value = false
         }
     }
 
     fun setSorting(newSortOrder: SortOrder) {
         viewModelScope.launch {
-            localDataSettingsManager.saveSortAlbumOrder(newSortOrder)
+            try {
+                localDataSettingsManager.saveSortAlbumOrder(newSortOrder)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

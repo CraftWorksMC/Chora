@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
+import java.net.URLEncoder
 
 @Serializable
 data class LyricsList(
@@ -21,7 +22,9 @@ data class SyncedLyrics(
 )
 
 suspend fun getNavidromePlainLyrics(metadata: MediaMetadata?): List<Lyric> {
-    return sendNavidromeGETRequest("getLyrics.view?artist=${metadata?.artist}&title=${metadata?.title}&f=json").filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.content.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
+    val artist = URLEncoder.encode(metadata?.artist?.toString() ?: "", "UTF-8")
+    val title = URLEncoder.encode(metadata?.title?.toString() ?: "", "UTF-8")
+    return sendNavidromeGETRequest("getLyrics.view?artist=$artist&title=$title&f=json").filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.content.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
 }
 
 suspend fun getNavidromeSyncedLyrics(navidromeId: String): List<Lyric> {
@@ -31,28 +34,30 @@ suspend fun getNavidromeSyncedLyrics(navidromeId: String): List<Lyric> {
 
 fun parseNavidromePlainLyricsJSON(
     response: String
-): MediaData {
-
+): MediaData.PlainLyrics {
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+        ?: return MediaData.PlainLyrics(value = "", artist = "", title = "")
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        return MediaData.PlainLyrics(value = "", artist = "", title = "")
+    }
 
-    val mediaDataPlainLyrics = subsonicResponse.lyrics!!
-
-    return mediaDataPlainLyrics
+    return subsonicResponse.lyrics ?: MediaData.PlainLyrics(value = "", artist = "", title = "")
 }
 
 fun parseNavidromeSyncedLyricsJSON(
     response: String
 ): List<MediaData.StructuredLyrics> {
-
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+        ?: return emptyList()
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        return emptyList()
+    }
 
-    val mediaDataSyncedLyrics = subsonicResponse.lyricsList?.structuredLyrics ?: emptyList()
-
-    return mediaDataSyncedLyrics
+    return subsonicResponse.lyricsList?.structuredLyrics ?: emptyList()
 }

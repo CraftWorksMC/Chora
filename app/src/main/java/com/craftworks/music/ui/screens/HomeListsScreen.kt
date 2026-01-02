@@ -4,7 +4,11 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -21,7 +25,6 @@ import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
-import kotlinx.coroutines.runBlocking
 import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,7 +51,15 @@ fun HomeListsScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(titleRes),) },
+                title = { Text(text = stringResource(titleRes)) },
+                navigationIcon = {
+                    IconButton(onClick = { navHostController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
                 scrollBehavior = scrollBehavior
             )
         },
@@ -62,12 +73,12 @@ fun HomeListsScreen(
                 albums,
                 mediaController,
                 onAlbumSelected = { album ->
-                    val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                    val encodedImage = URLEncoder.encode(album.coverArt ?: "", "UTF-8")
+                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}?image=$encodedImage") {
                         launchSingleTop = true
                     }
                 },
-                onGetAlbum = { runBlocking { viewModel.getAlbumSongs(it) } }
+                onGetAlbum = { viewModel.getAlbumSongs(it) }
             )
         }
     }

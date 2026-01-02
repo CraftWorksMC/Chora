@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
+import java.net.URLEncoder
 
 @Serializable
 @SerialName("starred")
@@ -25,20 +26,24 @@ fun parseNavidromeFavouritesJSON(
     navidromePassword: String
 ) : List<MediaItem> {
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+        ?: return emptyList()
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        return emptyList()
+    }
 
     val passwordSaltMedia = generateSalt(8)
     val passwordHashMedia = md5Hash(navidromePassword + passwordSaltMedia)
-
+    val encodedUsername = URLEncoder.encode(navidromeUsername, "UTF-8")
 
     val mediaDataFavouriteSongs = mutableListOf<MediaItem>()
 
     mediaDataFavouriteSongs.addAll(subsonicResponse.starred?.song?.map {
         it.copy(
-            media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.12.0&c=Chora",
-            imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora&size=128"
+            media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$encodedUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.12.0&c=Chora",
+            imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$encodedUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora&size=128"
         ).toMediaItem()
     } ?: emptyList())
 
