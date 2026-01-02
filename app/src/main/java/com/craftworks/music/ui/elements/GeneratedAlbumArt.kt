@@ -251,14 +251,28 @@ fun GeneratedAlbumArtStatic(
     modifier: Modifier = Modifier,
     size: Dp = 64.dp,
     album: String? = null,
-    colors: List<Color>? = null
+    colors: List<Color>? = null,
+    // Performance: Pass from parent to avoid per-item settings creation
+    artworkStyle: ArtworkSettingsManager.ArtworkStyle? = null,
+    colorPalette: ArtworkSettingsManager.ColorPalette? = null,
+    showInitialsOverride: Boolean? = null
 ) {
-    val context = LocalContext.current
-    val settingsManager = remember { ArtworkSettingsManager(context) }
+    // Use passed values or fall back to reading settings (for standalone usage)
+    val style: ArtworkSettingsManager.ArtworkStyle
+    val palette: ArtworkSettingsManager.ColorPalette
+    val showInitials: Boolean
 
-    val style by settingsManager.artworkStyleFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.ArtworkStyle.GRADIENT)
-    val palette by settingsManager.colorPaletteFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.ColorPalette.MATERIAL_YOU)
-    val showInitials by settingsManager.showInitialsFlow.collectAsStateWithLifecycle(true)
+    if (artworkStyle != null && colorPalette != null && showInitialsOverride != null) {
+        style = artworkStyle
+        palette = colorPalette
+        showInitials = showInitialsOverride
+    } else {
+        val context = LocalContext.current
+        val settingsManager = remember { ArtworkSettingsManager(context) }
+        style = artworkStyle ?: settingsManager.artworkStyleFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.ArtworkStyle.GRADIENT).value
+        palette = colorPalette ?: settingsManager.colorPaletteFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.ColorPalette.MATERIAL_YOU).value
+        showInitials = showInitialsOverride ?: settingsManager.showInitialsFlow.collectAsStateWithLifecycle(true).value
+    }
 
     // Cache content parsing - only recompute when inputs change
     val content = remember(title, artist, album, palette) {

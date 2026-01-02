@@ -442,17 +442,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 return shuffleFuture
             }
 
-            // We need to use URI from requestMetaData because of https://github.com/androidx/media/issues/282
-            val updatedStartIndex =
-                SongHelper.currentTracklist.indexOfFirst { it.mediaId == mediaItems[0].mediaId }
-
-            val currentTracklist =
-                if (updatedStartIndex != -1) {
-                    SongHelper.currentTracklist
-                } else {
-                    SongHelper.currentTracklist = mediaItems.toMutableList()
-                    mediaItems
-                }
+            // IMPORTANT: Use the already-windowed mediaItems passed to us, NOT SongHelper.currentTracklist
+            // SongHelper.currentTracklist may contain thousands of items which exceeds the Binder limit
+            // The mediaItems parameter is already windowed by SongHelper.play() to ~200 items
 
             val connectivityManager =
                 this@ChoraMediaLibraryService.baseContext.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -486,7 +478,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     ""
                 }
                 try {
-                    val resolvedItems = currentTracklist.map { mediaItem ->
+                    val resolvedItems = mediaItems.map { mediaItem ->
                         val songId = mediaItem.mediaMetadata.extras?.getString("navidromeID")
                         val offlinePath = if (songId != null) {
                             offlineMediaResolver.getOfflinePath(songId)
@@ -512,7 +504,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
                     val result = MediaItemsWithStartPosition(
                         resolvedItems,
-                        if (updatedStartIndex != -1) updatedStartIndex else startIndex,
+                        startIndex,
                         startPositionMs
                     )
                     resultFuture.set(result)

@@ -70,12 +70,8 @@ import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.ui.util.TextDisplayUtils
-import com.craftworks.music.ui.viewmodels.DownloadViewModel
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-
-import com.craftworks.music.ui.util.rememberAlbumPalette
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -89,22 +85,37 @@ fun HorizontalSongCard(
     onEnterSelectionMode: (() -> Unit)? = null,
     onDownload: ((MediaItem) -> Unit)? = null,
     onAddToPlaylist: ((MediaItem) -> Unit)? = null,
+    // Performance: Pass these from parent instead of creating per-item
+    isOffline: Boolean = false,
+    generatedArtworkEnabled: Boolean = true,
+    fallbackMode: ArtworkSettingsManager.FallbackMode = ArtworkSettingsManager.FallbackMode.PLACEHOLDER_DETECT,
+    stripTrackNumbers: Boolean = false,
+    // Artwork style settings for GeneratedAlbumArt
+    artworkStyle: ArtworkSettingsManager.ArtworkStyle = ArtworkSettingsManager.ArtworkStyle.GRADIENT,
+    colorPalette: ArtworkSettingsManager.ColorPalette = ArtworkSettingsManager.ColorPalette.MATERIAL_YOU,
+    showInitials: Boolean = true,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
     val mediaController = rememberManagedMediaController().value
     var expanded by remember { mutableStateOf(false) }
 
-    val artworkSettings = remember { ArtworkSettingsManager(context) }
-    val generatedArtworkEnabled by artworkSettings.generatedArtworkEnabledFlow.collectAsStateWithLifecycle(true)
-    val fallbackMode by artworkSettings.fallbackModeFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.FallbackMode.PLACEHOLDER_DETECT)
-
-    val appearanceSettings = remember { AppearanceSettingsManager(context) }
-    val stripTrackNumbers by appearanceSettings.stripTrackNumbersFromTitlesFlow.collectAsStateWithLifecycle(false)
-
-    // Palette colors (only fetched if needed)
+    // Check if generated artwork is needed
     val artworkUri = song.mediaMetadata.artworkUri?.toString()
-    val paletteColors by rememberAlbumPalette(artworkUri)
+    val hasArtwork = !artworkUri.isNullOrEmpty()
+    val needsGeneratedArt = generatedArtworkEnabled && (
+        fallbackMode == ArtworkSettingsManager.FallbackMode.ALWAYS ||
+        !hasArtwork ||
+        (fallbackMode == ArtworkSettingsManager.FallbackMode.PLACEHOLDER_DETECT &&
+            artworkUri != null && (
+            artworkUri.contains("placeholder") ||
+            artworkUri.endsWith("/coverArt") ||
+            artworkUri.contains("coverArt?id=&") ||
+            (artworkUri.contains("coverArt?size=") && !artworkUri.contains("id="))))
+    )
+    // DISABLED palette extraction for list items - too expensive for large lists
+    // Generated art will use default Material You colors instead
+    val paletteColors: List<androidx.compose.ui.graphics.Color>? = null
 
     // Selection animations
     val selectionScale by animateFloatAsState(
@@ -220,24 +231,8 @@ fun HorizontalSongCard(
                 }
             }
             else {
-                val hasArtwork = !artworkUri.isNullOrEmpty()
-
-                // Check if we should use generated art based on fallback mode
-                val useGeneratedArt = when {
-                    !generatedArtworkEnabled -> false
-                    fallbackMode == ArtworkSettingsManager.FallbackMode.ALWAYS -> true
-                    !hasArtwork -> true
-                    fallbackMode == ArtworkSettingsManager.FallbackMode.PLACEHOLDER_DETECT -> {
-                        artworkUri != null && (
-                        artworkUri.contains("placeholder") ||
-                        artworkUri.endsWith("/coverArt") ||
-                        artworkUri.contains("coverArt?id=&") ||
-                        artworkUri.contains("coverArt?size=") && !artworkUri.contains("id="))
-                    }
-                    else -> false
-                }
-
-                if (useGeneratedArt) {
+                // Use pre-computed needsGeneratedArt from above
+                if (needsGeneratedArt) {
                     GeneratedAlbumArtStatic(
                         title = song.mediaMetadata.title?.toString() ?: "?",
                         artist = song.mediaMetadata.artist?.toString(),
@@ -245,7 +240,10 @@ fun HorizontalSongCard(
                         modifier = Modifier
                             .padding(4.dp, 0.dp, 0.dp, 0.dp)
                             .clip(RoundedCornerShape(12.dp)),
-                        colors = paletteColors
+                        colors = paletteColors,
+                        artworkStyle = artworkStyle,
+                        colorPalette = colorPalette,
+                        showInitialsOverride = showInitials
                     )
                 } else if (hasArtwork) {
                     val cacheKey = (song.mediaMetadata.extras?.getString("source") ?: "default") + "_" +
@@ -274,7 +272,10 @@ fun HorizontalSongCard(
                                     modifier = Modifier
                                         .padding(4.dp, 0.dp, 0.dp, 0.dp)
                                         .clip(RoundedCornerShape(12.dp)),
-                                    colors = paletteColors
+                                    colors = paletteColors,
+                                    artworkStyle = artworkStyle,
+                                    colorPalette = colorPalette,
+                                    showInitialsOverride = showInitials
                                 )
                             } else {
                                 Box(
@@ -334,10 +335,7 @@ fun HorizontalSongCard(
                 navidromeID != null && !navidromeID.startsWith("Local_")
             }
 
-            // Check if song is available offline
-            val downloadViewModel: DownloadViewModel = hiltViewModel()
-            val songId = song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
-            val isOffline by downloadViewModel.isOfflineAvailableFlow(songId).collectAsStateWithLifecycle(false)
+            // isOffline is now passed as a parameter from parent for performance
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,

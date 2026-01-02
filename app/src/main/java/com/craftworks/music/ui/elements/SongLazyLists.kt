@@ -88,7 +88,9 @@ fun SongsHorizontalColumn(
     useMultiColumn: Boolean = false,
     enableSelection: Boolean = true,
     onDownloadSelected: ((List<MediaItem>) -> Unit)? = null,
-    onDownload: ((MediaItem) -> Unit)? = null
+    onDownload: ((MediaItem) -> Unit)? = null,
+    // Performance: Accept offline song IDs set from parent
+    offlineSongIds: Set<String> = emptySet()
 ){
     if (songList.isEmpty()) {
         Box(
@@ -115,7 +117,18 @@ fun SongsHorizontalColumn(
         selectedSongIds.clear()
     }
 
-    val showDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
+    // Read settings ONCE at parent level, not per-item
+    val context = LocalContext.current
+    val appearanceSettings = remember { AppearanceSettingsManager(context) }
+    val showDividers by appearanceSettings.showProviderDividersFlow.collectAsStateWithLifecycle(true)
+    val stripTrackNumbers by appearanceSettings.stripTrackNumbersFromTitlesFlow.collectAsStateWithLifecycle(false)
+
+    val artworkSettings = remember { com.craftworks.music.managers.settings.ArtworkSettingsManager(context) }
+    val generatedArtworkEnabled by artworkSettings.generatedArtworkEnabledFlow.collectAsStateWithLifecycle(true)
+    val fallbackMode by artworkSettings.fallbackModeFlow.collectAsStateWithLifecycle(com.craftworks.music.managers.settings.ArtworkSettingsManager.FallbackMode.PLACEHOLDER_DETECT)
+    val artworkStyle by artworkSettings.artworkStyleFlow.collectAsStateWithLifecycle(com.craftworks.music.managers.settings.ArtworkSettingsManager.ArtworkStyle.GRADIENT)
+    val colorPalette by artworkSettings.colorPaletteFlow.collectAsStateWithLifecycle(com.craftworks.music.managers.settings.ArtworkSettingsManager.ColorPalette.MATERIAL_YOU)
+    val showInitials by artworkSettings.showInitialsFlow.collectAsStateWithLifecycle(true)
 
     // Group songs by their source (Local or Navidrome)
     val groupedSongs = remember(songList) {
@@ -189,6 +202,7 @@ fun SongsHorizontalColumn(
                             items = songsInGroup,
                             key = { _, song -> song.mediaId }
                         ) { index, song ->
+                            val songId = song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
                             HorizontalSongCard(
                                 song = song,
                                 isInSelectionMode = isInSelectionMode,
@@ -206,7 +220,15 @@ fun SongsHorizontalColumn(
                                 onClick = {
                                     onSongSelected(songsInGroup, index)
                                 },
-                                onDownload = onDownload
+                                onDownload = onDownload,
+                                // Pass settings from parent for performance
+                                isOffline = offlineSongIds.contains(songId),
+                                generatedArtworkEnabled = generatedArtworkEnabled,
+                                fallbackMode = fallbackMode,
+                                stripTrackNumbers = stripTrackNumbers,
+                                artworkStyle = artworkStyle,
+                                colorPalette = colorPalette,
+                                showInitials = showInitials
                             )
                         }
                     }
@@ -259,6 +281,7 @@ fun SongsHorizontalColumn(
                             items = songsInGroup,
                             key = { _, song -> song.mediaId }
                         ) { index, song ->
+                            val songId = song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
                             HorizontalSongCard(
                                 song = song,
                                 isInSelectionMode = isInSelectionMode,
@@ -276,7 +299,15 @@ fun SongsHorizontalColumn(
                                 onClick = {
                                     onSongSelected(songsInGroup, index)
                                 },
-                                onDownload = onDownload
+                                onDownload = onDownload,
+                                // Pass settings from parent for performance
+                                isOffline = offlineSongIds.contains(songId),
+                                generatedArtworkEnabled = generatedArtworkEnabled,
+                                fallbackMode = fallbackMode,
+                                stripTrackNumbers = stripTrackNumbers,
+                                artworkStyle = artworkStyle,
+                                colorPalette = colorPalette,
+                                showInitials = showInitials
                             )
                         }
                     }
