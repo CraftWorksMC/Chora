@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -45,6 +46,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -118,7 +120,7 @@ fun HomeScreen(
     val rippleXOffset = LocalWindowInfo.current.containerSize.width / 2
     val rippleYOffset = dpToPx(12)
     val onRefresh: () -> Unit = {
-        viewModel.loadHomeScreenData()
+        viewModel.loadHomeScreenData(forceRefresh = true)
         showRipple++
     }
 
@@ -134,10 +136,13 @@ fun HomeScreen(
         onRefresh = onRefresh,
         indicator = {} // Hidden - using FloatingSyncIndicator instead
     ) {
+        // Use rememberSaveable to preserve scroll position across navigation
+        val scrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(0) }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(
