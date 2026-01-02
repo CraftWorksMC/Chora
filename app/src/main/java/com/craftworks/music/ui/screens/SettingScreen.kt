@@ -115,6 +115,13 @@ fun SettingScreen(
                     R.string.Settings_Header_Data,
                     navHostController
                 )
+
+                SettingsButton(
+                    Screen.S_Downloads.route,
+                    R.drawable.rounded_download_24,
+                    R.string.Label_Downloads,
+                    navHostController
+                )
             }
         }
     }

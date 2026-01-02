@@ -3,6 +3,8 @@ package com.craftworks.music.worker
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.Environment
 import android.util.Log
 import androidx.core.app.ActivityCompat
@@ -273,6 +275,14 @@ class DownloadWorker @AssistedInject constructor(
             .setProgress(100, progress, progress == 0)
             .build()
 
-        return ForegroundInfo(notificationId, notification)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(
+                notificationId,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        } else {
+            ForegroundInfo(notificationId, notification)
+        }
     }
 }

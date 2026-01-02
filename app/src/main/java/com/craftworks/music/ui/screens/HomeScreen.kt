@@ -125,7 +125,7 @@ fun HomeScreen(
     val libraries by NavidromeManager.libraries.collectAsStateWithLifecycle()
 
     // Move appearanceManager to outer scope so it can be reused throughout the screen
-    val appearanceManager = remember { AppearanceSettingsManager(context) }
+    val appearanceManager = remember { AppearanceSettingsManager(context.applicationContext) }
 
     PullToRefreshBox(
         modifier = Modifier,

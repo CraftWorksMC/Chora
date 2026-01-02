@@ -88,7 +88,7 @@ fun PreviewThemeDialog(){
 @Preview
 @Composable
 fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
     val coroutineScope = rememberCoroutineScope()
     val settingsManager = remember { AppearanceSettingsManager(context) }
     val username by settingsManager.usernameFlow.collectAsStateWithLifecycle("Username")
@@ -112,8 +112,8 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
             Button(onClick = {
                 coroutineScope.launch {
                     settingsManager.setUsername(usernameTextField)
+                    setShowDialog(false)
                 }
-                setShowDialog(false)
             }) {
                 Text(stringResource(R.string.Action_Done))
             }
@@ -124,7 +124,7 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
     val coroutineScope = rememberCoroutineScope()
     val settingsManager = remember { AppearanceSettingsManager(context) }
 
@@ -194,7 +194,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
 )
 @Composable
 fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
     val coroutineScope = rememberCoroutineScope()
     val settingsManager = remember { AppearanceSettingsManager(context) }
 
@@ -287,7 +287,7 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
     val coroutineScope = rememberCoroutineScope()
     val settingsManager = remember { AppearanceSettingsManager(context) }
     val bottomNavigationItems =
@@ -411,7 +411,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
     val coroutineScope = rememberCoroutineScope()
     val settingsManager = remember { AppearanceSettingsManager(context) }
     val homeItems =
@@ -536,7 +536,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
 @Composable
 @Preview
 fun NowPlayingTitleAlignmentDialog(setShowDialog: (Boolean) -> Unit = { }) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
     val coroutineScope = rememberCoroutineScope()
     val settingsManager = remember { AppearanceSettingsManager(context) }
 

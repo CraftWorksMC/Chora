@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -95,6 +96,8 @@ import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.OnboardingSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.rememberManagedMediaController
+import com.craftworks.music.managers.BatteryOptimizationManager
+import com.craftworks.music.ui.elements.dialogs.BatteryOptimizationDialog
 import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
 import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.playing.NowPlayingMiniPlayer
@@ -139,6 +142,7 @@ class MainActivity : ComponentActivity() {
     lateinit var navController: NavHostController
     private var activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
     private lateinit var serviceIntent: Intent
+    private lateinit var batteryOptimizationLauncher: ActivityResultLauncher<Intent>
 
     @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3WindowSizeClassApi::class)
@@ -147,6 +151,14 @@ class MainActivity : ComponentActivity() {
 
         serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
         this@MainActivity.startService(serviceIntent)
+
+        // Battery optimization request launcher
+        batteryOptimizationLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { _ ->
+            // Result doesn't matter - user made their choice
+            Log.d("BATTERY", "Battery optimization request completed")
+        }
 
         enableEdgeToEdge()
 
@@ -185,6 +197,18 @@ class MainActivity : ComponentActivity() {
                 val syncIndicatorViewModel: SyncIndicatorViewModel = hiltViewModel()
                 val isSyncing by syncIndicatorViewModel.isSyncing.collectAsStateWithLifecycle()
                 val isPaused by syncIndicatorViewModel.isPaused.collectAsStateWithLifecycle()
+
+                // Battery Optimization
+                val batteryManager = remember { BatteryOptimizationManager(this@MainActivity) }
+                val hasDismissedBatteryPrompt by batteryManager.hasUserDismissedPromptFlow.collectAsStateWithLifecycle(initialValue = true)
+                var showBatteryDialog by remember { mutableStateOf(false) }
+
+                // Check battery optimization on first launch (after onboarding)
+                LaunchedEffect(showOnboarding, hasDismissedBatteryPrompt) {
+                    if (!showOnboarding && !hasDismissedBatteryPrompt && !batteryManager.isIgnoringBatteryOptimizations()) {
+                        showBatteryDialog = true
+                    }
+                }
 
                 val coroutineScope = rememberCoroutineScope()
 
@@ -379,25 +403,29 @@ class MainActivity : ComponentActivity() {
                     setShowDialog = { showNoProviderDialog.value = it }, navController
                 )
 
-                // Floating Download Indicator - hide during onboarding
-                // Adjust bottom padding based on whether the mini player is visible
-                if (!showOnboarding) {
-                    val hasMiniPlayer = useBottomSheet && metadata?.title != null
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.BottomEnd
-                    ) {
-                        FloatingDownloadIndicator(
-                            activeDownloads = downloadViewModel.activeDownloads,
-                            onClick = { showDownloadModal = true },
-                            modifier = Modifier
-                                .padding(end = 16.dp, bottom = if (hasMiniPlayer) 160.dp else 96.dp)
-                        )
-                    }
+                // Battery Optimization Dialog
+                if (showBatteryDialog) {
+                    BatteryOptimizationDialog(
+                        setShowDialog = { showBatteryDialog = it },
+                        onRequestDisable = {
+                            try {
+                                batteryOptimizationLauncher.launch(
+                                    batteryManager.requestDisableBatteryOptimization()
+                                )
+                            } catch (e: Exception) {
+                                // Fallback to settings page if direct request fails
+                                Log.e("BATTERY", "Failed to request battery optimization", e)
+                                batteryOptimizationLauncher.launch(
+                                    batteryManager.openBatteryOptimizationSettings()
+                                )
+                            }
+                        }
+                    )
                 }
 
-                // Floating Sync Indicator - hide during onboarding
+                // Floating Indicators - hide during onboarding
                 if (!showOnboarding) {
+                    // Sync Indicator - top center
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.TopCenter
@@ -412,6 +440,20 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier
                                 .statusBarsPadding()
                                 .padding(top = 16.dp)
+                        )
+                    }
+
+                    // Download Indicator - top end (offset from sync)
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.TopEnd
+                    ) {
+                        FloatingDownloadIndicator(
+                            activeDownloads = downloadViewModel.activeDownloads,
+                            onClick = { showDownloadModal = true },
+                            modifier = Modifier
+                                .statusBarsPadding()
+                                .padding(top = 16.dp, end = 16.dp)
                         )
                     }
                 }

@@ -30,4 +30,5 @@ sealed class Screen(val route: String) {
     data object S_Providers : Screen("s_providers_screen")
     data object S_Playback : Screen("s_playback_screen")
     data object S_Data : Screen("s_data_screen")
+    data object S_Downloads : Screen("s_downloads_screen")
 }

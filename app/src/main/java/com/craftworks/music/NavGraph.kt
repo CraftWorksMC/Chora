@@ -65,6 +65,7 @@ import com.craftworks.music.ui.screens.settings.S_ArtworkScreen
 import com.craftworks.music.ui.screens.settings.S_DataScreen
 import com.craftworks.music.ui.screens.settings.S_PlaybackScreen
 import com.craftworks.music.ui.screens.settings.S_ProviderScreen
+import com.craftworks.music.ui.screens.settings.SettingsDownloads
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
@@ -325,6 +326,21 @@ fun SetupNavGraph(
                 }
             ) {
                 S_DataScreen(navController)
+            }
+            composable(
+                route = Screen.S_Downloads.route,
+                enterTransition = {
+                    slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeIn(tween(300))
+                },
+                exitTransition = {
+                    slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeOut(tween(300))
+                }
+            ) {
+                SettingsDownloads(navController)
             }
         }
 

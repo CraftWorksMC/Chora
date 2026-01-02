@@ -15,8 +15,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +31,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,17 +41,21 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.data.database.entity.DownloadEntity
 import com.craftworks.music.data.database.entity.DownloadStatus
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlin.math.roundToInt
 
 @Composable
 fun FloatingDownloadIndicator(
@@ -56,6 +65,9 @@ fun FloatingDownloadIndicator(
 ) {
     val downloads by activeDownloads.collectAsStateWithLifecycle(initialValue = emptyList())
     val hasActiveDownloads = downloads.isNotEmpty()
+
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
 
     AnimatedVisibility(
         visible = hasActiveDownloads,
@@ -71,7 +83,9 @@ fun FloatingDownloadIndicator(
                 stiffness = Spring.StiffnessMedium
             )
         ) + fadeOut(),
-        modifier = modifier.zIndex(10f)
+        modifier = modifier
+            .zIndex(10f)
+            .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
     ) {
         // Move animations INSIDE AnimatedVisibility so they only run when visible
         val currentDownload = downloads.firstOrNull { it.status == DownloadStatus.DOWNLOADING }
@@ -111,75 +125,98 @@ fun FloatingDownloadIndicator(
             label = "progress"
         )
 
-        BadgedBox(
-            badge = {
-                if (downloads.size > 1) {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                    ) {
-                        Text(
-                            text = if (downloads.size > 99) "99+" else downloads.size.toString()
-                        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .pointerInput(Unit) {
+                    detectDragGestures { change, dragAmount ->
+                        change.consume()
+                        offsetX += dragAmount.x
+                        offsetY += dragAmount.y
                     }
                 }
-            }
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .scale(pulse)
-                    .shadow(8.dp, CircleShape)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .clickable(onClick = onClick)
-                    .bounceClick(),
-                contentAlignment = Alignment.Center
-            ) {
-                // Progress ring around the disc
-                CircularProgressIndicator(
-                    progress = { animatedProgress },
-                    modifier = Modifier.size(64.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.primaryContainer,
-                    strokeWidth = 3.dp,
-                    strokeCap = StrokeCap.Round
-                )
-
-                // Vinyl disc with album art
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .rotate(rotation)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Album art or default disc
-                    if (currentDownload?.imageUrl != null) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(currentDownload.imageUrl)
-                                .size(with(LocalDensity.current) { 52.dp.toPx().toInt() })
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "Downloading album art",
-                            modifier = Modifier
-                                .size(52.dp)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
-                    // Center hole (vinyl style)
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { onClick() }
                     )
                 }
+        ) {
+            BadgedBox(
+                badge = {
+                    if (downloads.size > 1) {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        ) {
+                            Text(
+                                text = if (downloads.size > 99) "99+" else downloads.size.toString()
+                            )
+                        }
+                    }
+                }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .scale(pulse)
+                        .shadow(8.dp, CircleShape)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Progress ring around the disc
+                    CircularProgressIndicator(
+                        progress = { animatedProgress },
+                        modifier = Modifier.size(56.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primaryContainer,
+                        strokeWidth = 3.dp,
+                        strokeCap = StrokeCap.Round
+                    )
+
+                    // Vinyl disc with album art
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .rotate(rotation)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Album art or default disc
+                        if (currentDownload?.imageUrl != null) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(currentDownload.imageUrl)
+                                    .size(with(LocalDensity.current) { 44.dp.toPx().toInt() })
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Downloading album art",
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+
+                        // Center hole (vinyl style)
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                        )
+                    }
+                }
             }
+
+            Text(
+                text = "${(overallProgress * 100).toInt()}%",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                fontSize = 10.sp
+            )
         }
     }
 }
