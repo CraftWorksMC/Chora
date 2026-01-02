@@ -77,14 +77,17 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.managers.settings.ArtworkSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.downloadNavidromeSongs
 import com.craftworks.music.providers.navidrome.setNavidromeStar
+import com.craftworks.music.ui.elements.GeneratedAlbumArtStatic
 import com.craftworks.music.ui.elements.GenrePill
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.SelectionActionBar
@@ -398,30 +401,92 @@ private fun AlbumHeader(
     onBackClick: () -> Unit,
     onStarClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
+
+    // Read artwork settings
+    val artworkSettings = remember { ArtworkSettingsManager(context) }
+    val generatedArtworkEnabled by artworkSettings.generatedArtworkEnabledFlow.collectAsStateWithLifecycle(true)
+    val fallbackMode by artworkSettings.fallbackModeFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.FallbackMode.PLACEHOLDER_DETECT)
+    val artworkStyle by artworkSettings.artworkStyleFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.ArtworkStyle.GRADIENT)
+    val colorPalette by artworkSettings.colorPaletteFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.ColorPalette.MATERIAL_YOU)
+    val showInitials by artworkSettings.showInitialsFlow.collectAsStateWithLifecycle(true)
+
+    // Use navigation param if available, otherwise fall back to album's artwork
+    val imageToShow = if (selectedAlbumImage != Uri.EMPTY && selectedAlbumImage.toString().isNotEmpty()) {
+        selectedAlbumImage
+    } else {
+        firstAlbum.mediaMetadata.artworkUri
+    }
+
+    // Check if we need generated art
+    val artworkUri = imageToShow?.toString()
+    val hasArtwork = !artworkUri.isNullOrEmpty()
+    val needsGeneratedArt = generatedArtworkEnabled && (
+        fallbackMode == ArtworkSettingsManager.FallbackMode.ALWAYS ||
+        !hasArtwork ||
+        (fallbackMode == ArtworkSettingsManager.FallbackMode.PLACEHOLDER_DETECT &&
+            artworkUri != null && (
+            artworkUri.contains("placeholder") ||
+            artworkUri.endsWith("/coverArt") ||
+            artworkUri.contains("coverArt?id=&") ||
+            (artworkUri.contains("coverArt?size=") && !artworkUri.contains("id="))))
+    )
+
+    val albumTitle = firstAlbum.mediaMetadata.title?.toString() ?: "Album"
+    val albumArtist = firstAlbum.mediaMetadata.artist?.toString()
 
     Box(
         modifier = Modifier
             .height(224.dp)
             .fillMaxWidth()
     ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(selectedAlbumImage)
-                .diskCacheKey(selectedAlbumId)
-                .memoryCacheKey(selectedAlbumId)
-                .crossfade(true)
-                .build(),
-            placeholder = painterResource(R.drawable.placeholder),
-            fallback = painterResource(R.drawable.placeholder),
-            contentScale = ContentScale.FillWidth,
-            contentDescription = "Album Image",
-            modifier = Modifier
-                .fillMaxWidth()
-                .fadingEdge(imageFadingEdge)
-                .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
-                .blur(8.dp)
-        )
+        if (needsGeneratedArt) {
+            // Use generated artwork
+            GeneratedAlbumArtStatic(
+                title = albumTitle,
+                artist = albumArtist,
+                size = 224.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fadingEdge(imageFadingEdge)
+                    .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
+                    .blur(8.dp),
+                artworkStyle = artworkStyle,
+                colorPalette = colorPalette,
+                showInitialsOverride = showInitials
+            )
+        } else {
+            // Try to load actual artwork with generated art as fallback
+            SubcomposeAsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(imageToShow)
+                    .diskCacheKey(selectedAlbumId)
+                    .memoryCacheKey(selectedAlbumId)
+                    .crossfade(true)
+                    .build(),
+                contentScale = ContentScale.FillWidth,
+                contentDescription = "Album Image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fadingEdge(imageFadingEdge)
+                    .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
+                    .blur(8.dp),
+                error = {
+                    if (generatedArtworkEnabled) {
+                        GeneratedAlbumArtStatic(
+                            title = albumTitle,
+                            artist = albumArtist,
+                            size = 224.dp,
+                            modifier = Modifier.fillMaxWidth(),
+                            artworkStyle = artworkStyle,
+                            colorPalette = colorPalette,
+                            showInitialsOverride = showInitials
+                        )
+                    }
+                }
+            )
+        }
 
         Button(
             onClick = onBackClick,
@@ -664,6 +729,15 @@ private fun AlbumSongList(
     onSelectionChange: (String, Boolean) -> Unit = { _, _ -> },
     onDownloadSelected: () -> Unit = {}
 ) {
+    // Read artwork settings at parent level for performance
+    val context = LocalContext.current
+    val artworkSettings = remember { ArtworkSettingsManager(context) }
+    val generatedArtworkEnabled by artworkSettings.generatedArtworkEnabledFlow.collectAsStateWithLifecycle(true)
+    val fallbackMode by artworkSettings.fallbackModeFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.FallbackMode.PLACEHOLDER_DETECT)
+    val artworkStyle by artworkSettings.artworkStyleFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.ArtworkStyle.GRADIENT)
+    val colorPalette by artworkSettings.colorPaletteFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.ColorPalette.MATERIAL_YOU)
+    val showInitials by artworkSettings.showInitialsFlow.collectAsStateWithLifecycle(true)
+
     // Use remember to avoid recomputation on every recomposition
     val groupedAlbums = remember(songs) { songs.groupBy { it.mediaMetadata.discNumber } }
 
@@ -724,6 +798,11 @@ private fun AlbumSongList(
                             onSelectionChange = { selected ->
                                 onSelectionChange(song.mediaId, selected)
                             },
+                            generatedArtworkEnabled = generatedArtworkEnabled,
+                            fallbackMode = fallbackMode,
+                            artworkStyle = artworkStyle,
+                            colorPalette = colorPalette,
+                            showInitials = showInitials,
                             onClick = {
                                 coroutineScope.launch {
                                     val index = songs.indexOf(song)
@@ -749,6 +828,11 @@ private fun AlbumSongList(
                         onSelectionChange = { selected ->
                             onSelectionChange(song.mediaId, selected)
                         },
+                        generatedArtworkEnabled = generatedArtworkEnabled,
+                        fallbackMode = fallbackMode,
+                        artworkStyle = artworkStyle,
+                        colorPalette = colorPalette,
+                        showInitials = showInitials,
                         onClick = {
                             coroutineScope.launch {
                                 val index = songs.indexOf(song)
@@ -787,6 +871,15 @@ private fun AlbumDetailsCompact(
     onDownloadSelected: () -> Unit = {}
 ) {
     val context = LocalContext.current
+
+    // Read artwork settings at parent level for performance
+    val artworkSettings = remember { ArtworkSettingsManager(context) }
+    val generatedArtworkEnabled by artworkSettings.generatedArtworkEnabledFlow.collectAsStateWithLifecycle(true)
+    val fallbackMode by artworkSettings.fallbackModeFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.FallbackMode.PLACEHOLDER_DETECT)
+    val artworkStyle by artworkSettings.artworkStyleFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.ArtworkStyle.GRADIENT)
+    val colorPalette by artworkSettings.colorPaletteFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.ColorPalette.MATERIAL_YOU)
+    val showInitials by artworkSettings.showInitialsFlow.collectAsStateWithLifecycle(true)
+
     // Use remember to avoid recomputation on every recomposition
     val groupedAlbums = remember(songs) { songs.groupBy { it.mediaMetadata.discNumber } }
 
@@ -945,6 +1038,11 @@ private fun AlbumDetailsCompact(
                         onSelectionChange = { selected ->
                             onSelectionChange(song.mediaId, selected)
                         },
+                        generatedArtworkEnabled = generatedArtworkEnabled,
+                        fallbackMode = fallbackMode,
+                        artworkStyle = artworkStyle,
+                        colorPalette = colorPalette,
+                        showInitials = showInitials,
                         onClick = {
                             coroutineScope.launch {
                                 val index = songs.indexOf(song)
@@ -970,6 +1068,11 @@ private fun AlbumDetailsCompact(
                     onSelectionChange = { selected ->
                         onSelectionChange(song.mediaId, selected)
                     },
+                    generatedArtworkEnabled = generatedArtworkEnabled,
+                    fallbackMode = fallbackMode,
+                    artworkStyle = artworkStyle,
+                    colorPalette = colorPalette,
+                    showInitials = showInitials,
                     onClick = {
                         coroutineScope.launch {
                             val index = songs.indexOf(song)

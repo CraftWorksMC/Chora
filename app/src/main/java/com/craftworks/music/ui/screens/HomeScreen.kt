@@ -85,6 +85,7 @@ import com.craftworks.music.ui.util.rememberFoldableState
 import com.craftworks.music.ui.util.responsiveAlbumCardWidth
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
 import com.craftworks.music.ui.viewmodels.SyncIndicatorViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import java.net.URLEncoder
@@ -155,33 +156,28 @@ fun HomeScreen(
                         appearanceManager.showNavidromeLogoFlow.collectAsStateWithLifecycle(true).value && NavidromeManager.checkActiveServers()
 
                     // Dynamic greeting based on time of day
-                    val usedGreetings by appearanceManager.usedGreetingsFlow.collectAsStateWithLifecycle(emptySet())
-                    val currentGreetingIndex by appearanceManager.currentGreetingIndexFlow.collectAsStateWithLifecycle(-1)
                     val hour = remember { Calendar.getInstance().get(Calendar.HOUR_OF_DAY) }
                     val availableIndices = remember(hour) { GreetingMessages.getGreetingIndicesForHour(hour) }
 
-                    // Pick greeting once per session - derive state instead of mutating during recomposition
-                    val sessionGreetingIndex = remember(currentGreetingIndex, usedGreetings, availableIndices) {
-                        if (currentGreetingIndex >= 0 && currentGreetingIndex in availableIndices) {
-                            currentGreetingIndex
-                        } else {
-                            val unusedIndices = availableIndices.filter { it !in usedGreetings }
-                            if (unusedIndices.isEmpty()) {
+                    // Pick a new greeting from unused pool ONCE per app session
+                    // rememberSaveable persists across config changes but resets on app restart
+                    var sessionGreetingIndex by rememberSaveable { mutableStateOf(-1) }
+
+                    // Pick greeting asynchronously to properly read from DataStore
+                    LaunchedEffect(Unit) {
+                        if (sessionGreetingIndex == -1) {
+                            val usedSet = appearanceManager.usedGreetingsFlow.first()
+                            val unusedIndices = availableIndices.filter { it !in usedSet }
+                            sessionGreetingIndex = if (unusedIndices.isEmpty()) {
+                                // All used, reset and pick fresh
+                                appearanceManager.resetUsedGreetings()
                                 availableIndices.randomOrNull() ?: 0
                             } else {
                                 unusedIndices.random()
                             }
-                        }
-                    }
-
-                    // Handle side effects (persistence) in LaunchedEffect to avoid recomposition issues
-                    LaunchedEffect(sessionGreetingIndex, currentGreetingIndex, usedGreetings) {
-                        if (sessionGreetingIndex != currentGreetingIndex && sessionGreetingIndex in availableIndices) {
-                            val unusedIndices = availableIndices.filter { it !in usedGreetings }
-                            if (unusedIndices.isEmpty()) {
-                                appearanceManager.resetUsedGreetings()
-                            }
-                            appearanceManager.setCurrentGreetingIndex(sessionGreetingIndex, usedGreetings + sessionGreetingIndex)
+                            // Track this greeting as used
+                            val newUsedSet = usedSet + sessionGreetingIndex
+                            appearanceManager.setCurrentGreetingIndex(sessionGreetingIndex, newUsedSet)
                         }
                     }
 

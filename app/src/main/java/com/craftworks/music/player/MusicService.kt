@@ -15,6 +15,8 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
+import com.craftworks.music.ui.util.GeneratedArtworkBitmap
+import java.io.ByteArrayOutputStream
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -507,7 +509,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                             offlineMediaResolver.getOfflinePath(songId)
                         } else null
 
-                        if (offlinePath != null) {
+                        val baseItem = if (offlinePath != null) {
                             // Use offline file - no transcoding needed
                             Log.d("OfflinePlayback", "Using offline file for: ${originalItem.mediaMetadata.title}")
                             MediaItem.Builder()
@@ -524,6 +526,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                                 .setUri(finalUri)
                                 .build()
                         }
+
+                        // Add generated artwork for Bluetooth/notifications if needed
+                        baseItem.withGeneratedArtworkIfNeeded()
                     }
 
                     Log.d("MusicService", "Resolved ${resolvedItems.size} items, startAt=$adjustedStartIndex, first: ${resolvedItems.firstOrNull()?.mediaMetadata?.title}")
@@ -973,6 +978,63 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     //region Helper functions
 
+    /**
+     * Generate artwork bytes for a MediaItem if it needs generated artwork.
+     * Returns null if the item already has valid artwork or generation fails.
+     */
+    private fun generateArtworkBytesIfNeeded(mediaItem: MediaItem): ByteArray? {
+        val artworkUri = mediaItem.mediaMetadata.artworkUri?.toString()
+
+        // Check if artwork needs to be generated
+        if (!GeneratedArtworkBitmap.needsGeneratedArt(artworkUri)) {
+            return null
+        }
+
+        return try {
+            val title = mediaItem.mediaMetadata.title?.toString() ?: "Unknown"
+            val artist = mediaItem.mediaMetadata.artist?.toString()
+            val album = mediaItem.mediaMetadata.albumTitle?.toString()
+
+            val bitmap = GeneratedArtworkBitmap.generate(
+                title = title,
+                artist = artist,
+                album = album,
+                size = 512 // Good size for Bluetooth/notifications
+            )
+
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, outputStream)
+            val bytes = outputStream.toByteArray()
+            bitmap.recycle()
+            outputStream.close()
+            bytes
+        } catch (e: Exception) {
+            Log.e("MusicService", "Error generating artwork: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * Build a MediaItem with generated artwork if needed
+     */
+    private fun MediaItem.withGeneratedArtworkIfNeeded(): MediaItem {
+        val artworkBytes = generateArtworkBytesIfNeeded(this)
+        if (artworkBytes == null) {
+            return this // No generation needed or failed
+        }
+
+        return MediaItem.Builder()
+            .setMediaId(this.mediaId)
+            .setUri(this.localConfiguration?.uri)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .populate(this.mediaMetadata)
+                    .setArtworkData(artworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                    .build()
+            )
+            .build()
+    }
+
     private fun MediaItem.withGroupTitle(title: String): MediaItem {
         return MediaItem.Builder()
             .setMediaId(this.mediaId)
@@ -1016,7 +1078,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 offlineMediaResolver.getOfflinePath(songId)
             } else null
 
-            if (offlinePath != null) {
+            val baseItem = if (offlinePath != null) {
                 MediaItem.Builder()
                     .setMediaId(mediaItem.mediaId)
                     .setMediaMetadata(mediaItem.mediaMetadata)
@@ -1029,6 +1091,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     .setUri(mediaItem.mediaId + bitrateOptions)
                     .build()
             }
+
+            // Add generated artwork for Bluetooth/notifications if needed
+            baseItem.withGeneratedArtworkIfNeeded()
         }
     }
 
