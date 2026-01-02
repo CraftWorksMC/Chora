@@ -144,6 +144,9 @@ class SyncRepository @Inject constructor(
             return@withContext
         }
 
+        // Track if we should preserve state (only true on clean pause)
+        var preserveStateOnExit = false
+
         try {
             // If resuming, clear the paused state now that we have the mutex
             if (resumeFromPause && _isPaused.value) {
@@ -176,7 +179,7 @@ class SyncRepository @Inject constructor(
                 val artistCount = artists.size
 
                 if (shouldPauseOrCancel()) {
-                    handlePauseOrCancel(SyncPhase.ARTISTS)
+                    preserveStateOnExit = handlePauseOrCancel(SyncPhase.ARTISTS)
                     return@withContext
                 }
 
@@ -199,7 +202,7 @@ class SyncRepository @Inject constructor(
                 }
 
                 if (shouldPauseOrCancel()) {
-                    handlePauseOrCancel(SyncPhase.ALBUMS)
+                    preserveStateOnExit = handlePauseOrCancel(SyncPhase.ALBUMS)
                     return@withContext
                 }
             }
@@ -207,9 +210,9 @@ class SyncRepository @Inject constructor(
             // Phase 2: Sync albums with progress
             if (startPhase.ordinal <= SyncPhase.ALBUMS.ordinal) {
                 val startOffset = if (resumeFromPause && startPhase == SyncPhase.ALBUMS) pausedAlbumOffset else 0
-                syncAlbumsWithProgress(effectiveForceRefresh, startOffset)
+                preserveStateOnExit = syncAlbumsWithProgress(effectiveForceRefresh, startOffset)
 
-                if (shouldPauseOrCancel()) {
+                if (preserveStateOnExit || shouldPauseOrCancel()) {
                     return@withContext
                 }
             }
@@ -217,18 +220,18 @@ class SyncRepository @Inject constructor(
             // Phase 3: Sync songs via albums
             if (startPhase.ordinal <= SyncPhase.SONGS.ordinal) {
                 val startIndex = if (resumeFromPause && startPhase == SyncPhase.SONGS) pausedAlbumIndex else 0
-                syncSongsWithProgress(effectiveForceRefresh, startIndex)
+                preserveStateOnExit = syncSongsWithProgress(effectiveForceRefresh, startIndex)
 
-                if (shouldPauseOrCancel()) {
+                if (preserveStateOnExit || shouldPauseOrCancel()) {
                     return@withContext
                 }
             }
 
             // Phase 4: Cache Artworks
             if (startPhase.ordinal <= SyncPhase.ARTWORKS.ordinal) {
-                cacheArtworks()
+                preserveStateOnExit = cacheArtworks()
 
-                if (shouldPauseOrCancel()) {
+                if (preserveStateOnExit || shouldPauseOrCancel()) {
                     return@withContext
                 }
             }
@@ -246,19 +249,24 @@ class SyncRepository @Inject constructor(
 
         } catch (e: Exception) {
             Log.e("SyncRepository", "Sync failed", e)
-            // On exception, always cleanup fully
+            // On exception, never preserve state - always cleanup
+            preserveStateOnExit = false
             _isPaused.value = false
         } finally {
-            if (!_isPaused.value) {
+            if (!preserveStateOnExit) {
+                Log.d("SyncRepository", "Resetting sync state")
                 _syncProgress.value = ""
                 _syncState.value = SyncState()
                 _isSyncing.value = false
+                _isPaused.value = false
                 cancelRequested = false
                 pauseRequested = false
                 pausedPhase = SyncPhase.IDLE
                 pausedAlbumIndex = 0
                 pausedAlbumOffset = 0
                 cachedAlbumIds = emptyList()
+            } else {
+                Log.d("SyncRepository", "Preserving sync state for resume")
             }
             // Always unlock the mutex - we always acquired it at the start
             syncMutex.unlock()
@@ -267,18 +275,30 @@ class SyncRepository @Inject constructor(
 
     private fun shouldPauseOrCancel(): Boolean = cancelRequested || pauseRequested
 
-    private fun handlePauseOrCancel(nextPhase: SyncPhase) {
-        if (pauseRequested) {
+    /**
+     * Handles pause or cancel request.
+     * @return true if paused (state should be preserved), false if cancelled (state should reset)
+     */
+    private fun handlePauseOrCancel(nextPhase: SyncPhase): Boolean {
+        return if (pauseRequested) {
             _isPaused.value = true
             pausedPhase = nextPhase
             _syncState.value = _syncState.value.copy(isPaused = true)
             Log.d("SyncRepository", "Sync paused at phase $nextPhase")
+            true // Preserve state
         } else if (cancelRequested) {
             Log.d("SyncRepository", "Sync cancelled at phase $nextPhase")
+            false // Don't preserve state
+        } else {
+            false
         }
     }
 
-    private suspend fun syncAlbumsWithProgress(forceRefresh: Boolean, startOffset: Int = 0) {
+    /**
+     * Syncs albums with progress tracking.
+     * @return true if paused (state should be preserved), false otherwise
+     */
+    private suspend fun syncAlbumsWithProgress(forceRefresh: Boolean, startOffset: Int = 0): Boolean {
         try {
             var offset = startOffset
             var totalAlbums = 0
@@ -330,8 +350,7 @@ class SyncRepository @Inject constructor(
 
             if (shouldPauseOrCancel()) {
                 pausedAlbumOffset = offset
-                handlePauseOrCancel(SyncPhase.ALBUMS)
-                return
+                return handlePauseOrCancel(SyncPhase.ALBUMS)
             }
 
             if (totalAlbums > 0) {
@@ -344,12 +363,18 @@ class SyncRepository @Inject constructor(
                 )
                 Log.d("SyncRepository", "Synced $totalAlbums albums progressively")
             }
+            return false
         } catch (e: Exception) {
             Log.e("SyncRepository", "Failed to sync albums", e)
+            return false // Error occurred, don't preserve state
         }
     }
 
-    private suspend fun syncSongsWithProgress(forceRefresh: Boolean, startIndex: Int = 0) {
+    /**
+     * Syncs songs with progress tracking.
+     * @return true if paused (state should be preserved), false otherwise
+     */
+    private suspend fun syncSongsWithProgress(forceRefresh: Boolean, startIndex: Int = 0): Boolean {
         try {
             val albums = if (cachedAlbumIds.isNotEmpty() && startIndex > 0) {
                 // Resume with cached album list
@@ -437,8 +462,7 @@ class SyncRepository @Inject constructor(
             // Check for pause/cancel after parallel section
             if (shouldPauseOrCancel()) {
                 pausedAlbumIndex = processedCount.get()
-                handlePauseOrCancel(SyncPhase.SONGS)
-                return
+                return handlePauseOrCancel(SyncPhase.SONGS)
             }
 
             if (failedAlbums.isNotEmpty()) {
@@ -462,8 +486,10 @@ class SyncRepository @Inject constructor(
                 )
             )
             Log.d("SyncRepository", "Delta sync complete: $finalNewCount new, $finalUpdatedCount updated, $totalInDb total in DB")
+            return false
         } catch (e: Exception) {
             Log.e("SyncRepository", "Failed to sync songs", e)
+            return false // Error occurred, don't preserve state
         }
     }
 
@@ -587,7 +613,11 @@ class SyncRepository @Inject constructor(
         return false
     }
 
-    private suspend fun cacheArtworks() {
+    /**
+     * Caches artwork palettes.
+     * @return true if paused (state should be preserved), false otherwise
+     */
+    private suspend fun cacheArtworks(): Boolean {
         try {
             val albums = albumDao.getAllAlbumsOnce()
             val total = albums.size
@@ -620,7 +650,7 @@ class SyncRepository @Inject constructor(
                                     Log.e("SyncRepository", "Failed to generate palette for ${album.title}", e)
                                 }
                             }
-                            
+
                             val current = processed.incrementAndGet()
                             if (current % 10 == 0 || current == total) {
                                 _syncState.value = _syncState.value.copy(current = current)
@@ -630,13 +660,15 @@ class SyncRepository @Inject constructor(
                     }
                 }.awaitAll()
             }
-            
+
             if (shouldPauseOrCancel()) {
-                handlePauseOrCancel(SyncPhase.ARTWORKS)
+                return handlePauseOrCancel(SyncPhase.ARTWORKS)
             }
-            
+
+            return false
         } catch (e: Exception) {
             Log.e("SyncRepository", "Failed to cache artworks", e)
+            return false // Error occurred, don't preserve state
         }
     }
 
