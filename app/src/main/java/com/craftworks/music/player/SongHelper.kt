@@ -14,7 +14,8 @@ class SongHelper {
 
         // Maximum items to send to MediaController to avoid Binder transaction limit
         // Android's Binder buffer is ~1MB, and each MediaItem can be several KB
-        private const val MAX_QUEUE_SIZE = 200
+        // Reduced from 200 to 50 to ensure IPC doesn't truncate
+        private const val MAX_QUEUE_SIZE = 50
 
         // Use a single lock object to avoid synchronizing on a mutable field
         private val tracklistLock = Any()
@@ -91,9 +92,16 @@ class SongHelper {
             }
 
             withContext(Dispatchers.Main) {
-                mediaController?.setMediaItems(windowItems, windowIndex, 0)
-                mediaController?.prepare()
-                mediaController?.play()
+                // NOTE: Media3 IPC truncates large item lists due to Binder limits.
+                // We only send the starting item; MusicService.onSetMediaItems will
+                // retrieve the full window from SongHelper.currentTracklist
+                val startingItem = windowItems.getOrNull(windowIndex) ?: windowItems.firstOrNull()
+                if (startingItem != null) {
+                    Log.d(TAG, "Setting starting item on MediaController: ${startingItem.mediaMetadata.title}")
+                    mediaController?.setMediaItems(listOf(startingItem), 0, 0)
+                    mediaController?.prepare()
+                    mediaController?.play()
+                }
             }
         }
 

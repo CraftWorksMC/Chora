@@ -478,33 +478,59 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     ""
                 }
                 try {
-                    val resolvedItems = mediaItems.map { mediaItem ->
-                        val songId = mediaItem.mediaMetadata.extras?.getString("navidromeID")
+                    // Get the full tracklist from SongHelper - this contains all items with metadata
+                    // We only receive 1 item through IPC due to Binder limits, but we use the
+                    // full tracklist to build the proper queue
+                    val fullTracklist = SongHelper.currentTracklist
+                    Log.d("MusicService", "onSetMediaItems: received=${mediaItems.size}, fullTracklist=${fullTracklist.size}, bitrateOptions=$bitrateOptions")
+
+                    // Find the starting item's index in the full tracklist
+                    val startingMediaId = mediaItems.firstOrNull()?.mediaId
+                    val startingIndex = if (startingMediaId != null) {
+                        fullTracklist.indexOfFirst { it.mediaId == startingMediaId }.coerceAtLeast(0)
+                    } else 0
+
+                    // Window the tracklist around the starting index (max 50 items to avoid memory issues)
+                    val windowSize = 50
+                    val halfWindow = windowSize / 2
+                    val windowStart = (startingIndex - halfWindow).coerceAtLeast(0)
+                    val windowEnd = (windowStart + windowSize).coerceAtMost(fullTracklist.size)
+                    val adjustedWindowStart = (windowEnd - windowSize).coerceAtLeast(0)
+                    val windowedTracklist = fullTracklist.subList(adjustedWindowStart, windowEnd)
+                    val adjustedStartIndex = startingIndex - adjustedWindowStart
+
+                    Log.d("MusicService", "Window: $adjustedWindowStart-$windowEnd, startIndex=$adjustedStartIndex")
+
+                    val resolvedItems = windowedTracklist.map { originalItem ->
+                        val songId = originalItem.mediaMetadata.extras?.getString("navidromeID")
                         val offlinePath = if (songId != null) {
                             offlineMediaResolver.getOfflinePath(songId)
                         } else null
 
                         if (offlinePath != null) {
                             // Use offline file - no transcoding needed
-                            Log.d("OfflinePlayback", "Using offline file for: ${mediaItem.mediaMetadata.title}")
+                            Log.d("OfflinePlayback", "Using offline file for: ${originalItem.mediaMetadata.title}")
                             MediaItem.Builder()
-                                .setMediaId(mediaItem.mediaId)
-                                .setMediaMetadata(mediaItem.mediaMetadata)
+                                .setMediaId(originalItem.mediaId)
+                                .setMediaMetadata(originalItem.mediaMetadata)
                                 .setUri(offlinePath)
                                 .build()
                         } else {
                             // Use streaming URL with transcoding options
+                            val finalUri = originalItem.mediaId + bitrateOptions
                             MediaItem.Builder()
-                                .setMediaId(mediaItem.mediaId)
-                                .setMediaMetadata(mediaItem.mediaMetadata)
-                                .setUri(mediaItem.mediaId + bitrateOptions)
+                                .setMediaId(originalItem.mediaId)
+                                .setMediaMetadata(originalItem.mediaMetadata)
+                                .setUri(finalUri)
                                 .build()
                         }
                     }
 
+                    Log.d("MusicService", "Resolved ${resolvedItems.size} items, startAt=$adjustedStartIndex, first: ${resolvedItems.firstOrNull()?.mediaMetadata?.title}")
+
                     val result = MediaItemsWithStartPosition(
                         resolvedItems,
-                        startIndex,
+                        adjustedStartIndex,
                         startPositionMs
                     )
                     resultFuture.set(result)
