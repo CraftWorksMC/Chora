@@ -21,7 +21,7 @@ import javax.inject.Singleton
 
 @Singleton
 class AppearanceSettingsManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     companion object {
         private val USERNAME_KEY = stringPreferencesKey("username")
@@ -42,6 +42,9 @@ class AppearanceSettingsManager @Inject constructor(
         private val LYRICS_ANIMATION_SPEED = intPreferencesKey("lyrics_animation_speed")
         private val USE_REFRESH_ANIMATION = booleanPreferencesKey("use_refresh_animation")
         private val SHOW_TRACK_NUMBERS = booleanPreferencesKey("show_track_numbers")
+        private val STRIP_TRACK_NUMBERS_FROM_TITLES = booleanPreferencesKey("strip_track_numbers_from_titles")
+        private val USED_GREETINGS_KEY = stringPreferencesKey("used_greetings")
+        private val CURRENT_GREETING_INDEX = intPreferencesKey("current_greeting_index")
     }
 
     val usernameFlow: Flow<String> = context.dataStore.data.map { preferences ->
@@ -55,13 +58,20 @@ class AppearanceSettingsManager @Inject constructor(
     }
 
     val npBackgroundFlow: Flow<NowPlayingBackground> = context.dataStore.data.map { preferences ->
-        NowPlayingBackground.valueOf(
-            preferences[NP_BACKGROUND_KEY] ?:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                    NowPlayingBackground.SIMPLE_ANIMATED_BLUR.name
-                else
-                    NowPlayingBackground.PLAIN.name
-        )
+        try {
+            NowPlayingBackground.valueOf(
+                preferences[NP_BACKGROUND_KEY] ?:
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                        NowPlayingBackground.SIMPLE_ANIMATED_BLUR.name
+                    else
+                        NowPlayingBackground.PLAIN.name
+            )
+        } catch (e: IllegalArgumentException) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                NowPlayingBackground.SIMPLE_ANIMATED_BLUR
+            else
+                NowPlayingBackground.PLAIN
+        }
     }
 
     suspend fun setBackgroundType(backgroundType: NowPlayingBackground) {
@@ -103,12 +113,21 @@ class AppearanceSettingsManager @Inject constructor(
 
     val homeItemsItemsFlow: Flow<List<HomeItem>> = context.dataStore.data.map { preferences ->
         val jsonString = preferences[HOME_ITEMS_KEY]
-        jsonString?.let { Json.Default.decodeFromString<List<HomeItem>>(it) } ?: listOf(
-            HomeItem("recently_played", true),
-            HomeItem("recently_added", true),
-            HomeItem("most_played", true),
-            HomeItem("random_songs", true)
-        )
+        try {
+            jsonString?.let { Json.Default.decodeFromString<List<HomeItem>>(it) } ?: listOf(
+                HomeItem("recently_played", true),
+                HomeItem("recently_added", true),
+                HomeItem("most_played", true),
+                HomeItem("random_songs", true)
+            )
+        } catch (e: Exception) {
+            listOf(
+                HomeItem("recently_played", true),
+                HomeItem("recently_added", true),
+                HomeItem("most_played", true),
+                HomeItem("random_songs", true)
+            )
+        }
     }
 
     suspend fun setHomeItems(items: List<HomeItem>) {
@@ -119,14 +138,25 @@ class AppearanceSettingsManager @Inject constructor(
 
     val bottomNavItemsFlow: Flow<List<BottomNavItem>> = context.dataStore.data.map { preferences ->
         val jsonString = preferences[BOTTOM_NAV_ITEMS_KEY]
-        jsonString?.let { Json.Default.decodeFromString<List<BottomNavItem>>(it) } ?: listOf(
-            BottomNavItem("Home", R.drawable.rounded_home_24, "home_screen"),
-            BottomNavItem("Albums", R.drawable.rounded_library_music_24, "album_screen"),
-            BottomNavItem("Songs", R.drawable.round_music_note_24, "songs_screen"),
-            BottomNavItem("Artists", R.drawable.rounded_artist_24, "artists_screen"),
-            BottomNavItem("Radios", R.drawable.rounded_radio, "radio_screen"),
-            BottomNavItem("Playlists", R.drawable.placeholder, "playlist_screen")
-        )
+        try {
+            jsonString?.let { Json.Default.decodeFromString<List<BottomNavItem>>(it) } ?: listOf(
+                BottomNavItem("Home", R.drawable.rounded_home_24, "home_screen"),
+                BottomNavItem("Albums", R.drawable.rounded_library_music_24, "album_screen"),
+                BottomNavItem("Songs", R.drawable.round_music_note_24, "songs_screen"),
+                BottomNavItem("Artists", R.drawable.rounded_artist_24, "artists_screen"),
+                BottomNavItem("Radios", R.drawable.rounded_radio, "radio_screen"),
+                BottomNavItem("Playlists", R.drawable.placeholder, "playlist_screen")
+            )
+        } catch (e: Exception) {
+            listOf(
+                BottomNavItem("Home", R.drawable.rounded_home_24, "home_screen"),
+                BottomNavItem("Albums", R.drawable.rounded_library_music_24, "album_screen"),
+                BottomNavItem("Songs", R.drawable.round_music_note_24, "songs_screen"),
+                BottomNavItem("Artists", R.drawable.rounded_artist_24, "artists_screen"),
+                BottomNavItem("Radios", R.drawable.rounded_radio, "radio_screen"),
+                BottomNavItem("Playlists", R.drawable.placeholder, "playlist_screen")
+            )
+        }
     }
 
     suspend fun setBottomNavItems(items: List<BottomNavItem>) {
@@ -186,15 +216,57 @@ class AppearanceSettingsManager @Inject constructor(
         }
     }
 
+    val stripTrackNumbersFromTitlesFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[STRIP_TRACK_NUMBERS_FROM_TITLES] ?: false
+    }
+
+    suspend fun setStripTrackNumbersFromTitles(strip: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[STRIP_TRACK_NUMBERS_FROM_TITLES] = strip
+        }
+    }
+
     val nowPlayingTitleAlignment: Flow<NowPlayingTitleAlignment> = context.dataStore.data.map { preferences ->
-        NowPlayingTitleAlignment.valueOf(
-            preferences[NP_TITLE_ALIGNMENT] ?: NowPlayingTitleAlignment.LEFT.name
-        )
+        try {
+            NowPlayingTitleAlignment.valueOf(
+                preferences[NP_TITLE_ALIGNMENT] ?: NowPlayingTitleAlignment.LEFT.name
+            )
+        } catch (e: IllegalArgumentException) {
+            NowPlayingTitleAlignment.LEFT
+        }
     }
 
     suspend fun setNowPlayingTitleAlignment(nowPlayingTitleAlignment: NowPlayingTitleAlignment) {
         context.dataStore.edit { preferences ->
             preferences[NP_TITLE_ALIGNMENT] = nowPlayingTitleAlignment.name
+        }
+    }
+
+
+    // Dynamic greetings tracking
+    val usedGreetingsFlow: Flow<Set<Int>> = context.dataStore.data.map { preferences ->
+        try {
+            preferences[USED_GREETINGS_KEY]?.split(",")?.mapNotNull { it.toIntOrNull() }?.toSet() ?: emptySet()
+        } catch (e: Exception) {
+            emptySet()
+        }
+    }
+
+    val currentGreetingIndexFlow: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[CURRENT_GREETING_INDEX] ?: -1
+    }
+
+    suspend fun setCurrentGreetingIndex(index: Int, usedSet: Set<Int>) {
+        context.dataStore.edit { preferences ->
+            preferences[CURRENT_GREETING_INDEX] = index
+            preferences[USED_GREETINGS_KEY] = usedSet.joinToString(",")
+        }
+    }
+
+    suspend fun resetUsedGreetings() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(USED_GREETINGS_KEY)
+            preferences.remove(CURRENT_GREETING_INDEX)
         }
     }
 }

@@ -32,11 +32,11 @@ class LocalDataSource @Inject constructor(
         }
     }
 
-    fun getLocalAlbum(albumId: String): List<MediaItem>? {
+    suspend fun getLocalAlbum(albumId: String): List<MediaItem>? {
         return localProvider.getLocalAlbum(albumId)
     }
 
-    fun getLocalSongs(): List<MediaItem> {
+    suspend fun getLocalSongs(): List<MediaItem> {
         return localProvider.getLocalSongs()
     }
 
@@ -49,11 +49,11 @@ class LocalDataSource @Inject constructor(
         }
     }
 
-    fun getLocalSong(songId: String): MediaItem? {
+    suspend fun getLocalSong(songId: String): MediaItem? {
         return localProvider.getLocalSongs().find { it.mediaMetadata.extras?.getString("navidromeID") == songId }
     }
 
-    fun getLocalArtists(): List<MediaData.Artist> {
+    suspend fun getLocalArtists(): List<MediaData.Artist> {
         return localProvider.getLocalArtists()
     }
 
@@ -61,7 +61,7 @@ class LocalDataSource @Inject constructor(
         return localProvider.getAlbumsByArtistId(artist)
     }
 
-    fun searchLocalArtists(query: String): List<MediaData.Artist> {
+    suspend fun searchLocalArtists(query: String): List<MediaData.Artist> {
         if (query.isBlank()) return getLocalArtists()
         return localProvider.getLocalArtists().filter {
             it.name.contains(query, ignoreCase = true)
@@ -143,11 +143,17 @@ class LocalDataSource @Inject constructor(
         val playlistToModify = currentPlaylistsFromStore.find { it.navidromeID == playlistId }
             ?: return false
 
-        val songRemoved = playlistToModify.songs?.removeAll { it.navidromeID == songId }
+        val updatedSongs = playlistToModify.songs?.toMutableList() ?: mutableListOf()
+        val songRemoved = updatedSongs.removeAll { it.navidromeID == songId }
 
-        if (songRemoved == true) {
-            localDataSettingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
-            return true
+        if (songRemoved) {
+            val updatedPlaylist = playlistToModify.copy(songs = updatedSongs)
+            val playlistIndex = currentPlaylistsFromStore.indexOfFirst { it.navidromeID == playlistId }
+            if (playlistIndex != -1) {
+                currentPlaylistsFromStore[playlistIndex] = updatedPlaylist
+                localDataSettingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
+                return true
+            }
         }
         return false
     }

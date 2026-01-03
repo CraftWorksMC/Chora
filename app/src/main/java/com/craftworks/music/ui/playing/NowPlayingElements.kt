@@ -12,6 +12,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -38,6 +39,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +72,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
+import com.craftworks.music.providers.navidrome.setNavidromeStar
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
 import kotlinx.coroutines.delay
@@ -110,7 +113,7 @@ fun PlaybackProgressSlider(
         if (mediaController != null && isPlaying) {
             while (isActive && !isInteracting) {
                 currentValue = mediaController.currentPosition
-                delay(1000L)
+                delay(100L)  // Update 10x per second for smooth progress
             }
         } else {
             if (mediaController != null) {
@@ -121,7 +124,7 @@ fun PlaybackProgressSlider(
 
     DisposableEffect(mediaController) {
         if (mediaController == null) {
-            onDispose { }
+            return@DisposableEffect onDispose { }
         }
 
         val listener = object : Player.Listener {
@@ -141,14 +144,14 @@ fun PlaybackProgressSlider(
             }
         }
 
-        mediaController?.addListener(listener)
+        mediaController.addListener(listener)
 
         // Initial check in case state changed before listener was attached or for initial setup
-        isPlaying = mediaController?.isPlaying ?: false
-        currentValue = mediaController?.currentPosition ?: 0L
+        isPlaying = mediaController.isPlaying
+        currentValue = mediaController.currentPosition
 
         onDispose {
-            mediaController?.removeListener(listener)
+            mediaController.removeListener(listener)
         }
     }
 
@@ -164,15 +167,16 @@ fun PlaybackProgressSlider(
                     focused.value = it.isFocused
                 }
                 .onKeyEvent { keyEvent ->
+                    val duration = currentDuration ?: 0L
                     when {
                         keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyDown -> {
-                            currentValue = (currentValue + 5000)
+                            currentValue = (currentValue + 5000).coerceIn(0L, duration)
                             mediaController?.seekTo(currentValue)
                             true
                         }
 
                         keyEvent.key == Key.DirectionLeft && keyEvent.type == KeyEventType.KeyDown -> {
-                            currentValue = (currentValue - 5000)
+                            currentValue = (currentValue - 5000).coerceAtLeast(0L)
                             mediaController?.seekTo(currentValue)
                             true
                         }
@@ -215,7 +219,11 @@ fun PlaybackProgressSlider(
                 maxLines = 1
             )
             Text(
-                text = remember(currentDuration) { formatMilliseconds(currentDuration?.toInt()?.div(1000) ?: (currentValue/1000).toInt()) },
+                text = remember(currentDuration) {
+                    val durationMs = currentDuration ?: 0L
+                    if (durationMs > 0) formatMilliseconds((durationMs / 1000).toInt())
+                    else formatMilliseconds((currentValue / 1000).toInt())
+                },
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.End,
                 color = color.copy(alpha = 0.5f),
@@ -359,8 +367,12 @@ fun DownloadButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Bo
     Button(
         onClick = {
             coroutineScope.launch {
-                metadata?.let {
-                    downloadNavidromeSong(context, it)
+                try {
+                    metadata?.let {
+                        downloadNavidromeSong(context, it)
+                    }
+                } catch (e: Exception) {
+                    Log.e("DownloadButton", "Failed to download song", e)
                 }
             }
         },
@@ -386,6 +398,68 @@ fun DownloadButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Bo
             modifier = Modifier
                 .height(size)
                 .size(size)
+        )
+    }
+}
+
+@androidx.annotation.OptIn(UnstableApi::class)
+@Composable
+fun FavoriteButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Boolean) {
+    val coroutineScope = rememberCoroutineScope()
+    // Use rememberSaveable to persist starred state across configuration changes
+    // This prevents flickering when folding/unfolding the device
+    var isStarred by rememberSaveable { mutableStateOf(false) }
+
+    // Sync with metadata when song changes (using navidromeID as key to detect song change)
+    val songId = metadata?.extras?.getString("navidromeID")
+    LaunchedEffect(songId) {
+        isStarred = metadata?.extras?.getBoolean("starred") ?: false
+    }
+
+    Button(
+        onClick = {
+            coroutineScope.launch {
+                metadata?.extras?.getString("navidromeID")?.let { songId ->
+                    if (!songId.startsWith("Local_")) {
+                        val previousState = isStarred
+                        isStarred = !isStarred // Optimistic update
+                        try {
+                            setNavidromeStar(isStarred, id = songId)
+                        } catch (e: Exception) {
+                            // Revert optimistic update on failure
+                            isStarred = previousState
+                            Log.e("FavoriteButton", "Failed to update star status", e)
+                        }
+                    }
+                }
+            }
+        },
+        enabled = enabled,
+        shape = RoundedCornerShape(12.dp),
+        modifier = if (enabled)
+            Modifier
+                .bounceClick()
+                .height(size + 6.dp)
+        else
+            Modifier.height(size + 6.dp),
+        contentPadding = PaddingValues(6.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            contentColor = color.copy(alpha = if (isStarred) 1f else 0.5f),
+            disabledContentColor = color.copy(alpha = 0.25f)
+        )
+    ) {
+        Icon(
+            imageVector = ImageVector.vectorResource(
+                if (isStarred) R.drawable.round_star_24
+                else R.drawable.round_star_border_24
+            ),
+            contentDescription = if (isStarred) "Remove from Favorites" else "Add to Favorites",
+            modifier = Modifier
+                .height(size)
+                .size(size),
+            tint = color.copy(alpha = if (isStarred) 1f else 0.5f)
         )
     }
 }
@@ -424,5 +498,88 @@ private fun repeatModeIcon(repeatMode: @Player.RepeatMode Int): ImageVector {
         Player.REPEAT_MODE_OFF -> ImageVector.vectorResource(R.drawable.rounded_repeat_24)
         Player.REPEAT_MODE_ONE -> ImageVector.vectorResource(R.drawable.rounded_repeat1_24)
         else -> ImageVector.vectorResource(R.drawable.rounded_repeat_24)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VolumeSlider(
+    color: Color,
+    mediaController: MediaController?,
+    modifier: Modifier = Modifier
+) {
+    var volume by remember { mutableStateOf(mediaController?.volume ?: 1f) }
+    var isInteracting by remember { mutableStateOf(false) }
+
+    // Listen for volume changes from external sources
+    DisposableEffect(mediaController) {
+        if (mediaController == null) {
+            return@DisposableEffect onDispose { }
+        }
+
+        val listener = object : Player.Listener {
+            override fun onDeviceVolumeChanged(deviceVolume: Int, muted: Boolean) {
+                // Device volume changed (hardware buttons) - update slider if not interacting
+                if (!isInteracting) {
+                    volume = mediaController.volume
+                }
+            }
+
+            override fun onVolumeChanged(newVolume: Float) {
+                // Player volume changed programmatically - update slider if not interacting
+                if (!isInteracting) {
+                    volume = newVolume
+                }
+            }
+        }
+
+        // Set initial volume
+        volume = mediaController.volume
+
+        mediaController.addListener(listener)
+        onDispose {
+            mediaController.removeListener(listener)
+        }
+    }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = ImageVector.vectorResource(
+                when {
+                    volume == 0f -> R.drawable.round_volume_off_24
+                    volume < 0.5f -> R.drawable.round_volume_down_24
+                    else -> R.drawable.round_volume_up_24
+                }
+            ),
+            contentDescription = "Volume",
+            tint = color.copy(alpha = 0.5f),
+            modifier = Modifier.size(24.dp)
+        )
+
+        Slider(
+            value = volume,
+            onValueChange = {
+                isInteracting = true
+                volume = it
+                mediaController?.volume = it
+            },
+            onValueChangeFinished = {
+                isInteracting = false
+            },
+            valueRange = 0f..1f,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            colors = SliderDefaults.colors(
+                activeTrackColor = color.copy(alpha = 0.5f),
+                inactiveTrackColor = color.copy(alpha = 0.2f),
+                thumbColor = color.copy(alpha = 0.5f)
+            )
+        )
     }
 }

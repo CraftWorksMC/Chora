@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
+import java.net.URLEncoder
 
 @Serializable
 data class PlaylistContainer(val playlist: List<MediaData.Playlist>? = listOf())
@@ -20,24 +21,29 @@ fun parseNavidromePlaylistsJSON(
 ) : List<MediaItem> {
 
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+        ?: return emptyList()
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        return emptyList()
+    }
 
     // Generate password salt and hash
     val passwordSaltMedia = generateSalt(8)
     val passwordHashMedia = md5Hash(navidromePassword + passwordSaltMedia)
+    val encodedUsername = URLEncoder.encode(navidromeUsername, "UTF-8")
 
-    subsonicResponse.playlists?.playlist?.map {
-        it.coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora&size=128"
+    val updatedPlaylists = subsonicResponse.playlists?.playlist?.map {
+        it.copy(coverArt = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$encodedUsername&t=$passwordHashMedia&s=$passwordSaltMedia&v=1.16.1&c=Chora&size=128")
     }
 
-    subsonicResponse.playlists?.playlist?.filterNot { newPlaylist ->
+    updatedPlaylists?.filterNot { newPlaylist ->
         playlistList.any { existingPlaylist ->
             existingPlaylist.navidromeID == newPlaylist.navidromeID
         }
     }
-    return subsonicResponse.playlists?.playlist?.map { it.toMediaItem() } ?: emptyList()
+    return updatedPlaylists?.map { it.toMediaItem() } ?: emptyList()
 }
 
 fun parseNavidromePlaylistJSON(
@@ -47,22 +53,29 @@ fun parseNavidromePlaylistJSON(
     navidromePassword: String
 ) : List<MediaItem> {
     val jsonParser = Json { ignoreUnknownKeys = true }
-    val subsonicResponse = jsonParser.decodeFromJsonElement<SubsonicResponse>(
-        jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]!!
-    )
+    val jsonElement = jsonParser.parseToJsonElement(response).jsonObject["subsonic-response"]
+        ?: return emptyList()
+    val subsonicResponse = try {
+        jsonParser.decodeFromJsonElement<SubsonicResponse>(jsonElement)
+    } catch (e: Exception) {
+        return emptyList()
+    }
 
     val mediaDataPlaylist = mutableListOf<MediaItem>()
 
     // Generate password salt and hash
     val passwordSalt = generateSalt(8)
     val passwordHash = md5Hash(navidromePassword + passwordSalt)
+    val encodedUsername = URLEncoder.encode(navidromeUsername, "UTF-8")
 
-    subsonicResponse.playlist?.songs?.map {
-        it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora&size=128"
-        it.media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora"
+    val updatedSongs = subsonicResponse.playlist?.songs?.map {
+        it.copy(
+            imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$encodedUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora&size=128",
+            media = "$navidromeUrl/rest/stream.view?&id=${it.navidromeID}&u=$encodedUsername&t=$passwordHash&s=$passwordSalt&v=1.12.0&c=Chora"
+        )
     }
 
-    mediaDataPlaylist.addAll(subsonicResponse.playlist?.songs?.map { it.toMediaItem() } ?: emptyList())
+    mediaDataPlaylist.addAll(updatedSongs?.map { it.toMediaItem() } ?: emptyList())
 
     return mediaDataPlaylist
 }

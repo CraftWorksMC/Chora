@@ -51,48 +51,48 @@ import androidx.media3.common.MediaItem
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.model.playlistList
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.foundation.ExperimentalFoundationApi
+
 //region PREVIEWS
 @Preview(showBackground = true)
 @Composable
 fun PreviewAddToPlaylistDialog(){
-    AddSongToPlaylist(setShowDialog = {})
+    AddSongToPlaylist(song = MediaItem.EMPTY, onDismiss = {})
 }
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewNewPlaylistDialog(){
-    NewPlaylist(hiltViewModel(),setShowDialog = {})
+    NewPlaylist(hiltViewModel(), song = MediaItem.EMPTY, onDismiss = {}, onDone = {})
 }
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewDeletePlaylistDialog(){
-    DeletePlaylist(setShowDialog = {})
+    DeletePlaylist(playlistName = "My Playlist", setShowDialog = {})
 }
 //endregion
 
-var showAddSongToPlaylistDialog = mutableStateOf(false)
-var showNewPlaylistDialog = mutableStateOf(false)
-var songToAddToPlaylist = mutableStateOf(MediaItem.EMPTY)
-var showDeletePlaylistDialog = mutableStateOf(false)
-var playlistToDelete = mutableStateOf("")
-
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun AddSongToPlaylist(
-    setShowDialog: (Boolean) -> Unit,
+    song: MediaItem,
+    onDismiss: () -> Unit,
     viewModel: PlaylistScreenViewModel = hiltViewModel()
 ) {
     val playlists by viewModel.allPlaylists.collectAsStateWithLifecycle()
+    var showNewPlaylistDialog by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = { setShowDialog(false) }) {
+    Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.dialogFocusable()
         ) {
             Box(
                 contentAlignment = Alignment.Center
@@ -103,13 +103,15 @@ fun AddSongToPlaylist(
                 ) {
 
                     // Header
+                    val dialogText = stringResource(R.string.Dialog_Add_To_Playlist)
+                    val parts = dialogText.split("/")
                     Text(
                         text = buildAnnotatedString {
-                            append(stringResource(R.string.Dialog_Add_To_Playlist).split("/")[0])
+                            append(parts.getOrElse(0) { "" })
                             withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                                append(songToAddToPlaylist.value.mediaMetadata.title)
+                                append(song.mediaMetadata.title)
                             }
-                            append(stringResource(R.string.Dialog_Add_To_Playlist).split("/")[1])
+                            append(parts.getOrElse(1) { "" })
                         },
                         style = TextStyle(
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
@@ -137,7 +139,7 @@ fun AddSongToPlaylist(
 
                         for (playlist in playlists) {
                             // Allow ONLY adding local songs to local playlists and navidrome songs to navidrome playlists.
-                            val disabled = songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true xor
+                            val disabled = song.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true xor
                                     (playlist.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true)
 
                             Row(modifier = Modifier
@@ -148,15 +150,15 @@ fun AddSongToPlaylist(
                                     enabled = !disabled
                                 ) {
                                     if (playlist.mediaMetadata.extras?.getString("navidromeID") ==
-                                        songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID"))
+                                        song.mediaMetadata.extras?.getString("navidromeID"))
                                         return@clickable
 
                                     viewModel.addSongToPlaylist(playlist.mediaMetadata.extras?.getString("navidromeID")
                                         ?: "",
-                                        songToAddToPlaylist.value.mediaMetadata.extras?.getString(
+                                        song.mediaMetadata.extras?.getString(
                                             "navidromeID"
                                         ) ?: "")
-                                    setShowDialog(false)
+                                    onDismiss()
                                 }, verticalAlignment = Alignment.CenterVertically
                             ) {
                                 val artwork = if (playlist.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local") == true)
@@ -198,7 +200,7 @@ fun AddSongToPlaylist(
                     Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
                         Button(
                             onClick = {
-                                showNewPlaylistDialog.value = true
+                                showNewPlaylistDialog = true
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -215,8 +217,16 @@ fun AddSongToPlaylist(
                         }
                     }
 
-                    if (showNewPlaylistDialog.value) {
-                        NewPlaylist(viewModel) { showNewPlaylistDialog.value = it }
+                    if (showNewPlaylistDialog) {
+                        NewPlaylist(
+                            viewModel = viewModel,
+                            song = song,
+                            onDismiss = { showNewPlaylistDialog = false },
+                            onDone = {
+                                showNewPlaylistDialog = false
+                                onDismiss()
+                            }
+                        )
                     }
                 }
             }
@@ -225,18 +235,23 @@ fun AddSongToPlaylist(
 }
 
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun NewPlaylist(
     viewModel: PlaylistScreenViewModel,
-    setShowDialog: (Boolean) -> Unit
+    song: MediaItem,
+    onDismiss: () -> Unit,
+    onDone: () -> Unit
 ) {
     var name: String by remember { mutableStateOf("") }
+    val playlists by viewModel.allPlaylists.collectAsStateWithLifecycle()
 
     var addToNavidrome by remember { mutableStateOf(NavidromeManager.checkActiveServers()) }
 
-    Dialog(onDismissRequest = { setShowDialog(false) }) {
+    Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.dialogFocusable()
         ) {
             Box(
                 contentAlignment = Alignment.Center
@@ -253,7 +268,7 @@ fun NewPlaylist(
                         /* Directory */
                         OutlinedTextField(
                             value = name,
-                            onValueChange = { name = it },
+                            onValueChange = { if (it.length <= 128) name = it },
                             label = { Text(stringResource(R.string.Label_Playlist_Name)) },
                             singleLine = true
                         )
@@ -284,20 +299,17 @@ fun NewPlaylist(
                             }
                         }
 
-                        val context = LocalContext.current
                         Button(
                             onClick = {
-                                if (playlistList.firstOrNull { it.name == name } != null) return@Button
+                                if (playlists.firstOrNull { it.mediaMetadata.title == name } != null) return@Button
 
                                 viewModel.createPlaylist(
                                     name,
-                                    songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID") ?: "",
-                                    addToNavidrome,
-                                    context
+                                    song.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                                    addToNavidrome
                                 )
 
-                                showAddSongToPlaylistDialog.value = false
-                                setShowDialog(false)
+                                onDone()
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -324,14 +336,17 @@ fun NewPlaylist(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun DeletePlaylist(
+    playlistName: String,
     setShowDialog: (Boolean) -> Unit,
     viewModel: PlaylistScreenViewModel = hiltViewModel()
 ) {
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.dialogFocusable()
         ) {
             Box(
                 contentAlignment = Alignment.Center
@@ -356,7 +371,7 @@ fun DeletePlaylist(
 
                         Button(
                             onClick = {
-                                viewModel.deletePlaylist(playlistToDelete.value)
+                                viewModel.deletePlaylist(playlistName)
                                 setShowDialog(false)
                             },
                             colors = ButtonDefaults.buttonColors(

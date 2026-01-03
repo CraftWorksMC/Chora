@@ -24,24 +24,40 @@ fun NowPlaying_Background(
     backgroundStyle: NowPlayingBackground = NowPlayingBackground.SIMPLE_ANIMATED_BLUR,
     overlayColor: Color = Color.Transparent
 ) {
-    val safePalette = colorPalette.ifEmpty {
-        listOf(Color.DarkGray, Color.Black, Color.DarkGray, Color.Black)
+    val defaultPalette = listOf(Color.DarkGray, Color.Black, Color.DarkGray, Color.Black)
+    val safePalette = if (colorPalette.size >= 4) colorPalette else {
+        // Pad the palette to ensure we always have at least 4 colors
+        colorPalette + defaultPalette.drop(colorPalette.size)
     }
 
     when (backgroundStyle){
         NowPlayingBackground.PLAIN         -> PlainBackground()
         NowPlayingBackground.STATIC_BLUR   -> StaticBlurBackground(safePalette)
-        NowPlayingBackground.ANIMATED_BLUR -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) AnimatedGradientBackground(
-            color1 = safePalette[0],
-            color2 = safePalette[1],
-            color3 = safePalette[2],
-            overlayColor = overlayColor,
-            modifier = Modifier.fillMaxSize()
-        )
-        NowPlayingBackground.SIMPLE_ANIMATED_BLUR -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) SimpleAnimatedGradientBackground(
-            colors = safePalette,
-            overlayColor = overlayColor,
-            modifier = Modifier.fillMaxSize()
-        )
+        NowPlayingBackground.ANIMATED_BLUR -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                AnimatedGradientBackground(
+                    color1 = safePalette[0],
+                    color2 = safePalette[1],
+                    color3 = safePalette[2],
+                    overlayColor = overlayColor,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                // Fallback for API < 33
+                StaticBlurBackground(safePalette)
+            }
+        }
+        NowPlayingBackground.SIMPLE_ANIMATED_BLUR -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                SimpleAnimatedGradientBackground(
+                    colors = safePalette,
+                    overlayColor = overlayColor,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                // Fallback for API < 33
+                StaticBlurBackground(safePalette)
+            }
+        }
     }
 }

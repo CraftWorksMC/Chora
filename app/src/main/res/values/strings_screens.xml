@@ -13,4 +13,10 @@
 
     <!-- Album Details -->
     <string name="Album_Disc_Number">Disc </string>
+
+    <!-- Empty States -->
+    <string name="Songs_Empty">No songs found</string>
+    <string name="Albums_Empty">No albums found</string>
+    <string name="Artists_Empty">No artists found</string>
+    <string name="Home_Coming_Soon">Play some songs, and they\'ll appear here!</string>
 </resources>

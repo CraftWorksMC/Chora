@@ -30,7 +30,10 @@ fun Modifier.dialogFocusable() = composed {
     this.then(
         Modifier
             .focusRequester(focusRequester)
-            .focusProperties { exit = { FocusRequester.Cancel } }
+            .focusProperties {
+                @Suppress("DEPRECATION")
+                exit = { FocusRequester.Cancel }
+            }
             .focusGroup()
     )
 }

@@ -18,16 +18,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -59,7 +58,11 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
-import com.craftworks.music.player.ChoraMediaLibraryService
+import com.craftworks.music.managers.settings.ArtworkSettingsManager
+import com.craftworks.music.ui.elements.GeneratedAlbumArt
+import com.craftworks.music.ui.util.LayoutMode
+import com.craftworks.music.ui.util.TextDisplayUtils
+import com.craftworks.music.ui.util.rememberFoldableState
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
 @kotlin.OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -83,23 +86,50 @@ fun NowPlayingPortrait(
 
     val context = LocalContext.current
     val settingsManager = remember { AppearanceSettingsManager(context) }
+    val artworkSettingsManager = remember { ArtworkSettingsManager(context) }
     val showMoreInfo by settingsManager.showMoreInfoFlow.collectAsStateWithLifecycle(true)
     val titleAlignment by settingsManager.nowPlayingTitleAlignment.collectAsStateWithLifecycle(NowPlayingTitleAlignment.LEFT)
+    val stripTrackNumbers by settingsManager.stripTrackNumbersFromTitlesFlow.collectAsStateWithLifecycle(false)
+
+    // Artwork settings for generated art fallback
+    val generatedArtworkEnabled by artworkSettingsManager.generatedArtworkEnabledFlow.collectAsStateWithLifecycle(true)
+    val fallbackMode by artworkSettingsManager.fallbackModeFlow.collectAsStateWithLifecycle(ArtworkSettingsManager.FallbackMode.PLACEHOLDER_DETECT)
+
+    // Responsive sizing based on screen size
+    // On unfolded/large screens, keep elements constrained to fit the card
+    val foldableState = rememberFoldableState()
+    val buttonScale = when (foldableState.layoutMode) {
+        LayoutMode.EXPANDED, LayoutMode.BOOK_MODE -> 1.0f  // Normal size on unfolded
+        LayoutMode.MEDIUM -> 1.1f
+        else -> 1f
+    }
+    val maxArtHeight = when (foldableState.layoutMode) {
+        LayoutMode.EXPANDED, LayoutMode.BOOK_MODE -> 360.dp  // Smaller on unfolded
+        LayoutMode.MEDIUM -> 400.dp
+        else -> 420.dp
+    }
+    val buttonRowWidth = when (foldableState.layoutMode) {
+        LayoutMode.EXPANDED, LayoutMode.BOOK_MODE -> 340.dp  // Narrower on unfolded
+        LayoutMode.MEDIUM -> 360.dp
+        else -> 320.dp
+    }
 
     Column (
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Top padding
-        Spacer(Modifier.height(WindowInsets.statusBars.asPaddingValues().calculateTopPadding()))
 
         /* Album Cover + Lyrics */
         AnimatedContent(
             lyricsOpen,
             label = "Crossfade between lyrics",
             modifier = Modifier
-                .heightIn(min = 256.dp, max = 420.dp)
+                .heightIn(min = 256.dp, max = maxArtHeight)
                 .fillMaxWidth()
         ) { it ->
             if (it) {
@@ -115,24 +145,66 @@ fun NowPlayingPortrait(
                     animationSpec = tween(durationMillis = 500),
                     label = "Crossfade between album art"
                 ) { artworkUri ->
-                    SubcomposeAsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(artworkUri)
-                            .diskCachePolicy(
-                                CachePolicy.DISABLED
-                            )
-                            .build(),
-                        contentDescription = "Album Cover Art",
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 32.dp)
-                            .aspectRatio(1f)
-                            .shadow(4.dp, RoundedCornerShape(24.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .clip(RoundedCornerShape(24.dp))
-                    )
+                    val hasArtwork = artworkUri.isNotEmpty() && artworkUri != "null"
+
+                    // Check if we should use generated art based on fallback mode
+                    val useGeneratedArt = when {
+                        !generatedArtworkEnabled -> false
+                        fallbackMode == ArtworkSettingsManager.FallbackMode.ALWAYS -> true
+                        !hasArtwork -> true
+                        fallbackMode == ArtworkSettingsManager.FallbackMode.PLACEHOLDER_DETECT -> {
+                            // Detect Navidrome placeholder patterns
+                            artworkUri.contains("placeholder") ||
+                            artworkUri.endsWith("/coverArt") ||
+                            artworkUri.contains("coverArt?id=&") ||
+                            (artworkUri.contains("coverArt?size=") && !artworkUri.contains("id="))
+                        }
+                        else -> false
+                    }
+
+                    if (useGeneratedArt) {
+                        GeneratedAlbumArt(
+                            title = metadata?.title?.toString() ?: "?",
+                            artist = metadata?.artist?.toString(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 32.dp)
+                                .aspectRatio(1f)
+                                .shadow(4.dp, RoundedCornerShape(24.dp))
+                                .clip(RoundedCornerShape(24.dp)),
+                            size = 400.dp,
+                            animate = true
+                        )
+                    } else {
+                        SubcomposeAsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(artworkUri)
+                                .diskCacheKey("np_${metadata?.extras?.getString("navidromeID")}_500")
+                                .memoryCacheKey("np_${metadata?.extras?.getString("navidromeID")}_500")
+                                .build(),
+                            contentDescription = "Album Cover Art",
+                            contentScale = ContentScale.Crop,
+                            alignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 32.dp)
+                                .aspectRatio(1f)
+                                .shadow(4.dp, RoundedCornerShape(24.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .clip(RoundedCornerShape(24.dp)),
+                            error = {
+                                if (generatedArtworkEnabled) {
+                                    GeneratedAlbumArt(
+                                        title = metadata?.title?.toString() ?: "?",
+                                        artist = metadata?.artist?.toString(),
+                                        modifier = Modifier.fillMaxSize(),
+                                        size = 400.dp,
+                                        animate = true
+                                    )
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -148,7 +220,7 @@ fun NowPlayingPortrait(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Crossfade(
-                    targetState = metadata?.title.toString(),
+                    targetState = TextDisplayUtils.formatSongTitle(metadata?.title.toString(), stripTrackNumbers),
                     animationSpec = tween(durationMillis = 500),
                     label = "Animated Song Title"
                 ) { title ->
@@ -170,7 +242,7 @@ fun NowPlayingPortrait(
                 }
 
                 Crossfade(
-                    targetState = metadata?.artist.toString() + if (metadata?.recordingYear != 0 && metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION) " • " + metadata?.recordingYear else "",
+                    targetState = TextDisplayUtils.formatArtistName(metadata?.artist?.toString()) + if (metadata?.recordingYear != null && metadata?.recordingYear != 0 && metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION) " • " + metadata?.recordingYear else "",
                     animationSpec = tween(durationMillis = 500),
                     label = "Animated Artist"
                 ) { artistInfo ->
@@ -225,7 +297,9 @@ fun NowPlayingPortrait(
         }
 
         if (metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION)
-            PlaybackProgressSlider(iconTextColor, mediaController)
+            PlaybackProgressSlider(iconTextColor, mediaController, metadata)
+
+        VolumeSlider(iconTextColor, mediaController)
 
         //region Buttons
         Column(
@@ -241,56 +315,56 @@ fun NowPlayingPortrait(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ChoraMediaLibraryService.getInstance()?.player?.let {
+                mediaController?.let {
                     ShuffleButton(
                         it,
                         iconTextColor,
-                        Modifier.size(32.dp)
+                        Modifier.size((32 * buttonScale).dp)
                     )
 
                     PreviousSongButton(
                         it,
                         iconTextColor,
-                        Modifier.size(48.dp)
+                        Modifier.size((48 * buttonScale).dp)
                     )
 
                     PlayPauseButton(
                         it,
                         iconTextColor,
-                        Modifier.size(92.dp)
+                        Modifier.size((92 * buttonScale).dp)
                     )
 
                     NextSongButton(
                         it,
                         iconTextColor,
-                        Modifier.size(48.dp)
+                        Modifier.size((48 * buttonScale).dp)
                     )
 
                     RepeatButton(
                         it,
                         iconTextColor,
-                        Modifier.size(32.dp)
+                        Modifier.size((32 * buttonScale).dp)
                     )
                 }
             }
 
             Row(
                 modifier = Modifier
-                    .width(256.dp)
-                    .weight(.75f)
-                    .padding(bottom = 12.dp),
+                    .width(buttonRowWidth)
+                    .weight(.75f),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                LyricsButton(iconTextColor, 64.dp)
+                val secondaryButtonSize = (48 * buttonScale).dp
+                LyricsButton(iconTextColor, secondaryButtonSize)
 
-                DownloadButton(iconTextColor, 64.dp, metadata, (metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && metadata?.extras?.getString("navidromeID")?.startsWith("Local_") == false))
+                FavoriteButton(iconTextColor, secondaryButtonSize, metadata, (metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && metadata?.extras?.getString("navidromeID")?.startsWith("Local_") == false))
 
-                PlayQueueButton(iconTextColor, 64.dp)
+                DownloadButton(iconTextColor, secondaryButtonSize, metadata, (metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && metadata?.extras?.getString("navidromeID")?.startsWith("Local_") == false))
+
+                PlayQueueButton(iconTextColor, secondaryButtonSize)
             }
         }
         //endregion
-
-        Spacer(Modifier.height(64.dp))
     }
 }

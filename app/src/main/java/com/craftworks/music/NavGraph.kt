@@ -58,9 +58,14 @@ import com.craftworks.music.ui.screens.PlaylistScreen
 import com.craftworks.music.ui.screens.RadioScreen
 import com.craftworks.music.ui.screens.SettingScreen
 import com.craftworks.music.ui.screens.SongsScreen
+import com.craftworks.music.ui.screens.QueueScreen
+import com.craftworks.music.ui.screens.onboarding.OnboardingWizard
 import com.craftworks.music.ui.screens.settings.S_AppearanceScreen
+import com.craftworks.music.ui.screens.settings.S_ArtworkScreen
+import com.craftworks.music.ui.screens.settings.S_DataScreen
 import com.craftworks.music.ui.screens.settings.S_PlaybackScreen
 import com.craftworks.music.ui.screens.settings.S_ProviderScreen
+import com.craftworks.music.ui.screens.settings.SettingsDownloads
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
@@ -74,24 +79,42 @@ import java.net.URLDecoder
 fun SetupNavGraph(
     navController: NavHostController,
     bottomPadding: Dp,
-    mediaController: MediaController?
+    mediaController: MediaController?,
+    showOnboarding: Boolean = false
 ) {
     val context = LocalContext.current
 
-    playlistList =
-        LocalDataSettingsManager(context).localPlaylists.collectAsStateWithLifecycle(mutableListOf()).value
+    // Update playlist list from local settings (using synchronized list)
+    // FRAGILE PATTERN: Global mutable state is used here (playlistList).
+    // This is fragile and not recommended. A better approach is to use a
+    // single source of truth from a repository providing a StateFlow.
+    @Suppress("DEPRECATION")
+    val localPlaylists by LocalDataSettingsManager(context).localPlaylists.collectAsStateWithLifecycle(mutableListOf())
 
-    LyricsState.useLrcLib =
-        MediaProviderSettingsManager(context).lrcLibLyricsFlow.collectAsStateWithLifecycle(true).value
+    LaunchedEffect(localPlaylists) {
+        @Suppress("DEPRECATION")
+        synchronized(playlistList) {
+            playlistList.clear()
+            playlistList.addAll(localPlaylists)
+        }
+    }
+
+    val useLrcLib by MediaProviderSettingsManager(context).lrcLibLyricsFlow.collectAsStateWithLifecycle(true)
+    LaunchedEffect(useLrcLib) {
+        LyricsState.setUseLrcLib(useLrcLib)
+    }
 
     val leftPadding = if (LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE) 0.dp else 80.dp + WindowInsets.safeDrawing.asPaddingValues().calculateLeftPadding(
         LayoutDirection.Ltr)
 
     val animationSpec = MaterialTheme.LocalMotionScheme.current.slowSpatialSpec<Float>()
 
+    // Determine start destination based on onboarding state
+    val startDestination = if (showOnboarding) Screen.Onboarding.route else Screen.Home.route
+
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route,
+        startDestination = startDestination,
         modifier = Modifier.padding(bottom = bottomPadding, start = leftPadding),
         enterTransition = {
             fadeIn(animationSpec)
@@ -109,24 +132,30 @@ fun SetupNavGraph(
             fadeOut(animationSpec)
             //scaleOut(tween(300), 0.95f) + fadeOut(tween(400))
         },
-        route = "main_graph"
+        route = "main_graph" // This route is for scoping, but the implementation was fragile.
     ) {
-        println("Recomposing NavHost!")
-        composable(route = Screen.Home.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("main_graph")
-            }
-            val viewModel: HomeScreenViewModel = hiltViewModel(parentEntry)
+        // Onboarding wizard - shown on first launch
+        composable(route = Screen.Onboarding.route) {
+            OnboardingWizard(
+                onComplete = {
+                    // Navigate to home and clear the back stack
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(route = Screen.Home.route) {
+            val viewModel: HomeScreenViewModel = hiltViewModel()
             HomeScreen(navController, mediaController, viewModel)
         }
         composable(
             route = Screen.HomeLists.route + "/{category}",
             arguments = listOf(navArgument("category") { type = NavType.StringType })
         ) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("main_graph")
-            }
-            val viewModel: HomeScreenViewModel = hiltViewModel(parentEntry)
+            val viewModel: HomeScreenViewModel = hiltViewModel()
 
             val category = backStackEntry.arguments?.getString("category") ?: "recently_played"
 
@@ -146,42 +175,46 @@ fun SetupNavGraph(
             )
         }
 
-        composable(route = Screen.Song.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("main_graph")
-            }
-            val viewModel: SongsScreenViewModel = hiltViewModel(parentEntry)
+        composable(route = Screen.Song.route) {
+            val viewModel: SongsScreenViewModel = hiltViewModel()
             SongsScreen(mediaController, viewModel)
         }
-        composable(route = Screen.Radio.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("main_graph")
-            }
-            val viewModel: RadioScreenViewModel = hiltViewModel(parentEntry)
+        composable(route = Screen.Radio.route) {
+            val viewModel: RadioScreenViewModel = hiltViewModel()
             RadioScreen(mediaController, viewModel)
         }
 
         //Albums
-        composable(route = Screen.Albums.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("main_graph")
-            }
-            val viewModel: AlbumScreenViewModel = hiltViewModel(parentEntry)
+        composable(route = Screen.Albums.route) {
+            val viewModel: AlbumScreenViewModel = hiltViewModel()
             AlbumScreen(navController, mediaController, viewModel)
         }
         composable(
-            route = Screen.AlbumDetails.route + "/{album}/{image}",
+            route = Screen.AlbumDetails.route + "/{album}?image={image}",
             arguments = listOf(
                 navArgument("album") {
                     type = NavType.StringType
                 },
                 navArgument("image") {
                     type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
                 }
             )
         ) { backStackEntry ->
             val albumId = backStackEntry.arguments?.getString("album") ?: ""
-            val albumImageUri = URLDecoder.decode(backStackEntry.arguments?.getString("image"), "UTF-8")
+            val imageArg = backStackEntry.arguments?.getString("image")
+            val albumImageUri = if (!imageArg.isNullOrEmpty()) {
+                try {
+                    URLDecoder.decode(imageArg, "UTF-8")
+                } catch (e: Exception) {
+                    Log.e("NavGraph", "Failed to decode image URL: $imageArg", e)
+                    ""
+                }
+            } else {
+                ""
+            }
+
             AlbumDetails(
                 albumId,
                 albumImageUri.toUri(),
@@ -191,37 +224,24 @@ fun SetupNavGraph(
         }
         //Artist
         navigation(startDestination = Screen.Artists.route, route = "artists_graph") {
-            composable(route = Screen.Artists.route) { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry("main_graph")
-                }
-                val viewModel: ArtistsScreenViewModel = hiltViewModel(parentEntry)
-                ArtistsScreen(navController, viewModel)
+            composable(route = Screen.Artists.route) {
+                val viewModel: ArtistsScreenViewModel = hiltViewModel()
+                ArtistsScreen(navController, mediaController, viewModel)
             }
-            composable(route = Screen.ArtistDetails.route) { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry("main_graph")
-                }
-                val viewModel: ArtistsScreenViewModel = hiltViewModel(parentEntry)
+            composable(route = Screen.ArtistDetails.route) {
+                val viewModel: ArtistsScreenViewModel = hiltViewModel()
                 ArtistDetails(navController, mediaController, viewModel)
             }
         }
 
         //Playlists
         navigation(startDestination = Screen.Playlists.route, route = "playlists_graph") {
-            composable(route = Screen.Playlists.route) { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry("main_graph")
-                }
-                val viewModel: PlaylistScreenViewModel = hiltViewModel(parentEntry)
+            composable(route = Screen.Playlists.route) {
+                val viewModel: PlaylistScreenViewModel = hiltViewModel()
                 PlaylistScreen(navController, viewModel)
             }
-            composable(route = Screen.PlaylistDetails.route) { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry("main_graph")
-                }
-                val viewModel: PlaylistScreenViewModel = hiltViewModel(parentEntry)
-
+            composable(route = Screen.PlaylistDetails.route) {
+                val viewModel: PlaylistScreenViewModel = hiltViewModel()
                 PlaylistDetails(navController, mediaController, viewModel)
             }
         }
@@ -246,6 +266,21 @@ fun SetupNavGraph(
                 }
             ) {
                 S_AppearanceScreen(navController)
+            }
+            composable(
+                route = Screen.S_Artwork.route,
+                enterTransition = {
+                    slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeIn(animationSpec)
+                },
+                exitTransition = {
+                    slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeOut(animationSpec)
+                }
+            ) {
+                S_ArtworkScreen(navController)
             }
             composable(
                 route = Screen.S_Providers.route,
@@ -277,12 +312,52 @@ fun SetupNavGraph(
             ) {
                 S_PlaybackScreen(navController)
             }
+            composable(
+                route = Screen.S_Data.route,
+                enterTransition = {
+                    slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeIn(tween(300))
+                },
+                exitTransition = {
+                    slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeOut(tween(300))
+                }
+            ) {
+                S_DataScreen(navController)
+            }
+            composable(
+                route = Screen.S_Downloads.route,
+                enterTransition = {
+                    slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeIn(tween(300))
+                },
+                exitTransition = {
+                    slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                        fullWidth / 4
+                    } + fadeOut(tween(300))
+                }
+            ) {
+                SettingsDownloads(navController)
+            }
         }
 
         composable(route = Screen.NowPlayingLandscape.route) {
-            if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) ||
+            val isValidOrientation = (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) ||
                 LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-            ) {
+
+            // Handle navigation in a side effect to avoid navigation during composition
+            LaunchedEffect(isValidOrientation) {
+                if (!isValidOrientation) {
+                    navController.navigate(Screen.Home.route) {
+                        launchSingleTop = true
+                    }
+                }
+            }
+
+            if (isValidOrientation) {
                 var metadata by remember { mutableStateOf<MediaMetadata?>(null) }
 
                 // Update metadata from mediaController.
@@ -321,11 +396,24 @@ fun SetupNavGraph(
                         Log.d("NOW-PLAYING", "KeepScreenOn: False")
                     }
                 }
-            } else {
-                navController.navigate(Screen.Home.route) {
-                    launchSingleTop = true
-                }
             }
+        }
+
+        // Queue screen
+        composable(
+            route = Screen.Queue.route,
+            enterTransition = {
+                slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                    fullWidth / 4
+                } + fadeIn(animationSpec)
+            },
+            exitTransition = {
+                slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                    fullWidth / 4
+                } + fadeOut(animationSpec)
+            }
+        ) {
+            QueueScreen(navController)
         }
     }
 }

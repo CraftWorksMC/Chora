@@ -32,17 +32,26 @@ class RadioScreenViewModel @Inject constructor(
         getRadioStations()
 
         viewModelScope.launch {
-            DataRefreshManager.dataSourceChangedEvent.collect {
-                getRadioStations()
+            try {
+                DataRefreshManager.dataSourceChangedEvent.collect {
+                    getRadioStations()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
     fun getRadioStations() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _radioStations.value = radioRepository.getRadios(ignoreCachedResponse = true).map { it.toMediaItem() }
-            _isLoading.value = false
+            try {
+                _isLoading.value = true
+                _radioStations.value = radioRepository.getRadios(ignoreCachedResponse = true).map { it.toMediaItem() }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
@@ -52,28 +61,43 @@ class RadioScreenViewModel @Inject constructor(
 
     fun addRadioStation(name: String, url: String, homepage: String, addToNavidrome: Boolean) {
         viewModelScope.launch {
-            _isLoading.value = true
-            radioRepository.createRadio(name = name, url = url, homePage = homepage, addToNavidrome = addToNavidrome)
-            _isLoading.value = false
-            getRadioStations()
+            try {
+                _isLoading.value = true
+                radioRepository.createRadio(name = name, url = url, homePage = homepage, addToNavidrome = addToNavidrome)
+                getRadioStations()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
     fun modifyRadioStation(id: String, name: String, url: String, homepage: String) {
         viewModelScope.launch {
-            _isLoading.value = true
-            radioRepository.modifyRadio(MediaData.Radio(id, name, url, homepage))
-            _isLoading.value = false
-            getRadioStations()
+            try {
+                _isLoading.value = true
+                radioRepository.modifyRadio(MediaData.Radio(id, name, url, homepage))
+                getRadioStations()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
     fun deleteRadioStation(id: String) {
         viewModelScope.launch {
-            _isLoading.value = true
-            radioRepository.deleteRadio(id)
-            _isLoading.value = false
-            getRadioStations()
+            try {
+                _isLoading.value = true
+                radioRepository.deleteRadio(id)
+                getRadioStations()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 }

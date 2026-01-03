@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.elements.dialogs
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,8 +12,8 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -28,7 +29,11 @@ import com.craftworks.music.ui.elements.bounceClick
 @Preview(showBackground = true)
 @Composable
 fun PreviewSortingDialog(){
-    SortingDialog(setShowDialog = { })
+    SortingDialog(
+        setShowDialog = { },
+        selectedOption = sortingList[0],
+        onOptionSelected = { }
+    )
 }
 //endregion
 
@@ -38,13 +43,18 @@ val sortingList = listOf(
     "Release Year",
     "Times Played"
 )
-var albumScreenSorting = mutableStateOf(sortingList[0])
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun SortingDialog(setShowDialog: (Boolean) -> Unit) {
+fun SortingDialog(
+    setShowDialog: (Boolean) -> Unit,
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit
+) {
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.dialogFocusable()
         ) {
             Box(
                 contentAlignment = Alignment.Center
@@ -63,9 +73,9 @@ fun SortingDialog(setShowDialog: (Boolean) -> Unit) {
                                 .height(48.dp)
                         ) {
                             RadioButton(
-                                selected = option == albumScreenSorting.value,
+                                selected = option == selectedOption,
                                 onClick = {
-                                    albumScreenSorting.value = option
+                                    onOptionSelected(option)
                                     setShowDialog(false)
                                 },
                                 modifier = Modifier

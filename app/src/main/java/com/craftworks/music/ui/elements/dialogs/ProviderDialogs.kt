@@ -94,6 +94,7 @@ fun EditLrcLibUrlDialog(
     context: Context = LocalContext.current
 ) {
     val settingsManager = remember { MediaProviderSettingsManager(context) }
+    val coroutineScope = rememberCoroutineScope()
 
     var url by remember { mutableStateOf("https://lrclib.net") }
 
@@ -128,8 +129,10 @@ fun EditLrcLibUrlDialog(
             OutlinedTextField(
                 value = url,
                 onValueChange = {
-                    url = it
-                    isValidUrl = Patterns.WEB_URL.matcher(url).matches()
+                    if (it.length <= 512) {
+                        url = it
+                        isValidUrl = Patterns.WEB_URL.matcher(url).matches()
+                    }
                 },
                 label = { Text(stringResource(R.string.Dialog_LRCLIB_Url)) },
                 singleLine = true,
@@ -139,7 +142,7 @@ fun EditLrcLibUrlDialog(
             Button(
                 onClick = {
                     if (isValidUrl)
-                        runBlocking {
+                        coroutineScope.launch {
                             MediaProviderSettingsManager(context).setLrcLibEndpoint(url)
                         }
 
@@ -175,6 +178,7 @@ fun CreateMediaProviderDialog(
     var username: String by remember { mutableStateOf("") }
     var password: String by remember { mutableStateOf("") }
     var allowCerts: Boolean by remember { mutableStateOf(false) }
+    var isUrlValid by remember { mutableStateOf(true) }
 
     var dir: String by remember { mutableStateOf("/Music/") }
 
@@ -247,7 +251,7 @@ fun CreateMediaProviderDialog(
                     /* Directory */
                     OutlinedTextField(
                         value = dir,
-                        onValueChange = { dir = it },
+                        onValueChange = { if (it.length <= 512) dir = it },
                         label = { Text(stringResource(R.string.Label_Local_Directory)) },
                         singleLine = true
                     )
@@ -256,8 +260,10 @@ fun CreateMediaProviderDialog(
                         onClick = {
                             coroutineScope.launch {
                                 try {
-                                    LocalProviderManager.addFolder(dir)
-                                    setShowDialog(false)
+                                    if (LocalProviderManager.addFolder(dir)) {
+                                        setShowDialog(false)
+                                    }
+                                    // If addFolder returns false, dialog stays open
                                 } catch (_: Exception) {
                                     // DO NOTHING
                                 }
@@ -287,16 +293,21 @@ fun CreateMediaProviderDialog(
                     /* SERVER URL */
                     OutlinedTextField(
                         value = url,
-                        onValueChange = { url = it },
+                        onValueChange = {
+                            if (it.length <= 512) {
+                                url = it
+                                isUrlValid = Patterns.WEB_URL.matcher(url).matches()
+                            }
+                        },
                         label = { Text(stringResource(R.string.Label_Navidrome_URL)) },
                         placeholder = { Text("http://domain.tld:<port>") },
                         singleLine = true,
-                        isError = navidromeStatus.value == "Invalid URL"
+                        isError = navidromeStatus.value == "Invalid URL" || !isUrlValid
                     )
                     /* USERNAME */
                     OutlinedTextField(
                         value = username,
-                        onValueChange = { username = it },
+                        onValueChange = { if (it.length <= 256) username = it },
                         label = { Text(stringResource(R.string.Label_Navidrome_Username)) },
                         singleLine = true,
                         isError = navidromeStatus.value == "Wrong username or password"
@@ -305,7 +316,7 @@ fun CreateMediaProviderDialog(
                     var passwordVisible by remember { mutableStateOf(false) }
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { password = it },
+                        onValueChange = { if (it.length <= 256) password = it },
                         label = { Text(stringResource(R.string.Label_Navidrome_Password)) },
                         singleLine = true,
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -389,7 +400,11 @@ fun CreateMediaProviderDialog(
                                     allowCerts
                                 )
                                 coroutineScope.launch {
-                                    getNavidromeStatus(server)
+                                    try {
+                                        getNavidromeStatus(server, context)
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
                                 }
                             },
                             modifier = Modifier
@@ -415,8 +430,8 @@ fun CreateMediaProviderDialog(
                                     true,
                                     allowCerts
                                 )
-                                NavidromeManager.addServer(server)
-                                runBlocking {
+                                coroutineScope.launch {
+                                    NavidromeManager.addServer(server)
                                     AppearanceSettingsManager(context).setUsername(username)
                                 }
 

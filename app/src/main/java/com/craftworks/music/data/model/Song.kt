@@ -2,14 +2,20 @@ package com.craftworks.music.data.model
 
 import android.os.Bundle
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.mutableStateListOf
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import kotlinx.serialization.Serializable
+import java.util.Collections
 import java.util.UUID
 
-var songsList: MutableList<MediaData.Song> = mutableStateListOf()
+/**
+ * @deprecated Global mutable state is deprecated. Use SongRepository instead.
+ * This is kept for backwards compatibility with legacy code.
+ * TODO: Remove once all usages are migrated to repository pattern.
+ */
+@Deprecated("Use SongRepository instead of global mutable state")
+val songsList: MutableList<MediaData.Song> = Collections.synchronizedList(mutableListOf())
 
 @Immutable
 @Serializable
@@ -48,7 +54,7 @@ fun MediaData.Song.toMediaItem(): MediaItem {
             .setGenre(this@toMediaItem.genres?.joinToString() { it.name ?: "" })
             .setExtras(Bundle().apply {
                 putString("navidromeID", this@toMediaItem.navidromeID)
-                putString("lyricsArtist", this@toMediaItem.artists[0].name)
+                putString("lyricsArtist", this@toMediaItem.artists.firstOrNull()?.name ?: this@toMediaItem.artist)
                 putInt("duration", this@toMediaItem.duration)
                 putString("format", this@toMediaItem.format)
                 putLong("bitrate", this@toMediaItem.bitrate?.toLong() ?: 0)

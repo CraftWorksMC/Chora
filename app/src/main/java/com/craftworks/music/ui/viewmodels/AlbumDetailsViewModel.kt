@@ -31,10 +31,15 @@ class AlbumDetailsViewModel @Inject constructor(
                 }
             }
 
-            _songsInAlbum.value = albumRepository.getAlbum(albumId) ?: listOf(MediaItem.EMPTY)
-
-            loadingJob.cancel()
-            _isLoading.value = false
+            try {
+                _songsInAlbum.value = albumRepository.getAlbum(albumId) ?: listOf(MediaItem.EMPTY)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _songsInAlbum.value = listOf(MediaItem.EMPTY)
+            } finally {
+                loadingJob.cancel()
+                _isLoading.value = false
+            }
         }
     }
 }

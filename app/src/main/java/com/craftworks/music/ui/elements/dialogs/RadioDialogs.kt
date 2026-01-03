@@ -1,5 +1,8 @@
 package com.craftworks.music.ui.elements.dialogs
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.ExperimentalComposeUiApi
+import android.util.Patterns
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +45,7 @@ import com.craftworks.music.R
 import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.ui.elements.bounceClick
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun AddRadioDialog(
     setShowDialog: (Boolean) -> Unit,
@@ -51,6 +55,9 @@ fun AddRadioDialog(
     var radioUrl by remember { mutableStateOf("") }
     var radioPage by remember { mutableStateOf("") }
 
+    var isUrlValid by remember { mutableStateOf(true) }
+    var isPageValid by remember { mutableStateOf(true) }
+
     var addToNavidrome by remember { mutableStateOf(
         NavidromeManager.checkActiveServers()
     ) }
@@ -58,6 +65,7 @@ fun AddRadioDialog(
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.dialogFocusable()
         ) {
             Box(
                 contentAlignment = Alignment.Center
@@ -97,21 +105,33 @@ fun AddRadioDialog(
 
                     OutlinedTextField(
                         value = radioName,
-                        onValueChange = { radioName = it },
+                        onValueChange = { if (it.length <= 128) radioName = it },
                         label = { Text(stringResource(id = R.string.Label_Radio_Name)) },
                         singleLine = true
                     )
                     OutlinedTextField(
                         value = radioUrl,
-                        onValueChange = { radioUrl = it },
+                        onValueChange = {
+                            if (it.length <= 512) {
+                                radioUrl = it
+                                isUrlValid = Patterns.WEB_URL.matcher(it).matches()
+                            }
+                        },
                         label = { Text(stringResource(id = R.string.Label_Radio_URL)) },
-                        singleLine = true
+                        singleLine = true,
+                        isError = !isUrlValid
                     )
                     OutlinedTextField(
                         value = radioPage,
-                        onValueChange = { radioPage = it },
+                        onValueChange = {
+                            if (it.length <= 512) {
+                                radioPage = it
+                                isPageValid = it.isBlank() || Patterns.WEB_URL.matcher(it).matches()
+                            }
+                        },
                         label = { Text(stringResource(id = R.string.Label_Radio_Homepage)) },
-                        singleLine = true
+                        singleLine = true,
+                        isError = !isPageValid
                     )
 
                     if (NavidromeManager.checkActiveServers()) {
@@ -145,7 +165,7 @@ fun AddRadioDialog(
                     Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
                         Button(
                             onClick = {
-                                if (radioName.isBlank() && radioUrl.isBlank()) return@Button
+                                if (radioName.isBlank() || radioUrl.isBlank() || !isUrlValid || !isPageValid) return@Button
 
                                 onAdded(
                                     radioName,
@@ -176,6 +196,7 @@ fun AddRadioDialog(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun ModifyRadioDialog(
     setShowDialog: (Boolean) -> Unit,
@@ -187,9 +208,13 @@ fun ModifyRadioDialog(
     var radioUrl by remember { mutableStateOf(radio?.mediaId) }
     var radioPage by remember { mutableStateOf(radio?.mediaMetadata?.extras?.getString("homepage") ?: "") }
 
+    var isUrlValid by remember { mutableStateOf(true) }
+    var isPageValid by remember { mutableStateOf(true) }
+
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.dialogFocusable()
         ) {
             Box(
                 contentAlignment = Alignment.Center
@@ -225,21 +250,33 @@ fun ModifyRadioDialog(
 
                     OutlinedTextField(
                         value = radioName.toString(),
-                        onValueChange = { radioName = it },
+                        onValueChange = { if (it.length <= 128) radioName = it },
                         label = { Text(stringResource(id = R.string.Label_Radio_Name)) },
                         singleLine = true
                     )
                     OutlinedTextField(
                         value = radioUrl.toString(),
-                        onValueChange = { radioUrl = it },
+                        onValueChange = {
+                            if (it.length <= 512) {
+                                radioUrl = it
+                                isUrlValid = Patterns.WEB_URL.matcher(it).matches()
+                            }
+                        },
                         label = { Text(stringResource(id = R.string.Label_Radio_URL)) },
-                        singleLine = true
+                        singleLine = true,
+                        isError = !isUrlValid
                     )
                     OutlinedTextField(
                         value = radioPage,
-                        onValueChange = { radioPage = it },
+                        onValueChange = {
+                            if (it.length <= 512) {
+                                radioPage = it
+                                isPageValid = it.isBlank() || Patterns.WEB_URL.matcher(it).matches()
+                            }
+                        },
                         label = { Text(stringResource(id = R.string.Label_Radio_Homepage)) },
-                        singleLine = true
+                        singleLine = true,
+                        isError = !isPageValid
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
@@ -251,6 +288,7 @@ fun ModifyRadioDialog(
                     ) {
                         Button(
                             onClick = {
+                                if (!isUrlValid || !isPageValid) return@Button
                                 setShowDialog(false)
                                 onDeleted(radio?.mediaMetadata?.extras?.getString("navidromeID") ?: "null")
                             },
@@ -269,6 +307,8 @@ fun ModifyRadioDialog(
                         }
                         Button(
                             onClick = {
+                                if (!isUrlValid || !isPageValid) return@Button
+
                                 setShowDialog(false)
 
                                 onModified(

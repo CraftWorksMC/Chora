@@ -1,5 +1,6 @@
 package com.craftworks.music.data.repository
 
+import android.util.Log
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.datasource.local.LocalDataSource
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
@@ -7,7 +8,7 @@ import com.craftworks.music.managers.NavidromeManager
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,23 +18,37 @@ class PlaylistRepository @Inject constructor(
     private val navidromeDataSource: NavidromeDataSource
 ) {
 
-    suspend fun getPlaylists(ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
+    suspend fun getPlaylists(ignoreCachedResponse: Boolean = false): List<MediaItem> = supervisorScope {
         val deferredPlaylists = mutableListOf<Deferred<List<MediaItem>>>()
 
         if (NavidromeManager.checkActiveServers())
-            deferredPlaylists.add(async { navidromeDataSource.getNavidromePlaylists(ignoreCachedResponse) })
+            deferredPlaylists.add(async {
+                try {
+                    navidromeDataSource.getNavidromePlaylists(ignoreCachedResponse)
+                } catch (e: Exception) {
+                    Log.e("PlaylistRepository", "Failed to fetch Navidrome playlists", e)
+                    emptyList()
+                }
+            })
 
         //if (LocalProviderManager.checkActiveFolders())
-        deferredPlaylists.add(async { localDataSource.getLocalPlaylists() })
+        deferredPlaylists.add(async {
+            try {
+                localDataSource.getLocalPlaylists()
+            } catch (e: Exception) {
+                Log.e("PlaylistRepository", "Failed to fetch local playlists", e)
+                emptyList()
+            }
+        })
 
         deferredPlaylists.awaitAll().flatten()
     }
 
-    suspend fun getPlaylistSongs(playlistId: String, ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
+    suspend fun getPlaylistSongs(playlistId: String, ignoreCachedResponse: Boolean = false): List<MediaItem> = supervisorScope {
         if (playlistId.startsWith("Local_")){
-            localDataSource.getLocalPlaylistSongs(playlistId)
+            async { localDataSource.getLocalPlaylistSongs(playlistId) }.await()
         } else {
-            navidromeDataSource.getNavidromePlaylist(playlistId, ignoreCachedResponse) ?: emptyList()
+            async { navidromeDataSource.getNavidromePlaylist(playlistId, ignoreCachedResponse) ?: emptyList() }.await()
         }
     }
 

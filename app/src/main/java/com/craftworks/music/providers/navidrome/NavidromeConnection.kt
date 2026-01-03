@@ -17,6 +17,7 @@ import java.net.NoRouteToHostException
 import java.net.ProtocolException
 import java.net.SocketTimeoutException
 import java.net.URL
+import java.net.URLEncoder
 import java.net.UnknownHostException
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -68,6 +69,14 @@ data class SubsonicResponse(
 
     // Favourites
     val starred: Starred? = null,
+
+    // Random Songs
+    val randomSongs: RandomSongs? = null,
+)
+
+@Serializable
+data class RandomSongs(
+    val song: List<MediaData.Song>? = null
 )
 
 suspend fun sendNavidromeGETRequest(
@@ -100,19 +109,35 @@ suspend fun sendNavidromeGETRequest(
         }
 
         // All get requests come from this file. Use Subsonic link template.
-        val url = URL("${server.url}/rest/$endpoint&u=${server.username}&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
+        // URL-encode username to prevent URL injection attacks
+        val encodedUsername = URLEncoder.encode(server.username, "UTF-8")
+        val url = URL("${server.url}/rest/$endpoint&u=$encodedUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora")
 
         val connection = if (url.protocol == "https") {
             (url.openConnection() as HttpsURLConnection).apply {
                 if (server.allowSelfSignedCert == true) {
-                    // INSECURE MODE: Trust all certificates + use client certs
+                    // SECURITY WARNING: Self-signed certificate mode enabled
+                    // This bypasses SSL/TLS certificate verification.
+                    // User has explicitly opted into this for servers with self-signed certs.
+                    // This is ONLY intended for trusted home servers, NOT public networks.
+                    Log.w("NAVIDROME", "⚠️ SECURITY: Using self-signed cert mode for ${server.url}. " +
+                            "SSL/TLS verification is bypassed. Only use on trusted networks!")
+
                     val trustAllCerts = arrayOf<TrustManager>(
                         object : X509TrustManager {
                             @SuppressLint("TrustAllX509TrustManager")
-                            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+                            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
+                                // Self-signed mode: accept all client certs
+                            }
 
                             @SuppressLint("TrustAllX509TrustManager")
-                            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+                            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+                                // Self-signed mode: accept all server certs
+                                // Log the cert for debugging purposes
+                                if (chain.isNotEmpty()) {
+                                    Log.d("NAVIDROME", "Self-signed cert: ${chain[0].subjectDN}")
+                                }
+                            }
 
                             override fun getAcceptedIssuers() = arrayOf<X509Certificate>()
                         }
@@ -131,7 +156,11 @@ suspend fun sendNavidromeGETRequest(
                     val sslContext = SSLContext.getInstance("TLS")
                     sslContext.init(keyManagers, trustAllCerts, SecureRandom())
                     sslSocketFactory = sslContext.socketFactory
-                    hostnameVerifier = HostnameVerifier { _, _ -> true }
+                    hostnameVerifier = HostnameVerifier { hostname, session ->
+                        // Accept any hostname in self-signed mode
+                        Log.d("NAVIDROME", "Self-signed mode: accepting hostname $hostname")
+                        true
+                    }
                 } else {
                     sslSocketFactory = SSLSocketFactory.getDefault() as SSLSocketFactory
                 }
@@ -142,8 +171,10 @@ suspend fun sendNavidromeGETRequest(
 
         try {
             with(connection) {
+                connectTimeout = 15_000
+                readTimeout = 30_000
                 requestMethod = "GET"
-                instanceFollowRedirects = true // Might fix issues with reverse proxies.
+                instanceFollowRedirects = true
 
                 Log.d("NAVIDROME", "\nSent 'GET' request to URL : ${endpoint}; Response Code : $responseCode")
 
@@ -228,6 +259,8 @@ suspend fun sendNavidromeGETRequest(
             navidromeStatus.value = "Fatal Error. Report immediately!"
             Log.d("NAVIDROME", "Exception: $e")
         } finally {
+            // Always disconnect to release socket resources and prevent connection leaks
+            connection.disconnect()
             setSyncingStatus(false)
         }
     }
@@ -244,7 +277,9 @@ fun md5Hash(input: String): String {
 }
 fun generateSalt(length: Int): String {
     val allowedChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+    // Use SecureRandom for cryptographically secure salt generation
+    val secureRandom = SecureRandom()
     return (1..length)
-        .map { allowedChars.random() }
+        .map { allowedChars[secureRandom.nextInt(allowedChars.size)] }
         .joinToString("")
 }

@@ -34,12 +34,14 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -62,9 +64,6 @@ import com.gigamole.composefadingedges.FadingEdgesGravity
 import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
 import com.gigamole.composefadingedges.verticalFadingEdges
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -78,10 +77,12 @@ fun LyricsView(
     mediaController: MediaController?,
     paddingValues: PaddingValues = PaddingValues(),
 ) {
-    val lyrics by LyricsState.lyrics.collectAsState()
+    val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
 
-    val useBlur by AppearanceSettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
-    val lyricsAnimationSpeed by AppearanceSettingsManager(LocalContext.current).lyricsAnimationSpeedFlow.collectAsState(100)
+    val context = LocalContext.current
+    val settingsManager = remember { AppearanceSettingsManager(context) }
+    val useBlur by settingsManager.nowPlayingLyricsBlurFlow.collectAsStateWithLifecycle(true)
+    val lyricsAnimationSpeed by settingsManager.lyricsAnimationSpeedFlow.collectAsStateWithLifecycle(100)
 
     // State holding the current position
     val currentPosition = remember { mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0) }
@@ -93,43 +94,40 @@ fun LyricsView(
 
     val scrollOffset = dpToPx(128)
 
-    // Update current position only each lyrics change.
-    LaunchedEffect(mediaController, lyrics) {
-        var trackingJob: Job = Job()
-        val scope = CoroutineScope(Dispatchers.Main)
+    // Track whether player is playing to control position updates
+    val isPlaying = remember { mutableStateOf(mediaController?.isPlaying == true) }
 
-        if (mediaController?.isPlaying == true) {
-            trackingJob = scope.launch {
-                var position = mediaController.currentPosition.toInt()
-                currentPosition.intValue = position
+    // FIXED: Use DisposableEffect for proper listener cleanup to prevent memory leaks
+    DisposableEffect(mediaController) {
+        if (mediaController == null) return@DisposableEffect onDispose { }
 
-                while (isActive) {
-                    position = mediaController.currentPosition.toInt()
-                    currentPosition.intValue = position
-                    delay(getNextUpdateDelay(position, lyrics))
-                }
+        val listener = object : Player.Listener {
+            override fun onIsPlayingChanged(playing: Boolean) {
+                super.onIsPlayingChanged(playing)
+                isPlaying.value = playing
             }
         }
 
-        mediaController?.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                super.onIsPlayingChanged(isPlaying)
-                if (isPlaying) {
-                    if (trackingJob.isActive) return
+        isPlaying.value = mediaController.isPlaying
+        mediaController.addListener(listener)
 
-                    trackingJob = scope.launch {
-                        var position = mediaController.currentPosition.toInt()
-                        currentPosition.intValue = position
+        onDispose {
+            mediaController.removeListener(listener)
+        }
+    }
 
-                        while (isActive) {
-                            position = mediaController.currentPosition.toInt()
-                            currentPosition.intValue = position
-                            delay(getNextUpdateDelay(position, lyrics))
-                        }
-                    }
-                } else trackingJob.cancel()
+    // Update current position when playing
+    LaunchedEffect(mediaController, lyrics, isPlaying.value) {
+        if (mediaController == null) return@LaunchedEffect
+
+        if (isPlaying.value) {
+            while (isActive) {
+                currentPosition.intValue = mediaController.currentPosition.toInt()
+                delay(getNextUpdateDelay(currentPosition.intValue, lyrics))
             }
-        })
+        } else {
+            currentPosition.intValue = mediaController.currentPosition.toInt()
+        }
     }
 
     // Lyric index updates and scrolling
@@ -169,18 +167,22 @@ fun LyricsView(
     // Plain lyrics scrolling
     LaunchedEffect(mediaController, lyrics) {
         if (lyrics.size == 1) {
-            while (true) {
-                if (mediaController?.isPlaying == true) {
-                    val totalDuration = mediaController.duration / 1000f // duration in seconds
-                    val scrollRate = state.layoutInfo.viewportSize.height / totalDuration
+            while (isActive) {
+                // Capture controller reference to avoid null check race
+                val controller = mediaController
+                if (controller != null && controller.isPlaying) {
+                    val duration = controller.duration
+                    // Check for valid duration (C.TIME_UNSET is -1, also check for 0)
+                    if (duration > 0 && state.layoutInfo.viewportSize.height > 0) {
+                        val totalDuration = duration / 1000f // duration in seconds
+                        val scrollRate = state.layoutInfo.viewportSize.height / totalDuration
 
-                    coroutineScope.launch {
-                        state.animateScrollBy(scrollRate * 2.5f, tween(500, 0, LinearEasing))
+                        coroutineScope.launch {
+                            state.animateScrollBy(scrollRate * 2.5f, tween(500, 0, LinearEasing))
+                        }
                     }
-                    delay(500)
-                } else {
-                    delay(500)
                 }
+                delay(500)
             }
         }
     }
@@ -229,7 +231,7 @@ fun LyricsView(
         } else if (lyrics.isNotEmpty()) {
             item {
                 Text(
-                    text = lyrics[0].content,
+                    text = lyrics.first().content,
                     style = MaterialTheme.typography.headlineMedium,
                     color = color,
                     modifier = Modifier
@@ -277,7 +279,8 @@ fun SyncedLyricItem(
 
     if (lyric.content == "") {
         AnimatedContent(
-            targetState = currentLyricIndex == index
+            targetState = currentLyricIndex == index,
+            label = "Interlude Animation"
         ) {
             if (it) {
                 Box(modifier = Modifier
@@ -380,6 +383,7 @@ private fun calculateLyricBlur(
 }
 
 // Calculate next update delay based on lyrics timestamps
+// Returns a minimum of 16ms to prevent CPU spinning and ensure smooth 60fps updates
 private fun getNextUpdateDelay(currentTime: Int, lyrics: List<Lyric>): Long {
     val nextTimestamp = lyrics
         .filter { it.timestamp > currentTime }
@@ -388,5 +392,6 @@ private fun getNextUpdateDelay(currentTime: Int, lyrics: List<Lyric>): Long {
 
     val timeUntilNext = nextTimestamp - currentTime
 
-    return timeUntilNext.toLong()
+    // Clamp to minimum 16ms (60fps) to prevent CPU spin and negative values
+    return timeUntilNext.toLong().coerceIn(16L, 5000L)
 }

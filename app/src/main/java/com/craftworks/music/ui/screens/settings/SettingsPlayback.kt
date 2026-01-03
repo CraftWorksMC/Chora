@@ -21,11 +21,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,11 +42,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.managers.SleepTimerManager
 import com.craftworks.music.managers.settings.PlaybackSettingsManager
+import com.craftworks.music.ui.elements.dialogs.SleepTimerDialog
 import com.craftworks.music.ui.elements.dialogs.TranscodingBitrateDialog
 import com.craftworks.music.ui.elements.dialogs.TranscodingFormatDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
-import kotlinx.coroutines.runBlocking
 import kotlin.math.roundToInt
 
 @Preview(showSystemUi = false, showBackground = true)
@@ -54,30 +57,31 @@ import kotlin.math.roundToInt
 @Composable
 fun S_PlaybackScreen(navHostController: NavHostController = rememberNavController()) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    // Use single remembered instance to avoid creating multiple SettingsManager instances
+    val playbackSettingsManager = remember { PlaybackSettingsManager(context.applicationContext) }
 
     var showWifiTranscodingDialog by remember { mutableStateOf(false) }
     var showDataTranscodingDialog by remember { mutableStateOf(false) }
-
     var showTranscodingFormatDialog by remember { mutableStateOf(false) }
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
+
+    val isTimerActive by SleepTimerManager.isTimerActive.collectAsStateWithLifecycle()
+    val remainingTimeMs by SleepTimerManager.remainingTimeMs.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
             TopAppBar(
                 title = { Text(text = stringResource(R.string.Settings_Header_Playback)) },
-                actions = {
+                navigationIcon = {
                     IconButton(
-                        onClick = {
-                            navHostController.navigate(Screen.Home.route) {
-                                launchSingleTop = true
-                            }
-                        },
-                        modifier = Modifier.size(56.dp, 70.dp),
+                        onClick = { navHostController.popBackStack() },
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             tint = MaterialTheme.colorScheme.onBackground,
-                            contentDescription = "Previous Song",
+                            contentDescription = "Back",
                             modifier = Modifier
                                 .size(24.dp)
                         )
@@ -106,7 +110,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     val transcodingBitrateWifi =
-                        PlaybackSettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("").value
+                        playbackSettingsManager.wifiTranscodingBitrateFlow.collectAsStateWithLifecycle("").value
 
                     SettingsDialogButton(
                         settingsName = stringResource(R.string.Setting_Transcoding_Wifi),
@@ -117,7 +121,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
 
 
                     val transcodingBitrateData =
-                        PlaybackSettingsManager(context).mobileDataTranscodingBitrateFlow.collectAsState(
+                        playbackSettingsManager.mobileDataTranscodingBitrateFlow.collectAsStateWithLifecycle(
                             ""
                         ).value
 
@@ -129,7 +133,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                     )
 
                     val transcodingFormat =
-                        PlaybackSettingsManager(context).transcodingFormatFlow.collectAsState("opus").value
+                        playbackSettingsManager.transcodingFormatFlow.collectAsStateWithLifecycle("opus").value
 
                     val transcodingFormatEnabled =
                         transcodingBitrateData != "No Transcoding" || transcodingBitrateWifi != "No Transcoding"
@@ -149,7 +153,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     val sliderValue =
-                        PlaybackSettingsManager(context).scrobblePercentFlow.collectAsState(7)
+                        playbackSettingsManager.scrobblePercentFlow.collectAsStateWithLifecycle(7)
 
                     SettingsSlider(
                         settingsName = stringResource(R.string.Setting_Scrobble_Percent),
@@ -157,8 +161,49 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         steps = 8,
                         minValue = 1f, maxValue = 10f,
                         onValueChange = {
-                            runBlocking {
-                                PlaybackSettingsManager(context).setScrobblePercent(it.roundToInt())
+                            coroutineScope.launch {
+                                playbackSettingsManager.setScrobblePercent(it.roundToInt())
+                            }
+                        }
+                    )
+                }
+
+                // Sleep Timer
+                Column(
+                    modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    val timerSubtitle = if (isTimerActive) {
+                        SleepTimerManager.formatRemainingTime(remainingTimeMs)
+                    } else {
+                        stringResource(R.string.Setting_Sleep_Timer_Off)
+                    }
+
+                    SettingsDialogButton(
+                        settingsName = stringResource(R.string.Setting_Sleep_Timer),
+                        settingsSubtitle = timerSubtitle,
+                        settingsIcon = ImageVector.vectorResource(R.drawable.s_p_sleep_timer),
+                        toggleEvent = { showSleepTimerDialog = true }
+                    )
+                }
+
+                // Queue Position
+                Column(
+                    modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    val queueAddToBottom by playbackSettingsManager.queueAddToBottomFlow.collectAsStateWithLifecycle(true)
+
+                    SettingsDialogButton(
+                        settingsName = stringResource(R.string.Setting_Queue_Position),
+                        settingsSubtitle = if (queueAddToBottom)
+                            stringResource(R.string.Setting_Queue_Bottom)
+                        else
+                            stringResource(R.string.Setting_Queue_Top),
+                        settingsIcon = ImageVector.vectorResource(R.drawable.rounded_queue_music_24),
+                        toggleEvent = {
+                            coroutineScope.launch {
+                                playbackSettingsManager.setQueueAddToBottom(!queueAddToBottom)
                             }
                         }
                     )
@@ -175,5 +220,11 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
         if (showTranscodingFormatDialog) TranscodingFormatDialog(setShowDialog = {
             showTranscodingFormatDialog = it
         })
+        if (showSleepTimerDialog) SleepTimerDialog(
+            setShowDialog = { showSleepTimerDialog = it },
+            onDurationSelected = { duration ->
+                SleepTimerManager.startTimer(duration)
+            }
+        )
     }
 }

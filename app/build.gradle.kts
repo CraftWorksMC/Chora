@@ -11,16 +11,22 @@ android {
     namespace = "com.craftworks.music"
     compileSdk = 36
 
+    kapt {
+        arguments {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+    }
+
     androidResources {
         generateLocaleConfig = true
     }
 
     defaultConfig {
-        applicationId = "com.craftworks.music"
+        applicationId = "com.craftworks.music.dev"
         minSdk = 23
         targetSdk = 36
         versionCode = 280
-        versionName = "1.28.0"
+        versionName = "1.28.0-dev"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -66,6 +72,7 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -96,6 +103,10 @@ dependencies {
     implementation(libs.androidx.material3.android)
     implementation(libs.androidx.datastore.preferences)
 
+    implementation(libs.androidx.window)
+    implementation(libs.androidx.window.core)
+    implementation(libs.androidx.material3.window.size)
+
     implementation(libs.composefadingedges)
 
     testImplementation(libs.junit)
@@ -109,9 +120,17 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    kapt(libs.androidx.room.compiler)
+
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.content.negotiation)
+
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    kapt(libs.androidx.hilt.compiler)
 }

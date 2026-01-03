@@ -13,7 +13,7 @@ import javax.inject.Singleton
 
 @Singleton
 class MediaProviderSettingsManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     companion object {
         private val LRCLIB_ENDPOINT = stringPreferencesKey("lrclib_endpoint")

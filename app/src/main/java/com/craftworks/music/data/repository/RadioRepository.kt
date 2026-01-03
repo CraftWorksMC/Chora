@@ -1,5 +1,6 @@
 package com.craftworks.music.data.repository
 
+import android.util.Log
 import com.craftworks.music.data.datasource.local.LocalDataSource
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
 import com.craftworks.music.data.model.MediaData
@@ -7,7 +8,7 @@ import com.craftworks.music.managers.NavidromeManager
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,14 +18,28 @@ class RadioRepository @Inject constructor(
     private val navidromeDataSource: NavidromeDataSource
 ) {
 
-    suspend fun getRadios(ignoreCachedResponse: Boolean = false): List<MediaData.Radio> = coroutineScope {
+    suspend fun getRadios(ignoreCachedResponse: Boolean = false): List<MediaData.Radio> = supervisorScope {
         val deferredRadios = mutableListOf<Deferred<List<MediaData.Radio>>>()
 
         if (NavidromeManager.checkActiveServers())
-            deferredRadios.add(async { navidromeDataSource.getNavidromeRadios(ignoreCachedResponse) })
+            deferredRadios.add(async {
+                try {
+                    navidromeDataSource.getNavidromeRadios(ignoreCachedResponse)
+                } catch (e: Exception) {
+                    Log.e("RadioRepository", "Failed to fetch Navidrome radios", e)
+                    emptyList()
+                }
+            })
 
         //if (LocalProviderManager.checkActiveFolders())
-        deferredRadios.add(async { localDataSource.getLocalRadios() })
+        deferredRadios.add(async {
+            try {
+                localDataSource.getLocalRadios()
+            } catch (e: Exception) {
+                Log.e("RadioRepository", "Failed to fetch local radios", e)
+                emptyList()
+            }
+        })
 
         deferredRadios.awaitAll().flatten()
     }

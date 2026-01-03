@@ -3,18 +3,26 @@ package com.craftworks.music.data.model
 import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.OptIn
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
+import java.util.Collections
 
-var playlistList:MutableList<MediaData.Playlist> = mutableStateListOf()
+/**
+ * @deprecated Global mutable state is deprecated. Use PlaylistRepository instead.
+ * This is kept for backwards compatibility with legacy code.
+ * TODO: Remove once all usages are migrated to repository pattern.
+ */
+@Deprecated("Use PlaylistRepository instead of global mutable state")
+val playlistList: MutableList<MediaData.Playlist> = Collections.synchronizedList(mutableListOf())
 
+@Stable
 data class Playlist (
     val name: String,
-    var coverArt: Uri,
-    var songs: List<MediaData.Song> = emptyList(),
+    val coverArt: Uri,
+    val songs: List<MediaData.Song> = emptyList(),
     val navidromeID: String? = ""
 )
 

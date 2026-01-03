@@ -16,3 +16,7 @@
 local.properties
 /app/release/*
 /.kotlin/*
+.claude/
+.claude*
+CLAUDE.md
+CHANGELOG_SUMMARY.md

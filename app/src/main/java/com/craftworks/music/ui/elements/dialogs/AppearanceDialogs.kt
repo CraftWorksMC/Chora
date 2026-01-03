@@ -27,7 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +56,6 @@ import com.craftworks.music.ui.playing.NowPlayingBackground
 import com.craftworks.music.ui.playing.NowPlayingTitleAlignment
 import com.craftworks.music.ui.screens.HomeItem
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -89,8 +88,10 @@ fun PreviewThemeDialog(){
 @Preview
 @Composable
 fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
-    val context = LocalContext.current
-    val username by AppearanceSettingsManager(context).usernameFlow.collectAsState("Username")
+    val context = LocalContext.current.applicationContext
+    val coroutineScope = rememberCoroutineScope()
+    val settingsManager = remember { AppearanceSettingsManager(context) }
+    val username by settingsManager.usernameFlow.collectAsStateWithLifecycle("Username")
     var usernameTextField by remember(username) { mutableStateOf(username) }
 
     AlertDialog(
@@ -98,20 +99,20 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
         title = { Text(stringResource(R.string.Setting_Username)) },
         text = {
             OutlinedTextField(
+                modifier = Modifier.dialogFocusable(),
                 value = usernameTextField,
-                onValueChange = {
-                    runBlocking {
-                        AppearanceSettingsManager(context).setUsername(it)
-                    }
+                onValueChange = { newValue ->
+                    usernameTextField = newValue
                 },
-                label = { stringResource(R.string.Setting_Username) },
+                label = { Text(stringResource(R.string.Setting_Username)) },
                 singleLine = true
             )
         },
         confirmButton = {
             Button(onClick = {
-                runBlocking {
-                    AppearanceSettingsManager(context).setUsername(username)
+                coroutineScope.launch {
+                    settingsManager.setUsername(usernameTextField)
+                    setShowDialog(false)
                 }
             }) {
                 Text(stringResource(R.string.Action_Done))
@@ -123,9 +124,11 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
+    val coroutineScope = rememberCoroutineScope()
+    val settingsManager = remember { AppearanceSettingsManager(context) }
 
-    val backgroundType by AppearanceSettingsManager(context).npBackgroundFlow.collectAsState(NowPlayingBackground.ANIMATED_BLUR)
+    val backgroundType by settingsManager.npBackgroundFlow.collectAsStateWithLifecycle(NowPlayingBackground.ANIMATED_BLUR)
 
     val backgroundTypeLabels = mapOf(
         NowPlayingBackground.PLAIN to R.string.Background_Plain,
@@ -146,8 +149,8 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                             .selectable(
                                 selected = (option == backgroundType),
                                 onClick = {
-                                    runBlocking {
-                                        AppearanceSettingsManager(context).setBackgroundType(option)
+                                    coroutineScope.launch {
+                                        settingsManager.setBackgroundType(option)
                                     }
                                     setShowDialog(false)
                                 },
@@ -159,8 +162,8 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                         RadioButton(
                             selected = option == backgroundType,
                             onClick = {
-                                runBlocking {
-                                    AppearanceSettingsManager(context).setBackgroundType(option)
+                                coroutineScope.launch {
+                                    settingsManager.setBackgroundType(option)
                                 }
                                 setShowDialog(false)
                             },
@@ -191,9 +194,11 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
 )
 @Composable
 fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
+    val coroutineScope = rememberCoroutineScope()
+    val settingsManager = remember { AppearanceSettingsManager(context) }
 
-    val selectedTheme by AppearanceSettingsManager(context).appTheme.collectAsState(
+    val selectedTheme by settingsManager.appTheme.collectAsStateWithLifecycle(
         AppearanceSettingsManager.Companion.AppTheme.SYSTEM.name)
 
     val themes = listOf(
@@ -205,6 +210,31 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
     val themeStrings = listOf(
         R.string.Theme_Dark, R.string.Theme_Light, R.string.Theme_System
     )
+
+    // Helper function to apply theme
+    fun applyTheme(option: AppearanceSettingsManager.Companion.AppTheme) {
+        val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+        when (option) {
+            AppearanceSettingsManager.Companion.AppTheme.DARK -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                    uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_YES)
+                else
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            }
+            AppearanceSettingsManager.Companion.AppTheme.LIGHT -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                    uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_NO)
+                else
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            }
+            AppearanceSettingsManager.Companion.AppTheme.SYSTEM -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                    uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_AUTO)
+                else
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = { setShowDialog(false) },
@@ -218,46 +248,10 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
                             .selectable(
                                 selected = (option.name == selectedTheme),
                                 onClick = {
-                                    runBlocking {
-                                        AppearanceSettingsManager(context).setAppTheme(option)
-                                        val uiModeManager =
-                                            context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-
-                                        when (option) {
-                                            AppearanceSettingsManager.Companion.AppTheme.DARK -> {
-                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                                    uiModeManager.setApplicationNightMode(
-                                                        UiModeManager.MODE_NIGHT_YES
-                                                    )
-                                                else
-                                                    AppCompatDelegate.setDefaultNightMode(
-                                                        AppCompatDelegate.MODE_NIGHT_YES
-                                                    )
-                                            }
-
-                                            AppearanceSettingsManager.Companion.AppTheme.LIGHT -> {
-                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                                    uiModeManager.setApplicationNightMode(
-                                                        UiModeManager.MODE_NIGHT_NO
-                                                    )
-                                                else
-                                                    AppCompatDelegate.setDefaultNightMode(
-                                                        AppCompatDelegate.MODE_NIGHT_NO
-                                                    )
-                                            }
-
-                                            AppearanceSettingsManager.Companion.AppTheme.SYSTEM -> {
-                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                                    uiModeManager.setApplicationNightMode(
-                                                        UiModeManager.MODE_NIGHT_AUTO
-                                                    )
-                                                else
-                                                    AppCompatDelegate.setDefaultNightMode(
-                                                        AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-                                                    )
-                                            }
-                                        }
+                                    coroutineScope.launch {
+                                        settingsManager.setAppTheme(option)
                                     }
+                                    applyTheme(option)
                                     setShowDialog(false)
                                 },
                                 role = Role.RadioButton
@@ -267,31 +261,10 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
                         RadioButton(
                             selected = option.name == selectedTheme,
                             onClick = {
-                                runBlocking {
-                                    AppearanceSettingsManager(context).setAppTheme(option)
-                                    val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-
-                                    when (option) {
-                                       AppearanceSettingsManager.Companion.AppTheme.DARK -> {
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                                uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_YES)
-                                            else
-                                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                                        }
-                                       AppearanceSettingsManager.Companion.AppTheme.LIGHT -> {
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                                uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_NO)
-                                            else
-                                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                                        }
-                                       AppearanceSettingsManager.Companion.AppTheme.SYSTEM -> {
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                                uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_AUTO)
-                                            else
-                                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-                                        }
-                                    }
+                                coroutineScope.launch {
+                                    settingsManager.setAppTheme(option)
                                 }
+                                applyTheme(option)
                                 setShowDialog(false)
                             },
                             modifier = Modifier.bounceClick()
@@ -314,10 +287,11 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
     val coroutineScope = rememberCoroutineScope()
+    val settingsManager = remember { AppearanceSettingsManager(context) }
     val bottomNavigationItems =
-        (AppearanceSettingsManager(context).bottomNavItemsFlow.collectAsState(null).value ?: emptyList()).toMutableList()
+        (settingsManager.bottomNavItemsFlow.collectAsStateWithLifecycle(null).value ?: emptyList()).toMutableList()
 
     AlertDialog(
         onDismissRequest = { setShowDialog(false) },
@@ -326,7 +300,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
             val lazyListState = rememberLazyListState()
             val reorderableLazyColumnState =
                 rememberReorderableLazyListState(lazyListState) { from, to ->
-                    AppearanceSettingsManager(context).setBottomNavItems(bottomNavigationItems.toMutableList()
+                    settingsManager.setBottomNavItems(bottomNavigationItems.toMutableList()
                         .apply {
                             add(to.index, removeAt(from.index))
                         })
@@ -340,6 +314,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
                     ReorderableItem(reorderableLazyColumnState, navItem.title) {
                         val interactionSource = remember { MutableInteractionSource() }
                         val index = bottomNavigationItems.indexOf(navItem)
+                        if (index == -1) return@ReorderableItem
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -352,7 +327,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
                                 onCheckedChange = {
                                     coroutineScope.launch {
                                         bottomNavigationItems[index] = bottomNavigationItems[index].copy(enabled = it)
-                                        AppearanceSettingsManager(context).setBottomNavItems(bottomNavigationItems)
+                                        settingsManager.setBottomNavItems(bottomNavigationItems)
                                     }
                                 },
                                 modifier = Modifier
@@ -397,7 +372,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
             OutlinedButton(
                 onClick = {
                     coroutineScope.launch {
-                        AppearanceSettingsManager(context).setBottomNavItems(
+                        settingsManager.setBottomNavItems(
                             //region Default Values
                             mutableStateListOf(
                                 BottomNavItem(
@@ -423,8 +398,8 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
                                 )
                             ) //endregion
                         )
-                        setShowDialog(false)
                     }
+                    setShowDialog(false)
                 }
             ) {
                 Text(stringResource(R.string.Action_Reset))
@@ -436,10 +411,11 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
     val coroutineScope = rememberCoroutineScope()
+    val settingsManager = remember { AppearanceSettingsManager(context) }
     val homeItems =
-        (AppearanceSettingsManager(context).homeItemsItemsFlow.collectAsState(null).value ?: emptyList()).toMutableList()
+        (settingsManager.homeItemsItemsFlow.collectAsStateWithLifecycle(null).value ?: emptyList()).toMutableList()
 
     AlertDialog(
         onDismissRequest = { setShowDialog(false) },
@@ -448,7 +424,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
             val lazyListState = rememberLazyListState()
             val reorderableLazyColumnState =
                 rememberReorderableLazyListState(lazyListState) { from, to ->
-                    AppearanceSettingsManager(context).setHomeItems(homeItems.toMutableList()
+                    settingsManager.setHomeItems(homeItems.toMutableList()
                         .apply {
                             add(to.index, removeAt(from.index))
                         })
@@ -462,6 +438,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
                     ReorderableItem(reorderableLazyColumnState, item.key) {
                         val interactionSource = remember { MutableInteractionSource() }
                         val index = homeItems.indexOf(item)
+                        if (index == -1) return@ReorderableItem
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -473,7 +450,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
                                 onCheckedChange = {
                                     coroutineScope.launch {
                                         homeItems[index] = homeItems[index].copy(enabled = it)
-                                        AppearanceSettingsManager(context).setHomeItems(homeItems)
+                                        settingsManager.setHomeItems(homeItems)
                                     }
                                 },
                                 modifier = Modifier
@@ -525,7 +502,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
             OutlinedButton(
                 onClick = {
                     coroutineScope.launch {
-                        AppearanceSettingsManager(context).setHomeItems(
+                        settingsManager.setHomeItems(
                             //region Default Values
                             mutableStateListOf(
                                 HomeItem(
@@ -546,8 +523,8 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
                                 )
                             ) //endregion
                         )
-                        setShowDialog(false)
                     }
+                    setShowDialog(false)
                 }
             ) {
                 Text(stringResource(R.string.Action_Reset))
@@ -559,9 +536,11 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
 @Composable
 @Preview
 fun NowPlayingTitleAlignmentDialog(setShowDialog: (Boolean) -> Unit = { }) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
+    val coroutineScope = rememberCoroutineScope()
+    val settingsManager = remember { AppearanceSettingsManager(context) }
 
-    val nowPlayingTitleAlignment by AppearanceSettingsManager(context).nowPlayingTitleAlignment.collectAsState(
+    val nowPlayingTitleAlignment by settingsManager.nowPlayingTitleAlignment.collectAsStateWithLifecycle(
         NowPlayingTitleAlignment.LEFT
     )
 
@@ -577,10 +556,8 @@ fun NowPlayingTitleAlignmentDialog(setShowDialog: (Boolean) -> Unit = { }) {
                             .selectable(
                                 selected = (alignment == nowPlayingTitleAlignment),
                                 onClick = {
-                                    runBlocking {
-                                        AppearanceSettingsManager(context).setNowPlayingTitleAlignment(
-                                            alignment
-                                        )
+                                    coroutineScope.launch {
+                                        settingsManager.setNowPlayingTitleAlignment(alignment)
                                     }
                                     setShowDialog(false)
                                 },
@@ -591,14 +568,10 @@ fun NowPlayingTitleAlignmentDialog(setShowDialog: (Boolean) -> Unit = { }) {
                         RadioButton(
                             selected = alignment == nowPlayingTitleAlignment,
                             onClick = {
-                                runBlocking {
-                                    runBlocking {
-                                        AppearanceSettingsManager(context).setNowPlayingTitleAlignment(
-                                            alignment
-                                        )
-                                    }
-                                    setShowDialog(false)
+                                coroutineScope.launch {
+                                    settingsManager.setNowPlayingTitleAlignment(alignment)
                                 }
+                                setShowDialog(false)
                             },
                             modifier = Modifier.bounceClick()
                         )

@@ -207,15 +207,11 @@ fun SettingsSlider(
                 .onKeyEvent { keyEvent ->
                     when (keyEvent.key) {
                         Key.DirectionRight if keyEvent.type == KeyEventType.KeyDown -> {
-                            runBlocking {
-                                onValueChange(value + ((maxValue - minValue) / steps).coerceAtMost(maxValue))
-                            }
+                            onValueChange(value + ((maxValue - minValue) / steps).coerceAtMost(maxValue))
                             true
                         }
                         Key.DirectionLeft if keyEvent.type == KeyEventType.KeyDown -> {
-                            runBlocking {
-                                onValueChange(value - ((maxValue - minValue) / steps).coerceAtLeast(minValue))
-                            }
+                            onValueChange(value - ((maxValue - minValue) / steps).coerceAtLeast(minValue))
                             true
                         }
                         else -> false

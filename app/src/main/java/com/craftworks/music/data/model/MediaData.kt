@@ -1,10 +1,13 @@
 package com.craftworks.music.data.model
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import com.craftworks.music.providers.navidrome.SyncedLyrics
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 sealed class MediaData {
+    @Stable
     @Serializable
     data class Song(
         @SerialName("id")
@@ -19,7 +22,7 @@ sealed class MediaData {
         val year: Int? = 0,
         val genre: String? = "",
         @SerialName("coverArt")
-        var imageUrl: String,
+        val imageUrl: String,
         val size: Int? = 0,
         val contentType: String? = "audio/flac",
         @SerialName("suffix")
@@ -29,7 +32,7 @@ sealed class MediaData {
         val bitrate: Int? = 0,
         val path: String,
         @SerialName("playCount")
-        var timesPlayed: Int? = 0,
+        val timesPlayed: Int? = 0,
         val discNumber: Int? = 0,
         @SerialName("created")
         val dateAdded: String,
@@ -50,11 +53,12 @@ sealed class MediaData {
         val samplingRate: Int? = 0,
 
         val isRadio: Boolean? = false,
-        var media: String? = null,
+        val media: String? = null,
         val trackIndex: Int? = 0,
-        var starred: String? = null,
+        val starred: String? = null,
     ) : MediaData()
 
+    @Stable
     @Serializable
     data class Album(
         @SerialName("id")
@@ -66,7 +70,7 @@ sealed class MediaData {
         val name : String? = "",
 
         val isDir : Boolean? = false,
-        var coverArt : String?,
+        val coverArt : String?,
         val songCount : Int,
 
         val played : String? = "",
@@ -83,25 +87,27 @@ sealed class MediaData {
         val starred: String? = null,
 
         @SerialName("song")
-        var songs: List<Song>? = listOf()
+        val songs: List<Song>? = listOf()
     ) : MediaData()
 
+    @Stable
     @Serializable
     data class Artist(
         @SerialName("id")
-        var navidromeID : String = "",
+        val navidromeID : String = "",
         val name : String = "",
         //val coverArt : String? = "",
         val artistImageUrl : String? = null,
         val albumCount : Int? = 0,
-        var description : String = "",
-        var starred : String? = "",
-        var musicBrainzId : String? = "",
+        val description : String = "",
+        val starred : String? = "",
+        val musicBrainzId : String? = "",
 //        val sortName: String? = "",
-        var similarArtist : List<Artist>? = null,
-        var album : List<Album>? = null
+        val similarArtist : List<Artist>? = null,
+        val album : List<Album>? = null
     ) : MediaData()
 
+    @Stable
     @Serializable
     data class ArtistInfo(
         val biography : String? = "",
@@ -110,6 +116,7 @@ sealed class MediaData {
         val similarArtist : List<Artist>? = null
     )
 
+    @Immutable
     @Serializable
     data class Radio(
         @SerialName("id")
@@ -120,6 +127,7 @@ sealed class MediaData {
         val homePageUrl: String? = "",
     ) : MediaData()
 
+    @Stable
     @Serializable
     data class Playlist(
         @SerialName("id")
@@ -132,11 +140,12 @@ sealed class MediaData {
         val changed: String,
         val songCount: Int,
         val duration: Int,
-        var coverArt: String? = "",
+        val coverArt: String? = "",
         @SerialName("entry")
-        var songs: MutableList<Song>? = mutableListOf()
+        val songs: List<Song>? = listOf()
     ) : MediaData()
 
+    @Immutable
     @Serializable
     data class PlainLyrics(
         val value: String,
@@ -144,6 +153,7 @@ sealed class MediaData {
         val title: String? = ""
     ) : MediaData()
 
+    @Stable
     @Serializable
     data class StructuredLyrics(
         val displayArtist: String? = "",
