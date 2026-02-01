@@ -158,7 +158,7 @@ fun PlaybackProgressSlider(
         Slider(
             enabled = metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION,
             modifier = Modifier
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 32.dp)
                 .fillMaxWidth()
                 .onFocusChanged {
                     focused.value = it.isFocused

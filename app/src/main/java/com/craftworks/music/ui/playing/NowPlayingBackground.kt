@@ -9,11 +9,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.craftworks.music.ui.playing.background.AnimatedGradientBackground
 import com.craftworks.music.ui.playing.background.PlainBackground
-import com.craftworks.music.ui.playing.background.SimpleAnimatedGradientBackground
 import com.craftworks.music.ui.playing.background.StaticBlurBackground
 
 enum class NowPlayingBackground {
-    PLAIN, STATIC_BLUR, ANIMATED_BLUR, SIMPLE_ANIMATED_BLUR
+    PLAIN, STATIC_BLUR, ANIMATED_BLUR
 }
 
 @Preview
@@ -21,7 +20,7 @@ enum class NowPlayingBackground {
 @Composable
 fun NowPlaying_Background(
     colorPalette: List<Color> = emptyList(),
-    backgroundStyle: NowPlayingBackground = NowPlayingBackground.SIMPLE_ANIMATED_BLUR,
+    backgroundStyle: NowPlayingBackground = NowPlayingBackground.STATIC_BLUR,
     overlayColor: Color = Color.Transparent
 ) {
     val safePalette = colorPalette.ifEmpty {
@@ -35,11 +34,6 @@ fun NowPlaying_Background(
             color1 = safePalette[0],
             color2 = safePalette[1],
             color3 = safePalette[2],
-            overlayColor = overlayColor,
-            modifier = Modifier.fillMaxSize()
-        )
-        NowPlayingBackground.SIMPLE_ANIMATED_BLUR -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) SimpleAnimatedGradientBackground(
-            colors = safePalette,
             overlayColor = overlayColor,
             modifier = Modifier.fillMaxSize()
         )

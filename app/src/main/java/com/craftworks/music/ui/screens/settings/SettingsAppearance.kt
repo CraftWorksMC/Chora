@@ -222,14 +222,13 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 
                     //Background Style
                     val backgroundType by AppearanceSettingsManager(context).npBackgroundFlow.collectAsState(
-                        NowPlayingBackground.SIMPLE_ANIMATED_BLUR
+                        NowPlayingBackground.STATIC_BLUR
                     )
 
                     val backgroundTypeLabels = mapOf(
                         NowPlayingBackground.PLAIN to R.string.Background_Plain,
                         NowPlayingBackground.STATIC_BLUR to R.string.Background_Blur,
                         NowPlayingBackground.ANIMATED_BLUR to R.string.Background_Anim,
-                        NowPlayingBackground.SIMPLE_ANIMATED_BLUR to R.string.Background_Anim_Simple
                     )
                     SettingsDialogButton(
                         stringResource(R.string.Setting_Background),

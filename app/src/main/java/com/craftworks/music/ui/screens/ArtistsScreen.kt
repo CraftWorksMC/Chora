@@ -67,7 +67,7 @@ fun ArtistsScreen(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 TopBarWithSearch(
-                    headerText = stringResource(R.string.Albums),
+                    headerText = stringResource(R.string.Artists),
                     scrollBehavior = scrollBehavior,
                     onSearch = { query -> viewModel.onSearchQueryChange(query) },
                     searchResults = {

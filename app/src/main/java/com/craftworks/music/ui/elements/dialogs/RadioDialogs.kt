@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,10 +15,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,8 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -64,9 +61,9 @@ fun AddRadioDialog(
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -74,12 +71,7 @@ fun AddRadioDialog(
                     ) {
                         Text(
                             text = stringResource(id = R.string.Dialog_Add_Radio),
-                            style = TextStyle(
-                                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                                fontFamily = FontFamily.Default,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = MaterialTheme.colorScheme.onBackground,
+                            style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.weight(1f)
                         )
                         Icon(
@@ -92,8 +84,6 @@ fun AddRadioDialog(
                                 .clickable { setShowDialog(false) }
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(20.dp))
 
                     OutlinedTextField(
                         value = radioName,
@@ -140,8 +130,6 @@ fun AddRadioDialog(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
-
                     Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
                         Button(
                             onClick = {
@@ -156,18 +144,13 @@ fun AddRadioDialog(
 
                                 setShowDialog(false)
                             },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onBackground
-                            ),
                             modifier = Modifier
                                 .widthIn(max = 320.dp)
                                 .fillMaxWidth()
                                 .height(50.dp)
                                 .bounceClick()
                         ) {
-                            Text(text = "Done")
+                            Text(stringResource(R.string.Action_Done))
                         }
                     }
                 }
@@ -194,8 +177,10 @@ fun ModifyRadioDialog(
             Box(
                 contentAlignment = Alignment.Center
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -203,12 +188,7 @@ fun ModifyRadioDialog(
                     ) {
                         Text(
                             text = stringResource(id = R.string.Dialog_Modify_Radio) + radioName,
-                            style = TextStyle(
-                                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                                fontFamily = FontFamily.Default,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = MaterialTheme.colorScheme.onBackground
+                            style = MaterialTheme.typography.titleLarge
                         )
                         Icon(
                             imageVector = Icons.Filled.Close,
@@ -220,8 +200,6 @@ fun ModifyRadioDialog(
                                 .clickable { setShowDialog(false) }
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(20.dp))
 
                     OutlinedTextField(
                         value = radioName.toString(),
@@ -242,23 +220,16 @@ fun ModifyRadioDialog(
                         singleLine = true
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
-
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Button(
+                        OutlinedButton(
                             onClick = {
                                 setShowDialog(false)
                                 onDeleted(radio?.mediaMetadata?.extras?.getString("navidromeID") ?: "null")
                             },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onBackground
-                            ),
                             modifier = Modifier
                                 .widthIn(max = 320.dp)
                                 .weight(1f)
@@ -278,11 +249,6 @@ fun ModifyRadioDialog(
                                     radioPage
                                 )
                             },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onBackground
-                            ),
                             modifier = Modifier
                                 .widthIn(max = 320.dp)
                                 .weight(1f)

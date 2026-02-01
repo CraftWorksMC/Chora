@@ -58,9 +58,9 @@ class AppearanceSettingsManager @Inject constructor(
         NowPlayingBackground.valueOf(
             preferences[NP_BACKGROUND_KEY] ?:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                    NowPlayingBackground.SIMPLE_ANIMATED_BLUR.name
+                    NowPlayingBackground.ANIMATED_BLUR.name
                 else
-                    NowPlayingBackground.PLAIN.name
+                    NowPlayingBackground.STATIC_BLUR.name
         )
     }
 

@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -95,19 +96,16 @@ fun SetupNavGraph(
         modifier = Modifier.padding(bottom = bottomPadding, start = leftPadding),
         enterTransition = {
             fadeIn(animationSpec)
-            //scaleIn(tween(300), 0.95f) + fadeIn(tween(400))
         },
         exitTransition = {
             fadeOut(animationSpec)
-            //fadeOut(tween(300))
         },
         popEnterTransition = {
-            fadeIn(animationSpec)
-            //scaleIn(tween(300), 1.05f) + fadeIn(tween(400))
+            fadeIn(animationSpec) +
+                    scaleIn(initialScale = 0.92f, animationSpec = tween(300))
         },
         popExitTransition = {
             fadeOut(animationSpec)
-            //scaleOut(tween(300), 0.95f) + fadeOut(tween(400))
         },
         route = "main_graph"
     ) {

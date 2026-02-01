@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.ui.util.fastFilter
 import androidx.core.math.MathUtils.clamp
+import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -28,6 +29,7 @@ import com.craftworks.music.MainActivity
 import com.craftworks.music.R
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.repository.AlbumRepository
+import com.craftworks.music.data.repository.ArtistRepository
 import com.craftworks.music.data.repository.LyricsRepository
 import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.data.repository.RadioRepository
@@ -71,6 +73,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     @Inject lateinit var playbackSettingsManager: PlaybackSettingsManager
 
     @Inject lateinit var albumRepository: AlbumRepository
+    @Inject lateinit var artistRepository: ArtistRepository
     @Inject lateinit var songRepository: SongRepository
     @Inject lateinit var radioRepository: RadioRepository
     @Inject lateinit var playlistRepository: PlaylistRepository
@@ -113,6 +116,30 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         )
         .build()
 
+    private val albumsItem = MediaItem.Builder()
+        .setMediaId("nodeALBUMS")
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setIsBrowsable(true)
+                .setIsPlayable(false)
+                .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS)
+                .setTitle("Albums")
+                .build()
+        )
+        .build()
+
+    private val artistsItem = MediaItem.Builder()
+        .setMediaId("nodeARTISTS")
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setIsBrowsable(true)
+                .setIsPlayable(false)
+                .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_ARTISTS)
+                .setTitle("Artists")
+                .build()
+        )
+        .build()
+
     private val radiosItem = MediaItem.Builder()
         .setMediaId("nodeRADIOS")
         .setMediaMetadata(
@@ -137,12 +164,14 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         )
         .build()
 
-    private val rootHierarchy = listOf(homeItem, radiosItem, playlistsItem)
+    private val rootHierarchy = listOf(homeItem, albumsItem, artistsItem, radiosItem, playlistsItem)
 
     private val serviceMainScope = CoroutineScope(Dispatchers.Main)
     private val serviceIOScope = CoroutineScope(Dispatchers.IO)
 
     var aHomeScreenItems = mutableListOf<MediaItem>()
+    var aAlbumScreenItems = mutableListOf<MediaItem>()
+    var aArtistsScreenItems = mutableListOf<MediaItem>()
     var aRadioScreenItems = mutableListOf<MediaItem>()
     var aPlaylistScreenItems = mutableListOf<MediaItem>()
 
@@ -368,12 +397,16 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                         when (parentId) {
                             "nodeROOT" -> rootHierarchy
                             "nodeHOME" -> getHomeScreenItems()
+                            "nodeALBUMS" -> getAlbumScreenItems()
+                            "nodeARTISTS" -> getArtistScreenItems()
                             "nodeRADIOS" -> getRadioItems()
                             "nodePLAYLISTS" -> getPlaylistItems()
                             else -> {
                                 val mediaItem =
                                     aHomeScreenItems.find { it.mediaId == parentId }
                                         ?: aPlaylistScreenItems.find { it.mediaId == parentId }
+                                        ?: aAlbumScreenItems.find { it.mediaId == parentId }
+                                        ?: aArtistsScreenItems.find { it.mediaId == parentId }
                                 getFolderItems(
                                     parentId,
                                     mediaItem?.mediaMetadata?.mediaType
@@ -417,6 +450,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 when (parentId) {
                     "nodeROOT" -> 2
                     "nodeHOME" -> aHomeScreenItems.size
+                    "nodeALBUMS" -> aAlbumScreenItems.size
+                    "nodeARTISTS" -> aArtistsScreenItems.size
                     "nodeRADIOS" -> aRadioScreenItems.size
                     "nodePLAYLISTS" -> aPlaylistScreenItems.size
                     else -> 0
@@ -567,17 +602,58 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         return aHomeScreenItems
     }
 
+    private fun getAlbumScreenItems() : MutableList<MediaItem> {
+        println("GETTING ANDROID AUTO ALBUM SCREEN ITEMS")
+        runBlocking {
+            if (aAlbumScreenItems.isEmpty()) {
+                val albums = async { albumRepository.getAlbums("newest", 100) }.await()
+
+                aAlbumScreenItems.addAll(albums)
+            }
+        }
+        return aAlbumScreenItems
+    }
+
+    private fun getArtistScreenItems() : MutableList<MediaItem> {
+        println("GETTING ANDROID AUTO ARTIST SCREEN ITEMS")
+        runBlocking {
+            if (aArtistsScreenItems.isEmpty()) {
+                val albums = async { artistRepository.getArtists() }.await()
+
+                albums.forEach {
+                    aArtistsScreenItems.add(
+                        MediaItem.Builder()
+                            .setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .setTitle(it.name)
+                                    .setMediaType(MediaMetadata.MEDIA_TYPE_ARTIST)
+                                    .setArtworkUri(it.artistImageUrl?.toUri())
+                                    .setIsBrowsable(true)
+                                    .setIsPlayable(false)
+                                    .build()
+                            )
+                            .setMediaId(it.navidromeID)
+                            .setUri(it.navidromeID)
+                            .build()
+                    )
+                }
+            }
+        }
+        return aArtistsScreenItems
+    }
+
     private fun getRadioItems(): MutableList<MediaItem> {
         runBlocking {
-            aRadioScreenItems.clear()
-            aRadioScreenItems.addAll(
-                radioRepository.getRadios().map { radio ->
-                    Log.d("MediaItemTransition", radio.toString())
-                    radio.toMediaItem()
-                }
-            )
-            Log.d("MediaItemTransition", "aRadioScreenItems: ${aRadioScreenItems.map { it.mediaMetadata }}")
-            SongHelper.currentTracklist = aRadioScreenItems
+            if (aRadioScreenItems.isEmpty()) {
+                aRadioScreenItems.addAll(
+                    radioRepository.getRadios().map { radio ->
+                        Log.d("MediaItemTransition", radio.toString())
+                        radio.toMediaItem()
+                    }
+                )
+                Log.d("MediaItemTransition", "aRadioScreenItems: ${aRadioScreenItems.map { it.mediaMetadata }}")
+                SongHelper.currentTracklist = aRadioScreenItems
+            }
         }
         return aRadioScreenItems
     }
@@ -606,6 +682,12 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 MediaMetadata.MEDIA_TYPE_PLAYLIST -> {
                     aFolderSongs.addAll(
                         playlistRepository.getPlaylistSongs(parentId)
+                    )
+                }
+
+                MediaMetadata.MEDIA_TYPE_ARTIST -> {
+                    aFolderSongs.addAll(
+                        artistRepository.getArtistAlbums(parentId)
                     )
                 }
 

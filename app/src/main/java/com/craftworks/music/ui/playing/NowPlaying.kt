@@ -54,7 +54,7 @@ fun NowPlayingContent(
 ) {
     val context = LocalContext.current
     val settingsManager = remember { AppearanceSettingsManager(context) }
-    val backgroundStyle by settingsManager.npBackgroundFlow.collectAsStateWithLifecycle(NowPlayingBackground.SIMPLE_ANIMATED_BLUR)
+    val backgroundStyle by settingsManager.npBackgroundFlow.collectAsStateWithLifecycle(NowPlayingBackground.STATIC_BLUR)
     var backgroundDarkMode by remember { mutableStateOf(false) }
 
     var colors by remember {
@@ -81,7 +81,7 @@ fun NowPlayingContent(
         }
     }
 
-    val targetOverlayColor = if (backgroundStyle == NowPlayingBackground.ANIMATED_BLUR || backgroundStyle == NowPlayingBackground.SIMPLE_ANIMATED_BLUR) {
+    val targetOverlayColor = if (backgroundStyle == NowPlayingBackground.ANIMATED_BLUR) {
         if (backgroundDarkMode) Color.Black.copy(0.2f) else Color.White.copy(0.2f)
     } else {
         Color.Transparent

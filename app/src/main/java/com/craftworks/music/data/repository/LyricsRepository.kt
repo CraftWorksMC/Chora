@@ -37,7 +37,7 @@ class LyricsRepository @Inject constructor(
 
         var foundNavidromePlainLyrics by mutableStateOf(false)
 
-        if (NavidromeManager.checkActiveServers()) {
+        if (NavidromeManager.checkActiveServers() && !(metadata?.extras?.getString("navidromeID")?.startsWith("Local_") ?: false)) {
             navidromeDataSource.getNavidromeSyncedLyrics(metadata?.extras?.getString("navidromeID") ?: "").takeIf { it.isNotEmpty() }?.let {
                 if (it.size == 1)
                     foundNavidromePlainLyrics = true
@@ -74,7 +74,6 @@ class LyricsRepository @Inject constructor(
         }
 
         Log.d("LYRICS", "Didn't find any lyrics.")
-        // Hide lyrics panel if we cannot find lyrics.
         lyricsOpen = false
         LyricsState.lyrics.value = listOf()
     }

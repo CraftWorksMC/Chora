@@ -2,6 +2,7 @@ package com.craftworks.music.ui.elements.dialogs
 
 import android.content.Context
 import android.util.Patterns
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -115,14 +116,12 @@ fun EditLrcLibUrlDialog(
                 .padding(24.dp)
                 .dialogFocusable()
                 .selectableGroup(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = stringResource(R.string.Dialog_LRCLIB_Url),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(bottom = 24.dp)
+                style = MaterialTheme.typography.titleLarge
             )
 
             OutlinedTextField(
@@ -146,17 +145,10 @@ fun EditLrcLibUrlDialog(
                     setShowDialog(false)
                 },
                 modifier = Modifier
-                    .padding(6.dp)
-                    .height(50.dp)
-                    .fillMaxWidth()
                     .bounceClick(),
-                shape = RoundedCornerShape(12.dp),
                 enabled = isValidUrl
             ) {
-                Text(
-                    stringResource(R.string.Action_Done),
-                    modifier = Modifier.height(24.dp)
-                )
+                Text(stringResource(R.string.Action_Done))
             }
         }
     }
@@ -187,16 +179,15 @@ fun CreateMediaProviderDialog(
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(24.dp)
+                .widthIn(max = 320.dp)
                 .dialogFocusable()
                 .selectableGroup(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = stringResource(R.string.Settings_Header_Media),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(bottom = 24.dp)
+                style = MaterialTheme.typography.titleLarge
             )
 
             var expanded by remember { mutableStateOf(false) }
@@ -212,7 +203,6 @@ fun CreateMediaProviderDialog(
                 onExpandedChange = { expanded = !expanded },
             ) {
                 TextField(
-                    shape = RoundedCornerShape(12.dp, 12.dp),
                     modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
                     readOnly = true,
                     value = selectedOptionText,
@@ -265,7 +255,7 @@ fun CreateMediaProviderDialog(
                         },
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
-                            .padding(top = 24.dp, start = 40.dp, end = 40.dp)
+                            .padding(horizontal = 40.dp)
                             .height(50.dp)
                             .fillMaxWidth()
                             .bounceClick(),
@@ -282,7 +272,8 @@ fun CreateMediaProviderDialog(
             //region Navidrome
             else if (selectedOptionText == stringResource(R.string.Source_Navidrome))
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     /* SERVER URL */
                     OutlinedTextField(
@@ -328,20 +319,12 @@ fun CreateMediaProviderDialog(
                         },
                         isError = navidromeStatus.value == "Wrong username or password"
                     )
+
                     /* Allow Self Signed Certs */
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .padding(vertical = 6.dp)
                     ) {
-//                                Icon(
-//                                    imageVector = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
-//                                    contentDescription = "Settings Icon",
-//                                    tint = MaterialTheme.colorScheme.onBackground,
-//                                    modifier = Modifier
-//                                        .padding(horizontal = 12.dp)
-//                                        .size(24.dp)
-//                                )
                         Text(
                             text = stringResource(R.string.Label_Allow_Self_Signed_Certs),
                             style = MaterialTheme.typography.titleMedium,
@@ -371,74 +354,67 @@ fun CreateMediaProviderDialog(
                         }
                     }
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 24.dp)
-                            .selectableGroup(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                    Crossfade (
+                        navidromeStatus.value == "ok"
                     ) {
-                        OutlinedButton(
-                            onClick = {
-                                val server = NavidromeProvider(
-                                    url,
-                                    url,
-                                    username,
-                                    password,
-                                    true,
-                                    allowCerts
-                                )
-                                coroutineScope.launch {
-                                    getNavidromeStatus(server)
-                                }
-                            },
-                            modifier = Modifier
-                                .padding(6.dp)
-                                .height(50.dp)
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .bounceClick(),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text(
-                                stringResource(R.string.Action_Login),
-                                modifier = Modifier.height(24.dp)
-                            )
-                        }
-                        Button(
-                            onClick = {
-                                val server = NavidromeProvider(
-                                    url,
-                                    url,
-                                    username,
-                                    password,
-                                    true,
-                                    allowCerts
-                                )
-                                NavidromeManager.addServer(server)
-                                runBlocking {
-                                    AppearanceSettingsManager(context).setUsername(username)
-                                }
+                        if (it) {
+                            Button(
+                                onClick = {
+                                    val server = NavidromeProvider(
+                                        url,
+                                        url,
+                                        username,
+                                        password,
+                                        true,
+                                        allowCerts
+                                    )
+                                    NavidromeManager.addServer(server)
+                                    runBlocking {
+                                        AppearanceSettingsManager(context).setUsername(username)
+                                    }
 
-                                navidromeStatus.value = ""
-                                setShowDialog(false)
-                            },
-                            modifier = Modifier
-                                .padding(6.dp)
-                                .height(50.dp)
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .bounceClick(),
-                            shape = RoundedCornerShape(12.dp),
-                            enabled = navidromeStatus.value == "ok"
-                        ) {
-                            Text(
-                                stringResource(R.string.Action_Add),
-                                modifier = Modifier.height(24.dp)
-                            )
+                                    navidromeStatus.value = ""
+                                    setShowDialog(false)
+                                },
+                                modifier = Modifier
+                                    .height(50.dp)
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                                    .bounceClick(),
+                                enabled = navidromeStatus.value == "ok"
+                            ) {
+                                Text(
+                                    stringResource(R.string.Action_Add)
+                                )
+                            }
+                        }
+                        else {
+                            OutlinedButton(
+                                onClick = {
+                                    val server = NavidromeProvider(
+                                        url,
+                                        url,
+                                        username,
+                                        password,
+                                        true,
+                                        allowCerts
+                                    )
+                                    coroutineScope.launch {
+                                        getNavidromeStatus(server)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .height(50.dp)
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                                    .bounceClick()
+                            ) {
+                                Text(
+                                    stringResource(R.string.Action_Login)
+                                )
+                            }
                         }
                     }
-
                 }
             //endregion
         }
@@ -448,11 +424,6 @@ fun CreateMediaProviderDialog(
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavHostController) {
-//    val focusRequester = FocusRequester()
-//    LaunchedEffect(Unit) {
-//        focusRequester.requestFocus()
-//    }
-
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Column(
             modifier = Modifier
@@ -460,23 +431,19 @@ fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavH
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(24.dp)
-                .dialogFocusable()
+                .dialogFocusable(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = stringResource(R.string.Settings_Header_Media),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(bottom = 12.dp)
+                style = MaterialTheme.typography.titleLarge
             )
 
             Text(
                 text = stringResource(R.string.No_Providers_Splash),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(bottom = 12.dp)
+                style = MaterialTheme.typography.bodyMedium
             )
+
             Button(
                 onClick = {
                     navController.navigate(Screen.S_Providers.route) {
@@ -485,18 +452,10 @@ fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavH
                 },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .padding(top = 24.dp, start = 40.dp, end = 40.dp)
-                    .height(50.dp)
-                    .widthIn(max = 320.dp)
-                    .fillMaxWidth()
                     .bounceClick()
-                //.focusRequester(focusRequester)
-                ,
-                shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    stringResource(R.string.Action_Go),
-                    modifier = Modifier.height(24.dp)
+                    stringResource(R.string.Action_Go)
                 )
             }
         }

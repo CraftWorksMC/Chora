@@ -130,8 +130,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
     val backgroundTypeLabels = mapOf(
         NowPlayingBackground.PLAIN to R.string.Background_Plain,
         NowPlayingBackground.STATIC_BLUR to R.string.Background_Blur,
-        NowPlayingBackground.ANIMATED_BLUR to R.string.Background_Anim,
-        NowPlayingBackground.SIMPLE_ANIMATED_BLUR to R.string.Background_Anim_Simple
+        NowPlayingBackground.ANIMATED_BLUR to R.string.Background_Anim
     )
 
     AlertDialog(
@@ -152,7 +151,7 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                                     setShowDialog(false)
                                 },
                                 role = Role.RadioButton,
-                                enabled = !((option == NowPlayingBackground.ANIMATED_BLUR || option == NowPlayingBackground.SIMPLE_ANIMATED_BLUR) && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+                                enabled = !(option == NowPlayingBackground.ANIMATED_BLUR && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
                             ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -165,11 +164,11 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
                                 setShowDialog(false)
                             },
                             modifier = Modifier.bounceClick(),
-                            enabled = !((option == NowPlayingBackground.ANIMATED_BLUR || option == NowPlayingBackground.SIMPLE_ANIMATED_BLUR) && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+                            enabled = !(option == NowPlayingBackground.ANIMATED_BLUR && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
                         )
                         Text(
                             text = stringResource(id = backgroundTypeLabels[option] ?: androidx.media3.session.R.string.error_message_invalid_state) +
-                                    if ((option == NowPlayingBackground.ANIMATED_BLUR || option == NowPlayingBackground.SIMPLE_ANIMATED_BLUR) && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+                                    if (option == NowPlayingBackground.ANIMATED_BLUR && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
                                         " (Android 13+)"
                                     else "",
                             fontWeight = FontWeight.Normal,
