@@ -24,7 +24,6 @@ fun MediaData.Playlist.toMediaItem(): MediaItem {
         .setTitle(this@toMediaItem.name)
         .setDescription(this@toMediaItem.comment)
         .setArtworkUri(this@toMediaItem.coverArt?.toUri())
-        .setArtworkData(this@toMediaItem.coverArt?.toByteArray(), MediaMetadata.PICTURE_TYPE_OTHER)
         .setIsBrowsable(true)
         .setIsPlayable(false)
         .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)

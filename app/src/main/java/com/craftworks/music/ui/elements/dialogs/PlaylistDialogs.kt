@@ -15,7 +15,6 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -200,11 +199,6 @@ fun AddSongToPlaylist(
                             onClick = {
                                 showNewPlaylistDialog.value = true
                             },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onBackground
-                            ),
                             modifier = Modifier
                                 .widthIn(max = 320.dp)
                                 .fillMaxWidth()
@@ -299,17 +293,12 @@ fun NewPlaylist(
                                 showAddSongToPlaylistDialog.value = false
                                 setShowDialog(false)
                             },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onBackground
-                            ),
                             modifier = Modifier
                                 .align(Alignment.CenterHorizontally)
                                 .padding(top = 24.dp, start = 40.dp, end = 40.dp)
                                 .height(50.dp)
                                 .fillMaxWidth()
-                                .bounceClick(),
-                            shape = RoundedCornerShape(12.dp)
+                                .bounceClick()
                         ) {
                             Text(
                                 stringResource(R.string.Action_CreatePlaylist),
@@ -359,17 +348,12 @@ fun DeletePlaylist(
                                 viewModel.deletePlaylist(playlistToDelete.value)
                                 setShowDialog(false)
                             },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onBackground
-                            ),
                             modifier = Modifier
                                 .align(Alignment.CenterHorizontally)
                                 .padding(top = 24.dp, start = 40.dp, end = 40.dp)
                                 .height(50.dp)
                                 .fillMaxWidth()
-                                .bounceClick(),
-                            shape = RoundedCornerShape(12.dp)
+                                .bounceClick()
                         ) {
                             Text(
                                 stringResource(R.string.Action_Remove),
