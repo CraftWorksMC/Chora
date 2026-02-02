@@ -58,6 +58,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
@@ -85,7 +86,8 @@ fun NowPlayingPortrait(
     val settingsManager = remember { AppearanceSettingsManager(context) }
     val showMoreInfo by settingsManager.showMoreInfoFlow.collectAsStateWithLifecycle(true)
     val titleAlignment by settingsManager.nowPlayingTitleAlignment.collectAsStateWithLifecycle(NowPlayingTitleAlignment.LEFT)
-
+    val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
+    val loadingLyrics by LyricsState.loading.collectAsStateWithLifecycle()
     Column (
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -96,7 +98,7 @@ fun NowPlayingPortrait(
 
         /* Album Cover + Lyrics */
         AnimatedContent(
-            lyricsOpen,
+            lyricsOpen && (lyrics.isNotEmpty() || loadingLyrics),
             label = "Crossfade between lyrics",
             modifier = Modifier
                 .heightIn(min = 256.dp, max = 420.dp)

@@ -281,12 +281,12 @@ fun LyricsButton(
     size: Dp = 64.dp,
 ){
     val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
-
+    val loading by LyricsState.loading.collectAsStateWithLifecycle()
     Button(
         onClick = { lyricsOpen = !lyricsOpen },
         shape = RoundedCornerShape(12.dp),
         modifier = // Disable bounce click if no lyrics are present
-        if (lyrics.isNotEmpty())
+        if (lyrics.isNotEmpty() || loading)
             Modifier
                 .bounceClick()
                 .height(size + 6.dp)
@@ -299,9 +299,9 @@ fun LyricsButton(
             contentColor = color.copy(0.5f),
             disabledContentColor = color.copy(0.25f)
         ),
-        enabled = lyrics.isNotEmpty()
+        enabled = lyrics.isNotEmpty() || loading
     ) {
-        Crossfade(targetState = lyricsOpen, label = "Lyrics Icon Crossfade") { open ->
+        Crossfade(targetState = lyricsOpen && lyrics.isNotEmpty(), label = "Lyrics Icon Crossfade") { open ->
             when (open) {
                 true -> Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
