@@ -1,6 +1,7 @@
 package com.craftworks.music.ui.playing
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -18,7 +19,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +31,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,6 +55,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import com.craftworks.music.data.model.Lyric
@@ -71,6 +74,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.sin
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LyricsView(
     color: Color,
@@ -78,7 +82,8 @@ fun LyricsView(
     mediaController: MediaController?,
     paddingValues: PaddingValues = PaddingValues(),
 ) {
-    val lyrics by LyricsState.lyrics.collectAsState()
+    val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
+    val loading by LyricsState.loading.collectAsStateWithLifecycle()
 
     val useBlur by AppearanceSettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(true)
     val lyricsAnimationSpeed by AppearanceSettingsManager(LocalContext.current).lyricsAnimationSpeedFlow.collectAsState(100)
@@ -185,62 +190,83 @@ fun LyricsView(
         }
     }
 
-    LazyColumn(
-        modifier = if (isLandscape) {
-            Modifier
-                .widthIn(min = 256.dp)
-                .fillMaxHeight()
-        } else {
-            Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-        }
-            .padding(paddingValues)
-            .verticalFadingEdges(
-                FadingEdgesContentType.Dynamic.Lazy.List(FadingEdgesScrollConfig.Dynamic(), state),
-                FadingEdgesGravity.All,
-                96.dp
-            ),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        state = state,
+    Crossfade(
+        loading
     ) {
-        item { Spacer(Modifier.height(32.dp)) }
-
-        if (lyrics.size > 1) {
-            itemsIndexed(
-                lyrics,
-                key = { index, lyric -> "${index}:${lyric.content}" }
-            ) { index, lyric ->
-                SyncedLyricItem(
-                    lyric = lyric,
-                    index = index,
-                    currentLyricIndex = currentLyricIndex.intValue,
-                    useBlur = useBlur,
-                    visibleItemsInfo = visibleItemsInfo,
-                    color = color,
-                    lyricsAnimationSpeed = lyricsAnimationSpeed,
-                    onClick = {
-                        mediaController?.seekTo(lyric.timestamp.toLong())
-                        currentPosition.intValue = lyric.timestamp
-                    }
-                )
+        if (it) {
+            Box(modifier = if (isLandscape) {
+                Modifier
+                    .widthIn(min = 256.dp)
+                    .fillMaxHeight()
+            } else {
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
             }
-        } else if (lyrics.isNotEmpty()) {
-            item {
-                Text(
-                    text = lyrics[0].content,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = color,
-                    modifier = Modifier
+                .padding(paddingValues)) {
+                    LoadingIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = color
+                    )
+                }
+        }
+        else {
+            LazyColumn(
+                modifier = if (isLandscape) {
+                    Modifier
+                        .widthIn(min = 256.dp)
+                        .fillMaxHeight()
+                } else {
+                    Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    textAlign = TextAlign.Center
-                )
+                        .fillMaxHeight()
+                }
+                    .padding(paddingValues)
+                    .verticalFadingEdges(
+                        FadingEdgesContentType.Dynamic.Lazy.List(FadingEdgesScrollConfig.Dynamic(), state),
+                        FadingEdgesGravity.All,
+                        96.dp
+                    ),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                contentPadding = PaddingValues(vertical = 32.dp),
+                state = state,
+            ) {
+                if (lyrics.size > 1) {
+                    itemsIndexed(
+                        lyrics,
+                        key = { index, lyric -> "${index}:${lyric.content}" }
+                    ) { index, lyric ->
+                        SyncedLyricItem(
+                            lyric = lyric,
+                            index = index,
+                            currentLyricIndex = currentLyricIndex.intValue,
+                            useBlur = useBlur,
+                            visibleItemsInfo = visibleItemsInfo,
+                            color = color,
+                            lyricsAnimationSpeed = lyricsAnimationSpeed,
+                            onClick = {
+                                mediaController?.seekTo(lyric.timestamp.toLong())
+                                currentPosition.intValue = lyric.timestamp
+                            }
+                        )
+                    }
+                }
+                else if (lyrics.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = lyrics[0].content,
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = color,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
             }
         }
-
-        item { Spacer(Modifier.height(32.dp)) }
     }
 }
 
