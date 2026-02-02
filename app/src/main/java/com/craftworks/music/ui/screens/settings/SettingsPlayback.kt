@@ -68,7 +68,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                 actions = {
                     IconButton(
                         onClick = {
-                            navHostController.navigate(Screen.Home.route) {
+                            navHostController.navigate(Screen.Setting.route) {
                                 launchSingleTop = true
                             }
                         },

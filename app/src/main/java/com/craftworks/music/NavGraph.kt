@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -101,8 +100,7 @@ fun SetupNavGraph(
             fadeOut(animationSpec)
         },
         popEnterTransition = {
-            fadeIn(animationSpec) +
-                    scaleIn(initialScale = 0.92f, animationSpec = tween(300))
+            fadeIn(animationSpec)
         },
         popExitTransition = {
             fadeOut(animationSpec)
@@ -226,8 +224,7 @@ fun SetupNavGraph(
 
         //Settings
         navigation(startDestination = Screen.Setting.route, route = "settings_graph") {
-            composable(
-                route = Screen.Setting.route,) {
+            composable(route = Screen.Setting.route) {
                 SettingScreen(navController)
             }
             composable(

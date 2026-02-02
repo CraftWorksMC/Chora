@@ -105,7 +105,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 actions = {
                     IconButton(
                         onClick = {
-                            navHostController.navigate(Screen.Home.route) {
+                            navHostController.navigate(Screen.Setting.route) {
                                 launchSingleTop = true
                             }
                         },
@@ -431,7 +431,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     SettingsSwitch(
                         showNavidromeLogo.value,
                         stringResource(R.string.Setting_NavidromeLogo),
-                        ImageVector.vectorResource(R.drawable.s_m_navidrome),
+                        ImageVector.vectorResource(R.drawable.s_m_navidrome_bw),
                         toggleEvent = {
                             coroutineScope.launch {
                                 AppearanceSettingsManager(context).setShowNavidromeLogo(!showNavidromeLogo.value)
@@ -476,7 +476,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     SettingsSwitch(
                         showTrackNumbers.value,
                         stringResource(R.string.Setting_TrackNumbersAlbum),
-                        ImageVector.vectorResource(R.drawable.s_p_scrobble),
+                        ImageVector.vectorResource(R.drawable.rounded_format_list_numbered_24),
                         toggleEvent = {
                             coroutineScope.launch {
                                 AppearanceSettingsManager(context).setShowTrackNumbers(!showTrackNumbers.value)
