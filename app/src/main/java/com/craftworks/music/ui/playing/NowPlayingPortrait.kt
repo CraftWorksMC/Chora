@@ -103,7 +103,7 @@ fun NowPlayingPortrait(
             modifier = Modifier
                 .heightIn(min = 256.dp, max = 420.dp)
                 .fillMaxWidth()
-        ) { it ->
+        ) {
             if (it) {
                 LyricsView(
                     iconTextColor,
