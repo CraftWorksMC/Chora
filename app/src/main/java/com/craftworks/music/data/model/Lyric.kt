@@ -49,7 +49,7 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
         syncedLyrics?.lines()?.forEach { lyric ->
             val timeStampsRaw = getTimeStamps(lyric)[0]
             val time = mmssToMilliseconds(timeStampsRaw)
-            val lyricText: String = lyric.drop(11)
+            val lyricText: String = lyric.drop(10).trim()
 
             result.add(Lyric(time.toInt(), lyricText))
         }
