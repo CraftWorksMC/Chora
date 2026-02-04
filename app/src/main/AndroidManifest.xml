@@ -68,6 +68,8 @@
             android:permission="android.permission.FOREGROUND_SERVICE">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService"/>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+                <category android:name="android.intent.category.APP_MUSIC" />
             </intent-filter>
         </service>
 

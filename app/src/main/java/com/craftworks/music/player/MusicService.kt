@@ -606,19 +606,16 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         println("GETTING ANDROID AUTO ALBUM SCREEN ITEMS")
         runBlocking {
             if (aAlbumScreenItems.isEmpty()) {
-                var offset = 0
-                val allAlbums = mutableListOf<MediaItem>()
                 while (true) {
-                    val albums = async { albumRepository.getAlbums("newest", 500, offset) }.await()
-                    allAlbums.addAll(albums)
-                    if (albums.size < 500) {
+                    val albums = async { albumRepository.getAlbums("alphabeticalByName", 250, aAlbumScreenItems.size) }.await()
+                    aAlbumScreenItems.addAll(albums)
+                    if (albums.isEmpty()) {
                         break
                     }
-                    offset += 500
                 }
-                aAlbumScreenItems.addAll(allAlbums)
             }
         }
+        println("Got ALL albums. Should be 492, is ${aAlbumScreenItems.size}")
         return aAlbumScreenItems
     }
 

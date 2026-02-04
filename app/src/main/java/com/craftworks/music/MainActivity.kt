@@ -73,6 +73,8 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.util.NotificationUtil.IMPORTANCE_LOW
+import androidx.media3.common.util.NotificationUtil.createNotificationChannel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -296,6 +298,14 @@ class MainActivity : ComponentActivity() {
                 )
             )
         }
+
+        createNotificationChannel(
+            this,
+            "download_channel",
+            R.string.Notification_Download_Name,
+            R.string.Notification_Download_Desc,
+            IMPORTANCE_LOW
+        )
 
         // SAVE SETTINGS ON APP EXIT
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

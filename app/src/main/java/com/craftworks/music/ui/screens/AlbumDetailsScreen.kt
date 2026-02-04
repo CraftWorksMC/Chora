@@ -73,6 +73,7 @@ import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.navidrome.downloadNavidromeAlbum
 import com.craftworks.music.providers.navidrome.setNavidromeStar
 import com.craftworks.music.ui.elements.GenrePill
 import com.craftworks.music.ui.elements.HorizontalSongCard
@@ -97,6 +98,8 @@ fun AlbumDetails(
     var showLoading by remember { mutableStateOf(false) }
     val currentAlbum = viewModel.songsInAlbum.collectAsStateWithLifecycle().value
     val showTrackNumbers by AppearanceSettingsManager(LocalContext.current).showTrackNumbersFlow.collectAsStateWithLifecycle(false)
+
+    val context = LocalContext.current
 
     LaunchedEffect(selectedAlbumId) {
         viewModel.loadAlbumDetails(selectedAlbumId)
@@ -220,7 +223,7 @@ fun AlbumDetails(
                         }
                     }
 
-                    // Star/unstar button, NAVIDROME ONLY
+                    // Star/unstar button and download album, NAVIDROME ONLY
                     if (currentAlbum[0].mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == false) {
                         Button(
                             onClick = {
@@ -261,6 +264,30 @@ fun AlbumDetails(
                                             .size(28.dp)
                                     )
                             }
+                        }
+
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    downloadNavidromeAlbum(context, currentAlbum[0].mediaMetadata.title.toString(), currentAlbum.subList(1, currentAlbum.size))
+                                }
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 12.dp, end = 52.dp)
+                                .size(32.dp),
+                            contentPadding = PaddingValues(4.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground)
+                        ) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
+                                contentDescription = "Unstar Album",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .height(28.dp)
+                                    .size(28.dp)
+                            )
                         }
                     }
 

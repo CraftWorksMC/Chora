@@ -50,11 +50,9 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
@@ -164,7 +162,7 @@ fun LyricsView(
                     else
                         state.animateScrollToItem(
                             index = targetIndex.coerceAtLeast(0),
-                            scrollOffset = -(currentItem?.size ?: 0)
+                            scrollOffset = -(currentItem?.size ?: 0) - scrollOffset
                         )
                 }
             }
@@ -178,7 +176,6 @@ fun LyricsView(
                 if (mediaController?.isPlaying == true) {
                     val totalDuration = mediaController.duration / 1000f // duration in seconds
                     val scrollRate = state.layoutInfo.viewportSize.height / totalDuration
-
                     coroutineScope.launch {
                         state.animateScrollBy(scrollRate * 2.5f, tween(500, 0, LinearEasing))
                     }
@@ -336,11 +333,11 @@ fun SyncedLyricItem(
             Text(
                 text = lyric.content,
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
+                //fontWeight = FontWeight.Bold,
                 color = color.copy(lyricAlpha),
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
-                lineHeight = 32.sp
+                //lineHeight = 32.sp
             )
         }
     }
