@@ -2,27 +2,26 @@
 
 A simple and light-weight app that streams music from a Subsonic or Navidrome server, or from the phone's storage.
 
-*Please do not use as a learning resource. This was my first Kotlin project, and the code is not well-organized at all.*
+*Please do not use as a learning resource. This was my first Kotlin project, and the code is not well-organized at all. AI was used earlier in development (and it shows, the code is a mess lol)*
 
 <a href='https://play.google.com/store/apps/details?id=com.craftworks.music&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img width=256px alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
 
 ## Features
 
 - Subsonic/Navidrome support.
-- Transcoding.
-- Material 3 UI.
-- Offline Mode [Download songs from server].
-- Internet Radio. [Metadata only from IceCast servers]
-- Synced And Unsynced Lyrics. [From lrclib.net]
-- Navidrome and Local playlists.
 - Android Auto.
+- Material 3 UI.
+- Download songs and albums from server.
+- Internet Radio. [Metadata only from IceCast servers]
+- Synced And Unsynced Lyrics. [From lrclib.net or self-hosted instance]
+- Navidrome and Local playlists.
+- Multiple Navidrome libraries.
+- Transcoding.
 
 ## W.I.P
 
 - Better Android TV navigation.
-- Refactoring, Material 3 Expressive UI.
 - Local DB for local files and Navidrome offline mode.
-- Navidrome multi library support.
 
 ## Roadmap
 
@@ -31,7 +30,7 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 
 ## Known Issues
 
-- After changing some settings, all the data is cleared from screens and need to be manually refreshed. (Fixed in refactor, wait for new update)
+- In Android Auto, radios do not set metadata correctly.
 
 ## Screenshots
 <p align="center">
@@ -53,7 +52,7 @@ To help keep this project free and open source to everyone, consider donating. T
   <img width=256px src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate with PayPal" />
 </a>
 
-Made with :heart: in italy
+Made with :heart: in Italy
 
 > Lyrics icon provided by [Remix Icon](https://remixicon.com/ "Remix Icon")
 > Other icons are provided by [Google Icons](https://fonts.google.com/icons "Google Icons")
