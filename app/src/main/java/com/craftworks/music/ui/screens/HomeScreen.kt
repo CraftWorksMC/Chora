@@ -316,15 +316,20 @@ fun HomeScreen(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    navHostController.navigate(Screen.HomeLists.route + "/$key") {
-                        launchSingleTop = true
-                        restoreState = true
+            modifier = if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION)
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 12.dp)
+            else
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 12.dp)
+                    .clickable {
+                        navHostController.navigate(Screen.HomeLists.route + "/$key") {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
-                }
-                .padding(horizontal = 12.dp, vertical = 12.dp)
         ) {
             Text(
                 text = stringResource(title ?: androidx.media3.session.R.string.error_message_fallback),

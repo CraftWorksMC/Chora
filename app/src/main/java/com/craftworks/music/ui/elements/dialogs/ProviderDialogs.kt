@@ -232,7 +232,8 @@ fun CreateMediaProviderDialog(
             //region Local Folder
             if (selectedOptionText == stringResource(R.string.Source_Local))
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     /* Directory */
                     OutlinedTextField(
@@ -255,15 +256,10 @@ fun CreateMediaProviderDialog(
                         },
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
-                            .padding(horizontal = 40.dp)
-                            .height(50.dp)
-                            .fillMaxWidth()
                             .bounceClick(),
-                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            stringResource(R.string.Action_Add),
-                            modifier = Modifier.height(24.dp)
+                            stringResource(R.string.Action_Add)
                         )
                     }
                 }

@@ -95,6 +95,7 @@ fun LyricsView(
     val visibleItemsInfo by remember { derivedStateOf { state.layoutInfo.visibleItemsInfo } }
 
     val scrollOffset = dpToPx(128)
+    val interludeHeight = dpToPx(48)
 
     // Update current position only each lyrics change.
     LaunchedEffect(mediaController, lyrics) {
@@ -137,7 +138,7 @@ fun LyricsView(
 
     // Lyric index updates and scrolling
     LaunchedEffect(currentPosition.intValue, lyrics) {
-        if (mediaController?.isPlaying == true) {
+        //if (mediaController?.isPlaying == true) {
             val newCurrentLyricIndex = lyrics.indexOfFirst { it.timestamp > (currentPosition.intValue + lyricsAnimationSpeed / 2) }
                 .takeIf { it >= 0 } ?: lyrics.size
 
@@ -147,26 +148,27 @@ fun LyricsView(
                 currentLyricIndex.intValue = targetIndex
 
                 coroutineScope.launch {
-                    // If the next item is visible, animate smoothly to it using FastOutSlowIn Easing
-                    // else use animateScrollToItem.
-                    val currentItem = visibleItemsInfo.firstOrNull { it.index == currentLyricIndex.intValue }
+                    val targetItemAfter = state.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
 
-                    if (visibleItemsInfo.any { it.index == targetIndex }) {
-                        val scrollBy = (currentItem?.offset ?: 0) + (currentItem?.size ?: 0) - scrollOffset
+                    if (targetItemAfter != null) {
+                        var finalScrollDelta = targetItemAfter.offset - scrollOffset
+
+                        if (lyrics[(targetIndex - 1).coerceAtLeast(0)].content == "")
+                            finalScrollDelta -= interludeHeight
 
                         state.animateScrollBy(
-                            value = scrollBy.toFloat(),
+                            value = finalScrollDelta.toFloat(),
                             animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
                         )
                     }
                     else
                         state.animateScrollToItem(
                             index = targetIndex.coerceAtLeast(0),
-                            scrollOffset = -(currentItem?.size ?: 0) - scrollOffset
+                            scrollOffset = -scrollOffset
                         )
                 }
             }
-        }
+        //}
     }
 
     // Plain lyrics scrolling
@@ -298,7 +300,7 @@ fun SyncedLyricItem(
         animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
     )
 
-    if (lyric.content == "") {
+    if (lyric.content.isEmpty()) {
         AnimatedContent(
             targetState = currentLyricIndex == index
         ) {
