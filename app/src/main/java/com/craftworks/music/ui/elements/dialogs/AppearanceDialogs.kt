@@ -112,6 +112,7 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
             Button(onClick = {
                 runBlocking {
                     AppearanceSettingsManager(context).setUsername(username)
+                    setShowDialog(false)
                 }
             }) {
                 Text(stringResource(R.string.Action_Done))
