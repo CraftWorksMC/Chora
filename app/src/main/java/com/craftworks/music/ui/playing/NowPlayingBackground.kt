@@ -23,9 +23,11 @@ fun NowPlaying_Background(
     backgroundStyle: NowPlayingBackground = NowPlayingBackground.STATIC_BLUR,
     overlayColor: Color = Color.Transparent
 ) {
-    val safePalette = colorPalette.ifEmpty {
-        listOf(Color.DarkGray, Color.Black, Color.DarkGray, Color.Black)
-    }
+    val safePalette = listOf(
+        colorPalette.getOrNull(1) ?: Color.Black,
+        colorPalette.getOrNull(2) ?: Color.Black,
+        colorPalette.getOrNull(3) ?: Color.Black
+    )
 
     when (backgroundStyle){
         NowPlayingBackground.PLAIN         -> PlainBackground()

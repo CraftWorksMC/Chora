@@ -55,13 +55,19 @@ class AppearanceSettingsManager @Inject constructor(
     }
 
     val npBackgroundFlow: Flow<NowPlayingBackground> = context.dataStore.data.map { preferences ->
-        NowPlayingBackground.valueOf(
-            preferences[NP_BACKGROUND_KEY] ?:
+        try {
+            NowPlayingBackground.valueOf(
+                preferences[NP_BACKGROUND_KEY] ?:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
                     NowPlayingBackground.ANIMATED_BLUR.name
                 else
                     NowPlayingBackground.STATIC_BLUR.name
-        )
+            )
+        }
+        catch (e: Exception) {
+            println(e.message)
+            NowPlayingBackground.STATIC_BLUR
+        }
     }
 
     suspend fun setBackgroundType(backgroundType: NowPlayingBackground) {
@@ -103,23 +109,30 @@ class AppearanceSettingsManager @Inject constructor(
 
     val homeItemsItemsFlow: Flow<List<HomeItem>> = context.dataStore.data.map { preferences ->
         val jsonString = preferences[HOME_ITEMS_KEY]
-        jsonString?.let { Json.Default.decodeFromString<List<HomeItem>>(it) } ?: listOf(
+        val defaultValue = listOf(
             HomeItem("recently_played", true),
             HomeItem("recently_added", true),
             HomeItem("most_played", true),
             HomeItem("random_songs", true)
         )
+        try {
+            jsonString?.let { Json.decodeFromString<List<HomeItem>>(it) } ?: defaultValue
+        }
+        catch (e: Exception) {
+            println(e.message)
+            defaultValue
+        }
     }
 
     suspend fun setHomeItems(items: List<HomeItem>) {
         context.dataStore.edit { preferences ->
-            preferences[HOME_ITEMS_KEY] = Json.Default.encodeToString(items)
+            preferences[HOME_ITEMS_KEY] = Json.encodeToString(items)
         }
     }
 
     val bottomNavItemsFlow: Flow<List<BottomNavItem>> = context.dataStore.data.map { preferences ->
         val jsonString = preferences[BOTTOM_NAV_ITEMS_KEY]
-        jsonString?.let { Json.Default.decodeFromString<List<BottomNavItem>>(it) } ?: listOf(
+        val defaultValue = listOf(
             BottomNavItem("Home", R.drawable.rounded_home_24, "home_screen"),
             BottomNavItem("Albums", R.drawable.rounded_library_music_24, "album_screen"),
             BottomNavItem("Songs", R.drawable.round_music_note_24, "songs_screen"),
@@ -127,11 +140,18 @@ class AppearanceSettingsManager @Inject constructor(
             BottomNavItem("Radios", R.drawable.rounded_radio, "radio_screen"),
             BottomNavItem("Playlists", R.drawable.placeholder, "playlist_screen")
         )
+        try {
+            jsonString?.let { Json.decodeFromString<List<BottomNavItem>>(it) } ?: defaultValue
+        }
+        catch (e: Exception) {
+            println(e.message)
+            defaultValue
+        }
     }
 
     suspend fun setBottomNavItems(items: List<BottomNavItem>) {
         context.dataStore.edit { preferences ->
-            preferences[BOTTOM_NAV_ITEMS_KEY] = Json.Default.encodeToString(items)
+            preferences[BOTTOM_NAV_ITEMS_KEY] = Json.encodeToString(items)
         }
     }
 
