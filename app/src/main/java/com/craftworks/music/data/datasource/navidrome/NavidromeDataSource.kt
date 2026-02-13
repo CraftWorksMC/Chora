@@ -429,16 +429,36 @@ class NavidromeDataSource @Inject constructor() {
         ).filterIsInstance<MediaItem>()
     }
 
-    suspend fun starNavidromeItem(itemId: String, ignoreCachedResponse: Boolean = false): Boolean =
+    suspend fun starNavidromeItem(id: String = "", albumId: String = "", artistId: String = "", ignoreCachedResponse: Boolean = false): Boolean =
         withContext(Dispatchers.IO) {
-            getRequest("star.view?id=$itemId", null, ignoreCachedResponse)
+            var endpoint = "star.view?"
+            if (id.isNotEmpty()) {
+                endpoint += "id=$id"
+            }
+            if (albumId.isNotEmpty()) {
+                endpoint += "albumId=$albumId"
+            }
+            if (artistId.isNotEmpty()) {
+                endpoint += "artistId=$artistId"
+            }
+            getRequest(endpoint, null, ignoreCachedResponse)
             true
         }
 
     suspend fun unstarNavidromeItem(
-        itemId: String, ignoreCachedResponse: Boolean = false
+        id: String = "", albumId: String = "", artistId: String = "", ignoreCachedResponse: Boolean = false
     ): Boolean = withContext(Dispatchers.IO) {
-        getRequest("unstar.view?id=$itemId", null, ignoreCachedResponse)
+        var endpoint = "unstar.view?"
+        if (id.isNotEmpty()) {
+            endpoint += "id=$id"
+        }
+        if (albumId.isNotEmpty()) {
+            endpoint += "albumId=$albumId"
+        }
+        if (artistId.isNotEmpty()) {
+            endpoint += "artistId=$artistId"
+        }
+        getRequest(endpoint, null, ignoreCachedResponse)
         true
     }
 }

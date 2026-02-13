@@ -70,6 +70,7 @@ data class SubsonicResponse(
     val starred: Starred? = null,
 )
 
+/*
 suspend fun sendNavidromeGETRequest(
     endpoint: String,
     ignoreCachedResponse: Boolean = false
@@ -202,7 +203,7 @@ suspend fun sendNavidromeGETRequest(
                 }
                 inputStream.close()
             }
-        } // Peak coding right here, try catch EVERYTHING.
+        }
         catch (e: ConnectException) {
             navidromeStatus.value = "Network Unreachable"
             Log.d("NAVIDROME", "Exception: $e")
@@ -236,6 +237,8 @@ suspend fun sendNavidromeGETRequest(
     NavidromeCache.put(endpoint, parsedData)
     return parsedData
 }
+
+*/
 
 fun md5Hash(input: String): String {
     val md = MessageDigest.getInstance("MD5")

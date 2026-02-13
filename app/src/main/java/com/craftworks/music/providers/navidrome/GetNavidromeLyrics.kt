@@ -20,15 +20,6 @@ data class SyncedLyrics(
     val start: Int, val value: String
 )
 
-suspend fun getNavidromePlainLyrics(metadata: MediaMetadata?): List<Lyric> {
-    return sendNavidromeGETRequest("getLyrics.view?artist=${metadata?.artist}&title=${metadata?.title}&f=json").filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.content.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
-}
-
-suspend fun getNavidromeSyncedLyrics(navidromeId: String): List<Lyric> {
-    return sendNavidromeGETRequest("getLyricsBySongId.view?id=${navidromeId}&f=json")
-        .filterIsInstance<MediaData.StructuredLyrics>().flatMap { it.toLyrics() }
-}
-
 fun parseNavidromePlainLyricsJSON(
     response: String
 ): MediaData {

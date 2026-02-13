@@ -30,17 +30,17 @@ class StarredRepository @Inject constructor(
         deferredStarred.awaitAll().flatten()
     }
 
-     suspend fun starItem(itemId: String, ignoreCachedResponse: Boolean) {
-         if (!itemId.startsWith("Local_"))
-             navidromeDataSource.starNavidromeItem(itemId, ignoreCachedResponse)
+     suspend fun starItem(id: String = "", albumId: String = "", artistId: String = "", ignoreCachedResponse: Boolean) {
+         if (!id.startsWith("Local_") || !albumId.startsWith("Local_") || !artistId.startsWith("Local_"))
+             navidromeDataSource.starNavidromeItem(id, albumId, artistId, ignoreCachedResponse)
          else
-             localDataSource.starLocalItem(itemId)
+             localDataSource.starLocalItem(id)
      }
 
-     suspend fun unStarItem(itemId: String, ignoreCachedResponse: Boolean) {
-         if (!itemId.startsWith("Local_"))
-             navidromeDataSource.unstarNavidromeItem(itemId, ignoreCachedResponse)
+     suspend fun unStarItem(id: String = "", albumId: String = "", artistId: String = "", ignoreCachedResponse: Boolean) {
+         if (!id.startsWith("Local_") || !albumId.startsWith("Local_") || !artistId.startsWith("Local_"))
+             navidromeDataSource.unstarNavidromeItem(id, albumId, artistId, ignoreCachedResponse)
          else
-            localDataSource.unstarLocalItem(itemId)
+            localDataSource.unstarLocalItem(id)
      }
 }

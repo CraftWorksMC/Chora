@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.repository.AlbumRepository
+import com.craftworks.music.data.repository.StarredRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumDetailsViewModel @Inject constructor(
-    private val albumRepository: AlbumRepository
+    private val albumRepository: AlbumRepository,
+    private val starredRepository: StarredRepository
 ) : ViewModel() {
     private val _songsInAlbum = MutableStateFlow<List<MediaItem>>(listOf())
     val songsInAlbum: StateFlow<List<MediaItem>> = _songsInAlbum.asStateFlow()
@@ -35,6 +37,17 @@ class AlbumDetailsViewModel @Inject constructor(
 
             loadingJob.cancel()
             _isLoading.value = false
+        }
+    }
+
+    fun starAlbum(id: String) {
+        viewModelScope.launch {
+            starredRepository.starItem(albumId = id, ignoreCachedResponse = true)
+        }
+    }
+    fun unstarAlbum(id: String) {
+        viewModelScope.launch {
+            starredRepository.unStarItem(albumId = id, ignoreCachedResponse = true)
         }
     }
 }

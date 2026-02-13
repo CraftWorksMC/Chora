@@ -74,7 +74,6 @@ import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.downloadNavidromeAlbum
-import com.craftworks.music.providers.navidrome.setNavidromeStar
 import com.craftworks.music.ui.elements.GenrePill
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
@@ -136,7 +135,7 @@ fun AlbumDetails(
         visible = currentAlbum.isNotEmpty(),
         enter = fadeIn()
     ) {
-        var isStarred by remember { mutableStateOf(currentAlbum[0].mediaMetadata.extras?.getString("starred").isNullOrEmpty()) }
+        var isStarred by remember { mutableStateOf(currentAlbum[0].mediaMetadata.extras?.getString("starred")?.isNotEmpty() ?: false) }
         val requester = remember { FocusRequester() }
 
         val coroutineScope = rememberCoroutineScope()
@@ -228,10 +227,14 @@ fun AlbumDetails(
                         Button(
                             onClick = {
                                 coroutineScope.launch {
-                                    setNavidromeStar(
-                                        star = isStarred,
-                                        albumId = currentAlbum[0].mediaMetadata.extras?.getString("navidromeID").toString()
-                                    )
+                                    if (isStarred)
+                                        viewModel.unstarAlbum(
+                                            currentAlbum[0].mediaMetadata.extras?.getString("navidromeID").toString()
+                                        )
+                                    else
+                                        viewModel.starAlbum(
+                                            currentAlbum[0].mediaMetadata.extras?.getString("navidromeID").toString()
+                                        )
                                     viewModel.loadAlbumDetails(selectedAlbumId)
                                     isStarred = !isStarred
                                 }
@@ -248,16 +251,16 @@ fun AlbumDetails(
                                 targetState = isStarred
                             ) {
                                 if (it) Icon(
-                                    imageVector = ImageVector.vectorResource(R.drawable.round_favorite_border_24),
-                                    contentDescription = "Star Album",
+                                    imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
+                                    contentDescription = null,
                                     modifier = Modifier
                                         .height(28.dp)
                                         .size(28.dp)
                                 )
                                 else
                                     Icon(
-                                        imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
-                                        contentDescription = "Unstar Album",
+                                        imageVector = ImageVector.vectorResource(R.drawable.round_favorite_border_24),
+                                        contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier
                                             .height(28.dp)
