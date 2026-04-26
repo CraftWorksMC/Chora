@@ -1,0 +1,3 @@
+Risolto il crash durante l'aggiornamento.
+Risolto il crash quando non viene specificato http o https nelle impostazioni del server.
+Disattivati i testi di NetEase per impostazione predefinita.
