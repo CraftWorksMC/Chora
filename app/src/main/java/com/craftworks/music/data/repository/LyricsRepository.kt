@@ -16,10 +16,10 @@ import javax.inject.Singleton
 
 object LyricsState {
     val lyrics = MutableStateFlow<List<Lyric>>(emptyList())
-    val loading = MutableStateFlow<Boolean>(false)
-    var open = mutableStateOf<Boolean>(false)
+    val loading = MutableStateFlow(false)
+    var open = mutableStateOf(false)
     var useLrcLib by mutableStateOf(true)
-    var useNetEase by mutableStateOf(true)
+    var useNetEase by mutableStateOf(false)
 }
 
 @Singleton
@@ -84,7 +84,7 @@ class LyricsRepository @Inject constructor(
 
         if (LyricsState.useNetEase) {
             if (foundNavidromePlainLyrics) {
-                Log.d("LYRICS", "Got Navidrome plain lyrics, trying LRCLIB.")
+                Log.d("LYRICS", "Got Navidrome plain lyrics, trying NetEase.")
                 neteaseDataSource.getNeteaseLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
                     if (it.size != 1) LyricsState.lyrics.value = it
                     LyricsState.loading.value = false;

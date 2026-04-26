@@ -48,7 +48,7 @@ class MediaProviderSettingsManager @Inject constructor(
     }
 
     val netEaseLyricsFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[NETEASE_LYRICS] ?: true
+        preferences[NETEASE_LYRICS] ?: false
     }
 
     suspend fun setUseNetEase(useNetEase: Boolean) {
