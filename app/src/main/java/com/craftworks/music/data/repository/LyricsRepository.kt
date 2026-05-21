@@ -10,6 +10,8 @@ import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
 import com.craftworks.music.data.datasource.netease.NeteaseDataSource
 import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.managers.NavidromeManager
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,72 +37,83 @@ class LyricsRepository @Inject constructor(
 
         if (metadata?.mediaType == MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
             LyricsState.lyrics.value = listOf()
-            //lyricsOpen = false
             return
         }
 
         LyricsState.loading.value = true;
 
-        var foundNavidromePlainLyrics by mutableStateOf(false)
+        coroutineScope {
+            val isLocal = metadata?.extras?.getString("navidromeID")?.startsWith("Local_") ?: false
 
-        if (NavidromeManager.checkActiveServers() && !(metadata?.extras?.getString("navidromeID")?.startsWith("Local_") ?: false)) {
-            navidromeDataSource.getNavidromeSyncedLyrics(metadata?.extras?.getString("navidromeID") ?: "").takeIf { it.isNotEmpty() }?.let {
-                if (it.size == 1)
-                    foundNavidromePlainLyrics = true
-                else {
-                    Log.d("LYRICS", "Got Navidrome synced lyrics.")
-                    LyricsState.lyrics.value = it
-                    LyricsState.loading.value = false;
-                    return
+            val navidromeSyncedDeferred = async {
+                if (NavidromeManager.checkActiveServers() && !isLocal) {
+                    navidromeDataSource.getNavidromeSyncedLyrics(
+                        metadata?.extras?.getString("navidromeID") ?: ""
+                    )
+                } else null
+            }
+
+            val navidromePlainDeferred = async {
+                if (NavidromeManager.checkActiveServers() && !isLocal) {
+                    navidromeDataSource.getNavidromePlainLyrics(metadata)
+                } else null
+            }
+
+            val lrcLibDeferred = async {
+                if (LyricsState.useLrcLib) lrclibDataSource.getLrcLibLyrics(metadata) else null
+            }
+
+            val netEaseDeferred = async {
+                if (LyricsState.useNetEase) neteaseDataSource.getNeteaseLyrics(metadata) else null
+            }
+
+            val navidromeSynced = navidromeSyncedDeferred.await().orEmpty()
+            val navidromePlain = navidromePlainDeferred.await().orEmpty()
+            val lrcLib = lrcLibDeferred.await().orEmpty()
+            val netEase = netEaseDeferred.await().orEmpty()
+
+            if (navidromeSynced.size > 1) {
+                Log.d("LYRICS", "Got Navidrome synced lyrics")
+                LyricsState.lyrics.value = navidromeSynced
+                LyricsState.loading.value = false
+                return@coroutineScope
+            }
+
+            if (lrcLib.size > 1) {
+                Log.d("LYRICS", "Using LRCLIB Synced Lyrics")
+                LyricsState.lyrics.value = lrcLib
+                LyricsState.loading.value = false
+                return@coroutineScope
+            }
+
+            if (netEase.size > 1) {
+                Log.d("LYRICS", "Using NetEase Synced Lyrics")
+                LyricsState.lyrics.value = netEase
+                LyricsState.loading.value = false
+                return@coroutineScope
+            }
+
+            // fallback to plain lyrics
+            when {
+                navidromePlain.isNotEmpty() -> {
+                    Log.d("LYRICS", "Using Navidrome Plain Lyrics")
+                    LyricsState.lyrics.value = navidromePlain
+                }
+                lrcLib.isNotEmpty() -> {
+                    Log.d("LYRICS", "Using LRCLIB Plain Lyrics")
+                    LyricsState.lyrics.value = lrcLib
+                }
+                netEase.isNotEmpty() -> {
+                    Log.d("LYRICS", "Using NetEase Plain Lyrics")
+                    LyricsState.lyrics.value = netEase
+                }
+                else -> {
+                    Log.d("LYRICS", "No lyrics found.")
                 }
             }
 
-            navidromeDataSource.getNavidromePlainLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
-                if (it.size == 1)
-                    foundNavidromePlainLyrics = true
-
-                Log.d("LYRICS", "Got Navidrome plain lyrics.")
-                LyricsState.lyrics.value = it
-            }
+            LyricsState.loading.value = false
+            LyricsState.lyrics.value = listOf()
         }
-
-        if (LyricsState.useLrcLib) {
-            if (foundNavidromePlainLyrics) {
-                Log.d("LYRICS", "Got Navidrome plain lyrics, trying LRCLIB.")
-                lrclibDataSource.getLrcLibLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
-                    if (it.size != 1) LyricsState.lyrics.value = it
-                    LyricsState.loading.value = false;
-                    return
-                }
-            }
-
-            lrclibDataSource.getLrcLibLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
-                Log.d("LYRICS", "Got LRCLIB lyrics.")
-                LyricsState.lyrics.value = it
-                LyricsState.loading.value = false;
-                return
-            }
-        }
-
-        if (LyricsState.useNetEase) {
-            if (foundNavidromePlainLyrics) {
-                Log.d("LYRICS", "Got Navidrome plain lyrics, trying NetEase.")
-                neteaseDataSource.getNeteaseLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
-                    if (it.size != 1) LyricsState.lyrics.value = it
-                    LyricsState.loading.value = false;
-                    return
-                }
-            }
-
-            neteaseDataSource.getNeteaseLyrics(metadata).takeIf { it.isNotEmpty() }?.let {
-                Log.d("LYRICS", "Got NETEASE lyrics.")
-                LyricsState.lyrics.value = it
-                LyricsState.loading.value = false;
-                return
-            }
-        }
-
-        Log.d("LYRICS", "Didn't find any lyrics.")
-        LyricsState.lyrics.value = listOf()
     }
 }

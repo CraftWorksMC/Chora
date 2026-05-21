@@ -11,7 +11,6 @@ data class Lyric(
     val content: List<String>
 )
 
-
 // LRCLIB Lyrics
 @Serializable
 data class LrcLibLyrics(
@@ -28,7 +27,6 @@ data class NeteaseLyricsResponse(
     val lrc: NeteaseLrc? = null,
     val tlyric: NeteaseLrc? = null   // translation, may be absent or empty
 )
-
 @Serializable
 data class NeteaseLrc(
     val lyric: String? = null
@@ -62,7 +60,7 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
         syncedLyrics?.lines()?.forEach { lyric ->
             val timeStampsRaw = getTimeStamps(lyric)[0]
             val time = mmssToMilliseconds(timeStampsRaw).toInt()
-            val lyricText = lyric.drop(10).trim()
+            val lyricText = lyric.substringAfter("]").trim()
             raw.add(Pair(time, lyricText))
         }
 
@@ -99,6 +97,7 @@ fun NeteaseLyricsResponse.toLyrics(): List<Lyric> {
         tlyric.lyric.lines().forEach { line ->
             val tags = getTimeStamps(line)
             if (tags.isEmpty()) return@forEach
+            // Group lines sharing the same timestamp
             val text = line.substringAfter("]").trim()
             tags.forEach { tag ->
                 val time = mmssToMilliseconds(tag).toInt()
@@ -130,7 +129,6 @@ fun mmssToMilliseconds(mmss: String): Long {
             val ms = parts[2].substring(0,2).toLong()
             return (minutes * 60 + seconds) * 1000 + ms * 10
         } catch (e: NumberFormatException) {
-            // Handle the case where the input is not in the expected format
             e.printStackTrace()
         }
     }
