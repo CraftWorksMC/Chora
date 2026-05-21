@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Now-Playing Background Dialog -->
+    <string name="Dialog_Background_Type">Задний Фон</string>
+    <string name="Background_Plain">Стандартный</string>
+    <string name="Background_Blur">Размытый</string>
+    <string name="Background_Anim">Анимированный</string>
+    <string name="Background_Anim_Simple">Простоя Анимация</string>
+    <!-- App Theme Dialog -->
+    <string name="Dialog_Theme">Тема</string>
+    <string name="Theme_Dark">Темная</string>
+    <string name="Theme_Light">Светлая</string>
+    <string name="Theme_System">Как На Устройстве</string>
+    <!-- Provider Dialog -->
+    <string name="Dialog_Media_Source">Источник Медиа</string>
+    <string name="No_Providers_Splash">Вы все еще не добавили провайдера медиа. Добавьте его в настройках, чтобы слушать музыку!</string>
+    <string name="No_Providers_Done">Все готово! Вы можете теперь слушать ваши плейлисты! :)</string>
+    <string name="Source_Local">Локальная Папка</string>
+    <!-- Local -->
+    <string name="Label_Local_Directory">Директория:</string>
+    <!-- Navidrome -->
+    <string name="Label_Navidrome_URL">Веб-Адрес Navidrome:</string>
+    <string name="Label_Navidrome_Username">Имя пользователя:</string>
+    <string name="Label_Navidrome_Password">Пароль:</string>
+    <string name="Label_Allow_Self_Signed_Certs">Разрешить самоподписанные SSL-сертификаты</string>
+    <!-- LRCLIB Dialog -->
+    <string name="Dialog_LRCLIB_Url">Веб-Адрес LRCLIB</string>
+    <!-- Transcoding -->
+    <string name="Dialog_Transcoding">Транскодирование</string>
+    <string name="Option_No_Transcoding">Без Транскодирования</string>
+    <!-- Radios -->
+    <string name="Dialog_Add_Radio">Добавить Онлайн Радио</string>
+    <string name="Dialog_Modify_Radio">Изменить </string>
+    <string name="Label_Radio_Name">Название Радио:</string>
+    <string name="Label_Radio_URL">Веб-Адрес Радио:</string>
+    <string name="Label_Radio_Homepage">Адрес Домашней Веб-Странички Радио:</string>
+    <string name="Label_Radio_Add_To_Navidrome">Добавить к Navidrome</string>
+    <!-- Playlists -->
+    <string name="Dialog_New_Playlist">Новый Плейлист</string>
+    <string name="Dialog_Delete_Playlist">Удалить Плейлист</string>
+    <string name="Label_Confirm_Delete_Playlist">Вы уверены, что хотите удалить этот плейлист?</string>
+    <string name="Dialog_Add_To_Playlist">Add / To Playlist</string>
+    <string name="Label_Playlist_Name">Название Плейлиста:</string>
+    <!-- Albums -->
+    <string name="Label_MoreSongsFrom">Больше Песен От</string>
+    <!-- Artists -->
+    <string name="Label_NoDescription">Описание Отсутствует.</string>
+    <!-- Sorting -->
+    <string name="Label_Sorting">Сортировка</string>
+    <string name="Label_Sort_Alphabetical">По Алфавиту</string>
+    <string name="Label_Sort_Starred">По Оценке</string>
+    <!-- Connection Errors -->
+    <string name="Navidrome_Error">Не получилось связаться с сервером Navidrome.</string>
+    <string name="Navidrome_Sync">Загрузка…</string>
+    <!-- Downloading -->
+    <string name="Notification_Download_Name">Уведомления О Скачивании</string>
+    <string name="Notification_Download_Desc">Уведомления о статусе загрузки</string>
+    <string name="Notification_Download_Progress">Скачивание</string>
+    <string name="Notification_Download_Success">Скачалось успешно!</string>
+    <string name="Notification_Download_Failure">Ой-Ой, что-то пошло не так во время загрузки</string>
+    <!-- Now Playing Title Alignment -->
+    <string name="Setting_NowPlayingTitleAlignment">Расположение Окна С Названием Текущего Трека</string>
+    <string name="NowPlayingTitleAlignment_Left">На Левой Стороне</string>
+    <string name="NowPlayingTitleAlignment_Center">В Центре</string>
+    <string name="NowPlayingTitleAlignment_Right">На Правой Стороне</string>
+</resources>

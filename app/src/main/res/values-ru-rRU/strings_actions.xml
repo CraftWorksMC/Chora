@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="Action_Done">Готово!</string>
+    <string name="Action_Remove">Удалить</string>
+    <string name="Action_Reset">Сбросить</string>
+    <string name="Action_Search">Поиск</string>
+    <string name="Action_Play">Воспроизвести</string>
+    <string name="Action_Shuffle">Перемешать</string>
+    <!-- Navidrome Provider -->
+    <string name="Action_Add">Добавить</string>
+    <string name="Action_Next">Следующий</string>
+    <string name="Action_Success">Успешно</string>
+    <string name="Action_Login">Войти</string>
+    <string name="Action_Go">Поехали!</string>
+    <string name="Action_Exit">Выйти</string>
+    <!-- Playlists -->
+    <string name="Action_CreatePlaylist">Создать Плейлист</string>
+    <string name="Action_Download">Скачать</string>
+</resources>

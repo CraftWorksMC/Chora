@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Navigation -->
+    <string name="songs">Песни</string>
+    <string name="Albums">Альбомы</string>
+    <string name="Artists">Исполнители</string>
+    <string name="settings">Настройки</string>
+    <string name="radios">Онлайн Радио</string>
+    <string name="playlists">Плейлисты</string>
+</resources>
