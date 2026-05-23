@@ -47,6 +47,7 @@ import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.ui.playing.NowPlayingContent
+import com.craftworks.music.ui.playing.NowPlayingViewModel
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
 import com.craftworks.music.ui.screens.ArtistDetails
@@ -360,6 +361,11 @@ fun SetupNavGraph(
             if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) ||
                 LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
             ) {
+                val parentEntry = remember(it) {
+                    navController.getBackStackEntry("main_graph")
+                }
+                val viewModel: NowPlayingViewModel = hiltViewModel(parentEntry)
+
                 var metadata by remember { mutableStateOf<MediaMetadata?>(null) }
 
                 // Update metadata from mediaController.
@@ -385,7 +391,8 @@ fun SetupNavGraph(
 
                 NowPlayingContent(
                     mediaController,
-                    metadata
+                    metadata,
+                    viewModel
                 )
 
                 // Keep screen on

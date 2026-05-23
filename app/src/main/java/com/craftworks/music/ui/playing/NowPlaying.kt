@@ -1,89 +1,67 @@
 package com.craftworks.music.ui.playing
 
-import android.content.Context
 import android.content.res.Configuration
-import android.os.Build
-import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
-import androidx.palette.graphics.Palette
-import coil.imageLoader
-import coil.request.CachePolicy
-import coil.request.ImageRequest
-import coil.request.SuccessResult
-import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.R
+import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.ui.playing.tv.TvNowPlaying
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
-
-var lyricsOpen by mutableStateOf(false)
-var playQueueOpen by mutableStateOf(false)
 
 enum class NowPlayingTitleAlignment {
     LEFT, CENTER, RIGHT
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun NowPlayingContent(
     mediaController: MediaController? = null,
-    metadata: MediaMetadata? = null
+    metadata: MediaMetadata? = null,
+    viewModel: NowPlayingViewModel = viewModel(),
 ) {
-    val context = LocalContext.current
-    val settingsManager = remember { AppearanceSettingsManager(context) }
-    val backgroundStyle by settingsManager.npBackgroundFlow.collectAsStateWithLifecycle(NowPlayingBackground.STATIC_BLUR)
-    var backgroundDarkMode by remember { mutableStateOf(false) }
+    val backgroundStyle by viewModel.backgroundStyle.collectAsStateWithLifecycle(NowPlayingBackground.STATIC_BLUR)
+    val isBackgroundDark by viewModel.isBackgroundDark.collectAsStateWithLifecycle()
+    val lyricsOpen by viewModel.lyricsOpen.collectAsStateWithLifecycle()
+    val playQueueOpen by viewModel.playQueueOpen.collectAsStateWithLifecycle()
+    val detailsOpen by viewModel.detailsOpen.collectAsStateWithLifecycle()
+    val sleepTimerOpen by viewModel.sleepTimerDialogOpen.collectAsStateWithLifecycle()
+    val colors by viewModel.paletteColors.collectAsStateWithLifecycle()
+    val iconTextColor by viewModel.iconTextColor.collectAsStateWithLifecycle()
 
-    var colors by remember {
-        mutableStateOf(listOf<Color>())
+    // Override with system colors if the background is plain
+    val backgroundDarkMode = if (backgroundStyle == NowPlayingBackground.PLAIN) {
+        isSystemInDarkTheme()
+    } else {
+        isBackgroundDark
     }
-    var iconTextColor by remember { mutableStateOf<Color>(Color.White) }
-
-    if (backgroundStyle == NowPlayingBackground.PLAIN)
-        backgroundDarkMode = isSystemInDarkTheme()
 
     LaunchedEffect(metadata?.artworkUri, backgroundStyle) {
-        if (metadata?.artworkUri != null && backgroundStyle != NowPlayingBackground.PLAIN) {
-            val palette = extractColorsFromUri(metadata.artworkUri.toString(), context)
-
-            backgroundDarkMode =
-                (palette.elementAtOrNull(2) ?: palette.elementAtOrNull(4) ?: Color.Black).customLuminance() <= 0.8f
-
-            colors = palette.filterNotNull()
-            println("Generated new colors for song ${metadata.title}! Luminance: ${ (palette.elementAtOrNull(2) ?: palette.elementAtOrNull(4) ?: Color.Black).customLuminance()} | darkmode: $backgroundDarkMode")
-        }
-        iconTextColor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (backgroundDarkMode) dynamicDarkColorScheme(context).onBackground
-            else dynamicLightColorScheme(context).onBackground
-        } else {
-            if (backgroundDarkMode) Color.White
-            else Color.Black
-        }
+        viewModel.updatePaletteFromUri(metadata?.artworkUri, backgroundStyle)
     }
 
     val targetOverlayColor = if (backgroundStyle == NowPlayingBackground.ANIMATED_BLUR) {
@@ -95,79 +73,79 @@ fun NowPlayingContent(
     NowPlaying_Background(colors, backgroundStyle, targetOverlayColor)
 
     if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) {
-        TvNowPlaying(mediaController, iconTextColor, metadata)
+        TvNowPlaying(
+            mediaController,
+            iconTextColor,
+            metadata
+        )
     } else if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        NowPlayingLandscape(mediaController, iconTextColor, metadata)
+        NowPlayingLandscape(
+            mediaController,
+            metadata,
+            iconTextColor,
+            lyricsOpen
+        )
     } else {
-        NowPlayingPortrait(mediaController, iconTextColor, metadata)
+        NowPlayingPortrait(
+            mediaController = mediaController,
+            metadata = metadata,
+            iconColor = iconTextColor,
+            lyricsOpen = lyricsOpen,
+            onToggleLyrics = { viewModel.setLyricsOpen(!lyricsOpen) },
+            onToggleQueue = { viewModel.setPlayQueueOpen(!playQueueOpen) },
+            onToggleDetails = { viewModel.setDetailsOpen(!detailsOpen) },
+            onOpenSleepTimer = { viewModel.setSleepTimerDialogOpen(true) }
+        )
     }
 
 
-    // Play Queue
-    val playQueueSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+    val playQueueSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val timePickerState = rememberTimePickerState(initialHour = 0, initialMinute = 0, is24Hour = true)
+
     if (playQueueOpen) {
         ModalBottomSheet(
-            onDismissRequest = { playQueueOpen = false },
+            onDismissRequest = { viewModel.setPlayQueueOpen(false) },
             sheetState = playQueueSheetState,
         ) {
             PlayQueueContent(mediaController = mediaController)
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+
+    if (detailsOpen) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.setDetailsOpen(false) },
+            sheetState = playQueueSheetState,
+        ) {
+            NowPlayingDetails(mediaController = mediaController)
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+
+    if (sleepTimerOpen) {
+        AlertDialog(
+            onDismissRequest = { viewModel.setSleepTimerDialogOpen(false) },
+            title = { Text("Set Sleep Timer") },
+            text = {
+                TimePicker(
+                    state = timePickerState,
+                )
+            },
+            confirmButton = {
+                Button (
+                    onClick = {
+                        ChoraMediaLibraryService.getInstance()?.setSleepTimer(timePickerState.hour * 60 + timePickerState.minute)
+                        viewModel.setSleepTimerDialogOpen(false)
+                    }
+                ) {
+                    Text(stringResource(R.string.Action_Done))
+                }
+            }
+        )
+    }
 }
 
 @Composable
 fun dpToPx(dp: Int): Int {
     return with(LocalDensity.current) { dp.dp.toPx() }.toInt()
-}
-
-fun Color.customLuminance(): Float {
-    return 0.2126f * red + 0.7152f * green + 0.0722f * blue
-}
-
-suspend fun extractColorsFromUri(uri: String, context: Context): List<Color?> = coroutineScope {
-    val loader = context.imageLoader
-    val request = ImageRequest.Builder(context)
-        .data(uri.replace("size=128", "size=16"))
-        .allowHardware(false)
-        .size(16)
-        .diskCachePolicy(CachePolicy.DISABLED)
-        .build()
-
-    val result = (loader.execute(request) as? SuccessResult)?.drawable
-    val bitmap = result?.toBitmap()
-
-    bitmap?.let { bitmapImage ->
-        withContext(Dispatchers.Default) {
-            val palette = Palette.Builder(bitmapImage).generate()
-
-            val swatches = mapOf(
-                "Muted" to palette.mutedSwatch,
-                "Dark Vibrant" to palette.darkVibrantSwatch,
-                "Light Vibrant" to palette.lightVibrantSwatch,
-                "Vibrant" to palette.vibrantSwatch,
-                "Dominant" to palette.dominantSwatch,
-                "Light Muted" to palette.lightMutedSwatch
-            )
-
-            // Log the results
-            swatches.forEach { (name, swatch) ->
-                swatch?.let {
-                    val hex = Integer.toHexString(it.rgb).uppercase()
-                    Log.d("PaletteColor", "$name: #$hex | Body Text Color: ${Integer.toHexString(it.bodyTextColor)}")
-                }
-            }
-
-            listOf(
-                palette.mutedSwatch?.rgb?.let { Color(it) },
-                palette.darkVibrantSwatch?.rgb?.let { Color(it) },
-                palette.lightVibrantSwatch?.rgb?.let { Color(it) },
-                palette.vibrantSwatch?.rgb?.let { Color(it) },
-                palette.dominantSwatch?.rgb?.let { Color(it) },
-                palette.lightMutedSwatch?.rgb?.let { Color(it) },
-            )
-        }
-    } ?: listOf()
 }

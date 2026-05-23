@@ -23,19 +23,16 @@ fun NowPlaying_Background(
     backgroundStyle: NowPlayingBackground = NowPlayingBackground.STATIC_BLUR,
     overlayColor: Color = Color.Transparent
 ) {
-    val safePalette = listOf(
-        colorPalette.getOrNull(1) ?: Color.Black,
-        colorPalette.getOrNull(2) ?: Color.Black,
-        colorPalette.getOrNull(3) ?: Color.Black
-    )
+    if (colorPalette.isEmpty())
+        return
 
     when (backgroundStyle){
         NowPlayingBackground.PLAIN         -> PlainBackground()
-        NowPlayingBackground.STATIC_BLUR   -> StaticBlurBackground(safePalette)
+        NowPlayingBackground.STATIC_BLUR   -> StaticBlurBackground(colorPalette)
         NowPlayingBackground.ANIMATED_BLUR -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) AnimatedGradientBackground(
-            color1 = safePalette[0],
-            color2 = safePalette[1],
-            color3 = safePalette[2],
+            color1 = colorPalette[0],
+            color2 = colorPalette.getOrNull(1) ?: colorPalette[0],
+            color3 = colorPalette.getOrNull(2) ?: colorPalette.getOrNull(1) ?: colorPalette[0],
             overlayColor = overlayColor,
             modifier = Modifier.fillMaxSize()
         )

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +21,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -241,7 +241,7 @@ internal fun PreviousSongButton(player: Player, color: Color, modifier: Modifier
     }
 }
 
-@androidx.annotation.OptIn(UnstableApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun PlayPauseButton(player: Player, color: Color, modifier: Modifier = Modifier) {
     val state = rememberPlayPauseButtonState(player)
@@ -253,6 +253,17 @@ internal fun PlayPauseButton(player: Player, color: Color, modifier: Modifier = 
     IconButton(onClick = state::onClick, modifier = modifier.bounceClick(state.isEnabled), enabled = state.isEnabled) {
         Icon(icon, contentDescription = contentDescription, modifier = modifier, tint = if (state.isEnabled) color else color.copy(0.5f))
     }
+//    ToggleButton(
+//        checked = state.showPlay,
+//        onCheckedChange = { state.onClick() },
+//        modifier = modifier,
+//        enabled = state.isEnabled
+//    ) {
+//        Icon(icon,
+//            contentDescription = contentDescription,
+//            modifier = modifier
+//        )
+//    }
 }
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -276,11 +287,14 @@ internal fun NextSongButton(player: Player, color: Color, modifier: Modifier = M
 fun LyricsButton(
     color: Color = Color.Black,
     size: Dp = 64.dp,
+    isActive: Boolean = false,
+    onClick: () -> Unit = {}
 ){
     val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
     val loading by LyricsState.loading.collectAsStateWithLifecycle()
+
     Button(
-        onClick = { lyricsOpen = !lyricsOpen },
+        onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         modifier = // Disable bounce click if no lyrics are present
         if (lyrics.isNotEmpty() || loading)
@@ -297,13 +311,12 @@ fun LyricsButton(
         ),
         enabled = lyrics.isNotEmpty() || loading
     ) {
-        Crossfade(targetState = lyricsOpen && lyrics.isNotEmpty(), label = "Lyrics Icon Crossfade") { open ->
+        Crossfade(targetState = isActive && lyrics.isNotEmpty(), label = "Lyrics Icon Crossfade") { open ->
             when (open) {
                 true -> Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
                     contentDescription = "Close Lyrics",
                     modifier = Modifier
-                        .height(size)
                         .size(size)
                 )
 
@@ -311,7 +324,6 @@ fun LyricsButton(
                     imageVector = ImageVector.vectorResource(R.drawable.lyrics_inactive),
                     contentDescription = "View Lyrics",
                     modifier = Modifier
-                        .height(size)
                         .size(size)
                 )
             }
@@ -322,10 +334,11 @@ fun LyricsButton(
 @Composable
 fun PlayQueueButton(
     color: Color = Color.Black,
-    size: Dp = 64.dp
+    size: Dp = 64.dp,
+    onClick: () -> Unit = {}
 ){
     Button(
-        onClick = { playQueueOpen = true },
+        onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         contentPadding = PaddingValues(6.dp),
         modifier = Modifier.bounceClick(),
@@ -337,10 +350,9 @@ fun PlayQueueButton(
         )
     ) {
         Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.s_m_playback),
-            contentDescription = "Close Lyrics",
+            imageVector = ImageVector.vectorResource(R.drawable.rounded_queue_music_24),
+            contentDescription = null,
             modifier = Modifier
-                .height(size)
                 .size(size)
         )
     }
@@ -363,7 +375,7 @@ fun DownloadButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Bo
         },
         enabled = enabled,
         shape = RoundedCornerShape(12.dp),
-        modifier = if (enabled) // Disable bounce click if song is local
+        modifier = if (enabled)
             Modifier
                 .bounceClick()
         else
@@ -380,7 +392,34 @@ fun DownloadButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Bo
             imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
             contentDescription = "Download Song",
             modifier = Modifier
-                .height(size)
+                .size(size)
+        )
+    }
+}
+
+@Composable
+fun SleepTimerButton(
+    color: Color,
+    size: Dp,
+    onClick: () -> Unit = {}
+) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .bounceClick(),
+        contentPadding = PaddingValues(6.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            contentColor = color.copy(alpha = 0.5f),
+            disabledContentColor = color.copy(alpha = 0.25f)
+        )
+    ) {
+        Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.rounded_timer_24),
+            contentDescription = "Sleep timer",
+            modifier = Modifier
                 .size(size)
         )
     }

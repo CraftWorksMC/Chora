@@ -70,6 +70,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     var session: MediaLibrarySession? = null
 
     private var scrobbleJob: Job? = null
+    private var sleepTimerJob: Job? = null
 
     @Inject lateinit var appearanceSettingsManager: AppearanceSettingsManager
     @Inject lateinit var playbackSettingsManager: PlaybackSettingsManager
@@ -564,11 +565,31 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         }
     }
 
+    fun setSleepTimer(minutes: Int) {
+        sleepTimerJob?.cancel() // Cancel any previously running timer
+
+        if (minutes <= 0) {
+            Log.d("SLEEPTIMER", "Sleep timer cancelled.")
+            return
+        }
+
+        Log.d("SLEEPTIMER", "Sleep timer set for $minutes minutes.")
+
+        sleepTimerJob = serviceMainScope.launch {
+            delay(minutes * 60 * 1000L)
+
+            if (::player.isInitialized && player.isPlaying) {
+                player.stop()
+                Log.d("SLEEPTIMER", "Timer finished. Playback paused.")
+            }
+        }
+    }
 
     override fun onDestroy() {
         saveState()
         session?.release()
         scrobbleJob?.cancel()
+        sleepTimerJob?.cancel()
         instance = null
         super.onDestroy()
     }

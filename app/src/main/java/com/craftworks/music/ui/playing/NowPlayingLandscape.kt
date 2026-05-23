@@ -63,8 +63,9 @@ import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 @Composable
 fun NowPlayingLandscape(
     mediaController: MediaController? = null,
-    iconColor: Color = Color.Black,
-    metadata: MediaMetadata? = null
+    metadata: MediaMetadata? = null,
+    iconColor: Color = Color.White,
+    lyricsOpen: Boolean = false,
 ){
     // use dark or light colors for icons and text based on the album art luminance.
     val iconTextColor by animateColorAsState(

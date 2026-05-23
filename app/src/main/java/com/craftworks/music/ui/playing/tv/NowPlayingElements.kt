@@ -68,7 +68,6 @@ import com.craftworks.music.formatMilliseconds
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
-import com.craftworks.music.ui.playing.playQueueOpen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -287,10 +286,11 @@ internal fun NextSongButton(player: Player, modifier: Modifier = Modifier) {
 
 @Composable
 fun PlayQueueButton(
-    size: Dp = 64.dp
+    size: Dp = 64.dp,
+    onClick: () -> Unit = {}
 ) {
     Button(
-        onClick = { playQueueOpen = true },
+        onClick = onClick,
         contentPadding = PaddingValues(6.dp),
         colors = ButtonDefaults.colors(
             containerColor = Color.Transparent,

@@ -118,7 +118,7 @@ fun LyricsView(
                 while (isActive) {
                     position = mediaController.currentPosition.toInt()
                     currentPosition.intValue = position
-                    delay(getNextUpdateDelay(position, lyrics))
+                    delay(getNextUpdateDelay(position + lyricsAnimationSpeed / 2, lyrics))
                 }
             }
         }
@@ -136,7 +136,7 @@ fun LyricsView(
                         while (isActive) {
                             position = mediaController.currentPosition.toInt()
                             currentPosition.intValue = position
-                            delay(getNextUpdateDelay(position, lyrics))
+                            delay(getNextUpdateDelay(position + lyricsAnimationSpeed / 2, lyrics))
                         }
                     }
                 } else trackingJob.cancel()

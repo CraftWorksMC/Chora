@@ -66,7 +66,7 @@ fun NowPlayingMiniPlayer(
         .background(MaterialTheme.colorScheme.surfaceContainer)
         .height(72.dp)
         .fillMaxWidth()
-        .padding(horizontal = 4.dp)
+        .padding(horizontal = 12.dp)
         .clickable {
             onClick.invoke()
         }
@@ -84,7 +84,6 @@ fun NowPlayingMiniPlayer(
             contentScale = ContentScale.FillWidth,
             alignment = Alignment.Center,
             modifier = Modifier
-                .padding(start = 8.dp)
                 .size(48.dp)
                 .clip(RoundedCornerShape(6.dp))
         )
