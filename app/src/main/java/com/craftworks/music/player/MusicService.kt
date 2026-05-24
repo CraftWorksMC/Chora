@@ -48,6 +48,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
@@ -71,6 +74,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     private var scrobbleJob: Job? = null
     private var sleepTimerJob: Job? = null
+    private var _sleepTimerRemainingTime = MutableStateFlow<Int>(0)
+    val sleepTimerRemainingTime: StateFlow<Int> = _sleepTimerRemainingTime.asStateFlow()
 
     @Inject lateinit var appearanceSettingsManager: AppearanceSettingsManager
     @Inject lateinit var playbackSettingsManager: PlaybackSettingsManager
@@ -570,17 +575,25 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         if (minutes <= 0) {
             Log.d("SLEEPTIMER", "Sleep timer cancelled.")
+            _sleepTimerRemainingTime.value = 0
             return
         }
 
         Log.d("SLEEPTIMER", "Sleep timer set for $minutes minutes.")
 
         sleepTimerJob = serviceMainScope.launch {
-            delay(minutes * 60 * 1000L)
+            var timeRemaining = minutes
+            _sleepTimerRemainingTime.value = timeRemaining
+
+            while (timeRemaining > 0) {
+                delay(60 * 1000L)
+                timeRemaining--
+                _sleepTimerRemainingTime.value = timeRemaining
+            }
 
             if (::player.isInitialized && player.isPlaying) {
                 player.stop()
-                Log.d("SLEEPTIMER", "Timer finished. Playback paused.")
+                Log.d("SLEEPTIMER", "Timer finished. Playback stopped.")
             }
         }
     }

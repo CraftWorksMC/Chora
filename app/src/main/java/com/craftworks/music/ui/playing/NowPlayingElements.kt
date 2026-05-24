@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -401,6 +403,7 @@ fun DownloadButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Bo
 fun SleepTimerButton(
     color: Color,
     size: Dp,
+    sleepTimerMinutes: Int,
     onClick: () -> Unit = {}
 ) {
     Button(
@@ -416,12 +419,27 @@ fun SleepTimerButton(
             disabledContentColor = color.copy(alpha = 0.25f)
         )
     ) {
-        Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.rounded_timer_24),
-            contentDescription = "Sleep timer",
-            modifier = Modifier
-                .size(size)
-        )
+        BadgedBox(
+            badge = {
+                if (sleepTimerMinutes > 0) {
+                    val formattedMinutes : String = if (sleepTimerMinutes > 60)
+                        "${sleepTimerMinutes / 60}h"
+                    else
+                        "${sleepTimerMinutes}m"
+
+                    Badge {
+                        Text(formattedMinutes)
+                    }
+                }
+            }
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.rounded_timer_24),
+                contentDescription = "Sleep timer",
+                modifier = Modifier
+                    .size(size)
+            )
+        }
     }
 }
 

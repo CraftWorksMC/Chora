@@ -93,6 +93,7 @@ fun NowPlayingPortrait(
     metadata: MediaMetadata? = null,
     iconColor: Color = Color.White,
     lyricsOpen: Boolean = false,
+    sleepTimerMinutes: Int = 10,
     onToggleLyrics: () -> Unit = {},
     onToggleQueue: () -> Unit = {},
     onToggleDetails: () -> Unit = {},
@@ -416,7 +417,7 @@ fun NowPlayingPortrait(
             verticalAlignment = Alignment.CenterVertically
         ) {
             DownloadButton(iconTextColor, 32.dp, metadata, true)
-            SleepTimerButton(iconTextColor, 32.dp, onOpenSleepTimer)
+            SleepTimerButton(iconTextColor, 32.dp, sleepTimerMinutes,onOpenSleepTimer)
             LyricsButton(iconTextColor, 32.dp, lyricsOpen, onToggleLyrics)
             PlayQueueButton(iconTextColor, 32.dp, onToggleQueue)
         }

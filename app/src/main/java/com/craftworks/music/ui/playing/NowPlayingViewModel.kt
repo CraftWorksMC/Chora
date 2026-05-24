@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@UnstableApi
 @HiltViewModel
 class NowPlayingViewModel @Inject constructor (
     @ApplicationContext private val context: Context,
@@ -51,8 +52,6 @@ class NowPlayingViewModel @Inject constructor (
     fun setPlayQueueOpen(open: Boolean) { _playQueueOpen.value = open }
     fun setDetailsOpen(open: Boolean) { _detailsOpen.value = open }
     fun setSleepTimerDialogOpen(open: Boolean) { _sleepTimerDialogOpen.value = open }
-
-    val sleepTimer = MutableStateFlow(0).asStateFlow()
 
     val backgroundStyle = appearanceSettingsManager.npBackgroundFlow
 

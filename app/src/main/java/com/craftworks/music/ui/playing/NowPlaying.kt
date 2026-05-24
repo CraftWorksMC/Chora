@@ -15,6 +15,8 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -50,6 +52,9 @@ fun NowPlayingContent(
     val playQueueOpen by viewModel.playQueueOpen.collectAsStateWithLifecycle()
     val detailsOpen by viewModel.detailsOpen.collectAsStateWithLifecycle()
     val sleepTimerOpen by viewModel.sleepTimerDialogOpen.collectAsStateWithLifecycle()
+    val sleepTimerMinutes by ChoraMediaLibraryService.getInstance()?.sleepTimerRemainingTime
+        ?.collectAsStateWithLifecycle(initialValue = 0)
+        ?: remember { mutableIntStateOf(0) }
     val colors by viewModel.paletteColors.collectAsStateWithLifecycle()
     val iconTextColor by viewModel.iconTextColor.collectAsStateWithLifecycle()
 
@@ -85,6 +90,7 @@ fun NowPlayingContent(
             metadata = metadata,
             iconColor = iconTextColor,
             lyricsOpen = lyricsOpen,
+            sleepTimerMinutes = sleepTimerMinutes,
             onToggleLyrics = { viewModel.setLyricsOpen(!lyricsOpen) },
             onToggleQueue = { viewModel.setPlayQueueOpen(!playQueueOpen) },
             onToggleDetails = { viewModel.setDetailsOpen(!detailsOpen) },
