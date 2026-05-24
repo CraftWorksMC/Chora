@@ -4,10 +4,11 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import androidx.annotation.OptIn
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,7 +20,6 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
-import com.craftworks.music.player.ChoraMediaLibraryService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
@@ -89,8 +89,8 @@ class NowPlayingViewModel @Inject constructor (
             val extractedColors = palette.filterNotNull()
             _paletteColors.value = extractedColors
 
-            val referenceColor = palette.elementAtOrNull(2) ?: palette.elementAtOrNull(4) ?: Color.Black
-            _isBackgroundDark.value = referenceColor.customLuminance() <= 0.8f
+            val averageLuminance = extractedColors.map { ColorUtils.calculateLuminance(it.toArgb()) }.average()
+            _isBackgroundDark.value = averageLuminance <= 0.5f
 
             _iconTextColor.value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (_isBackgroundDark.value) dynamicDarkColorScheme(context).onBackground
@@ -100,15 +100,6 @@ class NowPlayingViewModel @Inject constructor (
                 else Color.Black
             }
         }
-    }
-
-    @OptIn(UnstableApi::class)
-    fun setSleepTimer(minutes: Int) {
-        ChoraMediaLibraryService.getInstance()?.setSleepTimer(minutes)
-    }
-
-    private fun Color.customLuminance(): Float {
-        return 0.2126f * red + 0.7152f * green + 0.0722f * blue
     }
 
     private suspend fun extractColorsFromUri(uri: String, context: Context): List<Color?> = coroutineScope {
