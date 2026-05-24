@@ -7,6 +7,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -157,7 +158,8 @@ fun NowPlayingPortrait(
                         val direction = if (targetState) 1 else -1
 
                         (fadeIn(enterFadeSpec) + slideInVertically(enterSlideSpec) { direction * (it / 4) }) togetherWith
-                                (fadeOut(exitFadeSpec) + slideOutVertically(exitSlideSpec) { -direction * (it / 4) })
+                                (fadeOut(exitFadeSpec) + slideOutVertically(exitSlideSpec) { -direction * (it / 4) }) using
+                                SizeTransform(clip = false)
                     }
                 ) { showLyrics ->
                     val laggedOffset by transition.animateFloat(
@@ -413,9 +415,9 @@ fun NowPlayingPortrait(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            LyricsButton(iconTextColor, 32.dp, lyricsOpen, onToggleLyrics)
             DownloadButton(iconTextColor, 32.dp, metadata, true)
             SleepTimerButton(iconTextColor, 32.dp, onOpenSleepTimer)
+            LyricsButton(iconTextColor, 32.dp, lyricsOpen, onToggleLyrics)
             PlayQueueButton(iconTextColor, 32.dp, onToggleQueue)
         }
     }

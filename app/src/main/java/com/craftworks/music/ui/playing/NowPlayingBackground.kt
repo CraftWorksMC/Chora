@@ -23,8 +23,10 @@ fun NowPlaying_Background(
     backgroundStyle: NowPlayingBackground = NowPlayingBackground.STATIC_BLUR,
     overlayColor: Color = Color.Transparent
 ) {
-    if (colorPalette.isEmpty())
+    if (colorPalette.isEmpty()) {
+        PlainBackground()
         return
+    }
 
     when (backgroundStyle){
         NowPlayingBackground.PLAIN         -> PlainBackground()

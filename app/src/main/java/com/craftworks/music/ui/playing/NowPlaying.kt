@@ -45,7 +45,7 @@ fun NowPlayingContent(
     viewModel: NowPlayingViewModel = viewModel(),
 ) {
     val backgroundStyle by viewModel.backgroundStyle.collectAsStateWithLifecycle(NowPlayingBackground.STATIC_BLUR)
-    val isBackgroundDark by viewModel.isBackgroundDark.collectAsStateWithLifecycle()
+    val backgroundDarkMode by viewModel.isBackgroundDark.collectAsStateWithLifecycle()
     val lyricsOpen by viewModel.lyricsOpen.collectAsStateWithLifecycle()
     val playQueueOpen by viewModel.playQueueOpen.collectAsStateWithLifecycle()
     val detailsOpen by viewModel.detailsOpen.collectAsStateWithLifecycle()
@@ -53,15 +53,9 @@ fun NowPlayingContent(
     val colors by viewModel.paletteColors.collectAsStateWithLifecycle()
     val iconTextColor by viewModel.iconTextColor.collectAsStateWithLifecycle()
 
-    // Override with system colors if the background is plain
-    val backgroundDarkMode = if (backgroundStyle == NowPlayingBackground.PLAIN) {
-        isSystemInDarkTheme()
-    } else {
-        isBackgroundDark
-    }
-
+    val isSystemDark = isSystemInDarkTheme()
     LaunchedEffect(metadata?.artworkUri, backgroundStyle) {
-        viewModel.updatePaletteFromUri(metadata?.artworkUri, backgroundStyle)
+        viewModel.updatePaletteFromUri(metadata?.artworkUri, backgroundStyle, isSystemDark)
     }
 
     val targetOverlayColor = if (backgroundStyle == NowPlayingBackground.ANIMATED_BLUR) {

@@ -68,8 +68,22 @@ class NowPlayingViewModel @Inject constructor (
     private val _meta = MutableStateFlow(MediaItem.EMPTY)
     val metadata = _meta.asStateFlow()
 
-    fun updatePaletteFromUri(uri: Uri?, currentBackgroundStyle: NowPlayingBackground) {
-        if (uri == null || currentBackgroundStyle == NowPlayingBackground.PLAIN) return
+    fun updatePaletteFromUri(uri: Uri?, currentBackgroundStyle: NowPlayingBackground, isSystemDark: Boolean) {
+        if (currentBackgroundStyle == NowPlayingBackground.PLAIN) {
+            _paletteColors.value = emptyList()
+            _isBackgroundDark.value = isSystemDark
+            _iconTextColor.value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (_isBackgroundDark.value) dynamicDarkColorScheme(context).onBackground
+                else dynamicLightColorScheme(context).onBackground
+            } else {
+                if (_isBackgroundDark.value) Color.White
+                else Color.Black
+            }
+
+            return
+        }
+
+        if (uri == null) return
 
         viewModelScope.launch {
             val palette = extractColorsFromUri(uri.toString(), context)
@@ -131,11 +145,11 @@ class NowPlayingViewModel @Inject constructor (
                 }
 
                 listOf(
-                    palette.mutedSwatch?.rgb?.let { Color(it) },
-                    palette.darkVibrantSwatch?.rgb?.let { Color(it) },
-                    palette.lightVibrantSwatch?.rgb?.let { Color(it) },
                     palette.vibrantSwatch?.rgb?.let { Color(it) },
+                    palette.darkVibrantSwatch?.rgb?.let { Color(it) },
                     palette.dominantSwatch?.rgb?.let { Color(it) },
+                    palette.lightVibrantSwatch?.rgb?.let { Color(it) },
+                    palette.mutedSwatch?.rgb?.let { Color(it) },
                     palette.lightMutedSwatch?.rgb?.let { Color(it) },
                 )
             }
