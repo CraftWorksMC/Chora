@@ -10,12 +10,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,7 +51,6 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -77,7 +73,7 @@ import com.craftworks.music.ui.elements.dialogs.NowPlayingTitleAlignmentDialog
 import com.craftworks.music.ui.elements.dialogs.ThemeDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.playing.NowPlayingBackground
-import com.craftworks.music.ui.playing.NowPlayingTitleAlignment
+import com.craftworks.music.ui.playing.NowPlayingAlignment
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -91,11 +87,26 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
     var showNavbarItemsDialog by remember { mutableStateOf(false) }
     var showHomeItemsDialog by remember { mutableStateOf(false) }
     var showNowPlayingTitleAlignmentDialog by remember { mutableStateOf(false) }
+    var showNowPlayingLyricsAlignmentDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     val focusRequester = remember { FocusRequester() }
+
+    // Now Playing Title Alignment
+    val nowPlayingTitleAlignment by AppearanceSettingsManager(context).nowPlayingTitleAlignment.collectAsState(
+        NowPlayingAlignment.LEFT
+    )
+    // Now Playing Lyrics Alignment
+    val nowPlayingLyricsAlignment by AppearanceSettingsManager(context).nowPlayingLyricsAlignment.collectAsState(
+        NowPlayingAlignment.CENTER
+    )
+    val alignmentLabels = mapOf(
+        NowPlayingAlignment.LEFT to R.string.NowPlayingTitleAlignment_Left,
+        NowPlayingAlignment.CENTER to R.string.NowPlayingTitleAlignment_Center,
+        NowPlayingAlignment.RIGHT to R.string.NowPlayingTitleAlignment_Right
+    )
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -291,22 +302,13 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         }
                     )
 
-                    // Now Playing Title Alignment
-                    val nowPlayingTitleAlignment by AppearanceSettingsManager(context).nowPlayingTitleAlignment.collectAsState(
-                        NowPlayingTitleAlignment.LEFT
-                    )
-                    val alignmentLabels = mapOf(
-                        NowPlayingTitleAlignment.LEFT to R.string.NowPlayingTitleAlignment_Left,
-                        NowPlayingTitleAlignment.CENTER to R.string.NowPlayingTitleAlignment_Center,
-                        NowPlayingTitleAlignment.RIGHT to R.string.NowPlayingTitleAlignment_Right
-                    )
                     SettingsDialogButton(
                         stringResource(R.string.Setting_NowPlayingTitleAlignment),
                         stringResource(
                             alignmentLabels[nowPlayingTitleAlignment]
                                 ?: R.string.NowPlayingTitleAlignment_Left
-                        ), // Default to Left if not found
-                        Icons.Rounded.Menu, // Placeholder icon
+                        ),
+                        Icons.Rounded.Menu,
                         toggleEvent = {
                             showNowPlayingTitleAlignmentDialog = true
                         }
@@ -317,6 +319,17 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     modifier = Modifier.clip(RoundedCornerShape(16.dp)),
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
+                    SettingsDialogButton(
+                        stringResource(R.string.Setting_NowPlayingLyricsAlignment),
+                        stringResource(
+                            alignmentLabels[nowPlayingLyricsAlignment]
+                                ?: R.string.NowPlayingTitleAlignment_Center
+                        ),
+                        Icons.Rounded.Menu,
+                        toggleEvent = {
+                            showNowPlayingLyricsAlignmentDialog = true
+                        }
+                    )
                     //Lyrics blur Info
                     val nowPlayingLyricsBlur =
                         AppearanceSettingsManager(context).nowPlayingLyricsBlurFlow.collectAsState(
@@ -503,6 +516,26 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
             HomeItemsDialog(setShowDialog = { showHomeItemsDialog = it })
 
         if(showNowPlayingTitleAlignmentDialog)
-            NowPlayingTitleAlignmentDialog(setShowDialog = { showNowPlayingTitleAlignmentDialog = it })
+            NowPlayingTitleAlignmentDialog(
+                setShowDialog = { showNowPlayingTitleAlignmentDialog = it },
+                title = stringResource(R.string.Setting_NowPlayingTitleAlignment),
+                selection = nowPlayingTitleAlignment,
+                onSet = {
+                    runBlocking {
+                        AppearanceSettingsManager(context).setNowPlayingTitleAlignment(it)
+                    }
+                }
+            )
+        if(showNowPlayingLyricsAlignmentDialog)
+            NowPlayingTitleAlignmentDialog(
+                setShowDialog = { showNowPlayingLyricsAlignmentDialog = it },
+                title = stringResource(R.string.Setting_NowPlayingTitleAlignment),
+                selection = nowPlayingLyricsAlignment,
+                onSet = {
+                    runBlocking {
+                        AppearanceSettingsManager(context).setNowPlayingLyricsAlignment(it)
+                    }
+                }
+            )
     }
 }

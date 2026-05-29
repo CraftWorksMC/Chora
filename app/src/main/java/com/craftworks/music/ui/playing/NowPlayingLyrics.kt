@@ -92,6 +92,9 @@ fun LyricsView(
     val lyricsAnimationSpeed by AppearanceSettingsManager(LocalContext.current).lyricsAnimationSpeedFlow.collectAsState(
         100
     )
+    val lyricsAlignment by AppearanceSettingsManager(LocalContext.current).nowPlayingLyricsAlignment.collectAsStateWithLifecycle(
+        NowPlayingAlignment.CENTER
+    )
 
     // State holding the current position
     val currentPosition =
@@ -253,6 +256,7 @@ fun LyricsView(
                             visibleItemsInfo = visibleItemsInfo,
                             color = color,
                             lyricsAnimationSpeed = lyricsAnimationSpeed,
+                            lyricsAlignment = lyricsAlignment,
                             onClick = {
                                 mediaController?.seekTo(lyric.timestamp.toLong())
                                 currentPosition.intValue = lyric.timestamp
@@ -268,7 +272,11 @@ fun LyricsView(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
-                            textAlign = TextAlign.Center
+                            textAlign = when (lyricsAlignment) {
+                                NowPlayingAlignment.LEFT -> TextAlign.Start
+                                NowPlayingAlignment.CENTER -> TextAlign.Center
+                                NowPlayingAlignment.RIGHT -> TextAlign.End
+                            }
                         )
                     }
                 }
@@ -286,6 +294,7 @@ fun SyncedLyricItem(
     visibleItemsInfo: List<LazyListItemInfo>,
     color: Color,
     lyricsAnimationSpeed: Int = 1200,
+    lyricsAlignment: NowPlayingAlignment,
     onClick: () -> Unit = {},
 ) {
     val lyricAlpha: Float by animateFloatAsState(
@@ -320,7 +329,11 @@ fun SyncedLyricItem(
                             scaleX = scale
                             scaleY = scale
                         },
-                    contentAlignment = Alignment.Center
+                    contentAlignment = when (lyricsAlignment) {
+                        NowPlayingAlignment.LEFT -> Alignment.TopStart
+                        NowPlayingAlignment.CENTER -> Alignment.TopCenter
+                        NowPlayingAlignment.RIGHT -> Alignment.TopEnd
+                    }
                 ) {
                     InterludeIndicator(color)
                 }
@@ -340,9 +353,7 @@ fun SyncedLyricItem(
                 .clickable {
                     onClick()
                 },
-            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
-            //contentAlignment = Alignment.Center
         ) {
 //            Text(
 //                text = lyric.content,
@@ -360,7 +371,11 @@ fun SyncedLyricItem(
                     else MaterialTheme.typography.bodyMedium,
                     color = color.copy(alpha = if (i == 0) lyricAlpha else lyricAlpha * 0.65f),
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
+                    textAlign = when (lyricsAlignment) {
+                        NowPlayingAlignment.LEFT -> TextAlign.Start
+                        NowPlayingAlignment.CENTER -> TextAlign.Center
+                        NowPlayingAlignment.RIGHT -> TextAlign.End
+                    }
                 )
             }
         }

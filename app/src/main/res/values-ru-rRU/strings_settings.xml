@@ -7,7 +7,7 @@
     <string name="Setting_Home_Items">Элементы Главной Страницы</string>
     <string name="Setting_MoreInfo">Показывать Дополнительную Информацию</string>
     <string name="Setting_NowPlayingLyricsBlur">Эффект Блюра Субтитров</string>
-    <string name="Setting_NavidromeLogo">Show Navidrome Logo</string>
+    <string name="Setting_NavidromeLogo">Отображать Navidrome Лого На Главном Экране</string>
     <string name="Setting_ProviderDividers">Разделять Разные Медиа-провайдеры</string>
     <string name="Setting_RefreshAnimation">Показывать Анимацию Обновления</string>
     <string name="Setting_LyricsAnimationSpeed">Скорость Анимации Субтитров</string>

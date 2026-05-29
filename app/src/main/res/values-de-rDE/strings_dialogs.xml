@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Now-Playing Background Dialog -->
+    <string name="Dialog_Background_Type">Hintergrundstil</string>
+    <string name="Background_Plain">Schlicht</string>
+    <string name="Background_Blur">Unscharf</string>
+    <string name="Background_Anim">Animiert</string>
+    <string name="Background_Anim_Simple">Einfach animiert</string>
+    <!-- App Theme Dialog -->
+    <string name="Dialog_Theme">Thema</string>
+    <string name="Theme_Dark">Dunkel</string>
+    <string name="Theme_Light">Hell</string>
+    <string name="Theme_System">System</string>
+    <!-- Provider Dialog -->
+    <string name="Dialog_Media_Source">Medienquelle</string>
+    <string name="No_Providers_Splash">Du hast noch keinen Medienanbieter hinzugefügt. Füge jetzt einen hinzu, um Musik zu hören!</string>
+    <string name="No_Providers_Done">Fertig! Du kannst jetzt anfangen, Musik zu hören!</string>
+    <string name="Source_Local">Lokaler Ordner</string>
+    <!-- Local -->
+    <string name="Label_Local_Directory">Verzeichnis:</string>
+    <!-- Navidrome -->
+    <string name="Label_Navidrome_URL">Navidrome URL:</string>
+    <string name="Label_Navidrome_Username">Benutzername:</string>
+    <string name="Label_Navidrome_Password">Passwort:</string>
+    <string name="Label_Allow_Self_Signed_Certs">Erlaube selbst signierte Zertifikate</string>
+    <!-- LRCLIB Dialog -->
+    <string name="Dialog_LRCLIB_Url">LRCLIB-URL</string>
+    <!-- Transcoding -->
+    <string name="Dialog_Transcoding">Transkodierung</string>
+    <string name="Option_No_Transcoding">Keine Transkodierung</string>
+    <!-- Radios -->
+    <string name="Dialog_Add_Radio">Internet Radio hinzufügen</string>
+    <string name="Dialog_Modify_Radio">Bearbeiten </string>
+    <string name="Label_Radio_Name">Radioname:</string>
+    <string name="Label_Radio_URL">Radio-URL:</string>
+    <string name="Label_Radio_Homepage">URL der Radio Homepage:</string>
+    <string name="Label_Radio_Add_To_Navidrome">Zu Navidrome hinzufügen</string>
+    <!-- Playlists -->
+    <string name="Dialog_New_Playlist">Neue Wiedergabeliste</string>
+    <string name="Dialog_Delete_Playlist">Wiedergabeliste löschen</string>
+    <string name="Label_Confirm_Delete_Playlist">Möchtest du diese Wiedergabeliste wirklich löschen?</string>
+    <string name="Dialog_Add_To_Playlist">Hinzufügen / zur Playlist</string>
+    <string name="Label_Playlist_Name">Name der Wiedergabeliste</string>
+    <!-- Albums -->
+    <string name="Label_MoreSongsFrom">Weitere Titel von</string>
+    <!-- Artists -->
+    <string name="Label_NoDescription">Keine Beschreibung verfügbar.</string>
+    <!-- Sorting -->
+    <string name="Label_Sorting">Sortieren nach</string>
+    <string name="Label_Sort_Alphabetical">Alphabetisch</string>
+    <string name="Label_Sort_Starred">Markiert</string>
+    <!-- Connection Errors -->
+    <string name="Navidrome_Error">Navidrome Server nicht erreichbar.</string>
+    <string name="Navidrome_Sync">Lädt…</string>
+    <!-- Downloading -->
+    <string name="Notification_Download_Name">Download-Benachrichtigung</string>
+    <string name="Notification_Download_Desc">Benachrichtigungen für den Downloadstatus</string>
+    <string name="Notification_Download_Progress">Wird heruntergeladen</string>
+    <string name="Notification_Download_Success">Download abgeschlossen!</string>
+    <string name="Notification_Download_Failure">Oh oh, beim Herunterladen ist etwas schief gelaufen</string>
+    <!-- Now Playing Title Alignment -->
+    <string name="Setting_NowPlayingTitleAlignment">Jetzt spielt Titelausrichtung</string>
+    <string name="Setting_NowPlayingLyricsAlignment">Jetzt spielt Songtextausrichtung</string>
+    <string name="NowPlayingTitleAlignment_Left">Links</string>
+    <string name="NowPlayingTitleAlignment_Center">Mitte</string>
+    <string name="NowPlayingTitleAlignment_Right">Rechts</string>
+    <!-- Now Playing Title Alignment -->
+    <string name="Dialog_SetSleepTimer">Sleep-Timer setzen</string>
+</resources>

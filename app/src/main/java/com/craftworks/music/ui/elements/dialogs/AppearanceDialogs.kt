@@ -53,7 +53,7 @@ import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.playing.NowPlayingBackground
-import com.craftworks.music.ui.playing.NowPlayingTitleAlignment
+import com.craftworks.music.ui.playing.NowPlayingAlignment
 import com.craftworks.music.ui.screens.HomeItem
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -558,30 +558,27 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
 
 @Composable
 @Preview
-fun NowPlayingTitleAlignmentDialog(setShowDialog: (Boolean) -> Unit = { }) {
-    val context = LocalContext.current
-
-    val nowPlayingTitleAlignment by AppearanceSettingsManager(context).nowPlayingTitleAlignment.collectAsState(
-        NowPlayingTitleAlignment.LEFT
-    )
+fun NowPlayingTitleAlignmentDialog(
+    setShowDialog: (Boolean) -> Unit = { },
+    title: String = "",
+    selection: NowPlayingAlignment = NowPlayingAlignment.LEFT,
+    onSet: (NowPlayingAlignment) -> Unit = { }
+) {
+    val nowPlayingTitleAlignment by remember { mutableStateOf(selection) }
 
     AlertDialog(
         onDismissRequest = { setShowDialog(false) },
-        title = { Text(stringResource(R.string.Setting_NowPlayingTitleAlignment)) },
+        title = { Text(title) },
         text = {
             Column {
-                NowPlayingTitleAlignment.entries.forEach { alignment ->
+                NowPlayingAlignment.entries.forEach { alignment ->
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
                             .selectable(
                                 selected = (alignment == nowPlayingTitleAlignment),
                                 onClick = {
-                                    runBlocking {
-                                        AppearanceSettingsManager(context).setNowPlayingTitleAlignment(
-                                            alignment
-                                        )
-                                    }
+                                    onSet(alignment)
                                     setShowDialog(false)
                                 },
                                 role = Role.RadioButton
@@ -591,21 +588,14 @@ fun NowPlayingTitleAlignmentDialog(setShowDialog: (Boolean) -> Unit = { }) {
                         RadioButton(
                             selected = alignment == nowPlayingTitleAlignment,
                             onClick = {
-                                runBlocking {
-                                    runBlocking {
-                                        AppearanceSettingsManager(context).setNowPlayingTitleAlignment(
-                                            alignment
-                                        )
-                                    }
-                                    setShowDialog(false)
-                                }
+                                onSet(alignment)
                             },
                             modifier = Modifier.bounceClick()
                         )
                         val alignmentStringRes = when (alignment) {
-                            NowPlayingTitleAlignment.LEFT -> R.string.NowPlayingTitleAlignment_Left
-                            NowPlayingTitleAlignment.CENTER -> R.string.NowPlayingTitleAlignment_Center
-                            NowPlayingTitleAlignment.RIGHT -> R.string.NowPlayingTitleAlignment_Right
+                            NowPlayingAlignment.LEFT -> R.string.NowPlayingTitleAlignment_Left
+                            NowPlayingAlignment.CENTER -> R.string.NowPlayingTitleAlignment_Center
+                            NowPlayingAlignment.RIGHT -> R.string.NowPlayingTitleAlignment_Right
                         }
 
                         Text(

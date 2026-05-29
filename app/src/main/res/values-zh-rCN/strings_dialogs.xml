@@ -60,7 +60,10 @@
     <string name="Notification_Download_Failure">Uh oh, something went wrong while downloading</string>
     <!-- Now Playing Title Alignment -->
     <string name="Setting_NowPlayingTitleAlignment">正在播放标题的位置</string>
+    <string name="Setting_NowPlayingLyricsAlignment">Now Playing Lyrics Alignment</string>
     <string name="NowPlayingTitleAlignment_Left">左对齐</string>
     <string name="NowPlayingTitleAlignment_Center">居中对齐</string>
     <string name="NowPlayingTitleAlignment_Right">右对齐</string>
+    <!-- Now Playing Title Alignment -->
+    <string name="Dialog_SetSleepTimer">Set Sleep Timer</string>
 </resources>

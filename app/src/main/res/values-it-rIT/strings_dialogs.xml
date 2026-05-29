@@ -60,7 +60,10 @@
     <string name="Notification_Download_Failure">Uh oh, qualcosa è andato storto nel scaricare</string>
     <!-- Now Playing Title Alignment -->
     <string name="Setting_NowPlayingTitleAlignment">Allineamento Titolo In Riproduzione</string>
+    <string name="Setting_NowPlayingLyricsAlignment">Now Playing Lyrics Alignment</string>
     <string name="NowPlayingTitleAlignment_Left">Sinistra</string>
     <string name="NowPlayingTitleAlignment_Center">Centro</string>
     <string name="NowPlayingTitleAlignment_Right">Destra</string>
+    <!-- Now Playing Title Alignment -->
+    <string name="Dialog_SetSleepTimer">Imposta Timer</string>
 </resources>

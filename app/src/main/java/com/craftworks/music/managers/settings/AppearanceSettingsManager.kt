@@ -9,8 +9,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.dataStore
+import com.craftworks.music.ui.playing.NowPlayingAlignment
 import com.craftworks.music.ui.playing.NowPlayingBackground
-import com.craftworks.music.ui.playing.NowPlayingTitleAlignment
 import com.craftworks.music.ui.screens.HomeItem
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.NonCancellable
@@ -29,6 +29,7 @@ class AppearanceSettingsManager @Inject constructor(
         private val USERNAME_KEY = stringPreferencesKey("username")
         private val NP_BACKGROUND_KEY = stringPreferencesKey("np_background_type")
         private val NP_TITLE_ALIGNMENT = stringPreferencesKey("np_title_alignment")
+        private val NP_LYRICS_ALIGNMENT = stringPreferencesKey("np_lyrics_alignment")
         private val SHOW_NAVIDROME_KEY = booleanPreferencesKey("show_navidrome_logo")
         private val SHOW_MORE_INFO_KEY = booleanPreferencesKey("show_more_info")
         private val NOW_PLAYING_LYRIC_BLUR_KEY = booleanPreferencesKey("now_playing_lyrics_blur")
@@ -229,17 +230,32 @@ class AppearanceSettingsManager @Inject constructor(
         }
     }
 
-    val nowPlayingTitleAlignment: Flow<NowPlayingTitleAlignment> =
+    val nowPlayingTitleAlignment: Flow<NowPlayingAlignment> =
         context.dataStore.data.map { preferences ->
-            NowPlayingTitleAlignment.valueOf(
-                preferences[NP_TITLE_ALIGNMENT] ?: NowPlayingTitleAlignment.LEFT.name
+            NowPlayingAlignment.valueOf(
+                preferences[NP_TITLE_ALIGNMENT] ?: NowPlayingAlignment.LEFT.name
             )
         }
 
-    suspend fun setNowPlayingTitleAlignment(nowPlayingTitleAlignment: NowPlayingTitleAlignment) {
+    suspend fun setNowPlayingTitleAlignment(nowPlayingTitleAlignment: NowPlayingAlignment) {
         withContext(NonCancellable) {
             context.dataStore.edit { preferences ->
                 preferences[NP_TITLE_ALIGNMENT] = nowPlayingTitleAlignment.name
+            }
+        }
+    }
+
+    val nowPlayingLyricsAlignment: Flow<NowPlayingAlignment> =
+        context.dataStore.data.map { preferences ->
+            NowPlayingAlignment.valueOf(
+                preferences[NP_LYRICS_ALIGNMENT] ?: NowPlayingAlignment.CENTER.name
+            )
+        }
+
+    suspend fun setNowPlayingLyricsAlignment(nowPlayingLyricsAlignment: NowPlayingAlignment) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[NP_LYRICS_ALIGNMENT] = nowPlayingLyricsAlignment.name
             }
         }
     }

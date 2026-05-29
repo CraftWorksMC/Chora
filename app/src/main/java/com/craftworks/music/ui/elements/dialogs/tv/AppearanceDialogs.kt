@@ -38,6 +38,7 @@ import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.ui.playing.NowPlayingAlignment
 import com.craftworks.music.ui.playing.NowPlayingBackground
 import com.craftworks.music.ui.screens.HomeItem
 import kotlinx.coroutines.launch
@@ -226,43 +227,37 @@ fun BackgroundDialog(
     )
 }
 
-/*
 @Preview
 @Composable
-fun NowPlayingTitleAlignmentDialog(
-    setShowDialog: (Boolean) -> Unit = { }
+fun NowPlayingAlignmentDialog(
+    setShowDialog: (Boolean) -> Unit = { },
+    selection: NowPlayingAlignment = NowPlayingAlignment.CENTER,
+    onSet: (NowPlayingAlignment) -> Unit = { },
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val nowPlayingTitleAlignment by AppearanceSettingsManager(context).nowPlayingTitleAlignment.collectAsState(
-        NowPlayingTitleAlignment.LEFT
-    )
+    val nowPlayingTitleAlignment by remember { mutableStateOf(selection) }
 
     GenericListDialog(
         setShowDialog = setShowDialog,
         titleRes = R.string.Setting_NowPlayingTitleAlignment,
-        options = NowPlayingTitleAlignment.entries,
+        options = NowPlayingAlignment.entries,
         selectedOption = nowPlayingTitleAlignment,
         onOptionSelected = { option ->
-            coroutineScope.launch {
-                AppearanceSettingsManager(context).setNowPlayingTitleAlignment(
-                    option
-                )
-            }
+            onSet(option)
         },
         label = { option ->
             stringResource(
             when (option) {
-                    NowPlayingTitleAlignment.LEFT -> R.string.NowPlayingTitleAlignment_Left
-                    NowPlayingTitleAlignment.CENTER -> R.string.NowPlayingTitleAlignment_Center
-                    NowPlayingTitleAlignment.RIGHT -> R.string.NowPlayingTitleAlignment_Right
+                    NowPlayingAlignment.LEFT -> R.string.NowPlayingTitleAlignment_Left
+                    NowPlayingAlignment.CENTER -> R.string.NowPlayingTitleAlignment_Center
+                    NowPlayingAlignment.RIGHT -> R.string.NowPlayingTitleAlignment_Right
                 }
             )
         }
     )
 }
-*/
 
 @Composable
 fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {

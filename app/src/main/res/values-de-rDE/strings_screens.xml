@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home -->
+    <string name="welcome_text">Willkommen</string>
+    <string name="recently_added">Kürzlich hinzugefügt</string>
+    <string name="most_played">Meistgespielt</string>
+    <string name="recently_played">Kürzlich Gespielt</string>
+    <string name="random_songs">Von Ihrer Bibliothek entdecken</string>
+    <!-- Artist Details -->
+    <string name="Screen_Discography">Diskografie</string>
+    <string name="Screen_Top_Songs">Beliebteste Songs</string>
+    <!-- Album Details -->
+    <string name="Album_Disc_Number">CD </string>
+</resources>

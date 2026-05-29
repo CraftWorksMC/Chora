@@ -73,7 +73,11 @@
 
     <!-- Now Playing Title Alignment -->
     <string name="Setting_NowPlayingTitleAlignment">Now Playing Title Alignment</string>
+    <string name="Setting_NowPlayingLyricsAlignment">Now Playing Lyrics Alignment</string>
     <string name="NowPlayingTitleAlignment_Left">Left</string>
     <string name="NowPlayingTitleAlignment_Center">Center</string>
     <string name="NowPlayingTitleAlignment_Right">Right</string>
+
+    <!-- Now Playing Title Alignment -->
+    <string name="Dialog_SetSleepTimer">Set Sleep Timer</string>
 </resources>

@@ -112,7 +112,7 @@ fun NowPlayingPortrait(
     val settingsManager = remember { AppearanceSettingsManager(context) }
     val showMoreInfo by settingsManager.showMoreInfoFlow.collectAsStateWithLifecycle(true)
     val titleAlignment by settingsManager.nowPlayingTitleAlignment.collectAsStateWithLifecycle(
-        NowPlayingTitleAlignment.LEFT
+        NowPlayingAlignment.LEFT
     )
     val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
     val loadingLyrics by LyricsState.loading.collectAsStateWithLifecycle()
@@ -269,7 +269,7 @@ fun NowPlayingPortrait(
                             ) {
                                 CompositionLocalProvider(
                                     LocalLayoutDirection provides
-                                            if (titleAlignment == NowPlayingTitleAlignment.RIGHT)
+                                            if (titleAlignment == NowPlayingAlignment.RIGHT)
                                                 LayoutDirection.Rtl
                                             else LayoutDirection.Ltr
                                 ) {
@@ -297,9 +297,9 @@ fun NowPlayingPortrait(
                                                     overflow = TextOverflow.Visible,
                                                     softWrap = false,
                                                     textAlign = when (titleAlignment) {
-                                                        NowPlayingTitleAlignment.LEFT -> TextAlign.Start
-                                                        NowPlayingTitleAlignment.CENTER -> TextAlign.Center
-                                                        NowPlayingTitleAlignment.RIGHT -> TextAlign.End
+                                                        NowPlayingAlignment.LEFT -> TextAlign.Start
+                                                        NowPlayingAlignment.CENTER -> TextAlign.Center
+                                                        NowPlayingAlignment.RIGHT -> TextAlign.End
                                                     },
                                                     modifier = Modifier
                                                         .fillMaxWidth()
@@ -336,9 +336,9 @@ fun NowPlayingPortrait(
                                         maxLines = 1,
                                         softWrap = false,
                                         textAlign = when (titleAlignment) {
-                                            NowPlayingTitleAlignment.LEFT -> TextAlign.Start
-                                            NowPlayingTitleAlignment.CENTER -> TextAlign.Center
-                                            NowPlayingTitleAlignment.RIGHT -> TextAlign.End
+                                            NowPlayingAlignment.LEFT -> TextAlign.Start
+                                            NowPlayingAlignment.CENTER -> TextAlign.Center
+                                            NowPlayingAlignment.RIGHT -> TextAlign.End
                                         },
                                         overflow = TextOverflow.Ellipsis,
                                         modifier = Modifier
@@ -369,9 +369,9 @@ fun NowPlayingPortrait(
                                         color = iconTextColor.copy(alpha = 0.45f),
                                         maxLines = 1,
                                         textAlign = when (titleAlignment) {
-                                            NowPlayingTitleAlignment.LEFT -> TextAlign.Start
-                                            NowPlayingTitleAlignment.CENTER -> TextAlign.Center
-                                            NowPlayingTitleAlignment.RIGHT -> TextAlign.End
+                                            NowPlayingAlignment.LEFT -> TextAlign.Start
+                                            NowPlayingAlignment.CENTER -> TextAlign.Center
+                                            NowPlayingAlignment.RIGHT -> TextAlign.End
                                         },
                                         modifier = Modifier.fillMaxWidth()
                                     )
@@ -416,7 +416,7 @@ fun NowPlayingPortrait(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            DownloadButton(iconTextColor, 32.dp, metadata, true)
+            DownloadButton(iconTextColor, 32.dp, metadata, !(metadata?.extras?.getString("navidromeID")?.startsWith("Local_") ?: true))
             SleepTimerButton(iconTextColor, 32.dp, sleepTimerMinutes,onOpenSleepTimer)
             LyricsButton(iconTextColor, 32.dp, lyricsOpen, onToggleLyrics)
             PlayQueueButton(iconTextColor, 32.dp, onToggleQueue)

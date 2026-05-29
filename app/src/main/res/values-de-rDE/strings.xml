@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Navigation -->
+    <string name="songs">Songs</string>
+    <string name="Albums">Alben</string>
+    <string name="Artists">Künstler</string>
+    <string name="settings">Einstellungen</string>
+    <string name="radios">Internetradio</string>
+    <string name="playlists">Wiedergabelisten</string>
+</resources>

@@ -37,7 +37,9 @@ import com.craftworks.music.ui.elements.dialogs.tv.BackgroundDialog
 import com.craftworks.music.ui.elements.dialogs.tv.HomeItemsDialog
 import com.craftworks.music.ui.elements.dialogs.tv.NameDialog
 import com.craftworks.music.ui.elements.dialogs.tv.NavbarItemsDialog
+import com.craftworks.music.ui.elements.dialogs.tv.NowPlayingAlignmentDialog
 import com.craftworks.music.ui.elements.dialogs.tv.ThemeDialog
+import com.craftworks.music.ui.playing.NowPlayingAlignment
 import com.craftworks.music.ui.playing.NowPlayingBackground
 import kotlinx.coroutines.launch
 
@@ -50,10 +52,15 @@ fun TvS_AppearanceScreen() {
     var showThemesDialog by remember { mutableStateOf(false) }
     var showNavbarItemsDialog by remember { mutableStateOf(false) }
     var showHomeItemsDialog by remember { mutableStateOf(false) }
-    var showNowPlayingTitleAlignmentDialog by remember { mutableStateOf(false) }
+    var showNowPlayingLyricsAlignmentDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
+    val nowPlayingTitleAlignment by AppearanceSettingsManager(context).nowPlayingLyricsAlignment.collectAsState(
+        NowPlayingAlignment.LEFT
+    )
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -145,15 +152,11 @@ fun TvS_AppearanceScreen() {
                     onClick = { showHomeItemsDialog = true }
                 )
 
-                /*
                 // Now Playing Title Alignment
-                val nowPlayingTitleAlignment by AppearanceSettingsManager(context).nowPlayingTitleAlignment.collectAsState(
-                    NowPlayingTitleAlignment.LEFT
-                )
                 val alignmentLabels = mapOf(
-                    NowPlayingTitleAlignment.LEFT to R.string.NowPlayingTitleAlignment_Left,
-                    NowPlayingTitleAlignment.CENTER to R.string.NowPlayingTitleAlignment_Center,
-                    NowPlayingTitleAlignment.RIGHT to R.string.NowPlayingTitleAlignment_Right
+                    NowPlayingAlignment.LEFT to R.string.NowPlayingTitleAlignment_Left,
+                    NowPlayingAlignment.CENTER to R.string.NowPlayingTitleAlignment_Center,
+                    NowPlayingAlignment.RIGHT to R.string.NowPlayingTitleAlignment_Right
                 )
 
                 SettingsButtonItem(
@@ -163,9 +166,8 @@ fun TvS_AppearanceScreen() {
                             ?: R.string.NowPlayingTitleAlignment_Left
                     ),
                     icon = ImageVector.vectorResource(R.drawable.rounded_sort_24),
-                    onClick = { showNowPlayingTitleAlignmentDialog = true }
+                    onClick = { showNowPlayingLyricsAlignmentDialog = true }
                 )
-                */
             }
         }
 
@@ -342,5 +344,13 @@ fun TvS_AppearanceScreen() {
     if (showThemesDialog) ThemeDialog(setShowDialog = { showThemesDialog = it })
     if (showNavbarItemsDialog) NavbarItemsDialog(setShowDialog = { showNavbarItemsDialog = it })
     if (showHomeItemsDialog) HomeItemsDialog(setShowDialog = { showHomeItemsDialog = it })
-    //if (showNowPlayingTitleAlignmentDialog) NowPlayingTitleAlignmentDialog(setShowDialog = { showNowPlayingTitleAlignmentDialog = it })
+    if (showNowPlayingLyricsAlignmentDialog) NowPlayingAlignmentDialog(
+        setShowDialog = { showNowPlayingLyricsAlignmentDialog = it },
+        selection = nowPlayingTitleAlignment,
+        onSet = {
+            coroutineScope.launch {
+                AppearanceSettingsManager(context).setNowPlayingLyricsAlignment(it)
+            }
+        }
+    )
 }

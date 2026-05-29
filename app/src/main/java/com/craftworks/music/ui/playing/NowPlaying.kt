@@ -33,7 +33,7 @@ import com.craftworks.music.R
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.ui.playing.tv.TvNowPlaying
 
-enum class NowPlayingTitleAlignment {
+enum class NowPlayingAlignment {
     LEFT, CENTER, RIGHT
 }
 
@@ -125,7 +125,7 @@ fun NowPlayingContent(
     if (sleepTimerOpen) {
         AlertDialog(
             onDismissRequest = { viewModel.setSleepTimerDialogOpen(false) },
-            title = { Text("Set Sleep Timer") },
+            title = { Text(stringResource(R.string.Dialog_SetSleepTimer)) },
             text = {
                 TimePicker(
                     state = timePickerState,

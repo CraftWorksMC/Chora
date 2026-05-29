@@ -39,7 +39,7 @@
     <string name="Dialog_New_Playlist">Новый Плейлист</string>
     <string name="Dialog_Delete_Playlist">Удалить Плейлист</string>
     <string name="Label_Confirm_Delete_Playlist">Вы уверены, что хотите удалить этот плейлист?</string>
-    <string name="Dialog_Add_To_Playlist">Add / To Playlist</string>
+    <string name="Dialog_Add_To_Playlist">Добавить / В Плейлист</string>
     <string name="Label_Playlist_Name">Название Плейлиста:</string>
     <!-- Albums -->
     <string name="Label_MoreSongsFrom">Больше Песен От</string>
@@ -60,7 +60,10 @@
     <string name="Notification_Download_Failure">Ой-Ой, что-то пошло не так во время загрузки</string>
     <!-- Now Playing Title Alignment -->
     <string name="Setting_NowPlayingTitleAlignment">Расположение Окна С Названием Текущего Трека</string>
+    <string name="Setting_NowPlayingLyricsAlignment">Расположение Окна С Субтитрами Текущего Трека</string>
     <string name="NowPlayingTitleAlignment_Left">На Левой Стороне</string>
     <string name="NowPlayingTitleAlignment_Center">В Центре</string>
     <string name="NowPlayingTitleAlignment_Right">На Правой Стороне</string>
+    <!-- Now Playing Title Alignment -->
+    <string name="Dialog_SetSleepTimer">Поставить Таймер Сна</string>
 </resources>

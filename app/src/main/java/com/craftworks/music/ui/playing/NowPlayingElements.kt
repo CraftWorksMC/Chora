@@ -302,8 +302,10 @@ fun LyricsButton(
         if (lyrics.isNotEmpty() || loading)
             Modifier
                 .bounceClick()
+                .size(size + 12.dp)
         else
-            Modifier,
+            Modifier
+                .size(size + 12.dp),
         contentPadding = PaddingValues(6.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
@@ -343,7 +345,7 @@ fun PlayQueueButton(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         contentPadding = PaddingValues(6.dp),
-        modifier = Modifier.bounceClick(),
+        modifier = Modifier.bounceClick().size(size + 12.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
             disabledContainerColor = Color.Transparent,
@@ -380,8 +382,10 @@ fun DownloadButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Bo
         modifier = if (enabled)
             Modifier
                 .bounceClick()
+                .size(size + 12.dp)
         else
-            Modifier,
+            Modifier
+                .size(size + 12.dp),
         contentPadding = PaddingValues(6.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
@@ -406,32 +410,33 @@ fun SleepTimerButton(
     sleepTimerMinutes: Int,
     onClick: () -> Unit = {}
 ) {
-    Button(
-        onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .bounceClick(),
-        contentPadding = PaddingValues(6.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent,
-            disabledContainerColor = Color.Transparent,
-            contentColor = color.copy(alpha = 0.5f),
-            disabledContentColor = color.copy(alpha = 0.25f)
-        )
-    ) {
-        BadgedBox(
-            badge = {
-                if (sleepTimerMinutes > 0) {
-                    val formattedMinutes : String = if (sleepTimerMinutes > 60)
-                        "${sleepTimerMinutes / 60}h"
-                    else
-                        "${sleepTimerMinutes}m"
+    BadgedBox(
+        badge = {
+            if (sleepTimerMinutes > 0) {
+                val formattedMinutes: String = if (sleepTimerMinutes > 60)
+                    "${sleepTimerMinutes / 60}h"
+                else
+                    "${sleepTimerMinutes}m"
 
-                    Badge {
-                        Text(formattedMinutes)
-                    }
+                Badge {
+                    Text(formattedMinutes)
                 }
             }
+        }
+    ) {
+        Button(
+            onClick = onClick,
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .bounceClick()
+                .width(size + 12.dp),
+            contentPadding = PaddingValues(6.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                contentColor = color.copy(alpha = 0.5f),
+                disabledContentColor = color.copy(alpha = 0.25f)
+            )
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.rounded_timer_24),
@@ -447,7 +452,11 @@ fun SleepTimerButton(
 @Composable
 internal fun ShuffleButton(player: Player, color: Color, modifier: Modifier = Modifier) {
     val state = rememberShuffleButtonState(player)
-    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(), enabled = state.isEnabled) {
+    IconButton(
+        onClick = state::onClick,
+        modifier = modifier.bounceClick(),
+        enabled = state.isEnabled
+    ) {
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.round_shuffle_28),
             contentDescription = "Shuffle",
@@ -462,7 +471,11 @@ internal fun ShuffleButton(player: Player, color: Color, modifier: Modifier = Mo
 internal fun RepeatButton(player: Player, color: Color, modifier: Modifier = Modifier) {
     val state = rememberRepeatButtonState(player)
     val icon = repeatModeIcon(state.repeatModeState)
-    IconButton(onClick = state::onClick, modifier = modifier.bounceClick(), enabled = state.isEnabled) {
+    IconButton(
+        onClick = state::onClick,
+        modifier = modifier.bounceClick(),
+        enabled = state.isEnabled
+    ) {
         Icon(
             imageVector = icon,
             contentDescription = "Repeat",
