@@ -152,7 +152,7 @@ fun TvS_AppearanceScreen() {
                     onClick = { showHomeItemsDialog = true }
                 )
 
-                // Now Playing Title Alignment
+                // Now Playing Lyrics Alignment
                 val alignmentLabels = mapOf(
                     NowPlayingAlignment.LEFT to R.string.NowPlayingTitleAlignment_Left,
                     NowPlayingAlignment.CENTER to R.string.NowPlayingTitleAlignment_Center,
@@ -160,7 +160,7 @@ fun TvS_AppearanceScreen() {
                 )
 
                 SettingsButtonItem(
-                    title = stringResource(R.string.Setting_NowPlayingTitleAlignment),
+                    title = stringResource(R.string.Setting_NowPlayingLyricsAlignment),
                     subtitle = stringResource(
                         alignmentLabels[nowPlayingTitleAlignment]
                             ?: R.string.NowPlayingTitleAlignment_Left
@@ -180,7 +180,7 @@ fun TvS_AppearanceScreen() {
                 )
                 SettingsSwitchItem(
                     title = stringResource(R.string.Setting_NowPlayingLyricsBlur),
-                    icon = ImageVector.vectorResource(R.drawable.placeholder), // placeholder
+                    icon = ImageVector.vectorResource(R.drawable.outline_line_weight_24),
                     checked = nowPlayingLyricsBlur,
                     onCheckedChange = {
                         coroutineScope.launch {

@@ -308,7 +308,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                             alignmentLabels[nowPlayingTitleAlignment]
                                 ?: R.string.NowPlayingTitleAlignment_Left
                         ),
-                        Icons.Rounded.Menu,
+                        ImageVector.vectorResource(R.drawable.rounded_sort_24),
                         toggleEvent = {
                             showNowPlayingTitleAlignmentDialog = true
                         }
@@ -325,7 +325,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                             alignmentLabels[nowPlayingLyricsAlignment]
                                 ?: R.string.NowPlayingTitleAlignment_Center
                         ),
-                        Icons.Rounded.Menu,
+                        ImageVector.vectorResource(R.drawable.rounded_sort_24),
                         toggleEvent = {
                             showNowPlayingLyricsAlignmentDialog = true
                         }
@@ -338,7 +338,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     SettingsSwitch(
                         nowPlayingLyricsBlur.value,
                         stringResource(R.string.Setting_NowPlayingLyricsBlur),
-                        Icons.Rounded.Menu,
+                        ImageVector.vectorResource(R.drawable.outline_line_weight_24),
                         toggleEvent = {
                             coroutineScope.launch {
                                 AppearanceSettingsManager(context).setNowPlayingLyricsBlur(!nowPlayingLyricsBlur.value)
