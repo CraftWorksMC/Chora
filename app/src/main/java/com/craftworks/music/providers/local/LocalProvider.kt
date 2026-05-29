@@ -280,11 +280,14 @@ class LocalProvider @Inject constructor(
                 val artist = cursor.getStringOrNull(artistIdx) ?: "Unknown"
                 val format = cursor.getString(formatIdx)
                 val dateAdded = cursor.getString(dateAddedIdx) ?: ""
-                val track = cursor.getIntOrNull(trackIdx) ?: 0
+                val rawTrack = cursor.getIntOrNull(trackIdx) ?: 0
                 val year = cursor.getIntOrNull(yearIdx) ?: 0
                 val duration = cursor.getIntOrNull(durationIdx) ?: 0
                 val bitrate = cursor.getIntOrNull(bitrateIdx) ?: 0
                 val genre = cursor.getStringOrNull(genreIdx) ?: ""
+
+                val track = if (rawTrack >= 1000) rawTrack % 1000 else rawTrack
+                val discNumber = if (rawTrack >= 1000) rawTrack / 1000 else 1
 
                 val artworkUri = "$ALBUM_ART_PATH/$albumId".toUri().let { uri ->
                     try {
@@ -313,6 +316,7 @@ class LocalProvider @Inject constructor(
                     .setIsBrowsable(false)
                     .setIsPlayable(true)
                     .setTrackNumber(track)
+                    .setDiscNumber(discNumber)
                     .setRecordingYear(year)
                     .setDurationMs(duration.toLong())
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
