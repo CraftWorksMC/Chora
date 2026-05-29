@@ -391,7 +391,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     MediaItem.Builder()
                         .setMediaId(mediaItem.mediaId)
                         .setMediaMetadata(mediaItem.mediaMetadata)
-                        .setUri(mediaItem.mediaId + bitrateOptions)
+                        .setUri(mediaItem.mediaId + if (mediaItem.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == false) bitrateOptions else "")
                         .build()
                 },
                 if (updatedStartIndex != -1) updatedStartIndex else startIndex,

@@ -36,10 +36,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.settings.PlaybackSettingsManager
 import com.craftworks.music.ui.elements.dialogs.TranscodingBitrateDialog
 import com.craftworks.music.ui.elements.dialogs.TranscodingFormatDialog
@@ -59,6 +61,8 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
     var showDataTranscodingDialog by remember { mutableStateOf(false) }
 
     var showTranscodingFormatDialog by remember { mutableStateOf(false) }
+
+    val currentNavidromeServer by NavidromeManager.currentServerId.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -112,7 +116,8 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         settingsName = stringResource(R.string.Setting_Transcoding_Wifi),
                         settingsSubtitle = if (transcodingBitrateWifi != "No Transcoding") "$transcodingBitrateWifi Kbps" else transcodingBitrateWifi,
                         settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
-                        toggleEvent = { showWifiTranscodingDialog = true }
+                        toggleEvent = { showWifiTranscodingDialog = true },
+                        enabled = currentNavidromeServer != null
                     )
 
 
@@ -125,14 +130,15 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         settingsName = stringResource(R.string.Setting_Transcoding_Data),
                         settingsSubtitle = if (transcodingBitrateData != "No Transcoding") "$transcodingBitrateData Kbps" else transcodingBitrateData,
                         settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
-                        toggleEvent = { showDataTranscodingDialog = true }
+                        toggleEvent = { showDataTranscodingDialog = true },
+                        enabled = currentNavidromeServer != null
                     )
 
                     val transcodingFormat =
                         PlaybackSettingsManager(context).transcodingFormatFlow.collectAsState("opus").value
 
                     val transcodingFormatEnabled =
-                        transcodingBitrateData != "No Transcoding" || transcodingBitrateWifi != "No Transcoding"
+                        (transcodingBitrateData != "No Transcoding" || transcodingBitrateWifi != "No Transcoding") && currentNavidromeServer != null
 
                     SettingsDialogButton(
                         settingsName = stringResource(R.string.Setting_Transcoding_Format),
