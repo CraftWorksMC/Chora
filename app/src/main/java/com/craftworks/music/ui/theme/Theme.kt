@@ -53,6 +53,8 @@ fun MusicPlayerTheme(
 ) {
     val isTv = LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION
 
+    println("Setting theme dark:${darkTheme} for ${if (isTv) "tv" else "phone"}")
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -69,6 +71,8 @@ fun MusicPlayerTheme(
             darkTheme -> androidx.tv.material3.darkColorScheme()
             else -> androidx.tv.material3.lightColorScheme()
         }
+
+        println("using theme dark:$darkTheme for tv")
 
         MaterialTheme(
             colorScheme = colorScheme,
