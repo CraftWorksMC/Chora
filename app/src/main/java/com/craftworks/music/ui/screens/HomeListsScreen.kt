@@ -67,7 +67,9 @@ fun HomeListsScreen(
                         launchSingleTop = true
                     }
                 },
-                onGetAlbum = { runBlocking { viewModel.getAlbumSongs(it) } }
+                onGetAlbum = {
+                    runBlocking { viewModel.getAlbumSongs(it) }
+                }
             )
         }
     }

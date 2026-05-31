@@ -3,12 +3,21 @@ package com.craftworks.music.data.model
 import android.util.Log
 import androidx.compose.runtime.Stable
 import kotlinx.serialization.Serializable
+import org.snakeyaml.engine.v2.api.Load
+import org.snakeyaml.engine.v2.api.LoadSettings
 
 // Universal Lyric object
 @Stable
 data class Lyric(
-    val timestamp: Int,
-    val content: List<String>
+    val startMs: Int,
+    val text: List<String>,
+    val words: List<SyncedWord>? = null,
+    val endMs: Int? = null
+)
+@Stable
+data class SyncedWord(
+    val text: String,
+    val startMs: Int
 )
 
 // LRCLIB Lyrics
@@ -17,7 +26,8 @@ data class LrcLibLyrics(
     val id: Int,
     val instrumental: Boolean,
     val plainLyrics: String? = "",
-    val syncedLyrics: String? = ""
+    val syncedLyrics: String? = "",
+    val lyricsfile: String? = "",
 )
 
 // NetEase Lyrics
@@ -35,8 +45,8 @@ data class NeteaseLrc(
 //region Convert lyric format to app format.
 fun MediaData.PlainLyrics.toLyric(): Lyric {
     return Lyric(
-        timestamp = -1,
-        content = listOf(value)
+        startMs = -1,
+        text = listOf(value)
     )
 }
 
@@ -45,16 +55,45 @@ fun MediaData.StructuredLyrics.toLyrics(): List<Lyric> {
         .groupBy { if (synced) it.start + (offset ?: 0) else -1 }
         .map { (timestamp, lines) ->
             Lyric(
-                timestamp = timestamp,
-                content = lines.map { it.value }
+                startMs = timestamp,
+                text = lines.map { it.value }
             )
         }
-        .sortedBy { it.timestamp }
+        .sortedBy { it.startMs }
 }
 
 fun LrcLibLyrics.toLyrics(): List<Lyric> {
     if (instrumental) return listOf()
 
+    if (lyricsfile.toString() != "null") {
+        val settings = LoadSettings.builder().build()
+        val raw = Load(settings).loadFromString(lyricsfile) as? Map<*, *>
+            ?: throw IllegalArgumentException("Invalid YAML format")
+
+        val linesList = raw["lines"] as? List<*> ?: emptyList<Any>()
+        val lines = linesList.map { lineItem ->
+            val lineMap = lineItem as? Map<*, *> ?: emptyMap<Any, Any>()
+
+            // Map the nested Words list inside the line
+            val wordsList = lineMap["words"] as? List<*> ?: emptyList<Any>()
+            val words = wordsList.map { wordItem ->
+                val wordMap = wordItem as? Map<*, *> ?: emptyMap<Any, Any>()
+                SyncedWord(
+                    text = wordMap["text"]?.toString() ?: "",
+                    startMs = wordMap["start_ms"]?.toString()?.toInt() ?: 0
+                )
+            }
+
+            Lyric(
+                text = listOf(lineMap["text"]?.toString() ?: ""),
+                words = words,
+                startMs = lineMap["start_ms"]?.toString()?.toInt() ?: 0,
+                endMs = lineMap["end_ms"]?.toString()?.toInt() ?: 0
+            )
+        }
+
+        return lines
+    }
     else if (syncedLyrics.toString() != "null") {
         val raw = mutableListOf<Pair<Int, String>>()
         syncedLyrics?.lines()?.forEach { lyric ->
@@ -67,7 +106,7 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
         return raw
             .groupBy { it.first }
             .map { (time, lines) -> Lyric(time, lines.map { it.second }) }
-            .sortedBy { it.timestamp }
+            .sortedBy { it.startMs }
     }
     else if (plainLyrics.toString() != "null") {
         Log.d("LYRICS", "Got LRCLIB plain lyrics: $plainLyrics")
@@ -113,9 +152,9 @@ fun NeteaseLyricsResponse.toLyrics(): List<Lyric> {
                 add(origLine)
                 translationMap[timestamp]?.let { add(it) }
             }
-            Lyric(timestamp = timestamp, content = lines)
+            Lyric(startMs = timestamp, text = lines)
         }
-        .sortedBy { it.timestamp }
+        .sortedBy { it.startMs }
 }
 
 //endregion

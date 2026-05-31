@@ -427,7 +427,7 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromePlainLyrics(
         metadata: MediaMetadata?, ignoreCachedResponse: Boolean = false
     ): List<Lyric> = withContext(Dispatchers.IO) {
-        getRequest("getLyrics.view?artist=${metadata?.artist}&title=${metadata?.title}", null).filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.content.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
+        getRequest("getLyrics.view?artist=${metadata?.artist}&title=${metadata?.title}", null).filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.text.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
     }
 
     suspend fun getNavidromeSyncedLyrics(

@@ -95,6 +95,7 @@ dependencies {
 
     implementation(libs.konsume.xml)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.org.snakeyaml)
 
     implementation(libs.coil.compose)
     implementation(libs.androidx.preference.ktx)

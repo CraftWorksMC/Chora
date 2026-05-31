@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.playing
 
+import android.view.animation.OvershootInterpolator
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -18,6 +19,7 @@ import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -151,7 +153,7 @@ fun LyricsView(
     LaunchedEffect(currentPosition.intValue, lyrics) {
         //if (mediaController?.isPlaying == true) {
         val newCurrentLyricIndex =
-            lyrics.indexOfFirst { it.timestamp > (currentPosition.intValue + lyricsAnimationSpeed / 2) }
+            lyrics.indexOfFirst { it.startMs > (currentPosition.intValue + lyricsAnimationSpeed / 2) }
                 .takeIf { it >= 0 } ?: lyrics.size
 
         val targetIndex = (newCurrentLyricIndex - 1).coerceAtLeast(-1)
@@ -166,7 +168,7 @@ fun LyricsView(
                 if (targetItemAfter != null) {
                     var finalScrollDelta = targetItemAfter.offset - scrollOffset
 
-                    if (lyrics[(targetIndex - 1).coerceAtLeast(0)].content[0] == "")
+                    if (lyrics[(targetIndex - 1).coerceAtLeast(0)].text[0] == "")
                         finalScrollDelta -= interludeHeight
 
                     state.animateScrollBy(
@@ -246,27 +248,45 @@ fun LyricsView(
                 if (lyrics.size > 1) {
                     itemsIndexed(
                         lyrics,
-                        key = { index, lyric -> "${index}:${lyric.content}" }
+                        key = { index, lyric -> "${index}:${lyric.text}" }
                     ) { index, lyric ->
-                        SyncedLyricItem(
-                            lyric = lyric,
-                            index = index,
-                            currentLyricIndex = currentLyricIndex.intValue,
-                            useBlur = useBlur,
-                            visibleItemsInfo = visibleItemsInfo,
-                            color = color,
-                            lyricsAnimationSpeed = lyricsAnimationSpeed,
-                            lyricsAlignment = lyricsAlignment,
-                            onClick = {
-                                mediaController?.seekTo(lyric.timestamp.toLong())
-                                currentPosition.intValue = lyric.timestamp
-                            }
-                        )
+                        if (!lyric.words.isNullOrEmpty()) {
+                            WordSyncedLyricItem(
+                                lyric = lyric,
+                                index = index,
+                                currentLyricIndex = currentLyricIndex.intValue,
+                                useBlur = useBlur,
+                                visibleItemsInfo = visibleItemsInfo,
+                                color = color,
+                                lyricsAnimationSpeed = lyricsAnimationSpeed,
+                                lyricsAlignment = lyricsAlignment,
+                                onClick = {
+                                    mediaController?.seekTo(lyric.startMs.toLong())
+                                    currentPosition.intValue = lyric.startMs
+                                }
+                            )
+                        }
+                        else {
+                            SyncedLyricItem(
+                                lyric = lyric,
+                                index = index,
+                                currentLyricIndex = currentLyricIndex.intValue,
+                                useBlur = useBlur,
+                                visibleItemsInfo = visibleItemsInfo,
+                                color = color,
+                                lyricsAnimationSpeed = lyricsAnimationSpeed,
+                                lyricsAlignment = lyricsAlignment,
+                                onClick = {
+                                    mediaController?.seekTo(lyric.startMs.toLong())
+                                    currentPosition.intValue = lyric.startMs
+                                }
+                            )
+                        }
                     }
                 } else if (lyrics.isNotEmpty()) {
                     item {
                         Text(
-                            text = lyrics[0].content[0],
+                            text = lyrics[0].text[0],
                             style = MaterialTheme.typography.headlineMedium,
                             color = color,
                             modifier = Modifier
@@ -279,6 +299,112 @@ fun LyricsView(
                             }
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WordSyncedLyricItem(
+    lyric: Lyric,
+    index: Int,
+    currentLyricIndex: Int,
+    useBlur: Boolean,
+    visibleItemsInfo: List<LazyListItemInfo>,
+    color: Color,
+    lyricsAnimationSpeed: Int = 1200,
+    lyricsAlignment: NowPlayingAlignment,
+    onClick: () -> Unit = {},
+) {
+    val lyricBlur: Dp by animateDpAsState(
+        targetValue = if (useBlur) calculateLyricBlur(
+            index, currentLyricIndex, visibleItemsInfo
+        ) else 0.dp,
+        label = "Lyric Blur",
+        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
+    )
+
+    val scale by animateFloatAsState(
+        targetValue = if (currentLyricIndex == index) 1f else 0.9f,
+        label = "Lyric Scale Animation",
+        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
+    )
+
+    if (lyric.text[0].isEmpty()) {
+        AnimatedContent(
+            targetState = currentLyricIndex == index
+        ) {
+            if (it) {
+                Box(
+                    modifier = Modifier
+                        .focusable(false)
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                        },
+                    contentAlignment = when (lyricsAlignment) {
+                        NowPlayingAlignment.LEFT -> Alignment.TopStart
+                        NowPlayingAlignment.CENTER -> Alignment.TopCenter
+                        NowPlayingAlignment.RIGHT -> Alignment.TopEnd
+                    }
+                ) {
+                    InterludeIndicator(color)
+                }
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .padding(vertical = 12.dp)
+                .heightIn(min = 48.dp)
+                .focusable(false)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .blur(lyricBlur)
+                .clickable {
+                    onClick()
+                },
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            FlowRow (
+                horizontalArrangement = when (lyricsAlignment) {
+                    NowPlayingAlignment.LEFT -> Arrangement.Start
+                    NowPlayingAlignment.CENTER -> Arrangement.Center
+                    NowPlayingAlignment.RIGHT -> Arrangement.End
+                }
+            ) {
+                lyric.words?.forEachIndexed { i, line ->
+                    val lyricAlpha: Float by animateFloatAsState(
+                        targetValue = if (currentLyricIndex == index) 1f else 0.5f,
+                        label = "Current Word Alpha",
+                        animationSpec =
+                            if (currentLyricIndex == index)
+                                tween(lyricsAnimationSpeed, line.startMs - lyric.startMs, FastOutSlowInEasing)
+                            else
+                                tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
+                    )
+                    val wordYOffset by animateFloatAsState(
+                        targetValue = if (currentLyricIndex == index) 0f else dpToPx(2).toFloat(),
+                        label = "Word Offset Animation",
+                        animationSpec = if (currentLyricIndex == index)
+                            tween(lyricsAnimationSpeed, line.startMs - lyric.startMs, { OvershootInterpolator().getInterpolation(it)} )
+                        else
+                            tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
+                    )
+
+                    Text(
+                        text = line.text,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = color.copy(alpha = lyricAlpha),
+                        modifier = Modifier
+                            .graphicsLayer {
+                                translationY = wordYOffset
+                                clip = false
+                            },
+                    )
                 }
             }
         }
@@ -317,7 +443,7 @@ fun SyncedLyricItem(
         animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
     )
 
-    if (lyric.content[0].isEmpty()) {
+    if (lyric.text[0].isEmpty()) {
         AnimatedContent(
             targetState = currentLyricIndex == index
         ) {
@@ -364,7 +490,7 @@ fun SyncedLyricItem(
 //                textAlign = TextAlign.Center,
 //                //lineHeight = 32.sp
 //            )
-            lyric.content.forEachIndexed { i, line ->
+            lyric.text.forEachIndexed { i, line ->
                 Text(
                     text = line,
                     style = if (i == 0) MaterialTheme.typography.titleLarge
@@ -444,9 +570,9 @@ private fun calculateLyricBlur(
 // Calculate next update delay based on lyrics timestamps
 private fun getNextUpdateDelay(currentTime: Int, lyrics: List<Lyric>): Long {
     val nextTimestamp = lyrics
-        .filter { it.timestamp > currentTime }
-        .minByOrNull { it.timestamp }
-        ?.timestamp ?: return 1000L
+        .filter { it.startMs > currentTime }
+        .minByOrNull { it.startMs }
+        ?.startMs ?: return 1000L
 
     val timeUntilNext = nextTimestamp - currentTime
 
