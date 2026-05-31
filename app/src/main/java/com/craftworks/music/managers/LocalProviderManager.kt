@@ -4,8 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.core.content.edit
-import com.craftworks.music.managers.NavidromeManager.getAllServers
-import com.craftworks.music.showNoProviderDialog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,8 +39,6 @@ object LocalProviderManager {
     fun init(context: Context) {
         sharedPreferences = context.getSharedPreferences("LocalProviderPrefs", Context.MODE_PRIVATE)
         loadFolders()
-
-        if (getAllServers().isEmpty() && _allFolders.value.isEmpty()) showNoProviderDialog = true
     }
 
     private fun saveFolders() {

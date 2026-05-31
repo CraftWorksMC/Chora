@@ -433,11 +433,13 @@ fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavH
         ) {
             Text(
                 text = stringResource(R.string.Settings_Header_Media),
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleLarge
             )
 
             Text(
                 text = stringResource(R.string.No_Providers_Splash),
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyMedium
             )
 

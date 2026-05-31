@@ -59,6 +59,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -109,6 +110,8 @@ import androidx.tv.material3.NavigationDrawerItem
 import androidx.tv.material3.rememberDrawerState
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.managers.LocalProviderManager
+import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.rememberManagedMediaController
@@ -126,7 +129,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-var showNoProviderDialog by mutableStateOf(false)
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @AndroidEntryPoint
@@ -309,11 +311,25 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                if (showNoProviderDialog)
-                    if (isTv)
-                        OnboardingDialog { showNoProviderDialog = false }
-                    else
-                        NoMediaProvidersDialog(setShowDialog = { showNoProviderDialog = it }, navController)
+                var showNoProvidersDialog by rememberSaveable { mutableStateOf(false) }
+
+                LaunchedEffect(Unit) {
+                    val folders = LocalProviderManager.getAllFolders()
+                    val servers = NavidromeManager.getAllServers()
+
+                    showNoProvidersDialog = !(folders.isEmpty() && servers.isEmpty())
+                }
+
+                if (!showNoProvidersDialog) {
+                    if (isTv) {
+                        OnboardingDialog { showNoProvidersDialog = true }
+                    } else {
+                        NoMediaProvidersDialog(
+                            setShowDialog = { showNoProvidersDialog = true },
+                            navController
+                        )
+                    }
+                }
             }
         }
 
