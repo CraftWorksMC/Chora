@@ -1,6 +1,5 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     kotlin("plugin.serialization") version "2.0.0"
     alias(libs.plugins.compose.compiler)
     id("com.google.devtools.ksp")
@@ -9,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.craftworks.music"
-    compileSdk = 36
+    compileSdk = 37
 
     androidResources {
         generateLocaleConfig = true
@@ -18,7 +17,7 @@ android {
     defaultConfig {
         applicationId = "com.craftworks.music"
         minSdk = 23
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 301
         versionName = "1.30.1"
 
@@ -61,6 +60,8 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            pickFirsts.add("META-INF/NOTICE.md")
+            pickFirsts.add("META-INF/LICENSE.md")
         }
     }
 

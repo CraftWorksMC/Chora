@@ -367,9 +367,10 @@ fun WordSyncedLyricItem(
                 .clickable {
                     onClick()
                 },
-            verticalArrangement = Arrangement.SpaceEvenly
+            verticalArrangement = Arrangement.SpaceEvenly,
         ) {
             FlowRow (
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = when (lyricsAlignment) {
                     NowPlayingAlignment.LEFT -> Arrangement.Start
                     NowPlayingAlignment.CENTER -> Arrangement.Center
