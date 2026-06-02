@@ -60,6 +60,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
@@ -331,20 +332,41 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         }
                     )
                     //Lyrics blur Info
-                    val nowPlayingLyricsBlur =
-                        AppearanceSettingsManager(context).nowPlayingLyricsBlurFlow.collectAsState(
-                            true
-                        )
+                    val nowPlayingLyricsBlur by AppearanceSettingsManager(context).nowPlayingLyricsBlurFlow.collectAsStateWithLifecycle(true)
                     SettingsSwitch(
-                        nowPlayingLyricsBlur.value,
+                        nowPlayingLyricsBlur,
                         stringResource(R.string.Setting_NowPlayingLyricsBlur),
                         ImageVector.vectorResource(R.drawable.outline_line_weight_24),
                         toggleEvent = {
                             coroutineScope.launch {
-                                AppearanceSettingsManager(context).setNowPlayingLyricsBlur(!nowPlayingLyricsBlur.value)
+                                AppearanceSettingsManager(context).setNowPlayingLyricsBlur(!nowPlayingLyricsBlur)
                             }
                         },
                         enabled = Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU
+                    )
+
+                    val lyricsAutoScroll by AppearanceSettingsManager(context).lyricsAutoScroll.collectAsStateWithLifecycle(true)
+                    SettingsSwitch(
+                        lyricsAutoScroll,
+                        stringResource(R.string.Setting_LyricsAutoscroll),
+                        ImageVector.vectorResource(R.drawable.rounded_text_select_move_down_24),
+                        toggleEvent = {
+                            coroutineScope.launch {
+                                AppearanceSettingsManager(context).setLyricsAutoScroll(!lyricsAutoScroll)
+                            }
+                        }
+                    )
+
+                    val lyricsRecenterAfterScroll by AppearanceSettingsManager(context).lyricsRecenterAfterScroll.collectAsStateWithLifecycle(true)
+                    SettingsSwitch(
+                        lyricsRecenterAfterScroll,
+                        stringResource(R.string.Setting_LyricsRecenter),
+                        ImageVector.vectorResource(R.drawable.rounded_vertical_align_center_24),
+                        toggleEvent = {
+                            coroutineScope.launch {
+                                AppearanceSettingsManager(context).setLyricsRecenterAfterScroll(!lyricsRecenterAfterScroll)
+                            }
+                        }
                     )
 
                     // Lyrics Animation Speed

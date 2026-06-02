@@ -95,6 +95,8 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
     else if (syncedLyrics.toString() != "null") {
         val raw = mutableListOf<Pair<Int, String>>()
         syncedLyrics?.lines()?.forEach { lyric ->
+            if (lyric.isBlank())
+                return@forEach
             val timeStampsRaw = getTimeStamps(lyric)[0]
             val time = mmssToMilliseconds(timeStampsRaw).toInt()
             val lyricText = lyric.substringAfter("]").trim()

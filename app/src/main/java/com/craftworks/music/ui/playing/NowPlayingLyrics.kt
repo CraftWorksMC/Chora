@@ -16,6 +16,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,8 +47,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -97,6 +100,9 @@ fun LyricsView(
     val lyricsAlignment by AppearanceSettingsManager(LocalContext.current).nowPlayingLyricsAlignment.collectAsStateWithLifecycle(
         NowPlayingAlignment.CENTER
     )
+    val lyricsAutoscroll by AppearanceSettingsManager(LocalContext.current).lyricsAutoScroll.collectAsStateWithLifecycle(
+        true
+    )
 
     // State holding the current position
     val currentPosition =
@@ -109,6 +115,15 @@ fun LyricsView(
 
     var scrollOffset = dpToPx(128)
     val interludeHeight = dpToPx(48)
+
+    var userScrolled by remember { mutableStateOf(false) }
+    val isDragged by state.interactionSource.collectIsDraggedAsState()
+
+    LaunchedEffect(isDragged) {
+        if (state.isScrollInProgress) {
+            userScrolled = true
+        }
+    }
 
     // Update current position only each lyrics change.
     LaunchedEffect(mediaController, lyrics) {
@@ -161,25 +176,27 @@ fun LyricsView(
         if (targetIndex != currentLyricIndex.intValue) {
             currentLyricIndex.intValue = targetIndex
 
-            coroutineScope.launch {
-                val targetItemAfter =
-                    state.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+            if (!userScrolled) {
+                coroutineScope.launch {
+                    val targetItemAfter =
+                        state.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
 
-                if (targetItemAfter != null) {
-                    var finalScrollDelta = targetItemAfter.offset - scrollOffset
+                    if (targetItemAfter != null) {
+                        var finalScrollDelta = targetItemAfter.offset - scrollOffset
 
-                    if (lyrics[(targetIndex - 1).coerceAtLeast(0)].text[0] == "")
-                        finalScrollDelta -= interludeHeight
+                        if (lyrics[(targetIndex - 1).coerceAtLeast(0)].text[0] == "")
+                            finalScrollDelta -= interludeHeight
 
-                    state.animateScrollBy(
-                        value = finalScrollDelta.toFloat(),
-                        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
-                    )
-                } else
-                    state.animateScrollToItem(
-                        index = targetIndex.coerceAtLeast(0),
-                        scrollOffset = -scrollOffset
-                    )
+                        state.animateScrollBy(
+                            value = finalScrollDelta.toFloat(),
+                            animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
+                        )
+                    } else
+                        state.animateScrollToItem(
+                            index = targetIndex.coerceAtLeast(0),
+                            scrollOffset = -scrollOffset
+                        )
+                }
             }
         }
         //}
@@ -187,7 +204,7 @@ fun LyricsView(
 
     // Plain lyrics scrolling
     LaunchedEffect(mediaController, lyrics) {
-        if (lyrics.size == 1) {
+        if (lyrics.size == 1 && lyricsAutoscroll) {
             while (true) {
                 if (mediaController?.isPlaying == true) {
                     val totalDuration = mediaController.duration / 1000f // duration in seconds
@@ -263,6 +280,7 @@ fun LyricsView(
                                 onClick = {
                                     mediaController?.seekTo(lyric.startMs.toLong())
                                     currentPosition.intValue = lyric.startMs
+                                    userScrolled = false
                                 }
                             )
                         }
@@ -279,6 +297,7 @@ fun LyricsView(
                                 onClick = {
                                     mediaController?.seekTo(lyric.startMs.toLong())
                                     currentPosition.intValue = lyric.startMs
+                                    userScrolled = false
                                 }
                             )
                         }

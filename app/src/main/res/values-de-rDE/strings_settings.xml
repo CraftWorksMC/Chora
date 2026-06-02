@@ -11,6 +11,8 @@
     <string name="Setting_ProviderDividers">Provider-Trennzeichen anzeigen</string>
     <string name="Setting_RefreshAnimation">Aktualisierungsanimation anzeigen</string>
     <string name="Setting_LyricsAnimationSpeed">Songtext-Animationsgeschwindigkeit</string>
+    <string name="Setting_LyricsAutoscroll">Autoscroll Plain Lyrics</string>
+    <string name="Setting_LyricsRecenter">Recenter After Scroll</string>
     <string name="Setting_TrackNumbersAlbum">Titelnummern in der Albumansicht anzeigen</string>
     <string name="Settings_Header_Media">Medienanbieter</string>
     <string name="Settings_Header_Playback">Wiedergabe</string>

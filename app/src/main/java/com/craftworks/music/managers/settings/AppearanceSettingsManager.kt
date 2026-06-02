@@ -43,6 +43,8 @@ class AppearanceSettingsManager @Inject constructor(
 
         private val SHOW_PROVIDER_DIVIDERS = booleanPreferencesKey("provider_dividers")
         private val LYRICS_ANIMATION_SPEED = intPreferencesKey("lyrics_animation_speed")
+        private val LYRICS_AUTOSCROLL = booleanPreferencesKey("lyrics_auto_scroll")
+        private val LYRICS_RECENTER_AFTER_SCROLL = booleanPreferencesKey("lyrics_recenter_after_Scroll")
         private val USE_REFRESH_ANIMATION = booleanPreferencesKey("use_refresh_animation")
         private val SHOW_TRACK_NUMBERS = booleanPreferencesKey("show_track_numbers")
     }
@@ -256,6 +258,33 @@ class AppearanceSettingsManager @Inject constructor(
         withContext(NonCancellable) {
             context.dataStore.edit { preferences ->
                 preferences[NP_LYRICS_ALIGNMENT] = nowPlayingLyricsAlignment.name
+            }
+        }
+    }
+
+    val lyricsAutoScroll: Flow<Boolean> =
+        context.dataStore.data.map { preferences ->
+            preferences[LYRICS_AUTOSCROLL] ?: true
+        }
+
+    suspend fun setLyricsAutoScroll(autoScroll: Boolean) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[LYRICS_AUTOSCROLL] = autoScroll
+            }
+        }
+    }
+
+
+    val lyricsRecenterAfterScroll: Flow<Boolean> =
+        context.dataStore.data.map { preferences ->
+            preferences[LYRICS_RECENTER_AFTER_SCROLL] ?: true
+        }
+
+    suspend fun setLyricsRecenterAfterScroll(recenterAfterScroll: Boolean) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[LYRICS_RECENTER_AFTER_SCROLL] = recenterAfterScroll
             }
         }
     }

@@ -11,6 +11,8 @@
     <string name="Setting_ProviderDividers">显示媒体源分隔</string>
     <string name="Setting_RefreshAnimation">显示刷新动画</string>
     <string name="Setting_LyricsAnimationSpeed">歌词动画速度</string>
+    <string name="Setting_LyricsAutoscroll">Autoscroll Plain Lyrics</string>
+    <string name="Setting_LyricsRecenter">Recenter After Scroll</string>
     <string name="Setting_TrackNumbersAlbum">专辑页显示曲目编号</string>
     <string name="Settings_Header_Media">媒体源</string>
     <string name="Settings_Header_Playback">播放</string>

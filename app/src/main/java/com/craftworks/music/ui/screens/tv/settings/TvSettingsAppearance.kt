@@ -28,6 +28,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
@@ -174,7 +175,7 @@ fun TvS_AppearanceScreen() {
         // Switches
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Lyrics blur Info
+                // Lyrics blur
                 val nowPlayingLyricsBlur by AppearanceSettingsManager(context).nowPlayingLyricsBlurFlow.collectAsState(
                     true
                 )
@@ -188,6 +189,29 @@ fun TvS_AppearanceScreen() {
                         }
                     },
                     enabled = Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU
+                )
+                val lyricsAutoScroll by AppearanceSettingsManager(context).lyricsAutoScroll.collectAsStateWithLifecycle(true)
+                SettingsSwitchItem(
+                    title = stringResource(R.string.Setting_LyricsAutoscroll),
+                    icon = ImageVector.vectorResource(R.drawable.rounded_text_select_move_down_24),
+                    checked = lyricsAutoScroll,
+                    onCheckedChange = {
+                        coroutineScope.launch {
+                            AppearanceSettingsManager(context).setLyricsAutoScroll(!lyricsAutoScroll)
+                        }
+                    }
+                )
+
+                val lyricsRecenterAfterScroll by AppearanceSettingsManager(context).lyricsRecenterAfterScroll.collectAsStateWithLifecycle(true)
+                SettingsSwitchItem(
+                    title = stringResource(R.string.Setting_LyricsRecenter),
+                    icon = ImageVector.vectorResource(R.drawable.rounded_vertical_align_center_24),
+                    checked = lyricsRecenterAfterScroll,
+                    onCheckedChange = {
+                        coroutineScope.launch {
+                            AppearanceSettingsManager(context).setLyricsRecenterAfterScroll(it)
+                        }
+                    }
                 )
 
                 // More Song Info

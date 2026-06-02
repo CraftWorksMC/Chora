@@ -11,6 +11,8 @@
     <string name="Setting_ProviderDividers">Mostra Divisori Provider</string>
     <string name="Setting_RefreshAnimation">Mostra Animazione Refresh</string>
     <string name="Setting_LyricsAnimationSpeed">Velocità Animazione Testo</string>
+    <string name="Setting_LyricsAutoscroll">Scorri i Testi Non Sincronizzati</string>
+    <string name="Setting_LyricsRecenter">Ricentra dopo lo scorrimento</string>
     <string name="Setting_TrackNumbersAlbum">Mostra Numero di Traccia negli Album</string>
     <string name="Settings_Header_Media">Fonti Media</string>
     <string name="Settings_Header_Playback">Riproduzione</string>
