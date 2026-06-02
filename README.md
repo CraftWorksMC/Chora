@@ -19,11 +19,16 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 - Multiple Navidrome libraries.
 - Transcoding.
 
+## WIP
+- Play Queue reordering
+- Play next suggestions
+- Word-Synced lyrics from LRCLIB
+
 ## Roadmap
 
 - Chromecast
-- Local DB for local files and Navidrome offline mode.
 - Jellyfin (Music) Support.
+- Local DB for local files and Navidrome offline mode.
 
 ## Known Issues
 
