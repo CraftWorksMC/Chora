@@ -46,13 +46,13 @@ data class NeteaseLrc(
 fun MediaData.PlainLyrics.toLyric(): Lyric {
     return Lyric(
         startMs = -1,
-        text = listOf(value)
+        text = if (value.isBlank()) emptyList() else listOf(value)
     )
 }
 
 fun MediaData.StructuredLyrics.toLyrics(): List<Lyric> {
     return line
-        .groupBy { if (synced) it.start + (offset ?: 0) else -1 }
+        .groupBy { if (synced) it.start!! + (offset ?: 0) else -1 }
         .map { (timestamp, lines) ->
             Lyric(
                 startMs = timestamp,
@@ -74,7 +74,6 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
         val lines = linesList.map { lineItem ->
             val lineMap = lineItem as? Map<*, *> ?: emptyMap<Any, Any>()
 
-            // Map the nested Words list inside the line
             val wordsList = lineMap["words"] as? List<*> ?: emptyList<Any>()
             val words = wordsList.map { wordItem ->
                 val wordMap = wordItem as? Map<*, *> ?: emptyMap<Any, Any>()
@@ -91,7 +90,6 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
                 endMs = lineMap["end_ms"]?.toString()?.toInt() ?: 0
             )
         }
-
         return lines
     }
     else if (syncedLyrics.toString() != "null") {

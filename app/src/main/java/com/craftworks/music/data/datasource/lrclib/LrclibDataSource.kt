@@ -1,6 +1,7 @@
 package com.craftworks.music.data.datasource.lrclib
 
 import android.content.Context
+import android.util.Log
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.model.LrcLibLyrics
 import com.craftworks.music.data.model.Lyric
@@ -18,6 +19,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.appendPathSegments
@@ -78,6 +80,7 @@ class LrclibDataSource @Inject constructor(
             }
 
             val mediaDataPlainLyrics: LrcLibLyrics = response.body()
+            Log.d("LRCLIB", response.bodyAsText())
             return@withContext mediaDataPlainLyrics.toLyrics()
 
         } catch (e: ClientRequestException) {

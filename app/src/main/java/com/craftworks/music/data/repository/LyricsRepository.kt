@@ -109,11 +109,11 @@ class LyricsRepository @Inject constructor(
                 }
                 else -> {
                     Log.d("LYRICS", "No lyrics found.")
+                    LyricsState.lyrics.value = listOf()
                 }
             }
 
             LyricsState.loading.value = false
-            LyricsState.lyrics.value = listOf()
         }
     }
 }

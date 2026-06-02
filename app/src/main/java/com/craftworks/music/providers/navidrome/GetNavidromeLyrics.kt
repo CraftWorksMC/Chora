@@ -10,12 +10,13 @@ data class LyricsList(
 
 @Serializable
 data class SyncedLyrics(
-    val start: Int, val value: String
+    val start: Int? = null,
+    val value: String
 )
 
 fun parseNavidromePlainLyricsJSON(
     response: String
-): MediaData {
+): MediaData.PlainLyrics {
     val subsonicResponse = parseSubsonicResponse(response)
 
     val mediaDataPlainLyrics = subsonicResponse.lyrics!!
