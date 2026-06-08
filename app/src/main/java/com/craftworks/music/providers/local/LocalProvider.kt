@@ -436,6 +436,7 @@ class LocalProvider @Inject constructor(
                     .setExtras(Bundle().apply {
                         putString("navidromeID", "$LOCAL_PREFIX$id")
                         putString("artistId", "$LOCAL_PREFIX${artist.hashCode()}")
+                        putString("lyricsArtist", artist)
                         putString("format", format.drop(6))
                         putInt("bitrate", bitrate / 1000)
                         putString("path", path)

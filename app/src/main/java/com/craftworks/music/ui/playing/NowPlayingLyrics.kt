@@ -1,16 +1,19 @@
 package com.craftworks.music.ui.playing
 
-import android.view.animation.OvershootInterpolator
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -54,11 +57,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -138,7 +145,7 @@ fun LyricsView(
                 while (isActive) {
                     position = mediaController.currentPosition.toInt()
                     currentPosition.intValue = position
-                    delay(getNextUpdateDelay(position + lyricsAnimationSpeed / 2, lyrics))
+                    delay(getNextUpdateDelay(position, lyrics))
                 }
             }
         }
@@ -156,7 +163,7 @@ fun LyricsView(
                         while (isActive) {
                             position = mediaController.currentPosition.toInt()
                             currentPosition.intValue = position
-                            delay(getNextUpdateDelay(position + lyricsAnimationSpeed / 2, lyrics))
+                            delay(getNextUpdateDelay(position, lyrics))
                         }
                     }
                 } else trackingJob.cancel()
@@ -272,6 +279,7 @@ fun LyricsView(
                                 lyric = lyric,
                                 index = index,
                                 currentLyricIndex = currentLyricIndex.intValue,
+                                currentPosition = currentPosition.intValue,
                                 useBlur = useBlur,
                                 visibleItemsInfo = visibleItemsInfo,
                                 color = color,
@@ -329,6 +337,7 @@ fun WordSyncedLyricItem(
     lyric: Lyric,
     index: Int,
     currentLyricIndex: Int,
+    currentPosition: Int,
     useBlur: Boolean,
     visibleItemsInfo: List<LazyListItemInfo>,
     color: Color,
@@ -396,39 +405,92 @@ fun WordSyncedLyricItem(
                     NowPlayingAlignment.RIGHT -> Arrangement.End
                 }
             ) {
-                lyric.words?.forEachIndexed { i, line ->
-                    val lyricAlpha: Float by animateFloatAsState(
-                        targetValue = if (currentLyricIndex == index) 1f else 0.5f,
-                        label = "Current Word Alpha",
-                        animationSpec =
-                            if (currentLyricIndex == index)
-                                tween(lyricsAnimationSpeed, line.startMs - lyric.startMs, FastOutSlowInEasing)
-                            else
-                                tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
-                    )
-                    val wordYOffset by animateFloatAsState(
-                        targetValue = if (currentLyricIndex == index) 0f else dpToPx(2).toFloat(),
-                        label = "Word Offset Animation",
-                        animationSpec = if (currentLyricIndex == index)
-                            tween(lyricsAnimationSpeed, line.startMs - lyric.startMs, { OvershootInterpolator().getInterpolation(it)} )
-                        else
-                            tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
-                    )
+                lyric.words?.forEachIndexed { i, word ->
+                    val nextWordStart = lyric.words.getOrNull(i + 1)?.startMs ?: lyric.endMs!!
+                    val duration = (nextWordStart - word.startMs)
+                    val isThisWordActive = currentPosition >= word.startMs && currentPosition < lyric.endMs!!
 
-                    Text(
-                        text = line.text,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = color.copy(alpha = lyricAlpha),
-                        modifier = Modifier
-                            .graphicsLayer {
-                                translationY = wordYOffset
-                                clip = false
-                            },
+                    AnimatedWord(
+                        wordText = word.text,
+                        isActive = isThisWordActive,
+                        durationMillis = duration,
+                        color = color
                     )
                 }
             }
         }
     }
+}
+
+
+@Composable
+fun AnimatedWord(
+    wordText: String,
+    isActive: Boolean,
+    durationMillis: Int,
+    color: Color
+) {
+    val inactiveColor = color.copy(alpha = 0.4f)
+    val wipeProgress = remember { Animatable(0f) }
+    val textAlpha = remember { Animatable(1f) }
+
+    val dipAmount = dpToPx(1).toFloat()
+
+    LaunchedEffect(isActive) {
+        if (isActive) {
+            textAlpha.snapTo(1f)
+            wipeProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(
+                    durationMillis = durationMillis,
+                    easing = LinearEasing
+                )
+            )
+        } else {
+            wipeProgress.snapTo(0f)
+            textAlpha.animateTo(
+                targetValue = 0.4f,
+                animationSpec = tween(durationMillis = 400, easing = LinearEasing)
+            )
+        }
+    }
+
+    val brush = if (isActive && wipeProgress.isRunning) {
+        val currentOffset = wipeProgress.value * (1f + 0.3f)
+        val activeEnd = (currentOffset - 0.3f).coerceIn(0f, 1f)
+        val inactiveStart = currentOffset.coerceIn(0f, 1f)
+        Brush.horizontalGradient(
+            0f to color,
+            activeEnd to color,
+            inactiveStart to inactiveColor,
+            1f to inactiveColor
+        )
+    } else {
+        SolidColor(color)
+    }
+
+    val yOffset = remember { Animatable(0f) }
+    LaunchedEffect(isActive) {
+        if (isActive) {
+            yOffset.animateTo(-dipAmount, tween(durationMillis / 2, easing = FastOutLinearInEasing))
+            yOffset.animateTo(0f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessVeryLow))
+        } else {
+            yOffset.animateTo(0f, tween(durationMillis, 0, FastOutSlowInEasing))
+        }
+    }
+
+    Text(
+        text = wordText,
+        style = MaterialTheme.typography.titleLarge.copy(
+            fontWeight = FontWeight.Normal,
+            textMotion = TextMotion.Animated,
+            brush = brush
+        ),
+        modifier = Modifier.graphicsLayer {
+            translationY = yOffset.value
+            alpha = textAlpha.value
+        },
+    )
 }
 
 @Composable
@@ -589,12 +651,21 @@ private fun calculateLyricBlur(
 
 // Calculate next update delay based on lyrics timestamps
 private fun getNextUpdateDelay(currentTime: Int, lyrics: List<Lyric>): Long {
-    val nextTimestamp = lyrics
-        .filter { it.startMs > currentTime }
-        .minByOrNull { it.startMs }
-        ?.startMs ?: return 1000L
+    // 1. Gather all future timestamps (both starts and ends) into a single sequence
+    val nextTimestamp = lyrics.asSequence()
+        .flatMap { lyric ->
+            // Build a list of valid timestamps for each lyric item
+            val timestamps = mutableListOf(lyric.startMs)
+            lyric.endMs?.let { timestamps.add(it) }
+            lyric.words?.forEach { timestamps.add(it.startMs) }
+            timestamps
+        }
+        // 2. Filter for events that happen strictly in the future
+        .filter { it > currentTime }
+        // 3. Find the nearest upcoming event
+        .minOrNull()
+        ?: return 1000L // Fallback if we reached the very end of the song
 
-    val timeUntilNext = nextTimestamp - currentTime
-
-    return timeUntilNext.toLong()
+    // 4. Return the precise time remaining until that next event
+    return (nextTimestamp - currentTime).toLong()
 }
