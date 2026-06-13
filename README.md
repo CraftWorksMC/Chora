@@ -14,15 +14,16 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 - Material 3 UI.
 - Download songs and albums from server.
 - Internet Radio.
-- Synced And Unsynced Lyrics. [From lrclib.net or self-hosted instance and NetEase]
+- Word Synced<sup>LrcLib Only</sup>, Line Synced And Unsynced Lyrics. [From lrclib.net or self-hosted instance and NetEase]
 - Navidrome and Local playlists.
 - Multiple Navidrome libraries.
 - Transcoding.
 
-## WIP
-- Play Queue reordering
-- Play next suggestions
-- Word-Synced lyrics from LRCLIB
+## WIP For 1.31
+
+- [x] Play Queue reordering
+- [ ] Play next suggestions
+- [x] Word-Synced lyrics from LRCLIB
 
 ## Roadmap
 
