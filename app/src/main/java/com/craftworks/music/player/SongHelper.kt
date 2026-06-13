@@ -1,7 +1,6 @@
 @file:OptIn(UnstableApi::class) package com.craftworks.music.player
 
 import androidx.annotation.OptIn
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController

@@ -47,6 +47,8 @@ data class SubsonicResponse(
 
     // Favourites
     val starred: Starred? = null,
+
+    val sonicMatch: List<MediaData.Song>? = null
 )
 
 private val jsonParser = Json { ignoreUnknownKeys = true }

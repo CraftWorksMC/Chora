@@ -19,7 +19,9 @@ import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.managers.settings.PlaybackSettingsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
@@ -34,7 +36,9 @@ import kotlinx.coroutines.withContext
 @HiltViewModel
 class NowPlayingViewModel @Inject constructor (
     @ApplicationContext private val context: Context,
-    appearanceSettingsManager: AppearanceSettingsManager
+    val songRepository: SongRepository,
+    val appearanceSettingsManager: AppearanceSettingsManager,
+    val playbackSettingsManager: PlaybackSettingsManager,
 ) : ViewModel() {
     private val _lyricsOpen = MutableStateFlow(false)
     val lyricsOpen = _lyricsOpen.asStateFlow()
@@ -66,6 +70,12 @@ class NowPlayingViewModel @Inject constructor (
 
     private val _meta = MutableStateFlow(MediaItem.EMPTY)
     val metadata = _meta.asStateFlow()
+
+    val autoPlay = playbackSettingsManager.autoPlayFlow
+    fun setAutoPlay(autoPlay: Boolean) =
+        viewModelScope.launch {
+            playbackSettingsManager.setAutoPlay(autoPlay)
+        }
 
     fun updatePaletteFromUri(uri: Uri?, currentBackgroundStyle: NowPlayingBackground, isSystemDark: Boolean) {
         if (currentBackgroundStyle == NowPlayingBackground.PLAIN) {

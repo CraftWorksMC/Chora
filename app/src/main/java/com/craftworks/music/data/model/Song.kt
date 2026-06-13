@@ -58,7 +58,7 @@ fun MediaData.Song.toMediaItem(): MediaItem {
             }).build()
 
     return MediaItem.Builder()
-        .setMediaId(this@toMediaItem.media.toString())
+        .setMediaId(this@toMediaItem.media.toString() + "&estimateContentLength=true")
         .setUri(this@toMediaItem.media?.toUri())
         .setMediaMetadata(mediaMetadata)
         .build()

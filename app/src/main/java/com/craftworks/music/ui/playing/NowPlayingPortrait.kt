@@ -35,15 +35,10 @@ import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -54,7 +49,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,7 +56,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaMetadata
@@ -267,6 +260,35 @@ fun NowPlayingPortrait(
                                 Modifier.padding(horizontal = 24.dp),
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
+                                Crossfade(
+                                    targetState = metadata?.title.toString(),
+                                    animationSpec = tween(
+                                        durationMillis = 400,
+                                        easing = FastOutSlowInEasing
+                                    ),
+                                    label = "Animated Song Title",
+                                    modifier = Modifier
+                                ) { title ->
+                                    Text(
+                                        text = title,
+                                        style = MaterialTheme.typography.headlineMediumEmphasized,
+                                        fontWeight = FontWeight.Bold,
+                                        color = iconTextColor,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Visible,
+                                        softWrap = false,
+                                        textAlign = when (titleAlignment) {
+                                            NowPlayingAlignment.LEFT -> TextAlign.Start
+                                            NowPlayingAlignment.CENTER -> TextAlign.Center
+                                            NowPlayingAlignment.RIGHT -> TextAlign.End
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .marqueeHorizontalFadingEdges(
+                                                marqueeProvider = { Modifier.basicMarquee() })
+                                    )
+                                }
+                                /* RESERVED FOR LATER UPDATES WHEN THERE'S MORE STUFF
                                 CompositionLocalProvider(
                                     LocalLayoutDirection provides
                                             if (titleAlignment == NowPlayingAlignment.RIGHT)
@@ -318,6 +340,7 @@ fun NowPlayingPortrait(
                                         }
                                     }
                                 }
+                                */
 
                                 // Artist + year
                                 Crossfade(

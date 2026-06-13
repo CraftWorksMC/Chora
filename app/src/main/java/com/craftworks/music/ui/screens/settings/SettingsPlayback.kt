@@ -25,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -46,6 +47,7 @@ import com.craftworks.music.managers.settings.PlaybackSettingsManager
 import com.craftworks.music.ui.elements.dialogs.TranscodingBitrateDialog
 import com.craftworks.music.ui.elements.dialogs.TranscodingFormatDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.math.roundToInt
 
@@ -63,6 +65,8 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
     var showTranscodingFormatDialog by remember { mutableStateOf(false) }
 
     val currentNavidromeServer by NavidromeManager.currentServerId.collectAsStateWithLifecycle()
+
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -146,6 +150,22 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
                         enabled = transcodingFormatEnabled,
                         toggleEvent = { showTranscodingFormatDialog = true }
+                    )
+                }
+                Column(
+                    modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    val autoPlay by PlaybackSettingsManager(context).autoPlayFlow.collectAsStateWithLifecycle(true)
+                    SettingsSwitch(
+                        autoPlay,
+                        stringResource(R.string.Setting_LyricsAutoscroll),
+                        ImageVector.vectorResource(R.drawable.rounded_text_select_move_down_24),
+                        toggleEvent = {
+                            coroutineScope.launch {
+                                PlaybackSettingsManager(context).setAutoPlay(!autoPlay)
+                            }
+                        }
                     )
                 }
 

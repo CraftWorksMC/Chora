@@ -45,6 +45,13 @@ class SongRepository @Inject constructor(
             navidromeDataSource.getNavidromeSong(songId, ignoreCachedResponse)
     }
 
+    suspend fun getSimilarSongs(songId: String, count: Int) : List<MediaItem> = coroutineScope {
+        if (songId.startsWith("Local_"))
+            emptyList()
+        else
+            navidromeDataSource.getNavidromeSimilarSong(songId, count)
+    }
+
     suspend fun searchSongs(query: String, ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
         val deferredSongs = mutableListOf<Deferred<List<MediaItem>>>()
 

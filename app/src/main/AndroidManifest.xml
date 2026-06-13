@@ -64,9 +64,9 @@
         <service
             android:name=".player.ChoraMediaLibraryService"
             android:foregroundServiceType="mediaPlayback"
-            android:exported="true"
-            android:permission="android.permission.FOREGROUND_SERVICE">
+            android:exported="true">
             <intent-filter>
+                <action android:name="androidx.media3.session.MediaLibraryService"/>
                 <action android:name="android.media.browse.MediaBrowserService"/>
                 <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
                 <category android:name="android.intent.category.APP_MUSIC" />

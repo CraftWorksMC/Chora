@@ -2,8 +2,6 @@ package com.craftworks.music.player
 
 import android.app.PendingIntent
 import android.content.Intent
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
@@ -203,7 +201,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     @OptIn(UnstableApi::class)
     fun initializePlayer() {
-
         serviceIOScope.launch {
             appearanceSettingsManager.bottomNavItemsFlow.collect { items ->
                 val routeToItem = mapOf(
@@ -257,9 +254,19 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 super.onMediaItemTransition(mediaItem, reason)
 
                 serviceIOScope.launch {
-                    songRepository.scrobbleSong(mediaItem?.mediaMetadata?.extras?.getString("navidromeID") ?: "", false)
                     lyricsRepository.getLyrics(mediaItem?.mediaMetadata)
+                    val mediaId = mediaItem?.mediaMetadata?.extras?.getString("navidromeID") ?: return@launch
+                    songRepository.scrobbleSong(mediaId, false)
                 }
+
+                /*
+                serviceMainScope.launch {
+                    playbackSettingsManager.autoPlayFlow.collect {
+                        if (it && player.currentMediaItemIndex == player.mediaItemCount - 1)
+                            player.addMediaItems(songRepository.getSimilarSongs(mediaItem?.mediaMetadata?.extras?.getString("navidromeID")!!, 1))
+                    }
+                }
+                */
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -335,6 +342,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             super.onPostConnect(session, controller)
         }
 
+        /*
         @OptIn(UnstableApi::class)
         override fun onSetMediaItems(
             mediaSession: MediaSession,
@@ -400,7 +408,27 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
             return Futures.immediateFuture(result)
         }
+        */
 
+        override fun onAddMediaItems(
+            mediaSession: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            mediaItems: List<MediaItem>
+        ): ListenableFuture<List<MediaItem>> {
+            val updatedMediaItems = mediaItems.map { it.buildUpon().setUri(it.mediaId).build() }.toMutableList()
+            mediaItems.forEachIndexed { i, item ->
+                Log.d("PROOF", "Item $i:")
+                Log.d("PROOF", "  Caller Package: ${controller.packageName}")
+                Log.d("PROOF", "  Is Legacy Connection: ${controller.controllerVersion}")
+                Log.d("PROOF", "  Call stack", Exception())
+                Log.d("PROOF", "  mediaId = ${item.mediaId}")
+                Log.d("PROOF", "  uri = ${item.localConfiguration?.uri}")
+                Log.d("PROOF", "  title = ${item.mediaMetadata?.title}")
+                Log.d("PROOF", "  artworkUri = ${item.mediaMetadata?.artworkUri}")  // ← likely null
+                Log.d("PROOF", "  extras = ${item.mediaMetadata?.extras}")          // ← likely null
+            }
+            return Futures.immediateFuture(updatedMediaItems)
+        }
 
         override fun onGetLibraryRoot(
             session: MediaLibrarySession,

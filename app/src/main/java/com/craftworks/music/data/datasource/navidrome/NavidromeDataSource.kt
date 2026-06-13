@@ -23,6 +23,7 @@ import com.craftworks.music.providers.navidrome.parseNavidromePlaylistJSON
 import com.craftworks.music.providers.navidrome.parseNavidromePlaylistsJSON
 import com.craftworks.music.providers.navidrome.parseNavidromeRadioJSON
 import com.craftworks.music.providers.navidrome.parseNavidromeSearch3JSON
+import com.craftworks.music.providers.navidrome.parseNavidromeSimilarSongsJSON
 import com.craftworks.music.providers.navidrome.parseNavidromeStatus
 import com.craftworks.music.providers.navidrome.parseNavidromeSyncedLyricsJSON
 import io.ktor.client.HttpClient
@@ -178,6 +179,8 @@ class NavidromeDataSource @Inject constructor() {
 
                 endpoint.startsWith("star") -> { NavidromeManager.setSyncingStatus(false) }
                 endpoint.startsWith("unstar") -> { NavidromeManager.setSyncingStatus(false) }
+
+                endpoint.startsWith("getSimilarSongs") -> parsedData.addAll(parseNavidromeSimilarSongsJSON(responseContent, server.url, server.username, server.password))
             }
         } catch (e: UnresolvedAddressException) {
             Log.e("NAVIDROME", "Network error for URL: $url", e)
@@ -443,7 +446,7 @@ class NavidromeDataSource @Inject constructor() {
         musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
         ): List<MediaItem> = withContext(Dispatchers.IO) {
         getRequest(
-            "getStarred.view?f=json",
+            "getStarred.view?",
             musicFolderIds,
             ignoreCachedResponse
         ).filterIsInstance<MediaItem>()
@@ -480,5 +483,16 @@ class NavidromeDataSource @Inject constructor() {
         }
         getRequest(endpoint, null, ignoreCachedResponse)
         true
+    }
+
+    suspend fun getNavidromeSimilarSong(
+        id: String,
+        count: Int
+    ): List<MediaItem> = withContext(Dispatchers.IO) {
+        getRequest(
+            "getSonicSimilarTracks.view?id=$id&count=$count",
+            null,
+            true
+        ).filterIsInstance<MediaItem>()
     }
 }

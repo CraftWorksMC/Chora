@@ -1,6 +1,7 @@
 package com.craftworks.music.managers.settings
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -21,6 +22,9 @@ class PlaybackSettingsManager @Inject constructor(
         private val TRANSCODING_BITRATE_WIFI_KEY = stringPreferencesKey("transcoding_bitrate_wifi")
         private val TRANSCODING_BITRATE_DATA_KEY = stringPreferencesKey("transcoding_bitrate_data")
         private val TRANSCODING_FORMAT_KEY = stringPreferencesKey("transcoding_format")
+
+        private val AUTOPLAY_SONGS = booleanPreferencesKey("autoplay")
+
         private val SCROBBLE_PERCENT_KEY = intPreferencesKey("scrobble_percent")
     }
 
@@ -68,6 +72,18 @@ class PlaybackSettingsManager @Inject constructor(
         withContext(NonCancellable) {
             context.dataStore.edit { preferences ->
                 preferences[SCROBBLE_PERCENT_KEY] = scrobblePercent
+            }
+        }
+    }
+
+    val autoPlayFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[AUTOPLAY_SONGS] ?: false
+    }
+
+    suspend fun setAutoPlay(autoPlay: Boolean) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[AUTOPLAY_SONGS] = autoPlay
             }
         }
     }
