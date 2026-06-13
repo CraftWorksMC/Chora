@@ -72,7 +72,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     private var scrobbleJob: Job? = null
     private var sleepTimerJob: Job? = null
-    private var _sleepTimerRemainingTime = MutableStateFlow<Int>(0)
+    private var _sleepTimerRemainingTime = MutableStateFlow(0)
     val sleepTimerRemainingTime: StateFlow<Int> = _sleepTimerRemainingTime.asStateFlow()
 
     @Inject lateinit var appearanceSettingsManager: AppearanceSettingsManager
@@ -235,7 +235,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         player.repeatMode = Player.REPEAT_MODE_OFF
         player.shuffleModeEnabled = false
 
-        var playerScrobbled: Boolean = false
+        var playerScrobbled = false
 
         player.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -249,7 +249,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     Log.d("REPLAY GAIN", "Setting ReplayGain to ${player.volume}")
                 }
 
-                playerScrobbled = false;
+                playerScrobbled = false
 
                 super.onMediaItemTransition(mediaItem, reason)
 
@@ -415,17 +415,41 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             controller: MediaSession.ControllerInfo,
             mediaItems: List<MediaItem>
         ): ListenableFuture<List<MediaItem>> {
-            val updatedMediaItems = mediaItems.map { it.buildUpon().setUri(it.mediaId).build() }.toMutableList()
-            mediaItems.forEachIndexed { i, item ->
-                Log.d("PROOF", "Item $i:")
-                Log.d("PROOF", "  Caller Package: ${controller.packageName}")
-                Log.d("PROOF", "  Is Legacy Connection: ${controller.controllerVersion}")
-                Log.d("PROOF", "  Call stack", Exception())
-                Log.d("PROOF", "  mediaId = ${item.mediaId}")
-                Log.d("PROOF", "  uri = ${item.localConfiguration?.uri}")
-                Log.d("PROOF", "  title = ${item.mediaMetadata?.title}")
-                Log.d("PROOF", "  artworkUri = ${item.mediaMetadata?.artworkUri}")  // ← likely null
-                Log.d("PROOF", "  extras = ${item.mediaMetadata?.extras}")          // ← likely null
+            // Android Auto uses the legacy MediaController, so we need to do some very weird hacks to make it work nicely.
+
+            // If only one item is requested, check if it belongs to a folder we've already loaded
+            if (mediaItems.size == 1) {
+                val requestedId = mediaItems[0].mediaId
+                // Try to find the full item in the last browsed folder
+                val fullItem = aFolderSongs.find { it.mediaId == requestedId }
+                if (fullItem != null) {
+                    val startIndex = aFolderSongs.indexOf(fullItem)
+                    val folderQueue = aFolderSongs.subList(startIndex, aFolderSongs.size).map { item ->
+                        item.buildUpon()
+                            .setUri(item.mediaId)
+                            .build()
+                    }
+                    return Futures.immediateFuture(folderQueue)
+                }
+
+                // Not found in the current folder
+                val cachedItem = aPlaylistScreenItems.find { it.mediaId == requestedId }
+                    ?: aRadioScreenItems.find { it.mediaId == requestedId }
+                    ?: aAlbumScreenItems.find { it.mediaId == requestedId }
+                    ?: aArtistsScreenItems.find { it.mediaId == requestedId }
+
+                if (cachedItem != null) {
+                    val enrichedItem = cachedItem.buildUpon()
+                        .setUri(cachedItem.mediaId)
+                        .build()
+                    return Futures.immediateFuture(listOf(enrichedItem))
+                }
+            }
+
+            val updatedMediaItems = mediaItems.map { item ->
+                item.buildUpon()
+                    .setUri(item.mediaId)
+                    .build()
             }
             return Futures.immediateFuture(updatedMediaItems)
         }
@@ -484,6 +508,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             mediaId: String
         ): ListenableFuture<LibraryResult<MediaItem>> {
             val mediaItem = aFolderSongs.find { it.mediaId == mediaId }
+                ?: aPlaylistScreenItems.find { it.mediaId == mediaId }
                 ?: aRadioScreenItems.find { it.mediaId == mediaId }
                 ?: return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
 
@@ -520,7 +545,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         override fun onPlaybackResumption(
             mediaSession: MediaSession,
-            controller: MediaSession.ControllerInfo
+            controller: MediaSession.ControllerInfo,
+            isToStream: Boolean
         ): ListenableFuture<MediaItemsWithStartPosition> {
             val settable = SettableFuture.create<MediaItemsWithStartPosition>()
             serviceMainScope.launch {
@@ -534,8 +560,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                         player.playWhenReady = true
 
                         player.seekTo(playbackResumptionList.startIndex, playbackResumptionList.startPositionMs)
-
-                        SongHelper.currentTracklist = playbackResumptionList.mediaItems
 
                         Log.d(
                             "RESUMPTION",
@@ -558,8 +582,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             return Futures.immediateFuture(
                 LibraryResult.ofItemList(
                     runBlocking {
-                        SongHelper.currentTracklist = songRepository.getSongs(query).toMutableList()
-                        SongHelper.currentTracklist
+                        songRepository.getSongs(query).toMutableList()
                     },
                     LibraryParams.Builder().build()
                 )
@@ -741,7 +764,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     }
                 )
                 Log.d("MediaItemTransition", "aRadioScreenItems: ${aRadioScreenItems.map { it.mediaMetadata }}")
-                SongHelper.currentTracklist = aRadioScreenItems
             }
         }
         return aRadioScreenItems
@@ -752,7 +774,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             if (aPlaylistScreenItems.isEmpty()) {
                 aPlaylistScreenItems.addAll(playlistRepository.getPlaylists())
             }
-            SongHelper.currentTracklist = aPlaylistScreenItems
         }
         return aPlaylistScreenItems
     }
@@ -782,7 +803,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
                 else -> aFolderSongs.clear()
             }
-            SongHelper.currentTracklist = aFolderSongs
         }
 
         return aFolderSongs

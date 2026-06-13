@@ -9,13 +9,10 @@ import kotlinx.coroutines.withContext
 
 class SongHelper {
     companion object{
-        var currentTracklist = mutableListOf<MediaItem>()
-
         suspend fun play(mediaItems: List<MediaItem>, index: Int, mediaController: MediaController?) {
             if (mediaItems.isEmpty())
                 return
 
-            currentTracklist = mediaItems.toMutableList()
             withContext(Dispatchers.Main) {
                 mediaController?.setMediaItems(mediaItems, index, 0)
                 mediaController?.prepare()
