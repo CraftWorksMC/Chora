@@ -57,8 +57,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
@@ -483,13 +486,23 @@ fun AnimatedWord(
         text = wordText,
         style = MaterialTheme.typography.titleLarge.copy(
             fontWeight = FontWeight.Normal,
-            textMotion = TextMotion.Animated,
-            brush = brush
+            textMotion = TextMotion.Animated
         ),
-        modifier = Modifier.graphicsLayer {
-            translationY = yOffset.value
-            alpha = textAlpha.value
-        },
+        modifier = Modifier
+            .graphicsLayer {
+                translationY = yOffset.value
+                alpha = textAlpha.value
+                compositingStrategy = CompositingStrategy.Offscreen
+            }
+            .drawWithCache {
+                onDrawWithContent {
+                    drawContent()
+                    drawRect(
+                        brush = brush,
+                        blendMode = BlendMode.SrcIn
+                    )
+                }
+            },
     )
 }
 
