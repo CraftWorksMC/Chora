@@ -27,7 +27,7 @@ import com.craftworks.music.providers.navidrome.parseNavidromeSimilarSongsJSON
 import com.craftworks.music.providers.navidrome.parseNavidromeStatus
 import com.craftworks.music.providers.navidrome.parseNavidromeSyncedLyricsJSON
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
@@ -47,6 +47,7 @@ import kotlinx.serialization.json.Json
 import java.net.ConnectException
 import java.nio.channels.UnresolvedAddressException
 import java.security.MessageDigest
+import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -58,7 +59,7 @@ class NavidromeDataSource @Inject constructor() {
     private val json = Json { ignoreUnknownKeys = true }
 
     private val client: HttpClient by lazy {
-        HttpClient(CIO) {
+        HttpClient(OkHttp) {
             install(ContentNegotiation) {
                 json(json)
             }
@@ -97,9 +98,12 @@ class NavidromeDataSource @Inject constructor() {
             }
         )
 
-        return HttpClient(CIO.create {
-            https {
-                this.trustManager = trustAllCerts[0]
+        return HttpClient(OkHttp.create {
+            config {
+                val sslContext = javax.net.ssl.SSLContext.getInstance("SSL")
+                sslContext.init(null, trustAllCerts, SecureRandom())
+                sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+                hostnameVerifier { _, _ -> true }
             }
         }) {
             install(ContentNegotiation) {

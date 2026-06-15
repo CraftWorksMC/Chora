@@ -10,7 +10,7 @@ import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.cache.HttpCache
@@ -46,7 +46,7 @@ class LrclibDataSource @Inject constructor(
     @ApplicationContext context: Context
 ) {
     @OptIn(InternalAPI::class)
-    private val client = HttpClient(CIO) {
+    private val client = HttpClient(OkHttp) {
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
