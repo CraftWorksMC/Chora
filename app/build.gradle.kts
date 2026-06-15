@@ -1,8 +1,8 @@
 plugins {
     id("com.android.application")
-    kotlin("plugin.serialization") version "2.0.0"
-    alias(libs.plugins.compose.compiler)
     id("com.google.devtools.ksp")
+    kotlin("plugin.serialization") version "2.4.0"
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt)
 }
 
@@ -47,15 +47,6 @@ android {
 
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
-    }
-    buildFeatures {
-        compose = true
-    }
-    kotlin {
-        jvmToolchain(21)
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.13"
     }
     packaging {
         resources {
@@ -113,7 +104,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 

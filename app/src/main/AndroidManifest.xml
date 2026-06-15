@@ -34,7 +34,6 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.MusicPlayer"
-        android:usesCleartextTraffic="true"
         android:appCategory="audio"
         android:enableOnBackInvokedCallback="true"
 
