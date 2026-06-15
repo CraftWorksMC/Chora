@@ -62,6 +62,7 @@ import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.Icon
 import androidx.tv.material3.IconButton
 import androidx.tv.material3.IconButtonDefaults
+import androidx.tv.material3.OutlinedIconButtonDefaults
 import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.formatMilliseconds
@@ -351,12 +352,15 @@ fun DownloadButton(size: Dp, metadata: MediaMetadata?, enabled: Boolean) {
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-internal fun ShuffleButton(player: Player, modifier: Modifier = Modifier) {
+fun ShuffleButton(player: Player, modifier: Modifier = Modifier) {
     val state = rememberShuffleButtonState(player)
     IconButton(
         onClick = state::onClick,
         modifier = modifier,
         enabled = state.isEnabled,
+        border = if (state.shuffleOn) IconButtonDefaults.border() else OutlinedIconButtonDefaults.border(),
+        colors = if (state.shuffleOn) IconButtonDefaults.colors() else OutlinedIconButtonDefaults.colors(),
+        scale = if (state.shuffleOn) IconButtonDefaults.scale() else OutlinedIconButtonDefaults.scale(),
     ) {
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.round_shuffle_28),
@@ -368,13 +372,16 @@ internal fun ShuffleButton(player: Player, modifier: Modifier = Modifier) {
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-internal fun RepeatButton(player: Player, modifier: Modifier = Modifier) {
+fun RepeatButton(player: Player, modifier: Modifier = Modifier) {
     val state = rememberRepeatButtonState(player)
     val icon = repeatModeIcon(state.repeatModeState)
     IconButton(
         onClick = state::onClick,
         modifier = modifier,
-        enabled = state.isEnabled
+        enabled = state.isEnabled,
+        border = if (state.repeatModeState == Player.REPEAT_MODE_OFF) OutlinedIconButtonDefaults.border() else IconButtonDefaults.border(),
+        colors = if (state.repeatModeState == Player.REPEAT_MODE_OFF) OutlinedIconButtonDefaults.colors() else IconButtonDefaults.colors(),
+        scale = if (state.repeatModeState == Player.REPEAT_MODE_OFF) OutlinedIconButtonDefaults.scale() else IconButtonDefaults.scale(),
     ) {
         Icon(
             imageVector = icon,

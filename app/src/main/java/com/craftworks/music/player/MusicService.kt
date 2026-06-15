@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.compose.ui.util.fastFilter
 import androidx.core.math.MathUtils.clamp
@@ -272,6 +273,12 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             override fun onPlayerError(error: PlaybackException) {
                 error.printStackTrace()
                 Log.e("PLAYER", error.stackTraceToString())
+
+                Toast.makeText(
+                    this@ChoraMediaLibraryService,
+                    PlaybackException.getErrorCodeName(error.errorCode),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         })
 
