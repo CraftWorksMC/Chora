@@ -12,7 +12,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.FileStorage
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -23,10 +22,7 @@ import io.ktor.client.plugins.logging.SIMPLE
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
-import io.ktor.client.statement.HttpReceivePipeline
-import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.appendPathSegments
@@ -54,7 +50,6 @@ class LrclibDataSource @Inject constructor(
             })
         }
 
-        install(ForceCachePlugin)
         install(HttpCache) {
             val cacheDir = File(context.cacheDir, "lrclib_http_cache")
             if (!cacheDir.exists()) cacheDir.mkdirs()
@@ -70,7 +65,7 @@ class LrclibDataSource @Inject constructor(
         expectSuccess = true
     }
 
-    suspend fun getLrcLibLyrics(metadata: MediaMetadata?): List<Lyric> = withContext(Dispatchers.IO) {
+    suspend fun getLrcLibLyrics(metadata: MediaMetadata?, ignoreCachedResponse: Boolean = false): List<Lyric> = withContext(Dispatchers.IO) {
         val baseUrl = settingsManager.lrcLibEndpointFlow.first()
 
         val artist = metadata?.extras?.getString("lyricsArtist")
@@ -90,6 +85,11 @@ class LrclibDataSource @Inject constructor(
                 parameter("duration", duration)
 
                 header(HttpHeaders.UserAgent, "Chora - Navidrome Client (https://github.com/CraftWorksMC/Chora)")
+
+                if (ignoreCachedResponse)
+                    header(HttpHeaders.CacheControl, "no-cache")
+                else
+                    header(HttpHeaders.CacheControl, "max-stale=2592000")
             }
 
             val mediaDataPlainLyrics: LrcLibLyrics = response.body()
@@ -106,26 +106,5 @@ class LrclibDataSource @Inject constructor(
             e.printStackTrace()
             return@withContext emptyList()
         }
-    }
-}
-
-// LRCLIB doesn't send cache control headers, so we have to add them manually
-// (this code is ugly af, but eh, it works)
-@InternalAPI
-private val ForceCachePlugin = createClientPlugin("ForceCacheHeaders") {
-    client.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
-        proceedWith(object : HttpResponse() {
-            override val call = response.call
-            override val rawContent = response.rawContent
-            override val coroutineContext = response.coroutineContext
-            override val requestTime = response.requestTime
-            override val responseTime = response.responseTime
-            override val status = response.status
-            override val version = response.version
-            override val headers = Headers.build {
-                appendAll(response.headers)
-                set(HttpHeaders.CacheControl, "max-age=86400, public")
-            }
-        })
     }
 }

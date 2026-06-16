@@ -90,7 +90,8 @@ fun NowPlayingPortrait(
     onToggleLyrics: () -> Unit = {},
     onToggleQueue: () -> Unit = {},
     onToggleDetails: () -> Unit = {},
-    onOpenSleepTimer: () -> Unit = {}
+    onOpenSleepTimer: () -> Unit = {},
+    onRefreshLyrics: () -> Unit = {}
 ) {
     val iconTextColor by animateColorAsState(
         targetValue = iconColor,
@@ -211,7 +212,7 @@ fun NowPlayingPortrait(
                                         .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
                                 )
                             }
-                            LyricsView(iconTextColor, false, mediaController).apply {
+                            LyricsView(iconTextColor, false, mediaController, onRefreshLyrics = onRefreshLyrics).apply {
                                 Modifier.graphicsLayer {
                                     translationY = -laggedOffset
                                 }

@@ -94,7 +94,8 @@ fun NowPlayingContent(
             onToggleLyrics = { viewModel.setLyricsOpen(!lyricsOpen) },
             onToggleQueue = { viewModel.setPlayQueueOpen(!playQueueOpen) },
             onToggleDetails = { viewModel.setDetailsOpen(!detailsOpen) },
-            onOpenSleepTimer = { viewModel.setSleepTimerDialogOpen(true) }
+            onOpenSleepTimer = { viewModel.setSleepTimerDialogOpen(true) },
+            onRefreshLyrics =  { viewModel.refreshLyrics(metadata) }
         )
     }
 

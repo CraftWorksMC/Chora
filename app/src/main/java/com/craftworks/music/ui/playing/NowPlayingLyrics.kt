@@ -43,6 +43,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -97,20 +98,27 @@ fun LyricsView(
     isLandscape: Boolean = false,
     mediaController: MediaController?,
     paddingValues: PaddingValues = PaddingValues(),
+    onRefreshLyrics: () -> Unit = {},
 ) {
     val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
     val loading by LyricsState.loading.collectAsStateWithLifecycle()
+    var isRefreshing by remember { mutableStateOf(false) }
 
-    val useBlur by AppearanceSettingsManager(LocalContext.current).nowPlayingLyricsBlurFlow.collectAsState(
+    val appearanceSettingsManager = AppearanceSettingsManager(LocalContext.current)
+
+    val useBlur by appearanceSettingsManager.nowPlayingLyricsBlurFlow.collectAsState(
         true
     )
-    val lyricsAnimationSpeed by AppearanceSettingsManager(LocalContext.current).lyricsAnimationSpeedFlow.collectAsState(
+    val lyricsAnimationSpeed by appearanceSettingsManager.lyricsAnimationSpeedFlow.collectAsState(
         100
     )
-    val lyricsAlignment by AppearanceSettingsManager(LocalContext.current).nowPlayingLyricsAlignment.collectAsStateWithLifecycle(
+    val lyricsAlignment by appearanceSettingsManager.nowPlayingLyricsAlignment.collectAsStateWithLifecycle(
         NowPlayingAlignment.CENTER
     )
-    val lyricsAutoscroll by AppearanceSettingsManager(LocalContext.current).lyricsAutoScroll.collectAsStateWithLifecycle(
+    val lyricsAutoscroll by appearanceSettingsManager.lyricsAutoScroll.collectAsStateWithLifecycle(
+        true
+    )
+    val lyricsRecenter by appearanceSettingsManager.lyricsRecenterAfterScroll.collectAsStateWithLifecycle(
         true
     )
 
@@ -186,7 +194,7 @@ fun LyricsView(
         if (targetIndex != currentLyricIndex.intValue) {
             currentLyricIndex.intValue = targetIndex
 
-            if (!userScrolled) {
+            if (lyricsRecenter || !(!lyricsRecenter && userScrolled)) {
                 coroutineScope.launch {
                     val targetItemAfter =
                         state.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
@@ -245,7 +253,18 @@ fun LyricsView(
                 )
             }
         } else {
-            LazyColumn(
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    if (mediaController?.currentMediaItem != null) {
+                        isRefreshing = true
+                        try {
+                            onRefreshLyrics()
+                        } finally {
+                            isRefreshing = false
+                        }
+                    }
+                },
                 modifier = if (isLandscape) {
                     Modifier
                         .widthIn(min = 256.dp)
@@ -255,79 +274,83 @@ fun LyricsView(
                         .fillMaxWidth()
                         .fillMaxHeight()
                 }
-                    .padding(paddingValues)
-                    .onSizeChanged { size ->
-                        scrollOffset = (size.height * 0.2f).toInt()
-                    }
-                    .verticalFadingEdges(
-                        FadingEdgesContentType.Dynamic.Lazy.List(
-                            FadingEdgesScrollConfig.Dynamic(),
-                            state
-                        ),
-                        FadingEdgesGravity.All,
-                        96.dp
-                    ),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                contentPadding = PaddingValues(vertical = 32.dp),
-                state = state,
             ) {
-                if (lyrics.size > 1) {
-                    itemsIndexed(
-                        lyrics,
-                        key = { index, lyric -> "${index}:${lyric.text}" }
-                    ) { index, lyric ->
-                        if (!lyric.words.isNullOrEmpty()) {
-                            WordSyncedLyricItem(
-                                lyric = lyric,
-                                index = index,
-                                currentLyricIndex = currentLyricIndex.intValue,
-                                currentPosition = currentPosition.intValue,
-                                useBlur = useBlur,
-                                visibleItemsInfo = visibleItemsInfo,
-                                color = color,
-                                lyricsAnimationSpeed = lyricsAnimationSpeed,
-                                lyricsAlignment = lyricsAlignment,
-                                onClick = {
-                                    mediaController?.seekTo(lyric.startMs.toLong())
-                                    currentPosition.intValue = lyric.startMs
-                                    userScrolled = false
-                                }
-                            )
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .onSizeChanged { size ->
+                            scrollOffset = (size.height * 0.2f).toInt()
                         }
-                        else {
-                            SyncedLyricItem(
-                                lyric = lyric,
-                                index = index,
-                                currentLyricIndex = currentLyricIndex.intValue,
-                                useBlur = useBlur,
-                                visibleItemsInfo = visibleItemsInfo,
-                                color = color,
-                                lyricsAnimationSpeed = lyricsAnimationSpeed,
-                                lyricsAlignment = lyricsAlignment,
-                                onClick = {
-                                    mediaController?.seekTo(lyric.startMs.toLong())
-                                    currentPosition.intValue = lyric.startMs
-                                    userScrolled = false
-                                }
-                            )
-                        }
-                    }
-                } else if (lyrics.isNotEmpty()) {
-                    item {
-                        Text(
-                            text = lyrics[0].text[0],
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = color,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            textAlign = when (lyricsAlignment) {
-                                NowPlayingAlignment.LEFT -> TextAlign.Start
-                                NowPlayingAlignment.CENTER -> TextAlign.Center
-                                NowPlayingAlignment.RIGHT -> TextAlign.End
+                        .verticalFadingEdges(
+                            FadingEdgesContentType.Dynamic.Lazy.List(
+                                FadingEdgesScrollConfig.Dynamic(),
+                                state
+                            ),
+                            FadingEdgesGravity.All,
+                            96.dp
+                        ),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    contentPadding = PaddingValues(vertical = 32.dp),
+                    state = state,
+                ) {
+                    if (lyrics.size > 1) {
+                        itemsIndexed(
+                            lyrics,
+                            key = { index, lyric -> "${index}:${lyric.text}" }
+                        ) { index, lyric ->
+                            if (!lyric.words.isNullOrEmpty()) {
+                                WordSyncedLyricItem(
+                                    lyric = lyric,
+                                    index = index,
+                                    currentLyricIndex = currentLyricIndex.intValue,
+                                    currentPosition = currentPosition.intValue,
+                                    useBlur = useBlur,
+                                    visibleItemsInfo = visibleItemsInfo,
+                                    color = color,
+                                    lyricsAnimationSpeed = lyricsAnimationSpeed,
+                                    lyricsAlignment = lyricsAlignment,
+                                    onClick = {
+                                        mediaController?.seekTo(lyric.startMs.toLong())
+                                        currentPosition.intValue = lyric.startMs
+                                        userScrolled = false
+                                    }
+                                )
+                            } else {
+                                SyncedLyricItem(
+                                    lyric = lyric,
+                                    index = index,
+                                    currentLyricIndex = currentLyricIndex.intValue,
+                                    useBlur = useBlur,
+                                    visibleItemsInfo = visibleItemsInfo,
+                                    color = color,
+                                    lyricsAnimationSpeed = lyricsAnimationSpeed,
+                                    lyricsAlignment = lyricsAlignment,
+                                    onClick = {
+                                        mediaController?.seekTo(lyric.startMs.toLong())
+                                        currentPosition.intValue = lyric.startMs
+                                        userScrolled = false
+                                    }
+                                )
                             }
-                        )
+                        }
+                    } else if (lyrics.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = lyrics[0].text[0],
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = color,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                textAlign = when (lyricsAlignment) {
+                                    NowPlayingAlignment.LEFT -> TextAlign.Start
+                                    NowPlayingAlignment.CENTER -> TextAlign.Center
+                                    NowPlayingAlignment.RIGHT -> TextAlign.End
+                                }
+                            )
+                        }
                     }
                 }
             }

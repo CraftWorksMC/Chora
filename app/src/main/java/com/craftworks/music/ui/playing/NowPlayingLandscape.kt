@@ -289,7 +289,7 @@ fun NowPlayingLandscape(
                         iconTextColor,
                         true,
                         mediaController,
-                        PaddingValues(horizontal = 32.dp, vertical = 16.dp)
+                        PaddingValues(horizontal = 32.dp, vertical = 16.dp),
                     )
                 }
             }

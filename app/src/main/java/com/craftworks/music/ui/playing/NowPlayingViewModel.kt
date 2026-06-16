@@ -13,12 +13,13 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.MediaMetadata
 import androidx.palette.graphics.Palette
 import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import com.craftworks.music.data.repository.LyricsRepository
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.PlaybackSettingsManager
@@ -32,11 +33,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@UnstableApi
 @HiltViewModel
 class NowPlayingViewModel @Inject constructor (
     @ApplicationContext private val context: Context,
     val songRepository: SongRepository,
+    val lyricsRepository: LyricsRepository,
     val appearanceSettingsManager: AppearanceSettingsManager,
     val playbackSettingsManager: PlaybackSettingsManager,
 ) : ViewModel() {
@@ -76,6 +77,12 @@ class NowPlayingViewModel @Inject constructor (
         viewModelScope.launch {
             playbackSettingsManager.setAutoPlay(autoPlay)
         }
+
+    fun refreshLyrics(mediaMetadata: MediaMetadata?) {
+        viewModelScope.launch {
+            lyricsRepository.getLyrics(mediaMetadata, true)
+        }
+    }
 
     fun updatePaletteFromUri(uri: Uri?, currentBackgroundStyle: NowPlayingBackground, isSystemDark: Boolean) {
         if (currentBackgroundStyle == NowPlayingBackground.PLAIN) {

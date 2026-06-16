@@ -84,7 +84,8 @@ import kotlinx.coroutines.flow.debounce
 fun TvNowPlaying(
     mediaController: MediaController? = null,
     iconColor: Color = Color.Black,
-    metadata: MediaMetadata? = null
+    metadata: MediaMetadata? = null,
+    onRefreshLyrics: () -> Unit = {}
 ){
     var controlsVisible by remember { mutableStateOf(false) }
     val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
@@ -226,7 +227,8 @@ fun TvNowPlaying(
                         iconTextColor,
                         true,
                         mediaController,
-                        PaddingValues(24.dp)
+                        PaddingValues(24.dp),
+                        onRefreshLyrics
                     )
                 }
             }
