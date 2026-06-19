@@ -217,9 +217,9 @@ class NavidromeDataSource @Inject constructor() {
         offset: Int? = 0,
         ignoreCachedResponse: Boolean = false,
         musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
-        showFavorites: Boolean = false
+        favoritesOnly: Boolean = false
     ): List<MediaItem> = withContext(Dispatchers.IO) {
-        val effectiveSort = if (showFavorites) "starred" else sort
+        val effectiveSort = if (favoritesOnly) "starred" else sort
 
         getRequest(
             "getAlbumList.view?type=$effectiveSort&size=$size&offset=$offset",
@@ -257,12 +257,17 @@ class NavidromeDataSource @Inject constructor() {
         songOffset: Int = 0,
         ignoreCachedResponse: Boolean = false,
         musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
+        favoritesOnly: Boolean = false,
     ): List<MediaItem> = withContext(Dispatchers.IO) {
-        getRequest(
-            "search3.view?query=$query&songCount=$songCount&songOffset=$songOffset&artistCount=0&albumCount=0",
-            musicFolderIds,
-            ignoreCachedResponse
-        ).filterIsInstance<MediaItem>()
+        (if (query == "" && favoritesOnly) getRequest(
+        "getStarred.view",
+        musicFolderIds,
+        ignoreCachedResponse
+        ) else getRequest(
+        "search3.view?query=$query&songCount=$songCount&songOffset=$songOffset&artistCount=0&albumCount=0",
+        musicFolderIds,
+        ignoreCachedResponse
+        )).filterIsInstance<MediaItem>()
     }
 
     suspend fun getNavidromeSong(
@@ -287,12 +292,17 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromeArtists(
         ignoreCachedResponse: Boolean = false,
         musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
-    ): List<MediaData.Artist> = withContext(Dispatchers.IO) {
-        getRequest(
+        favoritesOnly: Boolean = false
+    ): List<MediaData.Artist> {
+        var artists = getRequest(
             "getArtists.view?f=json",
             musicFolderIds,
             ignoreCachedResponse
-        ).filterIsInstance<MediaData.Artist>()
+        ).filterIsInstance<MediaData.Artist>();
+        if (favoritesOnly) return withContext(Dispatchers.IO) {
+            artists.filter { artist -> artist.starred != "" }
+        }
+        return withContext(Dispatchers.IO) { artists }
     }
 
     suspend fun getNavidromeArtistAlbums(

@@ -36,7 +36,7 @@ class LocalDataSettingsManager @Inject constructor(
         private val MEDIA_RESUMPTION_TIME = longPreferencesKey("media_resumption_timestamp")
 
         private val SORT_ALBUM_ORDER = stringPreferencesKey("sort_album_order")
-        private val SHOW_ALBUM_FAVORITES = booleanPreferencesKey("show_album_favorites")
+        private val SHOW_FAVORITES_ONLY = booleanPreferencesKey("show_favorites_only")
     }
 
     val localRadios: Flow<MutableList<MediaData.Radio>> =
@@ -101,9 +101,9 @@ class LocalDataSettingsManager @Inject constructor(
             SortOrder.entries.find { it.key == preferences[SORT_ALBUM_ORDER] } ?: SortOrder.ALPHABETICAL
         }
 
-    val showAlbumFavorite: Flow<Boolean> =
+    val showFavoriteOnly: Flow<Boolean> =
         context.dataStore.data.map { preferences ->
-            preferences[SHOW_ALBUM_FAVORITES] ?: false
+            preferences[SHOW_FAVORITES_ONLY] ?: false
         }
 
     suspend fun saveSortAlbumOrder(sortOrder: SortOrder) {
@@ -114,10 +114,10 @@ class LocalDataSettingsManager @Inject constructor(
         }
     }
 
-    suspend fun saveShowFavoriteAlbum(showFavorites: Boolean) {
+    suspend fun saveShowFavoriteOnly(showFavorites: Boolean) {
         withContext(NonCancellable) {
             context.dataStore.edit { preferences ->
-                preferences[SHOW_ALBUM_FAVORITES] = showFavorites;
+                preferences[SHOW_FAVORITES_ONLY] = showFavorites;
             }
         }
     }

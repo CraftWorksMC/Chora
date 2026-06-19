@@ -71,7 +71,7 @@ fun AlbumScreen(
 
     var showSortMenu by remember { mutableStateOf(false) }
 
-    val showFavorites by viewModel.showFavorites.collectAsStateWithLifecycle()
+    val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()
 
     PullToRefreshBox(
         state = state,
@@ -104,10 +104,10 @@ fun AlbumScreen(
                             Row {
                                 Box {
                                     IconButton(
-                                        onClick = { viewModel.setShowFavorites(!showFavorites) }
+                                        onClick = { viewModel.setShowFavoritesOnly(!showFavoritesOnly) }
                                     ) {
                                         Icon(
-                                            imageVector = ImageVector.vectorResource(if (showFavorites) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
+                                            imageVector = ImageVector.vectorResource(if (showFavoritesOnly) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
                                             contentDescription = stringResource(R.string.Label_Toggle_Favorites),
                                         )
                                     }

@@ -22,7 +22,8 @@ class SongRepository @Inject constructor(
         query: String? = "",
         songCount: Int = 100, 
         songOffset: Int = 0,
-        ignoreCachedResponse: Boolean = false
+        ignoreCachedResponse: Boolean = false,
+        favoritesOnly: Boolean = false,
     ): List<MediaItem> = coroutineScope {
         val deferredSongs = mutableListOf<Deferred<List<MediaItem>>>()
 
@@ -32,7 +33,7 @@ class SongRepository @Inject constructor(
 
         if (NavidromeManager.checkActiveServers())
             deferredSongs.add(async {
-                navidromeDataSource.getNavidromeSongs(query, songCount, songOffset, ignoreCachedResponse)
+                navidromeDataSource.getNavidromeSongs(query, songCount, songOffset, ignoreCachedResponse, favoritesOnly = favoritesOnly)
             })
 
         deferredSongs.awaitAll().flatten()

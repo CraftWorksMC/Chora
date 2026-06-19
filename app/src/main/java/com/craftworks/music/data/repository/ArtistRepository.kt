@@ -23,7 +23,8 @@ class ArtistRepository @Inject constructor(
         sort: String? = "alphabeticalByName",
         size: Int? = 100,
         offset: Int? = 0,
-        ignoreCachedResponse: Boolean = false
+        ignoreCachedResponse: Boolean = false,
+        favoritesOnly: Boolean = false,
     ): List<MediaData.Artist> = coroutineScope {
         val deferredArtists = mutableListOf<Deferred<List<MediaData.Artist>>>()
 
@@ -32,7 +33,7 @@ class ArtistRepository @Inject constructor(
                 deferredArtists.add(async { localDataSource.getLocalArtists() })
 
         if (NavidromeManager.checkActiveServers()) {
-            deferredArtists.add(async { navidromeDataSource.getNavidromeArtists(ignoreCachedResponse) })
+            deferredArtists.add(async { navidromeDataSource.getNavidromeArtists(ignoreCachedResponse, favoritesOnly = favoritesOnly) })
         }
 
         deferredArtists.awaitAll().flatten()

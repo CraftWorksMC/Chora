@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.DataRefreshManager
+import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SongsScreenViewModel @Inject constructor(
-    private val songRepository: SongRepository
+    private val songRepository: SongRepository,
+    private val localDataSettingsManager: LocalDataSettingsManager
 ) : ViewModel() {
 
     private val _allSongs = MutableStateFlow<List<MediaItem>>(emptyList())
@@ -27,10 +29,16 @@ class SongsScreenViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _showFavoritesOnly = MutableStateFlow(false)
+    val showFavoritesOnly: StateFlow<Boolean> = _showFavoritesOnly.asStateFlow()
+
     init {
         getSongs()
-
         viewModelScope.launch {
+            localDataSettingsManager.showFavoriteOnly.collect { showFavorites ->
+                _showFavoritesOnly.value = showFavorites
+                getSongs()
+            }
             DataRefreshManager.dataSourceChangedEvent.collect {
                 getSongs()
             }
@@ -41,7 +49,7 @@ class SongsScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             coroutineScope {
-                _allSongs.value = songRepository.getSongs(ignoreCachedResponse = true)
+                _allSongs.value = songRepository.getSongs(ignoreCachedResponse = true, favoritesOnly = _showFavoritesOnly.value)
             }
             _isLoading.value = false
         }
@@ -69,6 +77,11 @@ class SongsScreenViewModel @Inject constructor(
                 _searchResults.value = songRepository.searchSongs(query)
             }
             _isLoading.value = false
+        }
+    }
+    fun setShowFavoritesOnly(showFavorites: Boolean) {
+        viewModelScope.launch {
+            localDataSettingsManager.saveShowFavoriteOnly(showFavorites)
         }
     }
 }

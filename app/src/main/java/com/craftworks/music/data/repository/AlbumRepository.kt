@@ -22,12 +22,12 @@ class AlbumRepository @Inject constructor(
         size: Int? = 100,
         offset: Int? = 0,
         ignoreCachedResponse: Boolean = false,
-        showFavorites: Boolean = false,
+        favoritesOnly: Boolean = false,
     ): List<MediaItem> = coroutineScope {
         val deferredAlbums = mutableListOf<Deferred<List<MediaItem>>>()
 
         if (NavidromeManager.checkActiveServers())
-            deferredAlbums.add(async { navidromeDataSource.getNavidromeAlbums(sort, size, offset, ignoreCachedResponse, showFavorites=showFavorites) })
+            deferredAlbums.add(async { navidromeDataSource.getNavidromeAlbums(sort, size, offset, ignoreCachedResponse, favoritesOnly=favoritesOnly) })
 
         if (LocalProviderManager.checkActiveFolders())
             if (offset == 0)
