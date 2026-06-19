@@ -94,6 +94,7 @@ fun SongsScreen(
                                 mediaController?.addMediaItem(it)
                             },
                             isSearch = true,
+                            showFavoritesOnly = false,
                             viewModel = viewModel
                         )
                     },
@@ -129,6 +130,7 @@ fun SongsScreen(
                         mediaController?.addMediaItem(it)
                     },
                     isSearch = false,
+                    showFavoritesOnly = showFavoritesOnly,
                     viewModel = viewModel
                 )
             }
