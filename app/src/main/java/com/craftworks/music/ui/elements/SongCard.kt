@@ -58,7 +58,8 @@ fun HorizontalSongCard(
     song: MediaItem,
     modifier: Modifier = Modifier,
     showTrackNumber: Boolean = false,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onAddToQueue: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -183,6 +184,21 @@ fun HorizontalSongCard(
                 ) {
                     DropdownMenuItem(
                         text = {
+                            Text(stringResource(R.string.Action_Add_To_Queue))
+                        },
+                        onClick = {
+                            onAddToQueue()
+                            expanded = false
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.outline_queue_add_24),
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = {
                             Text(
                                 stringResource(R.string.Dialog_Add_To_Playlist).replace(
                                     "/ ",
@@ -199,7 +215,7 @@ fun HorizontalSongCard(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Rounded.Add,
-                                contentDescription = "Add To Playlist Icon"
+                                contentDescription = null
                             )
                         }
                     )
@@ -217,7 +233,7 @@ fun HorizontalSongCard(
                         leadingIcon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
-                                contentDescription = "Download Icon"
+                                contentDescription = null
                             )
                         }
                     )
@@ -236,6 +252,8 @@ fun PReviewHorizontalSongCard() {
                 MediaMetadata.Builder()
                     .setTitle("Lololol")
                     .build()
-            ).build()
-    ) { }
+            ).build(),
+        onClick = {},
+        onAddToQueue = {}
+    )
 }

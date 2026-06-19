@@ -90,6 +90,9 @@ fun SongsScreen(
                                     SongHelper.play(songs, index, mediaController)
                                 }
                             },
+                            onAddToQueue = {
+                                mediaController?.addMediaItem(it)
+                            },
                             isSearch = true,
                             viewModel = viewModel
                         )
@@ -121,6 +124,9 @@ fun SongsScreen(
                         coroutineScope.launch {
                             SongHelper.play(songs, index, mediaController)
                         }
+                    },
+                    onAddToQueue = {
+                        mediaController?.addMediaItem(it)
                     },
                     isSearch = false,
                     viewModel = viewModel

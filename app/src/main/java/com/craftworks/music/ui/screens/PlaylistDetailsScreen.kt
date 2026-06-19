@@ -300,6 +300,9 @@ fun PlaylistDetails(
                                 mediaController
                             )
                         }
+                    },
+                    onAddToQueue = {
+                        mediaController?.addMediaItem(song)
                     }
                 )
             }

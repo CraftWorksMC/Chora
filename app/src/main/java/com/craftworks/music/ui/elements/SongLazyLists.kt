@@ -65,6 +65,7 @@ import kotlinx.coroutines.launch
 fun SongsHorizontalColumn(
     songList: List<MediaItem>,
     onSongSelected: (itemsList: List<MediaItem>, index: Int) -> Unit,
+    onAddToQueue: (song: MediaItem) -> Unit,
     isSearch: Boolean? = false,
     viewModel: SongsScreenViewModel? = null
 ){
@@ -135,6 +136,9 @@ fun SongsHorizontalColumn(
                     song = song,
                     onClick = {
                         onSongSelected(songsInGroup, index)
+                    },
+                    onAddToQueue = {
+                        onAddToQueue(song)
                     }
                 )
             }
@@ -372,7 +376,9 @@ fun AlbumRow(
     val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_") }
 
     LazyRow(
-        modifier = Modifier.fillMaxSize().heightIn(min = 172.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .heightIn(min = 172.dp),
         contentPadding = PaddingValues(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
