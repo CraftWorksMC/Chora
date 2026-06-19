@@ -510,32 +510,6 @@ fun PlaylistGrid(playlists: List<MediaItem>, onPlaylistSelected: (playlist: Medi
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(12.dp)
     ) {
-        if (currentNavidromeServer != null) {
-            item {
-                val favouritesPlaylist = MediaItem.Builder()
-                    .setMediaId("favourites")
-                    .setMediaMetadata(
-                        MediaMetadata.Builder()
-                            .setTitle("Favourites")
-                            .setIsPlayable(false)
-                            .setIsBrowsable(true)
-                            .setArtworkUri(("android.resource://com.craftworks.music/" + R.drawable.favourites).toUri())
-                            .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
-                            .setExtras(Bundle().apply {
-                                putString("navidromeID", "favourites")
-                            })
-                            .build()
-                    )
-                    .build()
-
-                PlaylistCard(
-                    playlist = favouritesPlaylist,
-                    onClick = {
-                        onPlaylistSelected(favouritesPlaylist)
-                    }
-                )
-            }
-        }
         items(playlists) {playlist ->
             PlaylistCard(playlist = playlist,
                 onClick = {
