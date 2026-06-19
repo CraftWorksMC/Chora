@@ -216,10 +216,13 @@ class NavidromeDataSource @Inject constructor() {
         size: Int? = 100,
         offset: Int? = 0,
         ignoreCachedResponse: Boolean = false,
-        musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer()
+        musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
+        showFavorites: Boolean = false
     ): List<MediaItem> = withContext(Dispatchers.IO) {
+        val effectiveSort = if (showFavorites) "starred" else sort
+
         getRequest(
-            "getAlbumList.view?type=$sort&size=$size&offset=$offset",
+            "getAlbumList.view?type=$effectiveSort&size=$size&offset=$offset",
             musicFolderIds,
             ignoreCachedResponse
         ).filterIsInstance<MediaItem>()

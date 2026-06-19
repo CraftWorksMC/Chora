@@ -49,6 +49,8 @@
     <string name="Label_Sorting">Ordina Per</string>
     <string name="Label_Sort_Alphabetical">Alfabetico</string>
     <string name="Label_Sort_Starred">Preferiti</string>
+    <!-- Favorites -->
+    <string name="Label_Toggle_Favorites">Toggle Favorites</string>
     <!-- Connection Errors -->
     <string name="Navidrome_Error">Nessuna connessione al server Navidrome.</string>
     <string name="Navidrome_Sync">Caricamento…</string>

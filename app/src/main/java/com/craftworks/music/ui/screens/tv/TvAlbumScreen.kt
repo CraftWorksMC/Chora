@@ -64,7 +64,6 @@ fun TvAlbumScreen(
                 SortOrder.NEWEST -> 1
                 SortOrder.RECENT -> 2
                 SortOrder.FREQUENT -> 3
-                SortOrder.STARRED -> 4
             }
         }
     }
@@ -124,8 +123,7 @@ fun TvAlbumScreen(
                                         0 -> SortOrder.ALPHABETICAL
                                         1 -> SortOrder.NEWEST
                                         2 -> SortOrder.RECENT
-                                        3 -> SortOrder.FREQUENT
-                                        else -> SortOrder.STARRED
+                                        else -> SortOrder.FREQUENT
                                     }
                                 )
                             },

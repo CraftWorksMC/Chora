@@ -3,6 +3,7 @@ package com.craftworks.music.ui.screens
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DropdownMenu
@@ -70,6 +71,8 @@ fun AlbumScreen(
 
     var showSortMenu by remember { mutableStateOf(false) }
 
+    val showFavorites by viewModel.showFavorites.collectAsStateWithLifecycle()
+
     PullToRefreshBox(
         state = state,
         isRefreshing = isRefreshing,
@@ -98,54 +101,60 @@ fun AlbumScreen(
                             )
                         },
                         extraAction = {
-                            Box {
-                                IconButton(
-                                    onClick = { showSortMenu = true }
-                                ) {
-                                    Icon(
-                                        imageVector = ImageVector.vectorResource(R.drawable.rounded_sort_24),
-                                        contentDescription = stringResource(R.string.Label_Sorting),
-                                    )
+                            Row {
+                                Box {
+                                    IconButton(
+                                        onClick = { viewModel.setShowFavorites(!showFavorites) }
+                                    ) {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(if (showFavorites) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
+                                            contentDescription = stringResource(R.string.Label_Toggle_Favorites),
+                                        )
+                                    }
                                 }
-                                DropdownMenu(
-                                    expanded = showSortMenu,
-                                    onDismissRequest = { showSortMenu = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.Label_Sort_Alphabetical)) },
-                                        onClick = {
-                                            viewModel.setSorting(SortOrder.ALPHABETICAL)
-                                            showSortMenu = false
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.recently_added)) },
-                                        onClick = {
-                                            viewModel.setSorting(SortOrder.NEWEST)
-                                            showSortMenu = false
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.recently_played)) },
-                                        onClick = {
-                                            viewModel.setSorting(SortOrder.RECENT)
-                                            showSortMenu = false
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.most_played)) },
-                                        onClick = {
-                                            viewModel.setSorting(SortOrder.FREQUENT)
-                                            showSortMenu = false
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.Label_Sort_Starred)) },
-                                        onClick = {
-                                            viewModel.setSorting(SortOrder.STARRED)
-                                            showSortMenu = false
-                                        }
-                                    )
+
+                                Box {
+                                    IconButton(
+                                        onClick = { showSortMenu = true }
+                                    ) {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(R.drawable.rounded_sort_24),
+                                            contentDescription = stringResource(R.string.Label_Sorting),
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = showSortMenu,
+                                        onDismissRequest = { showSortMenu = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.Label_Sort_Alphabetical)) },
+                                            onClick = {
+                                                viewModel.setSorting(SortOrder.ALPHABETICAL)
+                                                showSortMenu = false
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.recently_added)) },
+                                            onClick = {
+                                                viewModel.setSorting(SortOrder.NEWEST)
+                                                showSortMenu = false
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.recently_played)) },
+                                            onClick = {
+                                                viewModel.setSorting(SortOrder.RECENT)
+                                                showSortMenu = false
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.most_played)) },
+                                            onClick = {
+                                                viewModel.setSorting(SortOrder.FREQUENT)
+                                                showSortMenu = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }

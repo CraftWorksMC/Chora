@@ -1,6 +1,7 @@
 package com.craftworks.music.managers.settings
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -35,6 +36,7 @@ class LocalDataSettingsManager @Inject constructor(
         private val MEDIA_RESUMPTION_TIME = longPreferencesKey("media_resumption_timestamp")
 
         private val SORT_ALBUM_ORDER = stringPreferencesKey("sort_album_order")
+        private val SHOW_ALBUM_FAVORITES = booleanPreferencesKey("show_album_favorites")
     }
 
     val localRadios: Flow<MutableList<MediaData.Radio>> =
@@ -99,10 +101,23 @@ class LocalDataSettingsManager @Inject constructor(
             SortOrder.entries.find { it.key == preferences[SORT_ALBUM_ORDER] } ?: SortOrder.ALPHABETICAL
         }
 
+    val showAlbumFavorite: Flow<Boolean> =
+        context.dataStore.data.map { preferences ->
+            preferences[SHOW_ALBUM_FAVORITES] ?: false
+        }
+
     suspend fun saveSortAlbumOrder(sortOrder: SortOrder) {
         withContext(NonCancellable) {
             context.dataStore.edit { preferences ->
                 preferences[SORT_ALBUM_ORDER] = sortOrder.key
+            }
+        }
+    }
+
+    suspend fun saveShowFavoriteAlbum(showFavorites: Boolean) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[SHOW_ALBUM_FAVORITES] = showFavorites;
             }
         }
     }

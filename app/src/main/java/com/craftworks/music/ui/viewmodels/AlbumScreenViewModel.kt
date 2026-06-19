@@ -33,6 +33,8 @@ class AlbumScreenViewModel @Inject constructor(
 
     private val _sortOrder = MutableStateFlow(SortOrder.ALPHABETICAL)
     val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
+    private val _showFavorites = MutableStateFlow(false)
+    val showFavorites: StateFlow<Boolean> = _showFavorites.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -40,7 +42,16 @@ class AlbumScreenViewModel @Inject constructor(
                 _sortOrder.value = sortOrder
                 getAlbums()
             }
+            DataRefreshManager.dataSourceChangedEvent.collect {
+                getAlbums()
+            }
+        }
 
+        viewModelScope.launch {
+            localDataSettingsManager.showAlbumFavorite.collect { showFavorites ->
+                _showFavorites.value = showFavorites
+                getAlbums()
+            }
             DataRefreshManager.dataSourceChangedEvent.collect {
                 getAlbums()
             }
@@ -53,7 +64,7 @@ class AlbumScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             coroutineScope {
-                val allAlbumsDeferred = async { albumRepository.getAlbums(_sortOrder.value.key, 50, 0, true) }
+                val allAlbumsDeferred = async { albumRepository.getAlbums(_sortOrder.value.key, 50, 0, true, _showFavorites.value) }
 
                 _allAlbums.value = allAlbumsDeferred.await().sortedByDescending {
                     it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")
@@ -72,7 +83,7 @@ class AlbumScreenViewModel @Inject constructor(
         viewModelScope.launch {
             coroutineScope {
                 val albumOffset = _allAlbums.value.size
-                val newAlbums = albumRepository.getAlbums(_sortOrder.value.key, size, albumOffset)
+                val newAlbums = albumRepository.getAlbums(_sortOrder.value.key, size, albumOffset, showFavorites=_showFavorites.value)
                 _allAlbums.value += newAlbums
             }
         }
@@ -95,6 +106,11 @@ class AlbumScreenViewModel @Inject constructor(
     fun setSorting(newSortOrder: SortOrder) {
         viewModelScope.launch {
             localDataSettingsManager.saveSortAlbumOrder(newSortOrder)
+        }
+    }
+    fun setShowFavorites(showFavorites: Boolean) {
+        viewModelScope.launch {
+            localDataSettingsManager.saveShowFavoriteAlbum(showFavorites)
         }
     }
 }
