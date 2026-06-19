@@ -9,6 +9,7 @@
     <string name="Action_Shuffle">Mélanger</string>
     <!-- Navidrome Provider -->
     <string name="Action_Add">Ajouter</string>
+    <string name="Action_Add_To_Queue">Add To Queue</string>
     <string name="Action_Next">Suivant</string>
     <string name="Action_Success">Succès</string>
     <string name="Action_Login">Se connecter</string>

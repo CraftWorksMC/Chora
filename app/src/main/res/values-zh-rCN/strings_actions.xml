@@ -9,6 +9,7 @@
     <string name="Action_Shuffle">Shuffle</string>
     <!-- Navidrome Provider -->
     <string name="Action_Add">Add</string>
+    <string name="Action_Add_To_Queue">Add To Queue</string>
     <string name="Action_Next">Next</string>
     <string name="Action_Success">Success</string>
     <string name="Action_Login">登录</string>

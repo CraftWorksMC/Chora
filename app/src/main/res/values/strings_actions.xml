@@ -12,6 +12,7 @@
 
     <!-- Navidrome Provider -->
     <string name="Action_Add">Add</string>
+    <string name="Action_Add_To_Queue">Add To Queue</string>
     <string name="Action_Next">Next</string>
     <string name="Action_Success">Success</string>
     <string name="Action_Login">Login</string>

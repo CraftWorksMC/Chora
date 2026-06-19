@@ -385,6 +385,9 @@ fun AlbumDetails(
                                         mediaController
                                     )
                                 }
+                            },
+                            onAddToQueue = {
+                                mediaController?.addMediaItem(song)
                             }
                         )
                     }
@@ -404,6 +407,9 @@ fun AlbumDetails(
                                     mediaController
                                 )
                             }
+                        },
+                        onAddToQueue = {
+                            mediaController?.addMediaItem(song)
                         }
                     )
                 }

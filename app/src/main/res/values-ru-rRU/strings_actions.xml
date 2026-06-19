@@ -9,6 +9,7 @@
     <string name="Action_Shuffle">Перемешать</string>
     <!-- Navidrome Provider -->
     <string name="Action_Add">Добавить</string>
+    <string name="Action_Add_To_Queue">Add To Queue</string>
     <string name="Action_Next">Следующий</string>
     <string name="Action_Success">Успешно</string>
     <string name="Action_Login">Войти</string>
