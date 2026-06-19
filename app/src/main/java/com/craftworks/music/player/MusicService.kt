@@ -16,8 +16,12 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaConstants
 import androidx.media3.session.MediaLibraryService
@@ -34,6 +38,7 @@ import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.data.repository.RadioRepository
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.TranscodeManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import com.craftworks.music.managers.settings.PlaybackSettingsManager
@@ -51,6 +56,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -78,6 +84,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
     @Inject lateinit var appearanceSettingsManager: AppearanceSettingsManager
     @Inject lateinit var playbackSettingsManager: PlaybackSettingsManager
+    @Inject lateinit var transcodeManager: TranscodeManager
 
     @Inject lateinit var albumRepository: AlbumRepository
     @Inject lateinit var artistRepository: ArtistRepository
@@ -221,8 +228,34 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             }
         }
 
+        val resolvingDataSourceFactory = ResolvingDataSource.Factory(
+            DefaultDataSource.Factory(this),
+            object : ResolvingDataSource.Resolver {
+                override fun resolveDataSpec(dataSpec: DataSpec): DataSpec {
+                    val uri = dataSpec.uri
+
+                    if (uri.path?.contains("stream") == true) {
+                        val bitrate = runBlocking { transcodeManager.currentBitrateFlow.first() }
+                        if (bitrate == "No Transcoding")
+                            return dataSpec
+
+                        val format = runBlocking { transcodeManager.currentFormatFlow.first() }
+
+                        val newUri = uri.buildUpon()
+                            .appendQueryParameter("format", format)
+                            .appendQueryParameter("maxBitRate", bitrate)
+                            .build()
+
+                        return dataSpec.withUri(newUri)
+                    }
+                    return dataSpec
+                }
+            }
+        )
+
         player = ExoPlayer.Builder(this)
             .setSeekParameters(SeekParameters.EXACT)
+            .setMediaSourceFactory(DefaultMediaSourceFactory(resolvingDataSourceFactory))
             .setWakeMode(
                 if (NavidromeManager.checkActiveServers())
                     C.WAKE_MODE_NETWORK
@@ -323,6 +356,18 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 }
                 delay(1000)
             }
+        }
+
+        serviceMainScope.launch {
+            transcodeManager.transcodingConfigChangesFlow
+                .distinctUntilChanged()
+                .collect {
+                    if (player.playbackState == Player.STATE_READY || player.playbackState == Player.STATE_BUFFERING) {
+                        if (player.currentTimeline.isEmpty.not()) {
+                            updateTranscodingDuringPlayback()
+                        }
+                    }
+                }
         }
 
         Log.d("AA", "Initialized MediaLibraryService.")
@@ -653,6 +698,25 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 player.stop()
                 Log.d("SLEEPTIMER", "Timer finished. Playback stopped.")
             }
+        }
+    }
+
+    private fun updateTranscodingDuringPlayback() {
+        val currentWindowIndex = player.currentMediaItemIndex
+        val currentPlaybackPosition = player.currentPosition
+        val wasPlaying = player.isPlaying
+
+        val currentQueue = mutableListOf<MediaItem>()
+        for (i in 0 until player.mediaItemCount) {
+            currentQueue.add(player.getMediaItemAt(i))
+        }
+
+        player.setMediaItems(currentQueue, currentWindowIndex, currentPlaybackPosition)
+
+        player.prepare()
+
+        if (wasPlaying) {
+            player.play()
         }
     }
 
