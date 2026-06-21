@@ -4,18 +4,19 @@ import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.data.model.MediaData
-import com.craftworks.music.data.model.albumList
+import com.craftworks.music.data.model.MediaItem
 import com.craftworks.music.data.model.artistList
 import com.craftworks.music.data.model.songsList
 import com.craftworks.music.data.model.toMediaItem
 import kotlinx.serialization.Serializable
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 @Serializable
 data class SearchResult3(
-    val song: List<MediaData.Song>? = listOf(),
-    val album: List<MediaData.Album>? = listOf(),
-    val artist: List<MediaData.Artist>? = listOf(),
+    val song: List<com.craftworks.music.data.model.MediaItem.Song>? = listOf(),
+    val album: List<com.craftworks.music.data.model.MediaItem.Album>? = listOf(),
+    val artist: List<com.craftworks.music.data.model.MediaItem.Artist>? = listOf(),
 )
 
 @OptIn(UnstableApi::class)
@@ -42,7 +43,7 @@ fun parseNavidromeSearch3JSON(
 
     var mediaDataSongs = emptyList<MediaItem>()
     var mediaDataAlbums = emptyList<MediaItem>()
-    var mediaDataArtists = emptyList<MediaData.Artist>()
+    var mediaDataArtists = emptyList<com.craftworks.music.data.model.MediaItem.Artist>()
 
     subsonicResponse.searchResult3?.song?.filterNot { newSong ->
         songsList.any { existingSong ->

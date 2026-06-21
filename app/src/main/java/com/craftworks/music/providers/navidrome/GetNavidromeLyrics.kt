@@ -1,11 +1,13 @@
 package com.craftworks.music.providers.navidrome
 
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.MediaItem
 import kotlinx.serialization.Serializable
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 @Serializable
 data class LyricsList(
-    val structuredLyrics: List<MediaData.StructuredLyrics>? = null
+    val structuredLyrics: List<MediaItem.StructuredLyrics>? = null
 )
 
 @Serializable
@@ -16,7 +18,7 @@ data class SyncedLyrics(
 
 fun parseNavidromePlainLyricsJSON(
     response: String
-): MediaData.PlainLyrics {
+): MediaItem.PlainLyrics {
     val subsonicResponse = parseSubsonicResponse(response)
 
     val mediaDataPlainLyrics = subsonicResponse.lyrics!!
@@ -26,7 +28,7 @@ fun parseNavidromePlainLyricsJSON(
 
 fun parseNavidromeSyncedLyricsJSON(
     response: String
-): List<MediaData.StructuredLyrics> {
+): List<MediaItem.StructuredLyrics> {
     val subsonicResponse = parseSubsonicResponse(response)
 
     val mediaDataSyncedLyrics = subsonicResponse.lyricsList?.structuredLyrics ?: emptyList()

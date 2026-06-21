@@ -3,7 +3,7 @@ package com.craftworks.music.data.repository
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.datasource.local.LocalDataSource
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.MediaItem
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
 import kotlinx.coroutines.Deferred
@@ -13,6 +13,8 @@ import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 import javax.inject.Singleton
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 @Singleton
 class ArtistRepository @Inject constructor(
     private val localDataSource: LocalDataSource,
@@ -23,10 +25,9 @@ class ArtistRepository @Inject constructor(
         sort: String? = "alphabeticalByName",
         size: Int? = 100,
         offset: Int? = 0,
-        ignoreCachedResponse: Boolean = false,
-        favoritesOnly: Boolean = false,
-    ): List<MediaData.Artist> = coroutineScope {
-        val deferredArtists = mutableListOf<Deferred<List<MediaData.Artist>>>()
+        ignoreCachedResponse: Boolean = false
+    ): List<com.craftworks.music.data.model.MediaItem.Artist> = coroutineScope {
+        val deferredArtists = mutableListOf<Deferred<List<com.craftworks.music.data.model.MediaItem.Artist>>>()
 
         if (LocalProviderManager.checkActiveFolders())
             if (offset == 0)
@@ -42,8 +43,8 @@ class ArtistRepository @Inject constructor(
     suspend fun searchArtists(
         query: String,
         ignoreCachedResponse: Boolean = false
-    ): List<MediaData.Artist> = coroutineScope {
-        val deferredArtists = mutableListOf<Deferred<List<MediaData.Artist>>>()
+    ): List<com.craftworks.music.data.model.MediaItem.Artist> = coroutineScope {
+        val deferredArtists = mutableListOf<Deferred<List<com.craftworks.music.data.model.MediaItem.Artist>>>()
 
         if (LocalProviderManager.checkActiveFolders())
             deferredArtists.add(async { localDataSource.searchLocalArtists(query) })
@@ -61,7 +62,7 @@ class ArtistRepository @Inject constructor(
             navidromeDataSource.getNavidromeArtistAlbums(artistId, ignoreCachedResponse)
     }
 
-    suspend fun getArtistInfo(artistId: String, ignoreCachedResponse: Boolean = false): MediaData.ArtistInfo? = coroutineScope {
+    suspend fun getArtistInfo(artistId: String, ignoreCachedResponse: Boolean = false): com.craftworks.music.data.model.MediaItem.ArtistInfo? = coroutineScope {
         if (artistId.startsWith("Local_"))
             null
         else

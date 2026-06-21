@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -65,7 +64,7 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.formatSeconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
@@ -174,7 +173,7 @@ fun TvAlbumDetails(
                     Text(
                         text = (currentAlbum[0].mediaMetadata.artist?.toString() ?: "") +
                                 " · " +
-                                formatMilliseconds(
+                                formatSeconds(
                                     currentAlbum[0].mediaMetadata.durationMs
                                         ?.div(1000)?.toInt() ?: 0
                                 ),

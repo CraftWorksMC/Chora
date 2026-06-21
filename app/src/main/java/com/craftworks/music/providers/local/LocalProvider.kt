@@ -13,13 +13,15 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.R
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.MediaItem
 import com.craftworks.music.managers.LocalProviderManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 class LocalProvider @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
@@ -454,8 +456,8 @@ class LocalProvider @Inject constructor(
         return songs
     }
 
-    fun getLocalArtists(): List<MediaData.Artist> {
-        val artists = mutableSetOf<MediaData.Artist>()
+    fun getLocalArtists(): List<com.craftworks.music.data.model.MediaItem.Artist> {
+        val artists = mutableSetOf<com.craftworks.music.data.model.MediaItem.Artist>()
         val songs = getLocalSongs()
 
         songs.forEach { song ->
@@ -464,7 +466,7 @@ class LocalProvider @Inject constructor(
             "$LOCAL_PREFIX${artistName.hashCode()}"
 
             artists.add(
-                MediaData.Artist(
+                MediaItem.Artist(
                     navidromeID = artistId,
                     name = artistName.toString(),
                     description = "",

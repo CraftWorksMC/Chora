@@ -69,7 +69,7 @@ import androidx.media3.ui.compose.state.rememberRepeatButtonState
 import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import com.craftworks.music.R
 import com.craftworks.music.data.repository.LyricsState
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.formatSeconds
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
@@ -204,7 +204,7 @@ fun PlaybackProgressSlider(
                 .fillMaxWidth()
         ) {
             Text(
-                text = remember(currentValue) { formatMilliseconds(currentValue.toInt() / 1000) },
+                text = remember(currentValue) { formatSeconds(currentValue.toInt() / 1000) },
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.Start,
                 color = color.copy(alpha = 0.5f),
@@ -214,7 +214,7 @@ fun PlaybackProgressSlider(
                 maxLines = 1
             )
             Text(
-                text = remember(currentDuration) { formatMilliseconds(currentDuration?.toInt()?.div(1000) ?: (currentValue/1000).toInt()) },
+                text = remember(currentDuration) { formatSeconds(currentDuration?.toInt()?.div(1000) ?: (currentValue/1000).toInt()) },
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.End,
                 color = color.copy(alpha = 0.5f),

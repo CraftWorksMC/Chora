@@ -801,7 +801,8 @@ fun AnimatedBottomNavBar(
     }
 }
 
-fun formatMilliseconds(seconds: Int): String {
+// TODO("Move these utils funtions to a separated utils package")
+fun formatSeconds(seconds: Int): String {
     return String.format(Locale.getDefault(), "%02d:%02d", seconds / 60, seconds % 60)
 }
 

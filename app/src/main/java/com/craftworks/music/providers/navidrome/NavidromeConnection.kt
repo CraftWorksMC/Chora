@@ -1,13 +1,15 @@
 package com.craftworks.music.providers.navidrome
 
 import android.util.Log
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.MediaItem
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 @Serializable
 @SerialName("subsonic-response")
 data class SubsonicResponse(
@@ -22,33 +24,33 @@ data class SubsonicResponse(
     val musicFolders: MusicFolder? = null,
 
     // Songs
-    val song: MediaData.Song? = null,
+    val song: MediaItem.Song? = null,
     val searchResult3: SearchResult3? = null,
 
     // Albums
     val albumList: albumList? = null,
-    val album: MediaData.Album? = null,
+    val album: MediaItem.Album? = null,
 
     // Artists
     val artists: Artists? = null,
-    val artist: MediaData.Artist? = null,
-    val artistInfo: MediaData.ArtistInfo? = null,
+    val artist: MediaItem.Artist? = null,
+    val artistInfo: MediaItem.ArtistInfo? = null,
 
     // Radios
     val internetRadioStations: internetRadioStations? = null,
 
     // Playlists
-    val playlist: MediaData.Playlist? = null,
+    val playlist: MediaItem.Playlist? = null,
     val playlists: PlaylistContainer? = null,
 
     //Lyrics
-    val lyrics: MediaData.PlainLyrics? = null,
+    val lyrics: MediaItem.PlainLyrics? = null,
     val lyricsList: LyricsList? = null,
 
     // Favourites
     val starred: Starred? = null,
 
-    val sonicMatch: List<MediaData.Song>? = null
+    val sonicMatch: List<MediaItem.Song>? = null
 )
 
 private val jsonParser = Json { ignoreUnknownKeys = true }

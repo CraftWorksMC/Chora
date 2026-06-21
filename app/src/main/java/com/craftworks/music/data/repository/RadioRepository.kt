@@ -2,7 +2,7 @@ package com.craftworks.music.data.repository
 
 import com.craftworks.music.data.datasource.local.LocalDataSource
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.MediaItem
 import com.craftworks.music.managers.NavidromeManager
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -11,14 +11,16 @@ import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 import javax.inject.Singleton
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 @Singleton
 class RadioRepository @Inject constructor(
     private val localDataSource: LocalDataSource,
     private val navidromeDataSource: NavidromeDataSource
 ) {
 
-    suspend fun getRadios(ignoreCachedResponse: Boolean = false): List<MediaData.Radio> = coroutineScope {
-        val deferredRadios = mutableListOf<Deferred<List<MediaData.Radio>>>()
+    suspend fun getRadios(ignoreCachedResponse: Boolean = false): List<MediaItem.Radio> = coroutineScope {
+        val deferredRadios = mutableListOf<Deferred<List<MediaItem.Radio>>>()
 
         if (NavidromeManager.checkActiveServers())
             deferredRadios.add(async { navidromeDataSource.getNavidromeRadios(ignoreCachedResponse) })
@@ -35,7 +37,7 @@ class RadioRepository @Inject constructor(
         else
             localDataSource.createLocalRadio(name,url,homePage)
     }
-    suspend fun modifyRadio(radio: MediaData.Radio) {
+    suspend fun modifyRadio(radio: MediaItem.Radio) {
         if (NavidromeManager.checkActiveServers() && !radio.navidromeID.startsWith("Local_"))
             navidromeDataSource.updateNavidromeRadio(radio.navidromeID, radio.name, radio.media, radio.homePageUrl)
         else

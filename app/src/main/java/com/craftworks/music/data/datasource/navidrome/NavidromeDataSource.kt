@@ -6,7 +6,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.NavidromeLibrary
 import com.craftworks.music.data.model.Lyric
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.MediaItem
 import com.craftworks.music.data.model.toLyric
 import com.craftworks.music.data.model.toLyrics
 import com.craftworks.music.managers.NavidromeManager
@@ -54,6 +54,8 @@ import javax.inject.Singleton
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 @Singleton
 class NavidromeDataSource @Inject constructor() {
     private val json = Json { ignoreUnknownKeys = true }
@@ -72,20 +74,6 @@ class NavidromeDataSource @Inject constructor() {
     }
 
     private val insecureClient: HttpClient by lazy { buildInsecureClient() }
-
-    companion object {
-        fun md5Hash(input: String): String {
-            val md = MessageDigest.getInstance("MD5")
-            val hashBytes = md.digest(input.toByteArray())
-            return hashBytes.joinToString("") { "%02x".format(it) }
-        }
-
-        fun generateSalt(length: Int): String {
-            val allowedChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-            return (1..length).map { allowedChars.random() }.joinToString("")
-        }
-    }
-
     private fun buildInsecureClient(): HttpClient {
         val trustAllCerts = arrayOf<TrustManager>(
             @SuppressLint("CustomX509TrustManager")
@@ -116,6 +104,20 @@ class NavidromeDataSource @Inject constructor() {
             }
         }
     }
+
+    companion object {
+        fun md5Hash(input: String): String {
+            val md = MessageDigest.getInstance("MD5")
+            val hashBytes = md.digest(input.toByteArray())
+            return hashBytes.joinToString("") { "%02x".format(it) }
+        }
+
+        fun generateSalt(length: Int): String {
+            val allowedChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+            return (1..length).map { allowedChars.random() }.joinToString("")
+        }
+    }
+
 
     private suspend fun getRequest(
         endpoint: String,
@@ -292,17 +294,12 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromeArtists(
         ignoreCachedResponse: Boolean = false,
         musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
-        favoritesOnly: Boolean = false
-    ): List<MediaData.Artist> {
-        var artists = getRequest(
+    ): List<com.craftworks.music.data.model.MediaItem.Artist> = withContext(Dispatchers.IO) {
+        getRequest(
             "getArtists.view?f=json",
             musicFolderIds,
             ignoreCachedResponse
-        ).filterIsInstance<MediaData.Artist>();
-        if (favoritesOnly) return withContext(Dispatchers.IO) {
-            artists.filter { artist -> artist.starred != "" }
-        }
-        return withContext(Dispatchers.IO) { artists }
+        ).filterIsInstance<com.craftworks.music.data.model.MediaItem.Artist>()
     }
 
     suspend fun getNavidromeArtistAlbums(
@@ -317,25 +314,25 @@ class NavidromeDataSource @Inject constructor() {
 
     suspend fun getNavidromeArtistInfo(
         artistId: String, ignoreCachedResponse: Boolean = false
-    ): MediaData.ArtistInfo? = withContext(Dispatchers.IO) {
+    ): com.craftworks.music.data.model.MediaItem.ArtistInfo? = withContext(Dispatchers.IO) {
         getRequest(
             "getArtistInfo.view?id=$artistId",
             null,
             ignoreCachedResponse
-        ).filterIsInstance<MediaData.ArtistInfo>().firstOrNull()
+        ).filterIsInstance<com.craftworks.music.data.model.MediaItem.ArtistInfo>().firstOrNull()
     }
 
     suspend fun searchNavidromeArtists(
         query: String? = "",
         ignoreCachedResponse: Boolean = false,
         musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
-    ): List<MediaData.Artist> = withContext(Dispatchers.IO) {
+    ): List<com.craftworks.music.data.model.MediaItem.Artist> = withContext(Dispatchers.IO) {
         if (query.isNullOrBlank()) getNavidromeArtists(musicFolderIds = musicFolderIds, ignoreCachedResponse = ignoreCachedResponse)
         else getRequest(
             "search3.view?query=$query&artistCount=100&albumCount=0&songCount=0",
             musicFolderIds,
             ignoreCachedResponse
-        ).filterIsInstance<MediaData.Artist>()
+        ).filterIsInstance<com.craftworks.music.data.model.MediaItem.Artist>()
     }
 
     // Playlists
@@ -405,12 +402,12 @@ class NavidromeDataSource @Inject constructor() {
     // Radios
     suspend fun getNavidromeRadios(
         ignoreCachedResponse: Boolean = false
-    ): List<MediaData.Radio> = withContext(Dispatchers.IO) {
+    ): List<com.craftworks.music.data.model.MediaItem.Radio> = withContext(Dispatchers.IO) {
         getRequest(
             "getInternetRadioStations.view?f=json",
             null,
             ignoreCachedResponse
-        ).filterIsInstance<MediaData.Radio>()
+        ).filterIsInstance<com.craftworks.music.data.model.MediaItem.Radio>()
     }
 
     suspend fun createNavidromeRadio(
@@ -447,14 +444,14 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromePlainLyrics(
         metadata: MediaMetadata?, ignoreCachedResponse: Boolean = false
     ): List<Lyric> = withContext(Dispatchers.IO) {
-        getRequest("getLyrics.view?artist=${metadata?.artist}&title=${metadata?.title}", null).filterIsInstance<MediaData.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.text.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
+        getRequest("getLyrics.view?artist=${metadata?.artist}&title=${metadata?.title}", null).filterIsInstance<com.craftworks.music.data.model.MediaItem.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.text.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
     }
 
     suspend fun getNavidromeSyncedLyrics(
         songId: String, ignoreCachedResponse: Boolean = false
     ): List<Lyric> = withContext(Dispatchers.IO) {
         getRequest("getLyricsBySongId.view?id=${songId}", null, ignoreCachedResponse)
-            .filterIsInstance<MediaData.StructuredLyrics>().flatMap { it.toLyrics() }
+            .filterIsInstance<com.craftworks.music.data.model.MediaItem.StructuredLyrics>().flatMap { it.toLyrics() }
     }
 
     // Starred Items

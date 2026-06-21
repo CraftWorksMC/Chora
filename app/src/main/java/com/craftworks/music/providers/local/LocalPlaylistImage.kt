@@ -16,6 +16,8 @@ import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 /**
  * Generates a bitmap for playlist cover art by combining up to 4 album art images.
  * If less than 4 songs are available, it fills the grid by repeating images.

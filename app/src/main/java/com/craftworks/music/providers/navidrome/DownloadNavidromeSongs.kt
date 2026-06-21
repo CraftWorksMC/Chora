@@ -12,6 +12,8 @@ import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
 import com.craftworks.music.managers.NavidromeManager.getCurrentServer
 import java.io.File
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 @OptIn(UnstableApi::class)
 fun downloadNavidromeSong(
     context: Context,

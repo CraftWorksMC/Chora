@@ -42,12 +42,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.data.model.MediaItem
+import com.craftworks.music.formatSeconds
 import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
@@ -55,7 +55,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HorizontalSongCard(
-    song: MediaItem,
+    song: MediaItem.Song,
     modifier: Modifier = Modifier,
     showTrackNumber: Boolean = false,
     onClick: () -> Unit,
@@ -143,7 +143,7 @@ fun HorizontalSongCard(
             }
             val formattedDuration by remember(song.mediaMetadata.durationMs) {
                 derivedStateOf {
-                    formatMilliseconds((song.mediaMetadata.durationMs?.div(1000))?.toInt() ?: 0)
+                    formatSeconds((song.mediaMetadata.durationMs?.div(1000))?.toInt() ?: 0)
                 }
             }
             Text(

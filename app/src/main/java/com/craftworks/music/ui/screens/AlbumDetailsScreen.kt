@@ -69,8 +69,10 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.model.MediaItem
+import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.fadingEdge
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.formatSeconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.navidrome.downloadNavidromeAlbum
@@ -95,7 +97,7 @@ fun AlbumDetails(
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
 
     var showLoading by remember { mutableStateOf(false) }
-    val currentAlbum = viewModel.songsInAlbum.collectAsStateWithLifecycle().value
+    val currentAlbum = viewModel.albumDetails.collectAsStateWithLifecycle().value
     val showTrackNumbers by AppearanceSettingsManager(LocalContext.current).showTrackNumbersFlow.collectAsStateWithLifecycle(false)
 
     val context = LocalContext.current
@@ -132,10 +134,9 @@ fun AlbumDetails(
 
     // Main Content
     AnimatedVisibility(
-        visible = currentAlbum.isNotEmpty(),
+        visible = currentAlbum != null,
         enter = fadeIn()
     ) {
-        var isStarred by remember { mutableStateOf(currentAlbum[0].mediaMetadata.extras?.getString("starred")?.isNotEmpty() ?: false) }
         val requester = remember { FocusRequester() }
 
         val coroutineScope = rememberCoroutineScope()
@@ -195,7 +196,7 @@ fun AlbumDetails(
                     // Album Name and Artist
                     Column(modifier = Modifier.align(Alignment.BottomCenter)){
                         Text(
-                            text = currentAlbum[0].mediaMetadata.title.toString(),
+                            text = currentAlbum?.name ?: "",
                             color = MaterialTheme.colorScheme.onBackground,
                             style = MaterialTheme.typography.headlineMedium,
                             textAlign = TextAlign.Center,
@@ -204,7 +205,7 @@ fun AlbumDetails(
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = currentAlbum[0].mediaMetadata.artist.toString() + " • " + formatMilliseconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0),
+                            text = currentAlbum?.albumArtistName.toString() + " • " + formatSeconds(currentAlbum?.duration?.div(1000) ?: 0),
                             color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Normal,
                             fontSize = MaterialTheme.typography.titleMedium.fontSize,
@@ -214,29 +215,30 @@ fun AlbumDetails(
 
                         // Genres
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            if (!currentAlbum[0].mediaMetadata.genre.isNullOrEmpty()) {
-                                currentAlbum[0].mediaMetadata.genre?.split(",")?.forEach {
+                            if (!currentAlbum?.genres.isNullOrEmpty()) {
+                                currentAlbum.genres.forEach {
                                     GenrePill(it.toString())
                                 }
                             }
                         }
                     }
 
-                    // Star/unstar button and download album, NAVIDROME ONLY
-                    if (currentAlbum[0].mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == false) {
+                    // Star/unstar button
+                    if (viewModel.provider?.featureFlags?.value?.any(ProviderFeatures.FAVORITES)?:false) {
                         Button(
                             onClick = {
                                 coroutineScope.launch {
-                                    if (isStarred)
+                                    if (currentAlbum == null) return@launch
+                                    if (currentAlbum.userFavorite ?: false)
                                         viewModel.unstarAlbum(
-                                            currentAlbum[0].mediaMetadata.extras?.getString("navidromeID").toString()
+                                            currentAlbum.id
                                         )
                                     else
                                         viewModel.starAlbum(
-                                            currentAlbum[0].mediaMetadata.extras?.getString("navidromeID").toString()
+                                            currentAlbum.id
                                         )
+                                    currentAlbum.userFavorite != currentAlbum.userFavorite;
                                     viewModel.loadAlbumDetails(selectedAlbumId)
-                                    isStarred = !isStarred
                                 }
                             },
                             shape = RoundedCornerShape(12.dp),
@@ -245,10 +247,13 @@ fun AlbumDetails(
                                 .padding(top = 12.dp, end = 12.dp)
                                 .size(32.dp),
                             contentPadding = PaddingValues(4.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.background,
+                                contentColor = MaterialTheme.colorScheme.onBackground
+                            )
                         ) {
                             Crossfade(
-                                targetState = isStarred
+                                targetState = currentAlbum!!.userFavorite
                             ) {
                                 if (it) Icon(
                                     imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
@@ -268,11 +273,15 @@ fun AlbumDetails(
                                     )
                             }
                         }
+                    }
 
+                    // Download album
+                    if (viewModel.provider?.featureFlags?.value?.any(ProviderFeatures.DOWNLOADS)?:false) {
                         Button(
                             onClick = {
                                 coroutineScope.launch {
-                                    downloadNavidromeAlbum(context, currentAlbum[0].mediaMetadata.title.toString(), currentAlbum.subList(1, currentAlbum.size))
+                                    TODO("Download album")
+                                    //downloadNavidromeAlbum(context, currentAlbum?.name.toString(), currentAlbum?.subList(1, currentAlbum.size))
                                 }
                             },
                             shape = RoundedCornerShape(12.dp),
@@ -293,7 +302,6 @@ fun AlbumDetails(
                             )
                         }
                     }
-
                 }
             }
 
@@ -308,7 +316,7 @@ fun AlbumDetails(
                         onClick = {
                             coroutineScope.launch {
                                 SongHelper.play(
-                                    currentAlbum.subList(1, currentAlbum.size),
+                                    currentAlbum?.songs?:listOf(),
                                     0,
                                     mediaController
                                 )
@@ -329,10 +337,9 @@ fun AlbumDetails(
                         onClick = {
                             mediaController?.shuffleModeEnabled = true
                             coroutineScope.launch {
-                            val random = currentAlbum.subList(1, currentAlbum.size).indices.random()
                             SongHelper.play(
-                                currentAlbum.subList(1, currentAlbum.size),
-                                random,
+                                (currentAlbum?.songs?:listOf()).shuffled(),
+                                0,
                                 mediaController
                             )
                                 }
@@ -348,13 +355,13 @@ fun AlbumDetails(
             }
 
             // Album Songs
-            val groupedAlbums = currentAlbum.subList(1, currentAlbum.size).groupBy { song ->
-                song.mediaMetadata.discNumber
+            val groupedAlbums = (currentAlbum?.songs ?: listOf()).groupBy { song ->
+                song.discNumber
             }
 
             if (groupedAlbums.size > 1) {
-                groupedAlbums.forEach { (discNumber, albumsInGroup) ->
-                    item() {
+                groupedAlbums.forEach { (discNumber, songsInGroup) ->
+                    item {
                         Column {
                             Text(
                                 text = stringResource(R.string.Album_Disc_Number) + discNumber.toString(),
@@ -372,16 +379,16 @@ fun AlbumDetails(
                             )
                         }
                     }
-                    items(albumsInGroup) { song ->
+                    items(songsInGroup) {
                         HorizontalSongCard(
-                            song = song,
+                            song = it,
                             modifier = Modifier.animateItem(),
                             showTrackNumber = showTrackNumbers,
                             onClick = {
                                 coroutineScope.launch {
                                     SongHelper.play(
-                                        currentAlbum.subList(1, currentAlbum.size),
-                                        currentAlbum.subList(1, currentAlbum.size).indexOf(song),
+                                        currentAlbum?.songs?:listOf(),
+                                        currentAlbum?.songs?.indexOf(it)?:0,
                                         mediaController
                                     )
                                 }
@@ -394,16 +401,16 @@ fun AlbumDetails(
                 }
             }
             else {
-                items(currentAlbum.subList(1, currentAlbum.size)) { song ->
+                items(currentAlbum?.songs?:listOf()) {
                     HorizontalSongCard(
-                        song = song,
+                        song = it,
                         modifier = Modifier.animateItem(),
                         showTrackNumber = showTrackNumbers,
                         onClick = {
                             coroutineScope.launch {
                                 SongHelper.play(
-                                    currentAlbum.subList(1, currentAlbum.size),
-                                    currentAlbum.subList(1, currentAlbum.size).indexOf(song),
+                                    currentAlbum?.songs?:listOf(),
+                                    currentAlbum?.songs?.indexOf(it)?:0,
                                     mediaController
                                 )
                             }

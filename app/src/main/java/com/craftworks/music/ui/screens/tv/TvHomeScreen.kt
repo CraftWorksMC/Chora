@@ -77,7 +77,7 @@ import coil.request.SuccessResult
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.toAlbum
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.formatSeconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.tv.TvAlbumCard
@@ -281,7 +281,7 @@ private fun CarouselItem(
     val title = album.mediaMetadata.title?.toString() ?: ""
     val artist = album.mediaMetadata.artist?.toString() ?: ""
     val genre = album.mediaMetadata.genre?.toString() ?: ""
-    val duration = formatMilliseconds(
+    val duration = formatSeconds(
         album.mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0
     )
     val subtitle = listOf(genre, artist, duration)

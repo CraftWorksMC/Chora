@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 object NavidromeManager {
     private val servers = mutableMapOf<String, NavidromeProvider>()
 

@@ -2,13 +2,15 @@ package com.craftworks.music.providers.navidrome
 
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.MediaItem
 import com.craftworks.music.data.model.playlistList
 import com.craftworks.music.data.model.toMediaItem
 import kotlinx.serialization.Serializable
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 @Serializable
-data class PlaylistContainer(val playlist: List<MediaData.Playlist>? = listOf())
+data class PlaylistContainer(val playlist: List<com.craftworks.music.data.model.MediaItem.Playlist>? = listOf())
 
 fun parseNavidromePlaylistsJSON(
     response: String,

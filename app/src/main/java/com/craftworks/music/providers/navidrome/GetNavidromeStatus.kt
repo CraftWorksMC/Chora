@@ -13,6 +13,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 var navidromeStatus = mutableStateOf("")
 
 suspend fun getNavidromeStatus(server: NavidromeProvider) {

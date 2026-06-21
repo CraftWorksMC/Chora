@@ -11,6 +11,8 @@ import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 import javax.inject.Singleton
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 @Singleton
 class PlaylistRepository @Inject constructor(
     private val localDataSource: LocalDataSource,

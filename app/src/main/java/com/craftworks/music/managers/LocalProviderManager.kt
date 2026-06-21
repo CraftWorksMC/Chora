@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 object LocalProviderManager {
     private val _allFolders = MutableStateFlow<List<String>>(emptyList())
     val allFolders: StateFlow<List<String>> = _allFolders.asStateFlow()

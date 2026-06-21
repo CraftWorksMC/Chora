@@ -1,7 +1,7 @@
 package com.craftworks.music.data.datasource.local
 
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.MediaItem
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.model.toSong
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
@@ -53,7 +53,7 @@ class LocalDataSource @Inject constructor(
         return localProvider.getLocalSongs().find { it.mediaMetadata.extras?.getString("navidromeID") == songId }
     }
 
-    fun getLocalArtists(): List<MediaData.Artist> {
+    fun getLocalArtists(): List<com.craftworks.music.data.model.MediaItem.Artist> {
         return localProvider.getLocalArtists()
     }
 
@@ -61,7 +61,7 @@ class LocalDataSource @Inject constructor(
         return localProvider.getAlbumsByArtistId(artist)
     }
 
-    fun searchLocalArtists(query: String): List<MediaData.Artist> {
+    fun searchLocalArtists(query: String): List<com.craftworks.music.data.model.MediaItem.Artist> {
         if (query.isBlank()) return getLocalArtists()
         return localProvider.getLocalArtists().filter {
             it.name.contains(query, ignoreCase = true)
@@ -85,7 +85,7 @@ class LocalDataSource @Inject constructor(
     ): Boolean {
         val initialSong = getLocalSong(initialSongId ?: "")?.toSong()
 
-        val newPlaylist = MediaData.Playlist(
+        val newPlaylist = MediaItem.Playlist(
             navidromeID = "Local_${UUID.randomUUID()}",
             name = playlistName,
             comment = "",
@@ -163,7 +163,7 @@ class LocalDataSource @Inject constructor(
     }
 
     // Radios
-    suspend fun getLocalRadios(): List<MediaData.Radio> {
+    suspend fun getLocalRadios(): List<com.craftworks.music.data.model.MediaItem.Radio> {
         return localDataSettingsManager.localRadios.first()
     }
 
@@ -172,7 +172,7 @@ class LocalDataSource @Inject constructor(
         url: String,
         homePageUrl: String?
     ): Boolean {
-        val newRadio = MediaData.Radio(
+        val newRadio = MediaItem.Radio(
             name = name,
             media = url,
             homePageUrl = homePageUrl ?: "",
@@ -185,7 +185,7 @@ class LocalDataSource @Inject constructor(
         return true
     }
 
-    suspend fun updateLocalRadio(radio: MediaData.Radio): Boolean {
+    suspend fun updateLocalRadio(radio: com.craftworks.music.data.model.MediaItem.Radio): Boolean {
         val currentRadiosFromStore = localDataSettingsManager.localRadios.first().toMutableList()
         val index = currentRadiosFromStore.indexOfFirst { it.navidromeID == radio.navidromeID }
         if (index != -1) {
