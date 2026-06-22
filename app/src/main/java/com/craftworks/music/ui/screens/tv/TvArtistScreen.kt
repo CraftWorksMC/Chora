@@ -60,7 +60,7 @@ fun TvArtistScreen(
     val tabFocusRequester = remember { FocusRequester() }
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit, allArtistList.size) {
+    LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
 
