@@ -11,8 +11,8 @@
     <string name="Setting_ProviderDividers">Разделять Разные Медиа-провайдеры</string>
     <string name="Setting_RefreshAnimation">Показывать Анимацию Обновления</string>
     <string name="Setting_LyricsAnimationSpeed">Скорость Анимации Субтитров</string>
-    <string name="Setting_LyricsAutoscroll">Autoscroll Plain Lyrics</string>
-    <string name="Setting_LyricsRecenter">Recenter After Scroll</string>
+    <string name="Setting_LyricsAutoscroll">Автоматически Скроллить Стандартные Субтитры</string>
+    <string name="Setting_LyricsRecenter">Поставить По Центру После Скролла</string>
     <string name="Setting_TrackNumbersAlbum">Показывать Номера Песен В Альбоме</string>
     <string name="Settings_Header_Media">Медиа-провайдеры</string>
     <string name="Settings_Header_Playback">Проигрывание</string>

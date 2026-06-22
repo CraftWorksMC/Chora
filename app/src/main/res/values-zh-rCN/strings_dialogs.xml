@@ -49,8 +49,6 @@
     <string name="Label_Sorting">排序方式</string>
     <string name="Label_Sort_Alphabetical">字母序</string>
     <string name="Label_Sort_Starred">收藏</string>
-    <!-- Favorites -->
-    <string name="Label_Toggle_Favorites">Toggle Favorites</string>
     <!-- Connection Errors -->
     <string name="Navidrome_Error">无法连接 Navidrome 服务器。</string>
     <string name="Navidrome_Sync">加载中…</string>

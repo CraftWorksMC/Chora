@@ -49,8 +49,6 @@
     <string name="Label_Sorting">Trier par</string>
     <string name="Label_Sort_Alphabetical">Alphabétique</string>
     <string name="Label_Sort_Starred">Favoris</string>
-    <!-- Favorites -->
-    <string name="Label_Toggle_Favorites">Toggle Favorites</string>
     <!-- Connection Errors -->
     <string name="Navidrome_Error">Serveur Navidrome indisponible.</string>
     <string name="Navidrome_Sync">Chargement…</string>

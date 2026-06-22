@@ -18,6 +18,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -145,7 +146,16 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            MusicPlayerTheme {
+            val selectedThemeName by AppearanceSettingsManager(this).appTheme.collectAsState(
+                AppearanceSettingsManager.Companion.AppTheme.SYSTEM.name
+            )
+            val darkTheme = when (selectedThemeName) {
+                AppearanceSettingsManager.Companion.AppTheme.DARK.name -> true
+                AppearanceSettingsManager.Companion.AppTheme.LIGHT.name -> false
+                else -> isSystemInDarkTheme()
+            }
+
+            MusicPlayerTheme (darkTheme) {
                 navController = rememberNavController()
 
                 val mediaController by rememberManagedMediaController()
