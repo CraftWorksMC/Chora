@@ -88,16 +88,16 @@ class LyricsRepository @Inject constructor(
                     val lrcLib = lrcLibDeferred.await().orEmpty()
                     val netEase = netEaseDeferred.await().orEmpty()
 
-                    if (navidromeSynced.size > 1) {
-                        Log.d("LYRICS", "Got Navidrome synced lyrics")
-                        LyricsState.lyrics.value = navidromeSynced
+                    if (lrcLib.size > 1) {
+                        Log.d("LYRICS", "Using LRCLIB Synced Lyrics")
+                        LyricsState.lyrics.value = lrcLib
                         LyricsState.loading.value = false
                         return@coroutineScope
                     }
 
-                    if (lrcLib.size > 1) {
-                        Log.d("LYRICS", "Using LRCLIB Synced Lyrics")
-                        LyricsState.lyrics.value = lrcLib
+                    if (navidromeSynced.size > 1) {
+                        Log.d("LYRICS", "Got Navidrome synced lyrics")
+                        LyricsState.lyrics.value = navidromeSynced
                         LyricsState.loading.value = false
                         return@coroutineScope
                     }

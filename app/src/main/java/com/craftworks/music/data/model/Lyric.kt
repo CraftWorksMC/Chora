@@ -17,7 +17,8 @@ data class Lyric(
 @Stable
 data class SyncedWord(
     val text: String,
-    val startMs: Int
+    val startMs: Int,
+    val endMs: Int?
 )
 
 // LRCLIB Lyrics
@@ -79,7 +80,8 @@ fun LrcLibLyrics.toLyrics(): List<Lyric> {
                 val wordMap = wordItem as? Map<*, *> ?: emptyMap<Any, Any>()
                 SyncedWord(
                     text = wordMap["text"]?.toString() ?: "",
-                    startMs = wordMap["start_ms"]?.toString()?.toInt() ?: 0
+                    startMs = wordMap["start_ms"] as? Int ?: 0,
+                    endMs = wordMap["end_ms"] as? Int
                 )
             }
 

@@ -50,10 +50,9 @@ import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.ui.elements.dialogs.OnboardingStep
 import com.craftworks.music.ui.elements.tv.LocalProviderCard
 import com.craftworks.music.ui.elements.tv.NavidromeProviderCard
-
-private enum class OnboardingStep { OVERVIEW, PROVIDER_SELECTION, DONE }
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Preview(

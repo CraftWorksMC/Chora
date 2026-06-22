@@ -3,7 +3,6 @@ package com.craftworks.music.ui.playing
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -433,7 +432,7 @@ fun WordSyncedLyricItem(
             ) {
                 lyric.words?.forEachIndexed { i, word ->
                     val nextWordStart = lyric.words.getOrNull(i + 1)?.startMs ?: lyric.endMs!!
-                    val duration = (nextWordStart - word.startMs)
+                    val duration = word.endMs?.let { it - word.startMs } ?: (nextWordStart - word.startMs)
                     val isThisWordActive = currentPosition >= word.startMs && currentPosition < lyric.endMs!!
 
                     AnimatedWord(
@@ -498,8 +497,8 @@ fun AnimatedWord(
     val yOffset = remember { Animatable(0f) }
     LaunchedEffect(isActive) {
         if (isActive) {
-            yOffset.animateTo(-dipAmount, tween(durationMillis / 2, easing = FastOutLinearInEasing))
-            yOffset.animateTo(0f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessVeryLow))
+            yOffset.animateTo(-dipAmount, tween(120, easing = FastOutSlowInEasing))
+            yOffset.animateTo(0f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow))
         } else {
             yOffset.animateTo(0f, tween(durationMillis, 0, FastOutSlowInEasing))
         }
@@ -693,7 +692,10 @@ private fun getNextUpdateDelay(currentTime: Int, lyrics: List<Lyric>): Long {
             // Build a list of valid timestamps for each lyric item
             val timestamps = mutableListOf(lyric.startMs)
             lyric.endMs?.let { timestamps.add(it) }
-            lyric.words?.forEach { timestamps.add(it.startMs) }
+            lyric.words?.forEach { word ->
+                timestamps.add(word.startMs)
+                word.endMs?.let { timestamps.add(it) }
+            }
             timestamps
         }
         // 2. Filter for events that happen strictly in the future

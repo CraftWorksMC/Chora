@@ -47,7 +47,6 @@ import com.craftworks.music.managers.settings.PlaybackSettingsManager
 import com.craftworks.music.ui.elements.dialogs.TranscodingBitrateDialog
 import com.craftworks.music.ui.elements.dialogs.TranscodingFormatDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.math.roundToInt
 
@@ -152,6 +151,8 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         toggleEvent = { showTranscodingFormatDialog = true }
                     )
                 }
+
+                /*
                 Column(
                     modifier = Modifier.clip(RoundedCornerShape(16.dp)),
                     verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -168,6 +169,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         }
                     )
                 }
+                */
 
                 // Scrobble Percent
                 Column(

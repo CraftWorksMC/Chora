@@ -115,7 +115,6 @@ import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.rememberManagedMediaController
-import com.craftworks.music.ui.elements.dialogs.NoMediaProvidersDialog
 import com.craftworks.music.ui.elements.dialogs.tv.OnboardingDialog
 import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.playing.NowPlayingMiniPlayer
@@ -324,10 +323,11 @@ class MainActivity : ComponentActivity() {
                     if (isTv) {
                         OnboardingDialog { showNoProvidersDialog = true }
                     } else {
-                        NoMediaProvidersDialog(
-                            setShowDialog = { showNoProvidersDialog = true },
-                            navController
-                        )
+                        com.craftworks.music.ui.elements.dialogs.OnboardingDialog() { showNoProvidersDialog = true }
+//                        NoMediaProvidersDialog(
+//                            setShowDialog = { showNoProvidersDialog = true },
+//                            navController
+//                        )
                     }
                 }
             }
