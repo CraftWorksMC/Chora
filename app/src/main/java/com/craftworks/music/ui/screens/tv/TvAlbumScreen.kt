@@ -57,14 +57,19 @@ fun TvAlbumScreen(
         stringResource(R.string.Label_Sort_Starred),
     )
     val sortOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
-    val selectedTabIndex by remember(sortOrder) {
+    val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()
+
+    val selectedTabIndex by remember(sortOrder, showFavoritesOnly) {
         derivedStateOf {
-            when (sortOrder) {
-                SortOrder.ALPHABETICAL -> 0
-                SortOrder.NEWEST -> 1
-                SortOrder.RECENT -> 2
-                SortOrder.FREQUENT -> 3
-            }
+            if (showFavoritesOnly)
+                4
+            else
+                when (sortOrder) {
+                    SortOrder.ALPHABETICAL -> 0
+                    SortOrder.NEWEST -> 1
+                    SortOrder.RECENT -> 2
+                    SortOrder.FREQUENT -> 3
+                }
         }
     }
     val tabFocusRequester = remember { FocusRequester() }
@@ -118,14 +123,20 @@ fun TvAlbumScreen(
                         Tab(
                             selected = index == selectedTabIndex,
                             onFocus = {
-                                viewModel.setSorting(
-                                    when (index) {
-                                        0 -> SortOrder.ALPHABETICAL
-                                        1 -> SortOrder.NEWEST
-                                        2 -> SortOrder.RECENT
-                                        else -> SortOrder.FREQUENT
-                                    }
-                                )
+                                if (index == 4) {
+                                    viewModel.setShowFavoritesOnly(true)
+                                }
+                                else {
+                                    viewModel.setShowFavoritesOnly(false)
+                                    viewModel.setSorting(
+                                        when (index) {
+                                            0 -> SortOrder.ALPHABETICAL
+                                            1 -> SortOrder.NEWEST
+                                            2 -> SortOrder.RECENT
+                                            else -> SortOrder.FREQUENT
+                                        }
+                                    )
+                                }
                             },
                             modifier = if (index == selectedTabIndex)
                                 Modifier.focusRequester(tabFocusRequester)
