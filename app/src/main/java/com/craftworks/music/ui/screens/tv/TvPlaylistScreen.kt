@@ -67,34 +67,6 @@ fun TvPlaylistScreen(
         horizontalArrangement = Arrangement.spacedBy(24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        item {
-            val favouritesPlaylist = MediaItem.Builder()
-                .setMediaId("favourites")
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle("Favourites")
-                        .setIsPlayable(false)
-                        .setIsBrowsable(true)
-                        .setArtworkUri(("android.resource://com.craftworks.music/" + R.drawable.favourites).toUri())
-                        .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
-                        .setExtras(Bundle().apply {
-                            putString("navidromeID", "favourites")
-                        })
-                        .build()
-                )
-                .build()
-
-            TvPlaylistCard (
-                playlist = favouritesPlaylist,
-                onClick = {
-                    viewModel.setCurrentPlaylist(favouritesPlaylist)
-                    navHostController.navigate(Screen.PlaylistDetails.route) {
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
-
         items(playlists) { playlist ->
             TvPlaylistCard (
                 playlist = playlist,

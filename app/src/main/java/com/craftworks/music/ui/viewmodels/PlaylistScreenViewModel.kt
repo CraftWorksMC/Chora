@@ -21,8 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlaylistScreenViewModel @Inject constructor(
-    private val playlistRepository: PlaylistRepository,
-    private val starredRepository: StarredRepository
+    private val playlistRepository: PlaylistRepository
 ) : ViewModel() {
     private val _allPlaylists = MutableStateFlow<List<MediaItem>>(emptyList())
     val allPlaylists: StateFlow<List<MediaItem>> = _allPlaylists.asStateFlow()
@@ -94,12 +93,7 @@ class PlaylistScreenViewModel @Inject constructor(
             }
             loadingJob.start()
             coroutineScope {
-                if (playlistId == "favourites") {
-                    _selectedPlaylistSongs.value = async { starredRepository.getStarredItems() }.await()
-                }
-                else {true
-                    _selectedPlaylistSongs.value = async { playlistRepository.getPlaylistSongs(playlistId) }.await()
-                }
+                _selectedPlaylistSongs.value = async { playlistRepository.getPlaylistSongs(playlistId) }.await()
             }
             loadingJob.cancel()
             _isLoading.value = false

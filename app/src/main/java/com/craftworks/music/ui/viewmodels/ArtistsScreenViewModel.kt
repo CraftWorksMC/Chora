@@ -7,6 +7,7 @@ import com.craftworks.music.data.model.MediaData
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.data.repository.ArtistRepository
 import com.craftworks.music.managers.DataRefreshManager
+import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
@@ -25,7 +26,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ArtistsScreenViewModel @Inject constructor(
     private val artistRepository: ArtistRepository,
-    private val albumRepository: AlbumRepository
+    private val albumRepository: AlbumRepository,
+    private val localDataSettingsManager: LocalDataSettingsManager
 ) : ViewModel() {
     private val _allArtists = MutableStateFlow<List<MediaData.Artist>>(emptyList())
     val allArtists: StateFlow<List<MediaData.Artist>> = _allArtists.asStateFlow()
@@ -42,10 +44,16 @@ class ArtistsScreenViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _showFavoritesOnly = MutableStateFlow(false)
+    val showFavoritesOnly: StateFlow<Boolean> = _showFavoritesOnly.asStateFlow()
+
     init {
         getArtists()
-
         viewModelScope.launch {
+            localDataSettingsManager.showFavoriteOnly.collect { showFavorites ->
+                _showFavoritesOnly.value = showFavorites
+                getArtists()
+            }
             DataRefreshManager.dataSourceChangedEvent.collect {
                 getArtists()
             }
@@ -55,7 +63,7 @@ class ArtistsScreenViewModel @Inject constructor(
     fun getArtists() {
         viewModelScope.launch {
             _isLoading.value = true
-            _allArtists.value = artistRepository.getArtists(ignoreCachedResponse = true)
+            _allArtists.value = artistRepository.getArtists(ignoreCachedResponse = true, favoritesOnly = _showFavoritesOnly.value)
             _isLoading.value = false
         }
     }
@@ -114,6 +122,11 @@ class ArtistsScreenViewModel @Inject constructor(
 
             loadingJob.cancel()
             _isLoading.value = false
+        }
+    }
+    fun setShowFavoritesOnly(showFavorites: Boolean) {
+        viewModelScope.launch {
+            localDataSettingsManager.saveShowFavoriteOnly(showFavorites)
         }
     }
 }

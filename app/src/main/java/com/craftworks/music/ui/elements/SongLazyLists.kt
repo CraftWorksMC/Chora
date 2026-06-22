@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.elements
 
-import android.os.Bundle
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -40,11 +39,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.MediaData
@@ -67,6 +64,7 @@ fun SongsHorizontalColumn(
     onSongSelected: (itemsList: List<MediaItem>, index: Int) -> Unit,
     onAddToQueue: (song: MediaItem) -> Unit,
     isSearch: Boolean? = false,
+    showFavoritesOnly: Boolean = false,
     viewModel: SongsScreenViewModel? = null
 ){
     val listState = rememberLazyListState()
@@ -74,7 +72,7 @@ fun SongsHorizontalColumn(
     val showDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
     // Load more songs at scroll
-    if (NavidromeManager.checkActiveServers() && isSearch == false){
+    if (NavidromeManager.checkActiveServers() && isSearch == false && !showFavoritesOnly){
         LaunchedEffect(listState) {
             if (songsList.size % 100 != 0) return@LaunchedEffect
 
@@ -510,32 +508,6 @@ fun PlaylistGrid(playlists: List<MediaItem>, onPlaylistSelected: (playlist: Medi
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(12.dp)
     ) {
-        if (currentNavidromeServer != null) {
-            item {
-                val favouritesPlaylist = MediaItem.Builder()
-                    .setMediaId("favourites")
-                    .setMediaMetadata(
-                        MediaMetadata.Builder()
-                            .setTitle("Favourites")
-                            .setIsPlayable(false)
-                            .setIsBrowsable(true)
-                            .setArtworkUri(("android.resource://com.craftworks.music/" + R.drawable.favourites).toUri())
-                            .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
-                            .setExtras(Bundle().apply {
-                                putString("navidromeID", "favourites")
-                            })
-                            .build()
-                    )
-                    .build()
-
-                PlaylistCard(
-                    playlist = favouritesPlaylist,
-                    onClick = {
-                        onPlaylistSelected(favouritesPlaylist)
-                    }
-                )
-            }
-        }
         items(playlists) {playlist ->
             PlaylistCard(playlist = playlist,
                 onClick = {

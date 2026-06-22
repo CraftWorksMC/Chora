@@ -40,11 +40,9 @@ fun PlaylistCard(playlist: MediaItem, onClick: () -> Unit) {
             .combinedClickable(
                 onClick = { onClick() },
                 onLongClick = {
-                    if (playlist.mediaMetadata.extras?.getString("navidromeID") != "favourites") {
-                        playlistToDelete.value =
-                            playlist.mediaMetadata.extras?.getString("navidromeID") ?: ""
-                        showDeletePlaylistDialog.value = true
-                    }
+                    playlistToDelete.value =
+                        playlist.mediaMetadata.extras?.getString("navidromeID") ?: ""
+                    showDeletePlaylistDialog.value = true
                 },
                 onLongClickLabel = "Delete Playlist"
             )
