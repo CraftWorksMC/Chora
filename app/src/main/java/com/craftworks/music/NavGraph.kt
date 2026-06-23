@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -48,6 +49,7 @@ import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.playing.NowPlayingViewModel
+import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.screens.AlbumDetails
 import com.craftworks.music.ui.screens.AlbumScreen
 import com.craftworks.music.ui.screens.ArtistDetails
@@ -358,56 +360,56 @@ fun SetupNavGraph(
         }
 
         composable(route = Screen.NowPlayingLandscape.route) {
-            if ((LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION) ||
-                LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-            ) {
-                val parentEntry = remember(it) {
-                    navController.getBackStackEntry("main_graph")
-                }
-                val viewModel: NowPlayingViewModel = hiltViewModel(parentEntry)
-
-                var metadata by remember { mutableStateOf<MediaMetadata?>(null) }
-
-                // Update metadata from mediaController.
-                LaunchedEffect(mediaController) {
-                    if (mediaController?.currentMediaItem != null) {
-                        metadata = mediaController.currentMediaItem?.mediaMetadata
-                    }
-                }
-                DisposableEffect(mediaController) {
-                    val listener = object : Player.Listener {
-                        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                            super.onMediaItemTransition(mediaItem, reason)
-                            metadata = mediaController?.currentMediaItem?.mediaMetadata
-                        }
-                    }
-
-                    mediaController?.addListener(listener)
-
-                    onDispose {
-                        mediaController?.removeListener(listener)
-                    }
-                }
-
-                NowPlayingContent(
-                    mediaController,
-                    metadata,
-                    viewModel
-                )
-
-                // Keep screen on
-                val currentView = LocalView.current
-                DisposableEffect(Unit) {
-                    currentView.keepScreenOn = true
-                    Log.d("NOW-PLAYING", "KeepScreenOn: True")
-                    onDispose {
-                        currentView.keepScreenOn = false
-                        Log.d("NOW-PLAYING", "KeepScreenOn: False")
-                    }
-                }
-            } else {
+            if (LocalWindowInfo.current.containerSize.width < dpToPx(640)) {
+                navController.popBackStack()
                 navController.navigate(Screen.Home.route) {
                     launchSingleTop = true
+                }
+            }
+
+
+            val parentEntry = remember(it) {
+                navController.getBackStackEntry("main_graph")
+            }
+            val viewModel: NowPlayingViewModel = hiltViewModel(parentEntry)
+
+            var metadata by remember { mutableStateOf<MediaMetadata?>(null) }
+
+            // Update metadata from mediaController.
+            LaunchedEffect(mediaController) {
+                if (mediaController?.currentMediaItem != null) {
+                    metadata = mediaController.currentMediaItem?.mediaMetadata
+                }
+            }
+            DisposableEffect(mediaController) {
+                val listener = object : Player.Listener {
+                    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                        super.onMediaItemTransition(mediaItem, reason)
+                        metadata = mediaController?.currentMediaItem?.mediaMetadata
+                    }
+                }
+
+                mediaController?.addListener(listener)
+
+                onDispose {
+                    mediaController?.removeListener(listener)
+                }
+            }
+
+            NowPlayingContent(
+                mediaController,
+                metadata,
+                viewModel
+            )
+
+            // Keep screen on
+            val currentView = LocalView.current
+            DisposableEffect(Unit) {
+                currentView.keepScreenOn = true
+                Log.d("NOW-PLAYING", "KeepScreenOn: True")
+                onDispose {
+                    currentView.keepScreenOn = false
+                    Log.d("NOW-PLAYING", "KeepScreenOn: False")
                 }
             }
         }

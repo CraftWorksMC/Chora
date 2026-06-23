@@ -87,6 +87,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.IntOffset
@@ -238,7 +239,7 @@ class MainActivity : ComponentActivity() {
                         contentColor = MaterialTheme.colorScheme.onBackground,
                         containerColor = Color.Transparent
                     ) { paddingValues ->
-                        if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        if (LocalWindowInfo.current.containerSize.width < dpToPx(640)) {
                             BottomSheetScaffold(
                                 sheetContainerColor = Color.Transparent,
                                 containerColor = Color.Transparent,
@@ -708,6 +709,27 @@ fun AnimatedBottomNavBar(
                         Icon(ImageVector.vectorResource(icon), contentDescription = null)
                     })
             }
+            if (LocalWindowInfo.current.containerSize.width > dpToPx(640))
+                NavigationBarItem(
+                    selected = Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route,
+                    onClick = {
+                        if (Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route) return@NavigationBarItem
+                        navController.navigate(Screen.NowPlayingLandscape.route) {
+                            launchSingleTop = true
+                        }
+                        coroutineScope.launch {
+                            if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
+                        }
+                    },
+                    label = { Text(text = "Playing") },
+                    alwaysShowLabel = false,
+                    icon = {
+                        Icon(
+                            ImageVector.vectorResource(R.drawable.s_m_playback),
+                            contentDescription = "Playing"
+                        )
+                    },
+                )
         }
     } else {
         val lazyColumnState = rememberLazyListState()

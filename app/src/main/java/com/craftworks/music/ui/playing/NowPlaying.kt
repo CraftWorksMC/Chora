@@ -79,10 +79,12 @@ fun NowPlayingContent(
         )
     } else if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
         NowPlayingLandscape(
-            mediaController,
-            metadata,
-            iconTextColor,
-            lyricsOpen
+            mediaController = mediaController,
+            metadata = metadata,
+            iconColor = iconTextColor,
+            sleepTimerMinutes = sleepTimerMinutes,
+            onOpenSleepTimer = { viewModel.setSleepTimerDialogOpen(true) },
+            onToggleQueue = { viewModel.setPlayQueueOpen(!playQueueOpen) },
         )
     } else {
         NowPlayingPortrait(
