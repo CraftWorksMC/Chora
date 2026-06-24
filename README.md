@@ -6,6 +6,10 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 
 <a href='https://play.google.com/store/apps/details?id=com.craftworks.music&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img width=256px alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
 
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+alt="Get it on F-Droid"
+height="80">](https://f-droid.org/packages/com.craftworks.music/)
+
 ## Features
 
 - Subsonic/Navidrome support.
@@ -19,21 +23,10 @@ A simple and light-weight app that streams music from a Subsonic or Navidrome se
 - Multiple Navidrome libraries.
 - Transcoding.
 
-## WIP For 1.31
-
-- [x] Play Queue reordering
-- [ ] Play next suggestions
-- [x] Word-Synced lyrics from LRCLIB
-
 ## Roadmap
 
+- #84
 - Chromecast
-- Jellyfin (Music) Support.
-- Local DB for local files and Navidrome offline mode.
-
-## Known Issues
-
-- In Android Auto, radios do not set metadata correctly.
 
 ## Screenshots
 
