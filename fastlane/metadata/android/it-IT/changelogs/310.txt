@@ -1,0 +1,6 @@
+Aggiunti i testi sincronizzati parola per parola, le impostazioni di scorrimento automatico e le opzioni di allineamento del layout.
+Redesign della schermata "In riproduzione" per dispositivi mobili e tablet.
+Aggiunto il riordinamento della coda di riproduzione.
+Introdotti il timer di spegnimento e onboarding.
+Sistemata la modalità scura su Android TV.
+Supporto a TLS 1.3.

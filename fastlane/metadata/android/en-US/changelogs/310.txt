@@ -1,0 +1,6 @@
+Added word-synced lyrics, autoscroll settings, and layout alignment options.
+Redesign the Now Playing screen for mobile, tablets.
+Added play queue reordering.
+Introduced sleep timer and onboarding dialog.
+Fixed dark mode on Android TV.
+TLS 1.3 support.
