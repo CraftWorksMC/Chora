@@ -25,7 +25,7 @@ height="80">](https://f-droid.org/packages/com.craftworks.music/)
 
 ## Roadmap
 
-- #84
+#84
 - Chromecast
 
 ## Screenshots
