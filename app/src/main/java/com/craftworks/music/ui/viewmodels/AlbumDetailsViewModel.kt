@@ -2,9 +2,9 @@ package com.craftworks.music.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.craftworks.music.data.model.LibraryType
-import com.craftworks.music.data.model.MediaItem
-import com.craftworks.music.managers.MediaProviderManager
+import androidx.media3.common.MediaItem
+import com.craftworks.music.data.repository.AlbumRepository
+import com.craftworks.music.data.repository.StarredRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,11 +15,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumDetailsViewModel @Inject constructor(
-    private val mediaProviderManager: MediaProviderManager,
+    private val albumRepository: AlbumRepository,
+    private val starredRepository: StarredRepository
 ) : ViewModel() {
-    val provider = mediaProviderManager.currentProvider.value;
-    private val _albumDetails = MutableStateFlow<MediaItem.Album?>(null)
-    val albumDetails: StateFlow<MediaItem.Album?> = _albumDetails.asStateFlow()
+    private val _songsInAlbum = MutableStateFlow<List<MediaItem>>(listOf())
+    val songsInAlbum: StateFlow<List<MediaItem>> = _songsInAlbum.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -28,12 +28,12 @@ class AlbumDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val loadingJob = launch {
                 delay(500)
-                if (_albumDetails.value == null) {
+                if (_songsInAlbum.value.isEmpty()) {
                     _isLoading.value = true
                 }
             }
 
-            _albumDetails.value = provider?.getAlbumDetail(albumId)
+            _songsInAlbum.value = albumRepository.getAlbum(albumId) ?: listOf(MediaItem.EMPTY)
 
             loadingJob.cancel()
             _isLoading.value = false
@@ -42,12 +42,12 @@ class AlbumDetailsViewModel @Inject constructor(
 
     fun starAlbum(id: String) {
         viewModelScope.launch {
-            provider?.createFavorite(listOf(id),LibraryType.ALBUM)
+            starredRepository.starItem(albumId = id, ignoreCachedResponse = true)
         }
     }
     fun unstarAlbum(id: String) {
         viewModelScope.launch {
-            provider?.deleteFavorite(listOf(id),LibraryType.ALBUM)
+            starredRepository.unStarItem(albumId = id, ignoreCachedResponse = true)
         }
     }
 }
