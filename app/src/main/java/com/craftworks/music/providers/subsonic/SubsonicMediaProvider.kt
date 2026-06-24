@@ -22,7 +22,6 @@ import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.MediaProvider
 import com.craftworks.music.providers.navidrome.MusicFolder
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -42,23 +41,24 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import java.net.ConnectException
-import java.nio.channels.UnresolvedAddressException
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import retrofit2.Retrofit
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
-class SubsonicMediaProvider : MediaProvider {
+class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider {
     private val _featureFlags: MutableStateFlow<ProviderFeatures> = MutableStateFlow(
         ProviderFeatures.REPORT_PLAYBACK +
                 ProviderFeatures.DOWNLOADS +
                 ProviderFeatures.FAVORITES
     )
     override val featureFlags: StateFlow<ProviderFeatures> = _featureFlags.asStateFlow()
-
-    var serverInfo: SubsonicServerInfo? = null
 
     companion object {
         fun md5Hash(input: String): String {
@@ -73,8 +73,50 @@ class SubsonicMediaProvider : MediaProvider {
         }
     }
 
+    private val retrofit: Retrofit by lazy {
+        var builder = Retrofit.Builder();
+        var okBuilder = OkHttpClient.Builder();
+
+        okBuilder.addInterceptor {
+            it.proceed(it.request().newBuilder()
+                .url(it.request().url.newBuilder()
+                    .addQueryParameter("u", serverInfo.username)
+                    .addQueryParameter("t", _token)
+                    .addQueryParameter("s", _salt)
+                    .addQueryParameter("v", "1.32.0")
+                    .addQueryParameter("c", "Chora")
+                    .addQueryParameter("f", "json")
+                .build())
+                .build())
+        }
+
+        if (serverInfo.allowSelfSignedCert) {
+            val trustAllCerts = arrayOf<TrustManager>(
+                @SuppressLint("CustomX509TrustManager")
+                object : X509TrustManager {
+                    @SuppressLint("TrustAllX509TrustManager")
+                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+                    @SuppressLint("TrustAllX509TrustManager")
+                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+                    override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+                }
+            )
+            val sslContext = SSLContext.getInstance("SSL").apply {
+                init(null, trustAllCerts, SecureRandom())
+            }
+            val sslSocketFactory: SSLSocketFactory = sslContext.socketFactory
+
+            okBuilder
+                    .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)
+                    .hostnameVerifier { _, _ -> true }
+        }
+
+        builder.baseUrl(serverInfo.url)
+        .client(okBuilder.build())
+        .build()
+    }
     private val json = Json { ignoreUnknownKeys = true }
-    private val client: HttpClient by lazy {
+    private val client: OkHttpClient by lazy {
         HttpClient(OkHttp) {
             install(ContentNegotiation) {
                 json(json)
@@ -89,16 +131,6 @@ class SubsonicMediaProvider : MediaProvider {
 
     private val insecureClient: HttpClient by lazy { buildInsecureClient() }
     private fun buildInsecureClient(): HttpClient {
-        val trustAllCerts = arrayOf<TrustManager>(
-            @SuppressLint("CustomX509TrustManager")
-            object : X509TrustManager {
-                @SuppressLint("TrustAllX509TrustManager")
-                override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
-                @SuppressLint("TrustAllX509TrustManager")
-                override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
-                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-            }
-        )
 
         return HttpClient(OkHttp.create {
             config {
@@ -130,7 +162,7 @@ class SubsonicMediaProvider : MediaProvider {
 
 
         val url = URLBuilder("${serverInfo!!.url}/rest/${endpoint.replace(" ", "%20")}").apply {
-            parameters.append("u", serverInfo!!.username)
+            parameters.append("u", serverInfo.username)
             parameters.append("t", _token!!)
             parameters.append("s", _salt!!)
             musicFolderIds?.forEach { parameters.append("musicFolderId", it.toString()) }

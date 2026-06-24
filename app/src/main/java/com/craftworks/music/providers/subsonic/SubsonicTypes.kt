@@ -4,9 +4,6 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 
-data class SubsonicApiResponse(val status: HttpStatusCode, val body: String, val headers: Headers?)
-
-
 @Serializable
 data class SubsonicServerInfo (
     var url:String,

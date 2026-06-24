@@ -100,6 +100,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.composefadingedges)
+    implementation(libs.retrofit)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
