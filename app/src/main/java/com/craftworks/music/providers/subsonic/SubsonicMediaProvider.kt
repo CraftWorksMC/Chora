@@ -1,6 +1,7 @@
 package com.craftworks.music.providers.subsonic
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Log
 import com.craftworks.music.data.model.AlbumArtistInfoResponse
 import com.craftworks.music.data.model.AlbumInfo
@@ -40,6 +41,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -53,13 +57,20 @@ import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
-class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider {
+@Serializable
+@SerialName("subsonic")
+class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider() {
+    @Transient
     private val _featureFlags: MutableStateFlow<ProviderFeatures> = MutableStateFlow(
         ProviderFeatures.REPORT_PLAYBACK +
                 ProviderFeatures.DOWNLOADS +
                 ProviderFeatures.FAVORITES
     )
+    @Transient
     override val featureFlags: StateFlow<ProviderFeatures> = _featureFlags.asStateFlow()
+
+    @Transient
+    private var choraVersion: String = "";
 
     companion object {
         suspend fun md5Hash(input: String): String {
@@ -89,7 +100,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
                     .addQueryParameter("u", serverInfo.username)
                     .addQueryParameter("t", _token)
                     .addQueryParameter("s", _salt)
-                    .addQueryParameter("v", "1.32.0")
+                    .addQueryParameter("v", choraVersion)
                     .addQueryParameter("c", "Chora")
                     .addQueryParameter("f", "json")
                 .build())
@@ -123,8 +134,14 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
     }
     private val service: SubsonicService by lazy {retrofit.create(SubsonicService::class.java)}
 
+    @Transient
     private var _salt: String? = null;
+    @Transient
     private var _token: String? = null;
+
+    override fun init(context: Context) {
+        choraVersion = context.packageManager.getPackageInfo(context.packageName,0).versionName ?: ""
+    }
 
     override suspend fun addToPlaylist(
         songIds: List<String>,
