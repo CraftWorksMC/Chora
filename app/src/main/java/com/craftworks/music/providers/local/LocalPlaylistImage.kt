@@ -1,4 +1,4 @@
-package com.craftworks.music.providers.local
+package com.craftworks.music.legacy.providers.local
 
 import android.content.Context
 import android.graphics.Bitmap

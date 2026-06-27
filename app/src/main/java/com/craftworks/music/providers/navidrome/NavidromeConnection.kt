@@ -1,4 +1,4 @@
-package com.craftworks.music.providers.navidrome
+package com.craftworks.music.legacy.providers.navidrome
 
 import android.util.Log
 import com.craftworks.music.data.model.MediaItem

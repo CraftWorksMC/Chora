@@ -1,4 +1,4 @@
-package com.craftworks.music.managers
+package com.craftworks.music.legacy.managers
 
 import android.content.Context
 import android.content.SharedPreferences

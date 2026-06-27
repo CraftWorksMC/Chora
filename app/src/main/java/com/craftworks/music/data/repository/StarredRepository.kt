@@ -1,4 +1,4 @@
-package com.craftworks.music.data.repository
+package com.craftworks.music.legacy.data.repository
 
 import androidx.media3.common.MediaItem // MediaItem can represent songs, albums (via browse MediaId), etc.
 import com.craftworks.music.data.datasource.local.LocalDataSource

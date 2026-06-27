@@ -1,4 +1,4 @@
-package com.craftworks.music.providers.navidrome
+package com.craftworks.music.legacy.providers.navidrome
 
 import android.app.DownloadManager
 import android.content.Context

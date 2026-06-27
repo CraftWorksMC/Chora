@@ -1,4 +1,4 @@
-package com.craftworks.music.data.datasource.local
+package com.craftworks.music.legacy.data.datasource.local
 
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.model.MediaItem
@@ -12,6 +12,8 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 @Singleton
 class LocalDataSource @Inject constructor(
     private val localProvider: LocalProvider,

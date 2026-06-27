@@ -1,4 +1,4 @@
-package com.craftworks.music.providers.local
+package com.craftworks.music.legacy.providers.local
 
 import android.content.ContentUris
 import android.content.Context

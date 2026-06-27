@@ -1,4 +1,4 @@
-package com.craftworks.music.data.repository
+package com.craftworks.music.legacy.data.repository
 
 import com.craftworks.music.data.datasource.local.LocalDataSource
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource

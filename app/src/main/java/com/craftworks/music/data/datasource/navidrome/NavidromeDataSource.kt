@@ -1,4 +1,4 @@
-package com.craftworks.music.data.datasource.navidrome
+package com.craftworks.music.legacy.data.datasource.navidrome
 
 import android.annotation.SuppressLint
 import android.util.Log

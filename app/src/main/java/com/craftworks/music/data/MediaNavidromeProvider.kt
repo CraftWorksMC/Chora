@@ -1,4 +1,4 @@
-package com.craftworks.music.data
+package com.craftworks.music.legacy.data
 
 import kotlinx.serialization.Serializable
 

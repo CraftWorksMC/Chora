@@ -1,4 +1,4 @@
-package com.craftworks.music.providers.navidrome
+package com.craftworks.music.legacy.providers.navidrome
 
 import com.craftworks.music.data.NavidromeLibrary
 import kotlinx.serialization.Serializable
