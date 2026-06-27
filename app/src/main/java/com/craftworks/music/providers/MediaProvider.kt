@@ -23,61 +23,61 @@ import kotlinx.coroutines.flow.StateFlow
 interface MediaProvider {
     val featureFlags: StateFlow<ProviderFeatures>
 
-    fun addToPlaylist(songIds: List<String>, playlistId: String) : Boolean
-    fun authenticate(username: String, password: String) : AuthenticationResponse
-    fun createFavorite(ids: List<String>, type: LibraryType) : Boolean
-    fun createInternetRadioStation(homepageUrl: String?, name: String, streamUrl: String) : Boolean
-    fun createPlaylist(name: String, comment: String = "", ownerId: String = "", public: Boolean = false, queryBuilderRules: PlaylistRules?, sync: Boolean = false) : String?
-    fun deleteFavorite(ids: List<String>, type: LibraryType) : Boolean
-    fun deleteInternetRadioStation(id: String): Boolean
-    fun deletePlaylist(id: String): Boolean
-    fun getAlbumArtistDetail(id: String): MediaItem.AlbumArtist?
-    fun getAlbumArtistInfo(id: String, limit: Int? = null): AlbumArtistInfoResponse?
-    fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaItem.AlbumArtist>
-    fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int
-    fun getAlbumDetail(id: String): MediaItem.Album
-    fun getAlbumInfo(id: String): AlbumInfo
-    fun getAlbumList(query: MediaQuery.AlbumListQuery): List<MediaItem.Album>
-    fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int
-    fun getAlbumRadio(albumId: String, count: Int? = null): List<MediaItem.Song>
-    fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaItem.AlbumArtist>
-    fun getArtistListCount(query: MediaQuery.ArtistListQuery): Int
-    fun getArtistRadio(artistId: String, count: Int? = null): List<MediaItem.Song>
-    fun getDownloadUrl(id: String): String
-    fun getFolder(query: MediaQuery.FolderQuery): MediaItem.Folder
-    fun getGenreList(query: MediaQuery.GenreListQuery): List<MediaItem.Genre>
-    fun getImageRequest(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): ImageRequest?
-    fun getImageUrl(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): String?
-    fun getInternetRadioStations(): List<InternetRadioStation>
-    fun getLyrics(songId: String): LyricsResponse
-    fun getMusicFolderList(): List<MusicFolder>
-    fun getPlaylistDetail(id: String): MediaItem.Playlist
-    fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaItem.Playlist>
-    fun getPlaylistListCount(query: MediaQuery.PlaylistListQuery): Int
-    fun getPlaylistSongList(id: String): List<MediaItem.Song>
-    fun getPlayQueue(): GetQueueResponse
-    fun getRandomSongList(query: MediaQuery.RandomSongListQuery): List<MediaItem.Song>
-    fun getRoles(): List<String>
-    fun getProviderInfo(): ProviderInfo
-    fun getSimilarSongs(songId: String, count: Int? = null, musicFolderId: List<String>? = null): List<MediaItem.Song>
-    fun getSongDetail(id: String): MediaItem.Song
-    fun getSongList(query: MediaQuery.SongListQuery): List<MediaItem.Song>
-    fun getSongListCount(query: MediaQuery.SongListQuery): Int
-    fun getStreamUrl(id: String, transcode: Boolean, bitrate: Int? = null, format: String? = null, mediaType: String? = null, offset: Int? = null, skipAutoTranscode: Boolean? = null): String
-    fun getTagList(type: LibraryType, folder: String? = null, tagName: String? = null): TagListResponse
-    fun getTopSongs(artist: String, artistId: String, limit: Int? = null, type: String? = null): List<MediaItem.Song>
-    fun getUserInfo(id: String, username: String): UserInfoResponse
-    fun getUserList(query: MediaQuery.UserListQuery): List<User>
-    fun movePlaylistItem(playlistId: String, trackId: String, startingIndex: Int, endingIndex: Int)
-    fun ping() : Boolean
-    fun removeFromPlaylist(id: String, songIds: List<String>): Boolean
-    fun replacePlaylist(id: String, songIds: List<String>): Boolean
-    fun savePlayQueue(songs: List<String>, currentIndex: Int? = null, positionMs: Int? = null)
-    fun scrobble(id: String, mediaType: String, playbackRate: Float, submission: Boolean, albumId: String? = null, event: String? = null, position: Int? = null)
-    fun search(query: MediaQuery.SearchQuery): SearchResponse
-    fun setPlaylistSongs(id: String, songIds: List<String>)
-    fun setRating(ids: List<String>, rating: Int, type: LibraryType): Boolean
-    fun shareItem(description: String, downloadable: Boolean, expires: Long, resourceIds: String, resourceType: String): String?
-    fun updateInternetRadioStation(id: String, name: String, streamUrl: String, homepageUrl: String? = null): Boolean
-    fun updatePlaylist(id: String, name: String, comment: String? = null, ownerId: String? = null, public: Boolean? = null, queryBuilderRules: PlaylistRules? = null, sync: Boolean? = null): Boolean
+    suspend fun addToPlaylist(songIds: List<String>, playlistId: String) : Boolean
+    suspend fun authenticate(username: String, password: String) : AuthenticationResponse
+    suspend fun createFavorite(ids: List<String>, type: LibraryType) : Boolean
+    suspend fun createInternetRadioStation(homepageUrl: String?, name: String, streamUrl: String) : Boolean
+    suspend fun createPlaylist(name: String, comment: String = "", ownerId: String = "", public: Boolean = false, queryBuilderRules: PlaylistRules?, sync: Boolean = false) : String?
+    suspend fun deleteFavorite(ids: List<String>, type: LibraryType) : Boolean
+    suspend fun deleteInternetRadioStation(id: String): Boolean
+    suspend fun deletePlaylist(id: String): Boolean
+    suspend fun getAlbumArtistDetail(id: String): MediaItem.AlbumArtist?
+    suspend fun getAlbumArtistInfo(id: String, limit: Int? = null): AlbumArtistInfoResponse?
+    suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaItem.AlbumArtist>
+    suspend fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int
+    suspend fun getAlbumDetail(id: String): MediaItem.Album
+    suspend fun getAlbumInfo(id: String): AlbumInfo
+    suspend fun getAlbumList(query: MediaQuery.AlbumListQuery): List<MediaItem.Album>
+    suspend fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int
+    suspend fun getAlbumRadio(albumId: String, count: Int? = null): List<MediaItem.Song>
+    suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaItem.AlbumArtist>
+    suspend fun getArtistListCount(query: MediaQuery.ArtistListQuery): Int
+    suspend fun getArtistRadio(artistId: String, count: Int? = null): List<MediaItem.Song>
+    suspend fun getDownloadUrl(id: String): String
+    suspend fun getFolder(query: MediaQuery.FolderQuery): MediaItem.Folder
+    suspend fun getGenreList(query: MediaQuery.GenreListQuery): List<MediaItem.Genre>
+    suspend fun getImageRequest(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): ImageRequest?
+    suspend fun getImageUrl(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): String?
+    suspend fun getInternetRadioStations(): List<InternetRadioStation>
+    suspend fun getLyrics(songId: String): LyricsResponse
+    suspend fun getMusicFolderList(): List<MusicFolder>
+    suspend fun getPlaylistDetail(id: String): MediaItem.Playlist
+    suspend fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaItem.Playlist>
+    suspend fun getPlaylistListCount(query: MediaQuery.PlaylistListQuery): Int
+    suspend fun getPlaylistSongList(id: String): List<MediaItem.Song>
+    suspend fun getPlayQueue(): GetQueueResponse
+    suspend fun getRandomSongList(query: MediaQuery.RandomSongListQuery): List<MediaItem.Song>
+    suspend fun getRoles(): List<String>
+    suspend fun getProviderInfo(): ProviderInfo
+    suspend fun getSimilarSongs(songId: String, count: Int? = null, musicFolderId: List<String>? = null): List<MediaItem.Song>
+    suspend fun getSongDetail(id: String): MediaItem.Song
+    suspend fun getSongList(query: MediaQuery.SongListQuery): List<MediaItem.Song>
+    suspend fun getSongListCount(query: MediaQuery.SongListQuery): Int
+    suspend fun getStreamUrl(id: String, transcode: Boolean, bitrate: Int? = null, format: String? = null, mediaType: String? = null, offset: Int? = null, skipAutoTranscode: Boolean? = null): String
+    suspend fun getTagList(type: LibraryType, folder: String? = null, tagName: String? = null): TagListResponse
+    suspend fun getTopSongs(artist: String, artistId: String, limit: Int? = null, type: String? = null): List<MediaItem.Song>
+    suspend fun getUserInfo(id: String, username: String): UserInfoResponse
+    suspend fun getUserList(query: MediaQuery.UserListQuery): List<User>
+    suspend fun movePlaylistItem(playlistId: String, trackId: String, startingIndex: Int, endingIndex: Int)
+    suspend fun ping() : Boolean
+    suspend fun removeFromPlaylist(id: String, songIds: List<String>): Boolean
+    suspend fun replacePlaylist(id: String, songIds: List<String>): Boolean
+    suspend fun savePlayQueue(songs: List<String>, currentIndex: Int? = null, positionMs: Int? = null)
+    suspend fun scrobble(id: String, mediaType: String, playbackRate: Float, submission: Boolean, albumId: String? = null, event: String? = null, position: Int? = null)
+    suspend fun search(query: MediaQuery.SearchQuery): SearchResponse
+    suspend fun setPlaylistSongs(id: String, songIds: List<String>)
+    suspend fun setRating(ids: List<String>, rating: Int, type: LibraryType): Boolean
+    suspend fun shareItem(description: String, downloadable: Boolean, expires: Long, resourceIds: String, resourceType: String): String?
+    suspend fun updateInternetRadioStation(id: String, name: String, streamUrl: String, homepageUrl: String? = null): Boolean
+    suspend fun updatePlaylist(id: String, name: String, comment: String? = null, ownerId: String? = null, public: Boolean? = null, queryBuilderRules: PlaylistRules? = null, sync: Boolean? = null): Boolean
 }

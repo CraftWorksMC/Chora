@@ -8,6 +8,17 @@ import kotlinx.serialization.Serializable
 data class SubsonicServerInfo (
     var url:String,
     var username:String,
-    val password:String,
+    var credentials:String,
     var allowSelfSignedCert: Boolean = false
+)
+
+
+@Serializable
+data class SubsonicUserResponse (
+    val user: SubsonicUser
+)
+@Serializable
+data class SubsonicUser (
+    val username: String,
+    val adminRole: Boolean
 )

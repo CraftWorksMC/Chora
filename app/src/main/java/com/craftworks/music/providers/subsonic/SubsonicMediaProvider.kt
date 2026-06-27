@@ -44,6 +44,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import retrofit2.Retrofit
+import retrofit2.awaitResponse
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -61,13 +62,13 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
     override val featureFlags: StateFlow<ProviderFeatures> = _featureFlags.asStateFlow()
 
     companion object {
-        fun md5Hash(input: String): String {
+        suspend fun md5Hash(input: String): String {
             val md = MessageDigest.getInstance("MD5")
             val hashBytes = md.digest(input.toByteArray())
             return hashBytes.joinToString("") { "%02x".format(it) }
         }
 
-        fun generateSalt(length: Int): String {
+        suspend fun generateSalt(length: Int): String {
             val allowedChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
             return (1..length).map { allowedChars.random() }.joinToString("")
         }
@@ -78,6 +79,11 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         var okBuilder = OkHttpClient.Builder();
 
         okBuilder.addInterceptor {
+            if (_salt == null) {
+                val delimiter = serverInfo.credentials.indexOf(':')
+                _salt = serverInfo.credentials.substring(0, delimiter)
+                _token = serverInfo.credentials.substring(delimiter + 1)
+            }
             it.proceed(it.request().newBuilder()
                 .url(it.request().url.newBuilder()
                     .addQueryParameter("u", serverInfo.username)
@@ -115,110 +121,47 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         .client(okBuilder.build())
         .build()
     }
-    private val json = Json { ignoreUnknownKeys = true }
-    private val client: OkHttpClient by lazy {
-        HttpClient(OkHttp) {
-            install(ContentNegotiation) {
-                json(json)
-            }
-            install(HttpCache)
-            install(Logging) {
-                level = LogLevel.ALL
-                logger = Logger.SIMPLE
-            }
-        }
-    }
-
-    private val insecureClient: HttpClient by lazy { buildInsecureClient() }
-    private fun buildInsecureClient(): HttpClient {
-
-        return HttpClient(OkHttp.create {
-            config {
-                val sslContext = javax.net.ssl.SSLContext.getInstance("SSL")
-                sslContext.init(null, trustAllCerts, SecureRandom())
-                sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
-                hostnameVerifier { _, _ -> true }
-            }
-        }) {
-            install(ContentNegotiation) {
-                json(json)
-            }
-            install(HttpCache)
-            install(Logging) {
-                level = LogLevel.ALL
-                logger = Logger.SIMPLE
-            }
-        }
-    }
+    private val service: SubsonicService by lazy {retrofit.create(SubsonicService::class.java)}
 
     private var _salt: String? = null;
     private var _token: String? = null;
-    private suspend fun getRequest(
-        endpoint: String,
-        musicFolderIds: List<Int>? = null,
-        ignoreCachedResponse: Boolean = false
-    ): SubsonicApiResponse = withContext(Dispatchers.IO) {
-        if (serverInfo == null || _salt == null || _token == null) return@withContext SubsonicApiResponse(HttpStatusCode(0, ""), "", null);
 
-
-        val url = URLBuilder("${serverInfo!!.url}/rest/${endpoint.replace(" ", "%20")}").apply {
-            parameters.append("u", serverInfo.username)
-            parameters.append("t", _token!!)
-            parameters.append("s", _salt!!)
-            musicFolderIds?.forEach { parameters.append("musicFolderId", it.toString()) }
-            parameters.append("v", "1.16.1")
-            parameters.append("c", "Chora")
-            parameters.append("f", "json")
-        }.build()
-
-        val activeClient = if (serverInfo!!.allowSelfSignedCert) insecureClient else client
-
-        try {
-            val res = activeClient.get(url) {
-                // Force network request if ignoreCachedResponse is true
-                if (ignoreCachedResponse) {
-                    headers {
-                        append("Cache-Control", "no-cache")
-                    }
-                }
-            }
-
-            val body = res.bodyAsText()
-
-            return@withContext SubsonicApiResponse(res.status, body, res.headers)
-
-        } catch (e: Exception) {
-            Log.e("NAVIDROME", "Network error for URL: $url", e)
-        }
-
-        SubsonicApiResponse(HttpStatusCode(0, ""), "", null)
-    }
-
-    override fun addToPlaylist(
+    override suspend fun addToPlaylist(
         songIds: List<String>,
         playlistId: String
     ): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun authenticate(
+    override suspend fun authenticate(
         username: String,
         password: String
     ): AuthenticationResponse {
-        if (serverInfo == null) return AuthenticationResponse("", username="");
+        serverInfo.username = username
         _salt = generateSalt(8)
-        _token = md5Hash(serverInfo?.password + _salt)
-        TODO("Finish auth implementation")
+        _token = md5Hash(password + _salt)
+
+        val res = service.authenticate(username).awaitResponse();
+        val body = res.body();
+
+        if (res.isSuccessful) return AuthenticationResponse(
+            credential = "$_salt:$_token",
+            isAdmin = body?.user?.adminRole ?: false,
+            userId = body?.user?.username,
+            username = username
+        )
+
+        throw Exception("Failed to login")
     }
 
-    override fun createFavorite(
+    override suspend fun createFavorite(
         ids: List<String>,
         type: LibraryType
     ): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun createInternetRadioStation(
+    override suspend fun createInternetRadioStation(
         homepageUrl: String?,
         name: String,
         streamUrl: String
@@ -226,7 +169,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun createPlaylist(
+    override suspend fun createPlaylist(
         name: String,
         comment: String,
         ownerId: String,
@@ -237,91 +180,91 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun deleteFavorite(
+    override suspend fun deleteFavorite(
         ids: List<String>,
         type: LibraryType
     ): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun deleteInternetRadioStation(id: String): Boolean {
+    override suspend fun deleteInternetRadioStation(id: String): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun deletePlaylist(id: String): Boolean {
+    override suspend fun deletePlaylist(id: String): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun getAlbumArtistDetail(id: String): MediaItem.AlbumArtist? {
+    override suspend fun getAlbumArtistDetail(id: String): MediaItem.AlbumArtist? {
         TODO("Not yet implemented")
     }
 
-    override fun getAlbumArtistInfo(
+    override suspend fun getAlbumArtistInfo(
         id: String,
         limit: Int?
     ): AlbumArtistInfoResponse? {
         TODO("Not yet implemented")
     }
 
-    override fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaItem.AlbumArtist> {
+    override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaItem.AlbumArtist> {
         TODO("Not yet implemented")
     }
 
-    override fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int {
+    override suspend fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int {
         TODO("Not yet implemented")
     }
 
-    override fun getAlbumDetail(id: String): MediaItem.Album {
+    override suspend fun getAlbumDetail(id: String): MediaItem.Album {
         TODO("Not yet implemented")
     }
 
-    override fun getAlbumInfo(id: String): AlbumInfo {
+    override suspend fun getAlbumInfo(id: String): AlbumInfo {
         TODO("Not yet implemented")
     }
 
-    override fun getAlbumList(query: MediaQuery.AlbumListQuery): List<MediaItem.Album> {
+    override suspend fun getAlbumList(query: MediaQuery.AlbumListQuery): List<MediaItem.Album> {
         TODO("Not yet implemented")
     }
 
-    override fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int {
+    override suspend fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int {
         TODO("Not yet implemented")
     }
 
-    override fun getAlbumRadio(
+    override suspend fun getAlbumRadio(
         albumId: String,
         count: Int?
     ): List<MediaItem.Song> {
         TODO("Not yet implemented")
     }
 
-    override fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaItem.AlbumArtist> {
+    override suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaItem.AlbumArtist> {
         TODO("Not yet implemented")
     }
 
-    override fun getArtistListCount(query: MediaQuery.ArtistListQuery): Int {
+    override suspend fun getArtistListCount(query: MediaQuery.ArtistListQuery): Int {
         TODO("Not yet implemented")
     }
 
-    override fun getArtistRadio(
+    override suspend fun getArtistRadio(
         artistId: String,
         count: Int?
     ): List<MediaItem.Song> {
         TODO("Not yet implemented")
     }
 
-    override fun getDownloadUrl(id: String): String {
+    override suspend fun getDownloadUrl(id: String): String {
         TODO("Not yet implemented")
     }
 
-    override fun getFolder(query: MediaQuery.FolderQuery): MediaItem.Folder {
+    override suspend fun getFolder(query: MediaQuery.FolderQuery): MediaItem.Folder {
         TODO("Not yet implemented")
     }
 
-    override fun getGenreList(query: MediaQuery.GenreListQuery): List<MediaItem.Genre> {
+    override suspend fun getGenreList(query: MediaQuery.GenreListQuery): List<MediaItem.Genre> {
         TODO("Not yet implemented")
     }
 
-    override fun getImageRequest(
+    override suspend fun getImageRequest(
         id: String,
         itemType: LibraryType,
         size: Int?,
@@ -330,7 +273,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun getImageUrl(
+    override suspend fun getImageUrl(
         id: String,
         itemType: LibraryType,
         size: Int?,
@@ -339,51 +282,51 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun getInternetRadioStations(): List<InternetRadioStation> {
+    override suspend fun getInternetRadioStations(): List<InternetRadioStation> {
         TODO("Not yet implemented")
     }
 
-    override fun getLyrics(songId: String): LyricsResponse {
+    override suspend fun getLyrics(songId: String): LyricsResponse {
         TODO("Not yet implemented")
     }
 
-    override fun getMusicFolderList(): List<MusicFolder> {
+    override suspend fun getMusicFolderList(): List<MusicFolder> {
         TODO("Not yet implemented")
     }
 
-    override fun getPlaylistDetail(id: String): MediaItem.Playlist {
+    override suspend fun getPlaylistDetail(id: String): MediaItem.Playlist {
         TODO("Not yet implemented")
     }
 
-    override fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaItem.Playlist> {
+    override suspend fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaItem.Playlist> {
         TODO("Not yet implemented")
     }
 
-    override fun getPlaylistListCount(query: MediaQuery.PlaylistListQuery): Int {
+    override suspend fun getPlaylistListCount(query: MediaQuery.PlaylistListQuery): Int {
         TODO("Not yet implemented")
     }
 
-    override fun getPlaylistSongList(id: String): List<MediaItem.Song> {
+    override suspend fun getPlaylistSongList(id: String): List<MediaItem.Song> {
         TODO("Not yet implemented")
     }
 
-    override fun getPlayQueue(): GetQueueResponse {
+    override suspend fun getPlayQueue(): GetQueueResponse {
         TODO("Not yet implemented")
     }
 
-    override fun getRandomSongList(query: MediaQuery.RandomSongListQuery): List<MediaItem.Song> {
+    override suspend fun getRandomSongList(query: MediaQuery.RandomSongListQuery): List<MediaItem.Song> {
         TODO("Not yet implemented")
     }
 
-    override fun getRoles(): List<String> {
+    override suspend fun getRoles(): List<String> {
         TODO("Not yet implemented")
     }
 
-    override fun getProviderInfo(): ProviderInfo {
+    override suspend fun getProviderInfo(): ProviderInfo {
         TODO("Not yet implemented")
     }
 
-    override fun getSimilarSongs(
+    override suspend fun getSimilarSongs(
         songId: String,
         count: Int?,
         musicFolderId: List<String>?
@@ -391,19 +334,19 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun getSongDetail(id: String): MediaItem.Song {
+    override suspend fun getSongDetail(id: String): MediaItem.Song {
         TODO("Not yet implemented")
     }
 
-    override fun getSongList(query: MediaQuery.SongListQuery): List<MediaItem.Song> {
+    override suspend fun getSongList(query: MediaQuery.SongListQuery): List<MediaItem.Song> {
         TODO("Not yet implemented")
     }
 
-    override fun getSongListCount(query: MediaQuery.SongListQuery): Int {
+    override suspend fun getSongListCount(query: MediaQuery.SongListQuery): Int {
         TODO("Not yet implemented")
     }
 
-    override fun getStreamUrl(
+    override suspend fun getStreamUrl(
         id: String,
         transcode: Boolean,
         bitrate: Int?,
@@ -415,7 +358,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun getTagList(
+    override suspend fun getTagList(
         type: LibraryType,
         folder: String?,
         tagName: String?
@@ -423,7 +366,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun getTopSongs(
+    override suspend fun getTopSongs(
         artist: String,
         artistId: String,
         limit: Int?,
@@ -432,18 +375,18 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun getUserInfo(
+    override suspend fun getUserInfo(
         id: String,
         username: String
     ): UserInfoResponse {
         TODO("Not yet implemented")
     }
 
-    override fun getUserList(query: MediaQuery.UserListQuery): List<User> {
+    override suspend fun getUserList(query: MediaQuery.UserListQuery): List<User> {
         TODO("Not yet implemented")
     }
 
-    override fun movePlaylistItem(
+    override suspend fun movePlaylistItem(
         playlistId: String,
         trackId: String,
         startingIndex: Int,
@@ -452,25 +395,25 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun ping(): Boolean {
+    override suspend fun ping(): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun removeFromPlaylist(
+    override suspend fun removeFromPlaylist(
         id: String,
         songIds: List<String>
     ): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun replacePlaylist(
+    override suspend fun replacePlaylist(
         id: String,
         songIds: List<String>
     ): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun savePlayQueue(
+    override suspend fun savePlayQueue(
         songs: List<String>,
         currentIndex: Int?,
         positionMs: Int?
@@ -478,7 +421,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun scrobble(
+    override suspend fun scrobble(
         id: String,
         mediaType: String,
         playbackRate: Float,
@@ -490,18 +433,18 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun search(query: MediaQuery.SearchQuery): SearchResponse {
+    override suspend fun search(query: MediaQuery.SearchQuery): SearchResponse {
         TODO("Not yet implemented")
     }
 
-    override fun setPlaylistSongs(
+    override suspend fun setPlaylistSongs(
         id: String,
         songIds: List<String>
     ) {
         TODO("Not yet implemented")
     }
 
-    override fun setRating(
+    override suspend fun setRating(
         ids: List<String>,
         rating: Int,
         type: LibraryType
@@ -509,7 +452,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun shareItem(
+    override suspend fun shareItem(
         description: String,
         downloadable: Boolean,
         expires: Long,
@@ -519,7 +462,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun updateInternetRadioStation(
+    override suspend fun updateInternetRadioStation(
         id: String,
         name: String,
         streamUrl: String,
@@ -528,7 +471,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider 
         TODO("Not yet implemented")
     }
 
-    override fun updatePlaylist(
+    override suspend fun updatePlaylist(
         id: String,
         name: String,
         comment: String?,
