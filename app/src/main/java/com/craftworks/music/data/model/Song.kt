@@ -38,7 +38,7 @@ fun MediaData.Song.toMediaItem(): MediaItem {
             .setTitle(this@toMediaItem.title)
             .setArtist(this@toMediaItem.artist)
             .setAlbumTitle(this@toMediaItem.album)
-            .setArtworkUri(this@toMediaItem.imageUrl.toUri())
+            .setArtworkUri(this@toMediaItem.imageUrl?.toUri())
             .setRecordingYear(this@toMediaItem.year)
             .setDiscNumber(this@toMediaItem.discNumber)
             .setTrackNumber(this@toMediaItem.track)

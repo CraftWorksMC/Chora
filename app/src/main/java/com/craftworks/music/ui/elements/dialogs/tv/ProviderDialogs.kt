@@ -174,7 +174,8 @@ fun CreateNavidromeProviderDialog(
                                                 allowCerts
                                             )
                                             getNavidromeStatus(server)
-                                            if (navidromeStatus.value.contains("Error 10")) {
+                                            if (navidromeStatus.value.contains("Error 10") ||
+                                                navidromeStatus.value.contains("Error 40")) {
                                                 navidromeStatus.value = ""
                                                 step = DialogStep.CREDENTIALS
                                             }
