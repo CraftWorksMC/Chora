@@ -3,7 +3,7 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.model.MediaItem
+import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.repository.RadioRepository
 import com.craftworks.music.managers.DataRefreshManager
@@ -62,7 +62,7 @@ class RadioScreenViewModel @Inject constructor(
     fun modifyRadioStation(id: String, name: String, url: String, homepage: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            radioRepository.modifyRadio(MediaItem.Radio(id, name, url, homepage))
+            radioRepository.modifyRadio(MediaModel.Radio(id, name, url, homepage))
             _isLoading.value = false
             getRadioStations()
         }

@@ -6,7 +6,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.NavidromeLibrary
 import com.craftworks.music.data.model.Lyric
-import com.craftworks.music.data.model.MediaItem
 import com.craftworks.music.data.model.toLyric
 import com.craftworks.music.data.model.toLyrics
 import com.craftworks.music.managers.NavidromeManager
@@ -294,12 +293,12 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromeArtists(
         ignoreCachedResponse: Boolean = false,
         musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
-    ): List<com.craftworks.music.data.model.MediaItem.Artist> = withContext(Dispatchers.IO) {
+    ): List<com.craftworks.music.data.model.MediaModel.Artist> = withContext(Dispatchers.IO) {
         getRequest(
             "getArtists.view?f=json",
             musicFolderIds,
             ignoreCachedResponse
-        ).filterIsInstance<com.craftworks.music.data.model.MediaItem.Artist>()
+        ).filterIsInstance<com.craftworks.music.data.model.MediaModel.Artist>()
     }
 
     suspend fun getNavidromeArtistAlbums(
@@ -314,25 +313,25 @@ class NavidromeDataSource @Inject constructor() {
 
     suspend fun getNavidromeArtistInfo(
         artistId: String, ignoreCachedResponse: Boolean = false
-    ): com.craftworks.music.data.model.MediaItem.ArtistInfo? = withContext(Dispatchers.IO) {
+    ): com.craftworks.music.data.model.MediaModel.ArtistInfo? = withContext(Dispatchers.IO) {
         getRequest(
             "getArtistInfo.view?id=$artistId",
             null,
             ignoreCachedResponse
-        ).filterIsInstance<com.craftworks.music.data.model.MediaItem.ArtistInfo>().firstOrNull()
+        ).filterIsInstance<com.craftworks.music.data.model.MediaModel.ArtistInfo>().firstOrNull()
     }
 
     suspend fun searchNavidromeArtists(
         query: String? = "",
         ignoreCachedResponse: Boolean = false,
         musicFolderIds: List<Int>? = NavidromeManager.getEnabledLibraryIdsForCurrentServer(),
-    ): List<com.craftworks.music.data.model.MediaItem.Artist> = withContext(Dispatchers.IO) {
+    ): List<com.craftworks.music.data.model.MediaModel.Artist> = withContext(Dispatchers.IO) {
         if (query.isNullOrBlank()) getNavidromeArtists(musicFolderIds = musicFolderIds, ignoreCachedResponse = ignoreCachedResponse)
         else getRequest(
             "search3.view?query=$query&artistCount=100&albumCount=0&songCount=0",
             musicFolderIds,
             ignoreCachedResponse
-        ).filterIsInstance<com.craftworks.music.data.model.MediaItem.Artist>()
+        ).filterIsInstance<com.craftworks.music.data.model.MediaModel.Artist>()
     }
 
     // Playlists
@@ -402,12 +401,12 @@ class NavidromeDataSource @Inject constructor() {
     // Radios
     suspend fun getNavidromeRadios(
         ignoreCachedResponse: Boolean = false
-    ): List<com.craftworks.music.data.model.MediaItem.Radio> = withContext(Dispatchers.IO) {
+    ): List<com.craftworks.music.data.model.MediaModel.Radio> = withContext(Dispatchers.IO) {
         getRequest(
             "getInternetRadioStations.view?f=json",
             null,
             ignoreCachedResponse
-        ).filterIsInstance<com.craftworks.music.data.model.MediaItem.Radio>()
+        ).filterIsInstance<com.craftworks.music.data.model.MediaModel.Radio>()
     }
 
     suspend fun createNavidromeRadio(
@@ -444,14 +443,14 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromePlainLyrics(
         metadata: MediaMetadata?, ignoreCachedResponse: Boolean = false
     ): List<Lyric> = withContext(Dispatchers.IO) {
-        getRequest("getLyrics.view?artist=${metadata?.artist}&title=${metadata?.title}", null).filterIsInstance<com.craftworks.music.data.model.MediaItem.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.text.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
+        getRequest("getLyrics.view?artist=${metadata?.artist}&title=${metadata?.title}", null).filterIsInstance<com.craftworks.music.data.model.MediaModel.PlainLyrics>().getOrNull(0)?.toLyric()?.takeIf { it.text.isNotEmpty() }?.let { listOf(it) } ?: emptyList()
     }
 
     suspend fun getNavidromeSyncedLyrics(
         songId: String, ignoreCachedResponse: Boolean = false
     ): List<Lyric> = withContext(Dispatchers.IO) {
         getRequest("getLyricsBySongId.view?id=${songId}", null, ignoreCachedResponse)
-            .filterIsInstance<com.craftworks.music.data.model.MediaItem.StructuredLyrics>().flatMap { it.toLyrics() }
+            .filterIsInstance<com.craftworks.music.data.model.MediaModel.StructuredLyrics>().flatMap { it.toLyrics() }
     }
 
     // Starred Items

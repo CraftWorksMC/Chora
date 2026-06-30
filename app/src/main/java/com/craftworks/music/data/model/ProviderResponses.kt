@@ -26,7 +26,7 @@ data class GetQueueResponse(
     val changed: String,
     val changedBy: String,
     val currentIndex: Int,
-    val entry: List<MediaItem.Song>,
+    val entry: List<MediaModel.Song>,
     val positionMs: Long,
     val username: String
 )
@@ -59,7 +59,7 @@ data class User(
     val updatedAt: String?
 )
 data class SearchResponse(
-    val albumArtists: List<MediaItem.AlbumArtist>,
-    val albums: List<MediaItem.Album>,
-    val songs: List<MediaItem.Song>
+    val albumArtists: List<MediaModel.AlbumArtist>,
+    val albums: List<MediaModel.Album>,
+    val songs: List<MediaModel.Song>
 )

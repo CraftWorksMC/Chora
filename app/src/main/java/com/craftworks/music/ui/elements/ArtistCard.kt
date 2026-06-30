@@ -29,11 +29,11 @@ import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.model.MediaItem
+import com.craftworks.music.data.model.MediaModel
 
 @Stable
 @Composable
-fun ArtistCard(artist: MediaItem.Artist, onClick: () -> Unit) {
+fun ArtistCard(artist: MediaModel, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             //.padding(12.dp)

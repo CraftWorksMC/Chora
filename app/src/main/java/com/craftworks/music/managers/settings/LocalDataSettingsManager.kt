@@ -9,9 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
-import com.craftworks.music.data.model.MediaItem
 import com.craftworks.music.data.model.SortOrder
-import com.craftworks.music.data.model.toMediaItem
 import com.craftworks.music.data.model.toSong
 import com.craftworks.music.dataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -39,13 +37,13 @@ class LocalDataSettingsManager @Inject constructor(
         private val SHOW_FAVORITES_ONLY = booleanPreferencesKey("show_favorites_only")
     }
 
-    val localRadios: Flow<MutableList<com.craftworks.music.data.model.MediaItem.Radio>> =
+    val localRadios: Flow<MutableList<com.craftworks.music.data.model.MediaModel.Radio>> =
         context.dataStore.data.map { preferences ->
-            Json.decodeFromString<List<com.craftworks.music.data.model.MediaItem.Radio>>(preferences[LOCAL_RADIOS] ?: "[]")
+            Json.decodeFromString<List<com.craftworks.music.data.model.MediaModel.Radio>>(preferences[LOCAL_RADIOS] ?: "[]")
                 .toMutableList()
         }
 
-    suspend fun saveLocalRadios(radios: List<com.craftworks.music.data.model.MediaItem.Radio>) {
+    suspend fun saveLocalRadios(radios: List<com.craftworks.music.data.model.MediaModel.Radio>) {
         withContext(NonCancellable) {
             val radiosListJson =
                 Json.encodeToString(radios.filter { it.navidromeID.startsWith("Local_") })
@@ -55,13 +53,13 @@ class LocalDataSettingsManager @Inject constructor(
         }
     }
 
-    val localPlaylists: Flow<MutableList<com.craftworks.music.data.model.MediaItem.Playlist>> =
+    val localPlaylists: Flow<MutableList<com.craftworks.music.data.model.MediaModel.Playlist>> =
         context.dataStore.data.map { preferences ->
-            Json.decodeFromString<List<com.craftworks.music.data.model.MediaItem.Playlist>>(preferences[LOCAL_PLAYLISTS] ?: "[]")
+            Json.decodeFromString<List<com.craftworks.music.data.model.MediaModel.Playlist>>(preferences[LOCAL_PLAYLISTS] ?: "[]")
                 .toMutableList()
         }
 
-    suspend fun saveLocalPlaylists(playlists: List<com.craftworks.music.data.model.MediaItem.Playlist>) {
+    suspend fun saveLocalPlaylists(playlists: List<com.craftworks.music.data.model.MediaModel.Playlist>) {
         withContext(NonCancellable) {
             val playlistJson =
                 Json.encodeToString(playlists.filter { it.navidromeID.startsWith("Local_") })
@@ -87,7 +85,7 @@ class LocalDataSettingsManager @Inject constructor(
     val playbackResumptionPlaylistWithStartPosition: Flow<MediaSession.MediaItemsWithStartPosition> = context.dataStore.data.map { preferences ->
         withContext(NonCancellable) {
             MediaSession.MediaItemsWithStartPosition(
-                Json.decodeFromString<List<com.craftworks.music.data.model.MediaItem.Song>>(
+                Json.decodeFromString<List<com.craftworks.music.data.model.MediaModel.Song>>(
                     preferences[MEDIA_RESUMPTION_PLAYLIST] ?: "[]"
                 ).map { it.toMediaItem() },
                 preferences[MEDIA_RESUMPTION_INDEX] ?: 0,

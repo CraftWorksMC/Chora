@@ -44,7 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
-import com.craftworks.music.data.model.MediaItem
+import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.albumList
 import com.craftworks.music.data.model.songsList
 import com.craftworks.music.data.model.toAlbum
@@ -151,7 +151,7 @@ fun SongsHorizontalColumn(
 fun AlbumGrid(
     albums: List<MediaItem>,
     mediaController: MediaController?,
-    onAlbumSelected: (album: com.craftworks.music.data.model.MediaItem.Album) -> Unit,
+    onAlbumSelected: (album: com.craftworks.music.data.model.MediaModel.Album) -> Unit,
     isSearch: Boolean? = false,
     viewModel: AlbumScreenViewModel = viewModel(),
 ){
@@ -269,7 +269,7 @@ fun AlbumGrid(
 fun AlbumGrid(
     albums: List<MediaItem>,
     mediaController: MediaController?,
-    onAlbumSelected: (album: com.craftworks.music.data.model.MediaItem.Album) -> Unit,
+    onAlbumSelected: (album: com.craftworks.music.data.model.MediaModel.Album) -> Unit,
     onGetAlbum: (albumID: String) -> List<MediaItem>
 ) {
     val gridState = rememberLazyGridState()
@@ -367,7 +367,7 @@ fun AlbumGrid(
 @Composable
 fun AlbumRow(
     albums: List<MediaItem>,
-    onAlbumSelected: (album: com.craftworks.music.data.model.MediaItem.Album) -> Unit,
+    onAlbumSelected: (album: com.craftworks.music.data.model.MediaModel.Album) -> Unit,
     onPlay: (album: MediaItem) -> Unit,
 ){
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
@@ -428,8 +428,8 @@ fun AlbumRow(
 @ExperimentalFoundationApi
 @Composable
 fun ArtistsGrid(
-    artists: List<com.craftworks.music.data.model.MediaItem.Artist>,
-    onArtistSelected: (artist: com.craftworks.music.data.model.MediaItem.Artist) -> Unit
+    artists: List<com.craftworks.music.data.model.MediaModel.Artist>,
+    onArtistSelected: (artist: com.craftworks.music.data.model.MediaModel.Artist) -> Unit
 ){
     val gridState = rememberLazyGridState()
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)

@@ -2,7 +2,6 @@ package com.craftworks.music.providers.subsonic
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import com.craftworks.music.data.model.AlbumArtistInfoResponse
 import com.craftworks.music.data.model.AlbumInfo
 import com.craftworks.music.data.model.AuthenticationResponse
@@ -11,7 +10,7 @@ import com.craftworks.music.data.model.ImageRequest
 import com.craftworks.music.data.model.InternetRadioStation
 import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.LyricsResponse
-import com.craftworks.music.data.model.MediaItem
+import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.PlaylistRules
 import com.craftworks.music.data.model.ProviderFeatures
@@ -22,31 +21,13 @@ import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.MediaProvider
 import com.craftworks.music.providers.navidrome.MusicFolder
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.cache.HttpCache
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.plugins.logging.SIMPLE
-import io.ktor.client.request.get
-import io.ktor.client.request.headers
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLBuilder
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import retrofit2.Retrofit
 import retrofit2.awaitResponse
 import java.security.MessageDigest
@@ -212,7 +193,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAlbumArtistDetail(id: String): MediaItem.AlbumArtist? {
+    override suspend fun getAlbumArtistDetail(id: String): MediaModel.AlbumArtist? {
         TODO("Not yet implemented")
     }
 
@@ -223,7 +204,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaItem.AlbumArtist> {
+    override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.AlbumArtist> {
         TODO("Not yet implemented")
     }
 
@@ -231,7 +212,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAlbumDetail(id: String): MediaItem.Album {
+    override suspend fun getAlbumDetail(id: String): MediaModel.Album {
         TODO("Not yet implemented")
     }
 
@@ -239,7 +220,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAlbumList(query: MediaQuery.AlbumListQuery): List<MediaItem.Album> {
+    override suspend fun getAlbumList(query: MediaQuery.AlbumListQuery): List<MediaModel.Album> {
         TODO("Not yet implemented")
     }
 
@@ -250,11 +231,11 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
     override suspend fun getAlbumRadio(
         albumId: String,
         count: Int?
-    ): List<MediaItem.Song> {
+    ): List<MediaModel.Song> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaItem.AlbumArtist> {
+    override suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaModel.AlbumArtist> {
         TODO("Not yet implemented")
     }
 
@@ -265,7 +246,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
     override suspend fun getArtistRadio(
         artistId: String,
         count: Int?
-    ): List<MediaItem.Song> {
+    ): List<MediaModel.Song> {
         TODO("Not yet implemented")
     }
 
@@ -273,11 +254,11 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getFolder(query: MediaQuery.FolderQuery): MediaItem.Folder {
+    override suspend fun getFolder(query: MediaQuery.FolderQuery): MediaModel.Folder {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getGenreList(query: MediaQuery.GenreListQuery): List<MediaItem.Genre> {
+    override suspend fun getGenreList(query: MediaQuery.GenreListQuery): List<MediaModel.Genre> {
         TODO("Not yet implemented")
     }
 
@@ -311,11 +292,11 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getPlaylistDetail(id: String): MediaItem.Playlist {
+    override suspend fun getPlaylistDetail(id: String): MediaModel.Playlist {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaItem.Playlist> {
+    override suspend fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaModel.Playlist> {
         TODO("Not yet implemented")
     }
 
@@ -323,7 +304,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getPlaylistSongList(id: String): List<MediaItem.Song> {
+    override suspend fun getPlaylistSongList(id: String): List<MediaModel.Song> {
         TODO("Not yet implemented")
     }
 
@@ -331,7 +312,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getRandomSongList(query: MediaQuery.RandomSongListQuery): List<MediaItem.Song> {
+    override suspend fun getRandomSongList(query: MediaQuery.RandomSongListQuery): List<MediaModel.Song> {
         TODO("Not yet implemented")
     }
 
@@ -347,15 +328,15 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         songId: String,
         count: Int?,
         musicFolderId: List<String>?
-    ): List<MediaItem.Song> {
+    ): List<MediaModel.Song> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getSongDetail(id: String): MediaItem.Song {
+    override suspend fun getSongDetail(id: String): MediaModel.Song {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getSongList(query: MediaQuery.SongListQuery): List<MediaItem.Song> {
+    override suspend fun getSongList(query: MediaQuery.SongListQuery): List<MediaModel.Song> {
         TODO("Not yet implemented")
     }
 
@@ -388,7 +369,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         artistId: String,
         limit: Int?,
         type: String?
-    ): List<MediaItem.Song> {
+    ): List<MediaModel.Song> {
         TODO("Not yet implemented")
     }
 

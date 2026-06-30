@@ -3,7 +3,6 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.model.MediaItem
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.data.repository.ArtistRepository
 import com.craftworks.music.managers.DataRefreshManager
@@ -29,11 +28,11 @@ class ArtistsScreenViewModel @Inject constructor(
     private val albumRepository: AlbumRepository,
     private val localDataSettingsManager: LocalDataSettingsManager
 ) : ViewModel() {
-    private val _allArtists = MutableStateFlow<List<com.craftworks.music.data.model.MediaItem.Artist>>(emptyList())
-    val allArtists: StateFlow<List<com.craftworks.music.data.model.MediaItem.Artist>> = _allArtists.asStateFlow()
+    private val _allArtists = MutableStateFlow<List<com.craftworks.music.data.model.MediaModel.Artist>>(emptyList())
+    val allArtists: StateFlow<List<com.craftworks.music.data.model.MediaModel.Artist>> = _allArtists.asStateFlow()
 
-    private val _selectedArtist = MutableStateFlow<com.craftworks.music.data.model.MediaItem.Artist?>(null)
-    val selectedArtist: StateFlow<com.craftworks.music.data.model.MediaItem.Artist?> = _selectedArtist
+    private val _selectedArtist = MutableStateFlow<com.craftworks.music.data.model.MediaModel.Artist?>(null)
+    val selectedArtist: StateFlow<com.craftworks.music.data.model.MediaModel.Artist?> = _selectedArtist
 
     private val _artistAlbums = MutableStateFlow<List<MediaItem>>(emptyList())
     val artistAlbums: StateFlow<List<MediaItem>> = _artistAlbums.asStateFlow()
@@ -80,7 +79,7 @@ class ArtistsScreenViewModel @Inject constructor(
     }
 
     @OptIn(FlowPreview::class)
-    val searchResults: StateFlow<List<com.craftworks.music.data.model.MediaItem.Artist>> = searchQuery
+    val searchResults: StateFlow<List<com.craftworks.music.data.model.MediaModel.Artist>> = searchQuery
         .debounce(300L) // Adds a small delay to avoid searching on every keystroke.
         .combine(allArtists) { query, artists ->
             if (query.isBlank()) {
@@ -98,7 +97,7 @@ class ArtistsScreenViewModel @Inject constructor(
         )
 
 
-    fun setSelectedArtist(artist: com.craftworks.music.data.model.MediaItem.Artist) {
+    fun setSelectedArtist(artist: com.craftworks.music.data.model.MediaModel.Artist) {
         _selectedArtist.value = artist
         viewModelScope.launch {
             val loadingJob = launch {

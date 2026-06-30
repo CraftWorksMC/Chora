@@ -1,7 +1,7 @@
 package com.craftworks.music.legacy.providers.navidrome
 
 import android.util.Log
-import com.craftworks.music.data.model.MediaItem
+import com.craftworks.music.data.model.MediaModel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -24,33 +24,33 @@ data class SubsonicResponse(
     val musicFolders: MusicFolder? = null,
 
     // Songs
-    val song: MediaItem.Song? = null,
+    val song: MediaModel.Song? = null,
     val searchResult3: SearchResult3? = null,
 
     // Albums
     val albumList: albumList? = null,
-    val album: MediaItem.Album? = null,
+    val album: MediaModel.Album? = null,
 
     // Artists
     val artists: Artists? = null,
-    val artist: MediaItem.Artist? = null,
-    val artistInfo: MediaItem.ArtistInfo? = null,
+    val artist: MediaModel.Artist? = null,
+    val artistInfo: MediaModel.ArtistInfo? = null,
 
     // Radios
     val internetRadioStations: internetRadioStations? = null,
 
     // Playlists
-    val playlist: MediaItem.Playlist? = null,
+    val playlist: MediaModel.Playlist? = null,
     val playlists: PlaylistContainer? = null,
 
     //Lyrics
-    val lyrics: MediaItem.PlainLyrics? = null,
+    val lyrics: MediaModel.PlainLyrics? = null,
     val lyricsList: LyricsList? = null,
 
     // Favourites
     val starred: Starred? = null,
 
-    val sonicMatch: List<MediaItem.Song>? = null
+    val sonicMatch: List<MediaModel.Song>? = null
 )
 
 private val jsonParser = Json { ignoreUnknownKeys = true }

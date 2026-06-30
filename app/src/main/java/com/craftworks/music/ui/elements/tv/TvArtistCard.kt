@@ -17,12 +17,12 @@ import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.model.MediaItem
+import com.craftworks.music.data.model.MediaModel
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvArtistCard(
-    artist: MediaItem.Artist,
+    artist: MediaModel.Artist,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {

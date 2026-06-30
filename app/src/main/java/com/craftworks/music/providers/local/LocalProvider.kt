@@ -13,7 +13,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.R
-import com.craftworks.music.data.model.MediaItem
+import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.managers.LocalProviderManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -107,7 +107,7 @@ class LocalProvider @Inject constructor(
                     })
                     .build()
 
-                albums += MediaItem.Builder()
+                albums += MediaModel.Builder()
                     .setMediaId("$LOCAL_PREFIX$albumId")
                     .setMediaMetadata(mediaMetadata)
                     .build()
@@ -213,7 +213,7 @@ class LocalProvider @Inject constructor(
                     })
                     .build()
 
-                albumWithSongs += MediaItem.Builder()
+                albumWithSongs += MediaModel.Builder()
                     .setMediaId("$LOCAL_PREFIX$albumIdLong")
                     .setUri("$ALBUM_ART_PATH/$albumIdLong")
                     .setMediaMetadata(mediaMetadata)
@@ -332,7 +332,7 @@ class LocalProvider @Inject constructor(
                     })
                     .build()
 
-                songs += MediaItem.Builder()
+                songs += MediaModel.Builder()
                     .setMediaId(contentUri.toString())
                     .setUri(contentUri.toString())
                     .setMediaMetadata(mediaMetadata)
@@ -445,7 +445,7 @@ class LocalProvider @Inject constructor(
                     })
                     .build()
 
-                songs += MediaItem.Builder()
+                songs += MediaModel.Builder()
                     .setMediaId(contentUri.toString())
                     .setUri(contentUri.toString())
                     .setMediaMetadata(mediaMetadata)
@@ -456,8 +456,8 @@ class LocalProvider @Inject constructor(
         return songs
     }
 
-    fun getLocalArtists(): List<com.craftworks.music.data.model.MediaItem.Artist> {
-        val artists = mutableSetOf<com.craftworks.music.data.model.MediaItem.Artist>()
+    fun getLocalArtists(): List<com.craftworks.music.data.model.MediaModel.Artist> {
+        val artists = mutableSetOf<com.craftworks.music.data.model.MediaModel.Artist>()
         val songs = getLocalSongs()
 
         songs.forEach { song ->
@@ -466,7 +466,7 @@ class LocalProvider @Inject constructor(
             "$LOCAL_PREFIX${artistName.hashCode()}"
 
             artists.add(
-                MediaItem.Artist(
+                MediaModel.Artist(
                     navidromeID = artistId,
                     name = artistName.toString(),
                     description = "",
@@ -521,7 +521,7 @@ class LocalProvider @Inject constructor(
                     }
                 }
 
-                albums += MediaItem.Builder()
+                albums += MediaModel.Builder()
                     .setMediaId("$LOCAL_PREFIX$albumId")
                     .setMediaMetadata(
                         MediaMetadata.Builder()

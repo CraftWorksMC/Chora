@@ -3,7 +3,6 @@ package com.craftworks.music.legacy.providers.navidrome
 import android.util.Log
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.data.model.MediaItem
 import com.craftworks.music.data.model.toMediaItem
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -13,9 +12,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 @SerialName("starred")
 data class Starred(
-    val song: List<com.craftworks.music.data.model.MediaItem.Song>? = null,
-    val album: List<com.craftworks.music.data.model.MediaItem.Album>? = null,
-    val artist: List<com.craftworks.music.data.model.MediaItem.Artist>? = null
+    val song: List<com.craftworks.music.data.model.MediaModel.Song>? = null,
+    val album: List<com.craftworks.music.data.model.MediaModel.Album>? = null,
+    val artist: List<com.craftworks.music.data.model.MediaModel.Artist>? = null
 )
 
 fun parseNavidromeFavouritesJSON(

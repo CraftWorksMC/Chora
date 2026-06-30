@@ -3,8 +3,6 @@ package com.craftworks.music.legacy.providers.navidrome
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.data.model.MediaItem
-import com.craftworks.music.data.model.toMediaItem
 
 // LEGACY CODE! MUST NOT BE USED
 // TODO("Delete legacy file")

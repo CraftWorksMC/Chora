@@ -5,14 +5,14 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.data.model.MediaItem
+import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.toMediaItem
 import kotlinx.serialization.Serializable
 
 // LEGACY CODE! MUST NOT BE USED
 // TODO("Delete legacy file")
 @Serializable
-data class albumList(val album: List<com.craftworks.music.data.model.MediaItem.Album>? = listOf())
+data class albumList(val album: List<com.craftworks.music.data.model.MediaModel.Album>? = listOf())
 
 fun parseNavidromeAlbumListJSON(
     response: String,
@@ -60,7 +60,7 @@ fun parseNavidromeAlbumJSON(
         it.imageUrl = "$navidromeUrl/rest/getCoverArt.view?&id=${it.navidromeID}&u=$navidromeUsername&t=$passwordHash&s=$passwordSalt&v=1.16.1&c=Chora&size=128"
     }
 
-    album.add(selectedAlbum?.toMediaItem() ?: MediaItem.EMPTY)
+    album.add(selectedAlbum?.toMediaItem() ?: MediaModel.EMPTY)
 
     println("Added album: ${selectedAlbum?.navidromeID}")
 

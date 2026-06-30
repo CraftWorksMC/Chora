@@ -2,7 +2,7 @@ package com.craftworks.music.legacy.data.repository
 
 import com.craftworks.music.data.datasource.local.LocalDataSource
 import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.data.model.MediaItem
+import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.managers.NavidromeManager
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -19,8 +19,8 @@ class RadioRepository @Inject constructor(
     private val navidromeDataSource: NavidromeDataSource
 ) {
 
-    suspend fun getRadios(ignoreCachedResponse: Boolean = false): List<MediaItem.Radio> = coroutineScope {
-        val deferredRadios = mutableListOf<Deferred<List<MediaItem.Radio>>>()
+    suspend fun getRadios(ignoreCachedResponse: Boolean = false): List<MediaModel.Radio> = coroutineScope {
+        val deferredRadios = mutableListOf<Deferred<List<MediaModel.Radio>>>()
 
         if (NavidromeManager.checkActiveServers())
             deferredRadios.add(async { navidromeDataSource.getNavidromeRadios(ignoreCachedResponse) })
@@ -37,7 +37,7 @@ class RadioRepository @Inject constructor(
         else
             localDataSource.createLocalRadio(name,url,homePage)
     }
-    suspend fun modifyRadio(radio: MediaItem.Radio) {
+    suspend fun modifyRadio(radio: MediaModel.Radio) {
         if (NavidromeManager.checkActiveServers() && !radio.navidromeID.startsWith("Local_"))
             navidromeDataSource.updateNavidromeRadio(radio.navidromeID, radio.name, radio.media, radio.homePageUrl)
         else
