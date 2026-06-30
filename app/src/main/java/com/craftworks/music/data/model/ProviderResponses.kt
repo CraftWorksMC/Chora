@@ -7,11 +7,6 @@ data class AuthenticationResponse(
     val userId: String? = null,
     val username: String
 )
-data class AlbumArtistInfoResponse(
-    val biography: String? = null,
-    val imageUrl: String? = null,
-    val similarArtists: List<RelatedArtist>? = null
-)
 data class ImageRequest(
     val cacheKey: String,
     val credentials: String? = null,

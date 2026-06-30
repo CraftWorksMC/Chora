@@ -37,6 +37,11 @@ enum class LibraryType {
     RADIO_STATION,
     SONG,
 }
+data class AlbumArtistInfo(
+    val biography: String? = null,
+    val imageUrl: String? = null,
+    val similarArtists: List<RelatedArtist>? = null
+)
 data class AlbumInfo(
     val imageUrl: String?,
     val notes: String?

@@ -1,7 +1,7 @@
 package com.craftworks.music.providers
 
 import android.content.Context
-import com.craftworks.music.data.model.AlbumArtistInfoResponse
+import com.craftworks.music.data.model.AlbumArtistInfo
 import com.craftworks.music.data.model.AlbumInfo
 import com.craftworks.music.data.model.AuthenticationResponse
 import com.craftworks.music.data.model.GetQueueResponse
@@ -18,7 +18,6 @@ import com.craftworks.music.data.model.SearchResponse
 import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
-import com.craftworks.music.providers.navidrome.MusicFolder
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 
@@ -36,7 +35,7 @@ abstract class MediaProvider {
     abstract suspend fun deleteInternetRadioStation(id: String): Boolean
     abstract suspend fun deletePlaylist(id: String): Boolean
     abstract suspend fun getAlbumArtistDetail(id: String): MediaModel.AlbumArtist?
-    abstract suspend fun getAlbumArtistInfo(id: String, limit: Int? = null): AlbumArtistInfoResponse?
+    abstract suspend fun getAlbumArtistInfo(id: String, limit: Int? = null): AlbumArtistInfo?
     abstract suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.AlbumArtist>
     abstract suspend fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int
     abstract suspend fun getAlbumDetail(id: String): MediaModel.Album
@@ -44,7 +43,7 @@ abstract class MediaProvider {
     abstract suspend fun getAlbumList(query: MediaQuery.AlbumListQuery): List<MediaModel.Album>
     abstract suspend fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int
     abstract suspend fun getAlbumRadio(albumId: String, count: Int? = null): List<MediaModel.Song>
-    abstract suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaModel.AlbumArtist>
+    abstract suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaModel.Artist>
     abstract suspend fun getArtistListCount(query: MediaQuery.ArtistListQuery): Int
     abstract suspend fun getArtistRadio(artistId: String, count: Int? = null): List<MediaModel.Song>
     abstract suspend fun getDownloadUrl(id: String): String
@@ -54,7 +53,7 @@ abstract class MediaProvider {
     abstract suspend fun getImageUrl(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): String?
     abstract suspend fun getInternetRadioStations(): List<InternetRadioStation>
     abstract suspend fun getLyrics(songId: String): LyricsResponse
-    abstract suspend fun getMusicFolderList(): List<MusicFolder>
+    abstract suspend fun getMusicFolderList(): List<MediaModel.Folder>
     abstract suspend fun getPlaylistDetail(id: String): MediaModel.Playlist
     abstract suspend fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaModel.Playlist>
     abstract suspend fun getPlaylistListCount(query: MediaQuery.PlaylistListQuery): Int
