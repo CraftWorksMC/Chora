@@ -1,61 +1,21 @@
-package com.craftworks.music.legacy.data.repository
+package com.craftworks.music.data.repository
 
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.datasource.local.LocalDataSource
-import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.managers.MediaProviderManager
 import kotlinx.coroutines.coroutineScope
-import javax.inject.Inject
 import javax.inject.Singleton
 
-// LEGACY CODE! MUST NOT BE USED
-// TODO("Delete legacy file")
 @Singleton
-class AlbumRepository @Inject constructor(
-    private val localDataSource: LocalDataSource,
-    private val navidromeDataSource: NavidromeDataSource
-) {
+class AlbumRepository {
     suspend fun getAlbums(
-        sort: String? = "alphabeticalByName",
-        size: Int? = 100,
-        offset: Int? = 0,
-        ignoreCachedResponse: Boolean = false,
-        favoritesOnly: Boolean = false,
+        query: MediaQuery.AlbumListQuery
     ): List<MediaItem> = coroutineScope {
-        val deferredAlbums = mutableListOf<Deferred<List<MediaItem>>>()
-
-        if (NavidromeManager.checkActiveServers())
-            deferredAlbums.add(async { navidromeDataSource.getNavidromeAlbums(sort, size, offset, ignoreCachedResponse, favoritesOnly=favoritesOnly) })
-
-        if (LocalProviderManager.checkActiveFolders())
-            if (offset == 0)
-                deferredAlbums.add(async { localDataSource.getLocalAlbums(sort) })
-
-
-        deferredAlbums.awaitAll().flatten()
+        MediaProviderManager.currentProvider.value?.getAlbumList(query)?.map { it.toMediaItem() } ?: listOf()
     }
 
-    suspend fun getAlbum(albumId: String, ignoreCachedResponse: Boolean = false): List<MediaItem>? = coroutineScope {
-        if (albumId.startsWith("Local_"))
-            localDataSource.getLocalAlbum(albumId)
-        else
-            navidromeDataSource.getNavidromeAlbum(albumId, ignoreCachedResponse)
-
-    }
-
-    suspend fun searchAlbum(query: String): List<MediaItem> = coroutineScope {
-        val deferredAlbums = mutableListOf<Deferred<List<MediaItem>>>()
-
-        if (LocalProviderManager.checkActiveFolders())
-            deferredAlbums.add(async { localDataSource.searchLocalAlbums(query) })
-
-        if (NavidromeManager.checkActiveServers())
-            deferredAlbums.add(async { navidromeDataSource.searchNavidromeAlbums(query) })
-
-        deferredAlbums.awaitAll().flatten()
+    suspend fun getAlbum(albumId: String): List<MediaItem>? = coroutineScope {
+        val album = MediaProviderManager.currentProvider.value?.getAlbumDetail(albumId)
+        if (album != null) listOf(album.toMediaItem()) + (album.songs?.map { it.toMediaItem() } ?: listOf()) else null
     }
 }
