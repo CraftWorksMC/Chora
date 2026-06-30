@@ -3,11 +3,14 @@ package com.craftworks.music.managers
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.craftworks.music.data.model.MediaProviderData
+import com.craftworks.music.data.model.MusicFolder
 import com.craftworks.music.providers.MediaProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
+import java.util.UUID
 
 object MediaProviderManager {
     private val providers = mutableMapOf<String, MediaProvider>()
@@ -15,9 +18,14 @@ object MediaProviderManager {
     private var _currentProvider = MutableStateFlow<MediaProvider?>(null)
     val currentProvider: StateFlow<MediaProvider?> = _currentProvider.asStateFlow()
 
+    private val _allProviders = MutableStateFlow<List<MediaProvider>>(emptyList())
+    val allProviders: StateFlow<List<MediaProvider>> = _allProviders.asStateFlow()
     private var currentProviderId: String? = null
     private lateinit var sharedPreferences: SharedPreferences
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        serializersModule = MediaProvider.serializerModule
+    }
     private const val PREF_PROVIDERS = "providers"
     private const val PREF_CURRENT_PROVIDER = "current_provider_id"
 
@@ -27,6 +35,34 @@ object MediaProviderManager {
     }
 
     fun getProvider(providerId: String) = providers[providerId]
+
+    suspend fun addProvider(mediaProvider: MediaProvider) {
+        val id = UUID.randomUUID().toString()
+        providers[id] = mediaProvider
+        currentProviderId = id
+
+        mediaProvider.data = MediaProviderData(mediaProvider.getMusicFolderList().map { Pair(it, true) })
+
+        updateProvidersFlow()
+        saveProviders()
+    }
+    fun removeProvider(id: String) {
+        providers.remove(id)
+        if (currentProviderId == id) {
+            currentProviderId = providers.keys.firstOrNull()
+        }
+
+        updateProvidersFlow()
+        saveProviders()
+
+    }
+    fun setProviderLibraries(providerId: String, libraries: List<Pair<MusicFolder, Boolean>>) {
+        providers[providerId]?.data?.libraries = libraries
+        saveProviders()
+    }
+    private fun updateProvidersFlow() {
+        _allProviders.value = providers.values.toList()
+    }
 
     private fun saveProviders() {
         DataRefreshManager.notifyDataSourcesChanged()

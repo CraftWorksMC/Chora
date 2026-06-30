@@ -1,15 +1,16 @@
 package com.craftworks.music.providers.subsonic
 
+import com.craftworks.music.data.model.MediaProviderData
 import io.ktor.http.Headers
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SubsonicServerInfo (
+data class SubsonicProviderData (
     var url:String,
     var username:String,
     var credentials:String,
-    var allowSelfSignedCert: Boolean = false
+    var allowSelfSignedCert: Boolean = false,
 )
 
 

@@ -40,7 +40,7 @@ import javax.net.ssl.X509TrustManager
 
 @Serializable
 @SerialName("subsonic")
-class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider() {
+class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvider() {
     @Transient
     private val _featureFlags: MutableStateFlow<ProviderFeatures> = MutableStateFlow(
         ProviderFeatures.REPORT_PLAYBACK +
@@ -72,13 +72,13 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
 
         okBuilder.addInterceptor {
             if (_salt == null) {
-                val delimiter = serverInfo.credentials.indexOf(':')
-                _salt = serverInfo.credentials.substring(0, delimiter)
-                _token = serverInfo.credentials.substring(delimiter + 1)
+                val delimiter = providerData.credentials.indexOf(':')
+                _salt = providerData.credentials.substring(0, delimiter)
+                _token = providerData.credentials.substring(delimiter + 1)
             }
             it.proceed(it.request().newBuilder()
                 .url(it.request().url.newBuilder()
-                    .addQueryParameter("u", serverInfo.username)
+                    .addQueryParameter("u", providerData.username)
                     .addQueryParameter("t", _token)
                     .addQueryParameter("s", _salt)
                     .addQueryParameter("v", choraVersion)
@@ -88,7 +88,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
                 .build())
         }
 
-        if (serverInfo.allowSelfSignedCert) {
+        if (providerData.allowSelfSignedCert) {
             val trustAllCerts = arrayOf<TrustManager>(
                 @SuppressLint("CustomX509TrustManager")
                 object : X509TrustManager {
@@ -109,7 +109,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
                     .hostnameVerifier { _, _ -> true }
         }
 
-        builder.baseUrl(serverInfo.url)
+        builder.baseUrl(providerData.url)
         .client(okBuilder.build())
         .build()
     }
@@ -135,7 +135,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         username: String,
         password: String
     ): AuthenticationResponse {
-        serverInfo.username = username
+        providerData.username = username
         _salt = generateSalt(8)
         _token = md5Hash(password + _salt)
 
@@ -271,12 +271,12 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getImageUrl(
+    override fun getImageUrl(
         id: String,
         itemType: LibraryType,
         size: Int?,
         baseUrl: String?
-    ): String? {
+    ): String {
         TODO("Not yet implemented")
     }
 

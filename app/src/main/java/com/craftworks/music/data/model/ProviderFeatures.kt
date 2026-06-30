@@ -6,6 +6,7 @@ value class ProviderFeatures(val mask: Long) {
         val REPORT_PLAYBACK = ProviderFeatures(1L shl 0)
         val FAVORITES = ProviderFeatures(1L shl 1)
         val DOWNLOADS = ProviderFeatures(1L shl 2)
+        val SELECT_MULTIPLE_MUSIC_FOLDERS = ProviderFeatures(1L shl 3)
     }
 
     fun has (flags: ProviderFeatures): Boolean =

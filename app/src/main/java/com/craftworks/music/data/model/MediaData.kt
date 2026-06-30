@@ -1,5 +1,7 @@
 package com.craftworks.music.data.model
 
+import kotlinx.serialization.Serializable
+
 data class RelatedArtist(
     val id: String,
     val imageId: String?,
@@ -7,6 +9,11 @@ data class RelatedArtist(
     val name: String,
     val userFavorite: Boolean,
     val userRating: Number?
+)
+@Serializable
+data class MusicFolder (
+    val id: String,
+    val name: String,
 )
 
 data class GainInfo(

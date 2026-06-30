@@ -9,7 +9,9 @@ import com.craftworks.music.data.model.ImageRequest
 import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.LyricsResponse
 import com.craftworks.music.data.model.MediaModel
+import com.craftworks.music.data.model.MediaProviderData
 import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.MusicFolder
 import com.craftworks.music.data.model.PlaylistRules
 import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.ProviderInfo
@@ -19,11 +21,23 @@ import com.craftworks.music.data.model.SearchResponse
 import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
+import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 
 @Serializable
 abstract class MediaProvider {
+    companion object {
+        val serializerModule = SerializersModule {
+            polymorphic(MediaProvider::class) {
+                subclass(SubsonicMediaProvider::class)
+            }
+        }
+    }
+    lateinit var data: MediaProviderData
     abstract val featureFlags: StateFlow<ProviderFeatures>
 
     abstract fun init(context: Context)
@@ -54,7 +68,7 @@ abstract class MediaProvider {
     abstract fun getImageUrl(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): String
     abstract suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation>
     abstract suspend fun getLyrics(songId: String): LyricsResponse
-    abstract suspend fun getMusicFolderList(): List<MediaModel.Folder>
+    abstract suspend fun getMusicFolderList(): List<MusicFolder>
     abstract suspend fun getPlaylistDetail(id: String): MediaModel.Playlist
     abstract suspend fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaModel.Playlist>
     abstract suspend fun getPlaylistListCount(query: MediaQuery.PlaylistListQuery): Int
