@@ -1,5 +1,6 @@
 package com.craftworks.music.data.model
 
+import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.media3.common.MediaMetadata
 
@@ -47,7 +48,36 @@ abstract class MediaModel (
         val userFavorite: Boolean,
         val userRating: Int?,
         val version: String?
-    ) : MediaModel(providerId, providerType, id)
+    ) : MediaModel(providerId, providerType, id){
+        fun toMediaItem(): androidx.media3.common.MediaItem {
+            val mediaMetadata =
+                MediaMetadata.Builder()
+                    .setTitle(this.name)
+                    .setArtist(this.albumArtistName)
+                    .setAlbumTitle(this.name)
+                    .setDisplayTitle(this.name)
+                    .setAlbumArtist(this.albumArtistName)
+                    .setArtworkUri(this.imageUrl?.toUri()) // TODO("Call provider's getImageUrl")
+                    .setRecordingYear(this.releaseYear)
+                    .setDurationMs(this.duration?.times(1000)?.toLong())
+                    .setIsBrowsable(true)
+                    .setIsPlayable(false)
+                    .setGenre(this.genres.joinToString { it.name })
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_ALBUM)
+                    .setExtras(
+                        Bundle().apply {
+                            putString("id", this@Album.id)
+                            putBoolean("userFavorite", this@Album.userFavorite)
+                        }
+                    )
+                    .build()
+
+            return androidx.media3.common.MediaItem.Builder()
+                .setMediaId(this.id)
+                .setMediaMetadata(mediaMetadata)
+                .build()
+        }
+    }
 
     class AlbumArtist(
         providerId: String,
@@ -257,7 +287,13 @@ abstract class MediaModel (
                     .setIsBrowsable(false).setIsPlayable(true)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
                     .setDurationMs(this.duration.toLong() * 1000)
-                    .setGenre(this.genres.joinToString())
+                    .setGenre(this.genres.joinToString { it.name })
+                    .setExtras(
+                        Bundle().apply {
+                            putString("id", this@Song.id)
+                            putBoolean("userFavorite", this@Song.userFavorite)
+                        }
+                    )
                     .build()
 
             return androidx.media3.common.MediaItem.Builder()
