@@ -26,6 +26,8 @@ object MediaProviderManager {
         loadProviders(context)
     }
 
+    fun getProvider(providerId: String) = providers[providerId]
+
     private fun saveProviders() {
         DataRefreshManager.notifyDataSourcesChanged()
         val providersJson = json.encodeToString(providers as Map<String, MediaProvider>)

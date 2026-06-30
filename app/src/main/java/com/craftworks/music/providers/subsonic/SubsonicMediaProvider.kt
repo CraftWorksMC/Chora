@@ -2,12 +2,11 @@ package com.craftworks.music.providers.subsonic
 
 import android.annotation.SuppressLint
 import android.content.Context
-import com.craftworks.music.data.model.AlbumArtistInfoResponse
+import com.craftworks.music.data.model.AlbumArtistInfo
 import com.craftworks.music.data.model.AlbumInfo
 import com.craftworks.music.data.model.AuthenticationResponse
 import com.craftworks.music.data.model.GetQueueResponse
 import com.craftworks.music.data.model.ImageRequest
-import com.craftworks.music.data.model.InternetRadioStation
 import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.LyricsResponse
 import com.craftworks.music.data.model.MediaModel
@@ -20,7 +19,6 @@ import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.MediaProvider
-import com.craftworks.music.providers.navidrome.MusicFolder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -125,8 +123,8 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
     }
 
     override suspend fun addToPlaylist(
-        songIds: List<String>,
-        playlistId: String
+        playlistId: String,
+        songIds: List<String>
     ): Boolean {
         TODO("Not yet implemented")
     }
@@ -160,9 +158,9 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
     }
 
     override suspend fun createInternetRadioStation(
-        homepageUrl: String?,
         name: String,
-        streamUrl: String
+        streamUrl: String,
+        homepageUrl: String?
     ): Boolean {
         TODO("Not yet implemented")
     }
@@ -200,7 +198,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
     override suspend fun getAlbumArtistInfo(
         id: String,
         limit: Int?
-    ): AlbumArtistInfoResponse? {
+    ): AlbumArtistInfo? {
         TODO("Not yet implemented")
     }
 
@@ -235,7 +233,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaModel.AlbumArtist> {
+    override suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaModel.Artist> {
         TODO("Not yet implemented")
     }
 
@@ -280,7 +278,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getInternetRadioStations(): List<InternetRadioStation> {
+    override suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation> {
         TODO("Not yet implemented")
     }
 
@@ -288,7 +286,7 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getMusicFolderList(): List<MusicFolder> {
+    override suspend fun getMusicFolderList(): List<MediaModel.Folder> {
         TODO("Not yet implemented")
     }
 

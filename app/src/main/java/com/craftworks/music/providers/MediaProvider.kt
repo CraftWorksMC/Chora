@@ -6,7 +6,6 @@ import com.craftworks.music.data.model.AlbumInfo
 import com.craftworks.music.data.model.AuthenticationResponse
 import com.craftworks.music.data.model.GetQueueResponse
 import com.craftworks.music.data.model.ImageRequest
-import com.craftworks.music.data.model.InternetRadioStation
 import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.LyricsResponse
 import com.craftworks.music.data.model.MediaModel
@@ -29,7 +28,7 @@ abstract class MediaProvider {
     abstract suspend fun addToPlaylist(playlistId: String, songIds: List<String>) : Boolean
     abstract suspend fun authenticate(username: String, password: String) : AuthenticationResponse
     abstract suspend fun createFavorite(ids: List<String>, type: LibraryType) : Boolean
-    abstract suspend fun createInternetRadioStation(homepageUrl: String?, name: String, streamUrl: String) : Boolean
+    abstract suspend fun createInternetRadioStation(name: String, streamUrl: String, homepageUrl: String?) : Boolean
     abstract suspend fun createPlaylist(name: String, comment: String = "", ownerId: String = "", public: Boolean = false, queryBuilderRules: PlaylistRules? = null, sync: Boolean = false) : String?
     abstract suspend fun deleteFavorite(ids: List<String>, type: LibraryType) : Boolean
     abstract suspend fun deleteInternetRadioStation(id: String): Boolean
@@ -51,7 +50,7 @@ abstract class MediaProvider {
     abstract suspend fun getGenreList(query: MediaQuery.GenreListQuery): List<MediaModel.Genre>
     abstract suspend fun getImageRequest(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): ImageRequest?
     abstract suspend fun getImageUrl(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): String?
-    abstract suspend fun getInternetRadioStations(): List<InternetRadioStation>
+    abstract suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation>
     abstract suspend fun getLyrics(songId: String): LyricsResponse
     abstract suspend fun getMusicFolderList(): List<MediaModel.Folder>
     abstract suspend fun getPlaylistDetail(id: String): MediaModel.Playlist

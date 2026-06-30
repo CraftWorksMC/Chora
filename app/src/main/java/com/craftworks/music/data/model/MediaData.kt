@@ -46,15 +46,6 @@ data class AlbumInfo(
     val imageUrl: String?,
     val notes: String?
 )
-data class InternetRadioStation(
-    val homepageUrl: String?,
-    val id: String,
-    val imageId: String? = null,
-    val imageUrl: String? = null,
-    val name: String,
-    val streamUrl: String,
-    val uploadedImage: String? = null
-)
 
 data class Tag(
     val name: String,

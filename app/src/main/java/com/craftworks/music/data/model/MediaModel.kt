@@ -153,6 +153,19 @@ abstract class MediaModel (
         val songCount: Int?
     ) : MediaModel(providerId, providerType, id)
 
+    class InternetRadioStation(
+        providerId: String,
+        providerType: ProviderType,
+        id: String,
+
+        val homepageUrl: String?,
+        val imageId: String? = null,
+        val imageUrl: String? = null,
+        val name: String,
+        val streamUrl: String,
+        val uploadedImage: String? = null
+    ) : MediaModel(providerId, providerType, id)
+
     class Playlist(
         providerId: String,
         providerType: ProviderType,
