@@ -26,11 +26,11 @@ abstract class MediaProvider {
     abstract val featureFlags: StateFlow<ProviderFeatures>
 
     abstract fun init(context: Context)
-    abstract suspend fun addToPlaylist(songIds: List<String>, playlistId: String) : Boolean
+    abstract suspend fun addToPlaylist(playlistId: String, songIds: List<String>) : Boolean
     abstract suspend fun authenticate(username: String, password: String) : AuthenticationResponse
     abstract suspend fun createFavorite(ids: List<String>, type: LibraryType) : Boolean
     abstract suspend fun createInternetRadioStation(homepageUrl: String?, name: String, streamUrl: String) : Boolean
-    abstract suspend fun createPlaylist(name: String, comment: String = "", ownerId: String = "", public: Boolean = false, queryBuilderRules: PlaylistRules?, sync: Boolean = false) : String?
+    abstract suspend fun createPlaylist(name: String, comment: String = "", ownerId: String = "", public: Boolean = false, queryBuilderRules: PlaylistRules? = null, sync: Boolean = false) : String?
     abstract suspend fun deleteFavorite(ids: List<String>, type: LibraryType) : Boolean
     abstract suspend fun deleteInternetRadioStation(id: String): Boolean
     abstract suspend fun deletePlaylist(id: String): Boolean

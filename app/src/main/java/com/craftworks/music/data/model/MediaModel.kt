@@ -30,7 +30,7 @@ abstract class MediaModel (
         val mbzId: String?,
         val mbzReleaseGroupId: String?,
         val name: String,
-        val originalDate: String?, // was null | PartialIsoDateString
+        val originalDate: String?,
         val originalYear: Int,
         val participants: Map<String, List<RelatedArtist>>?,
         val playCount: Double?,
@@ -41,14 +41,14 @@ abstract class MediaModel (
         val releaseYear: Int?,
         val size: Int?,
         val songCount: Int?,
-        val songs: List<Song>?, // optional in TS
+        val songs: List<Song>?,
         val sortName: String,
         val tags: Map<String, List<String>>?,
         val updatedAt: String,
         val userFavorite: Boolean,
         val userRating: Int?,
         val version: String?
-    ) : MediaModel(providerId, providerType, id){
+    ) : MediaModel(providerId, providerType, id) {
         fun toMediaItem(): androidx.media3.common.MediaItem {
             val mediaMetadata =
                 MediaMetadata.Builder()
@@ -172,7 +172,30 @@ abstract class MediaModel (
         val songCount: Int?,
         val sync: Boolean?,
         val uploadedImage: String?
-    ) : MediaModel(providerId, providerType, id)
+    ) : MediaModel(providerId, providerType, id) {
+        fun toMediaItem(): androidx.media3.common.MediaItem {
+            val mediaMetadata =
+                MediaMetadata.Builder()
+                    .setTitle(this.name)
+                    .setDescription(this.description)
+                    .setArtworkUri(this.imageUrl?.toUri()) // TODO("Call provider's getImageUrl")
+                    .setIsBrowsable(true)
+                    .setIsPlayable(false)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
+                    .setDurationMs(this.duration?.times(1000)?.toLong())
+                    .setExtras(
+                        Bundle().apply {
+                            putString("id", this@Playlist.id)
+                        }
+                    )
+                    .build()
+
+            return androidx.media3.common.MediaItem.Builder()
+                .setMediaId(this.id)
+                .setMediaMetadata(mediaMetadata)
+                .build()
+        }
+    }
 
     class QueueSong(
         providerId: String,
