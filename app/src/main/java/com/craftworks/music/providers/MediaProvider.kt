@@ -13,6 +13,8 @@ import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.PlaylistRules
 import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.ProviderInfo
+import com.craftworks.music.data.model.ScrobbleEvent
+import com.craftworks.music.data.model.ScrobbleMediaType
 import com.craftworks.music.data.model.SearchResponse
 import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
@@ -49,7 +51,7 @@ abstract class MediaProvider {
     abstract suspend fun getFolder(query: MediaQuery.FolderQuery): MediaModel.Folder
     abstract suspend fun getGenreList(query: MediaQuery.GenreListQuery): List<MediaModel.Genre>
     abstract suspend fun getImageRequest(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): ImageRequest?
-    abstract suspend fun getImageUrl(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): String?
+    abstract fun getImageUrl(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): String
     abstract suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation>
     abstract suspend fun getLyrics(songId: String): LyricsResponse
     abstract suspend fun getMusicFolderList(): List<MediaModel.Folder>
@@ -75,7 +77,7 @@ abstract class MediaProvider {
     abstract suspend fun removeFromPlaylist(id: String, songIds: List<String>): Boolean
     abstract suspend fun replacePlaylist(id: String, songIds: List<String>): Boolean
     abstract suspend fun savePlayQueue(songs: List<String>, currentIndex: Int? = null, positionMs: Int? = null)
-    abstract suspend fun scrobble(id: String, mediaType: String, playbackRate: Float, submission: Boolean, albumId: String? = null, event: String? = null, position: Int? = null)
+    abstract suspend fun scrobble(id: String, mediaType: ScrobbleMediaType = ScrobbleMediaType.SONG, playbackRate: Float, submission: Boolean, albumId: String? = null, event: ScrobbleEvent, position: Int? = null)
     abstract suspend fun search(query: MediaQuery.SearchQuery): SearchResponse
     abstract suspend fun setPlaylistSongs(id: String, songIds: List<String>)
     abstract suspend fun setRating(ids: List<String>, rating: Int, type: LibraryType): Boolean

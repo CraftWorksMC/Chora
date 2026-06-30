@@ -1,76 +1,34 @@
-package com.craftworks.music.legacy.data.repository
+package com.craftworks.music.data.repository
 
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.datasource.local.LocalDataSource
-import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.ScrobbleEvent
+import com.craftworks.music.managers.MediaProviderManager
 import kotlinx.coroutines.coroutineScope
-import javax.inject.Inject
 import javax.inject.Singleton
 
-// LEGACY CODE! MUST NOT BE USED
-// TODO("Delete legacy file")
 @Singleton
-class SongRepository @Inject constructor(
-    private val localDataSource: LocalDataSource,
-    private val navidromeDataSource: NavidromeDataSource
-) {
+class SongRepository  {
 
-    suspend fun getSongs(
-        query: String? = "",
-        songCount: Int = 100, 
-        songOffset: Int = 0,
-        ignoreCachedResponse: Boolean = false,
-        favoritesOnly: Boolean = false,
-    ): List<MediaItem> = coroutineScope {
-        val deferredSongs = mutableListOf<Deferred<List<MediaItem>>>()
-
-        if (LocalProviderManager.checkActiveFolders())
-            if (query.isNullOrEmpty() && songOffset == 0)
-                deferredSongs.add(async { localDataSource.getLocalSongs() })
-
-        if (NavidromeManager.checkActiveServers())
-            deferredSongs.add(async {
-                navidromeDataSource.getNavidromeSongs(query, songCount, songOffset, ignoreCachedResponse, favoritesOnly = favoritesOnly)
-            })
-
-        deferredSongs.awaitAll().flatten()
+    suspend fun getSongs(query: MediaQuery.SongListQuery): List<MediaItem> = coroutineScope {
+        MediaProviderManager.currentProvider.value?.getSongList(query)?.map { it.toMediaItem() } ?: listOf()
     }
 
-    suspend fun getSong(songId: String, ignoreCachedResponse: Boolean = false): MediaItem? = coroutineScope {
-        if (songId.startsWith("Local_"))
-            localDataSource.getLocalSong(songId)
-        else
-            navidromeDataSource.getNavidromeSong(songId, ignoreCachedResponse)
+    suspend fun getSong(songId: String): MediaItem? = coroutineScope {
+        MediaProviderManager.currentProvider.value?.getSongDetail(songId)?.toMediaItem()
     }
 
     suspend fun getSimilarSongs(songId: String, count: Int) : List<MediaItem> = coroutineScope {
-        if (songId.startsWith("Local_"))
-            emptyList()
-        else
-            navidromeDataSource.getNavidromeSimilarSong(songId, count)
+        MediaProviderManager.currentProvider.value?.getSimilarSongs(songId, count)?.map { it.toMediaItem() } ?: listOf()
     }
 
-    suspend fun searchSongs(query: String, ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
-        val deferredSongs = mutableListOf<Deferred<List<MediaItem>>>()
-
-        if (LocalProviderManager.checkActiveFolders())
-            deferredSongs.add(async { localDataSource.searchLocalSongs(query) })
-
-        if (NavidromeManager.checkActiveServers())
-            deferredSongs.add(async { navidromeDataSource.getNavidromeSongs(query, ignoreCachedResponse = ignoreCachedResponse) })
-
-        deferredSongs.awaitAll().flatten()
-    }
-
-    suspend fun scrobbleSong(songId: String, submission: Boolean) {
-        if (songId.startsWith("Local_"))
-            return
-
-        navidromeDataSource.scrobbleSong(songId, submission)
+    suspend fun scrobbleSong(songId: String, position: Int, playbackRate: Float, event: ScrobbleEvent, submission: Boolean) {
+        MediaProviderManager.currentProvider.value?.scrobble(
+            id=songId,
+            position = position,
+            playbackRate = playbackRate,
+            event = event,
+            submission = submission
+        )
     }
 }

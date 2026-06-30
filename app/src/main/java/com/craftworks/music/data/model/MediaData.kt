@@ -56,3 +56,13 @@ data class Tag(
         val name: String
     )
 }
+enum class ScrobbleEvent {
+    PAUSE,
+    UNPAUSE,
+    START,
+    STOP
+}
+enum class ScrobbleMediaType {
+    SONG,
+    PODCAST
+}

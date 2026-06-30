@@ -14,6 +14,8 @@ import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.PlaylistRules
 import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.ProviderInfo
+import com.craftworks.music.data.model.ScrobbleEvent
+import com.craftworks.music.data.model.ScrobbleMediaType
 import com.craftworks.music.data.model.SearchResponse
 import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
@@ -419,11 +421,11 @@ class SubsonicMediaProvider(var serverInfo: SubsonicServerInfo) : MediaProvider(
 
     override suspend fun scrobble(
         id: String,
-        mediaType: String,
+        mediaType: ScrobbleMediaType,
         playbackRate: Float,
         submission: Boolean,
         albumId: String?,
-        event: String?,
+        event: ScrobbleEvent,
         position: Int?
     ) {
         TODO("Not yet implemented")
