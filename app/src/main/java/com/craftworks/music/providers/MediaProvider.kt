@@ -44,7 +44,7 @@ abstract class MediaProvider {
         }
     }
     lateinit var data: MediaProviderData
-    abstract val featureFlags: StateFlow<ProviderFeatures>
+    abstract val featureFlags: ProviderFeatures
     abstract val supportedAlbumSort: List<AlbumListSort>
     abstract val supportedAlbumArtistSort: List<AlbumArtistListSort>
     abstract val supportedArtistSort: List<ArtistListSort>

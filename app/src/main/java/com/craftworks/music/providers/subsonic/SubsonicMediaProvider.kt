@@ -49,13 +49,13 @@ import javax.net.ssl.X509TrustManager
 @SerialName("subsonic")
 class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvider() {
     @Transient
-    private val _featureFlags: MutableStateFlow<ProviderFeatures> = MutableStateFlow(
+    private val _featureFlags: ProviderFeatures =
         ProviderFeatures.REPORT_PLAYBACK +
-                ProviderFeatures.DOWNLOADS +
-                ProviderFeatures.FAVORITES
-    )
+        ProviderFeatures.DOWNLOADS +
+        ProviderFeatures.FAVORITES
+
     @Transient
-    override val featureFlags: StateFlow<ProviderFeatures> = _featureFlags.asStateFlow()
+    override val featureFlags: ProviderFeatures = _featureFlags
     override val supportedAlbumSort: List<AlbumListSort> = listOf(
         AlbumListSort.ALBUM_ARTIST,
         AlbumListSort.ID,

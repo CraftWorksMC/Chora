@@ -62,8 +62,8 @@ fun HomeListsScreen(
                 albums,
                 mediaController,
                 onAlbumSelected = { album ->
-                    val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                    val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                         launchSingleTop = true
                     }
                 },

@@ -160,8 +160,8 @@ fun RadioScreen(
     if (showRadioAddDialog)
         AddRadioDialog(
             setShowDialog = { showRadioAddDialog = it },
-            onAdded = { name, url, homePageUrl, addToNavidrome ->
-                viewModel.addRadioStation(name, url, homePageUrl, addToNavidrome)
+            onAdded = { name, url, homePageUrl ->
+                viewModel.addRadioStation(name, url, homePageUrl)
                 onRefresh.invoke()
             }
         )

@@ -73,7 +73,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.data.model.toAlbum
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.AlbumCard

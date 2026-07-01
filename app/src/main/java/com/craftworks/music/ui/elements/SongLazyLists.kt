@@ -265,7 +265,7 @@ fun AlbumGrid(
 fun AlbumGrid(
     albums: List<MediaItem>,
     mediaController: MediaController?,
-    onAlbumSelected: (album: com.craftworks.music.data.model.MediaModel.Album) -> Unit,
+    onAlbumSelected: (album: MediaItem) -> Unit,
     onGetAlbum: (albumID: String) -> List<MediaItem>
 ) {
     val gridState = rememberLazyGridState()
@@ -316,7 +316,7 @@ fun AlbumGrid(
                 itemsIndexed(albumsInGroup) { index, album ->
                     AlbumCard(album = album,
                         onClick = {
-                            onAlbumSelected(album.toAlbum())
+                            onAlbumSelected(album)
                         },
                         onPlay = {
                             coroutineScope.launch {
@@ -363,7 +363,7 @@ fun AlbumGrid(
 @Composable
 fun AlbumRow(
     albums: List<MediaItem>,
-    onAlbumSelected: (album: com.craftworks.music.data.model.MediaModel.Album) -> Unit,
+    onAlbumSelected: (album: MediaItem) -> Unit,
     onPlay: (album: MediaItem) -> Unit,
 ){
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
@@ -408,7 +408,7 @@ fun AlbumRow(
             AlbumCard(
                 album = album,
                 onClick = {
-                    onAlbumSelected(album.toAlbum())
+                    onAlbumSelected(album)
                 },
                 onPlay = {
                     onPlay(album)
@@ -424,8 +424,8 @@ fun AlbumRow(
 @ExperimentalFoundationApi
 @Composable
 fun ArtistsGrid(
-    artists: List<com.craftworks.music.data.model.MediaModel.Artist>,
-    onArtistSelected: (artist: com.craftworks.music.data.model.MediaModel.Artist) -> Unit
+    artists: List<MediaModel.AlbumArtist>,
+    onArtistSelected: (artist: MediaModel.AlbumArtist) -> Unit
 ){
     val gridState = rememberLazyGridState()
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)

@@ -3,6 +3,7 @@ package com.craftworks.music.data.model
 import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.media3.common.MediaMetadata
+import com.craftworks.music.R
 
 abstract class MediaModel (
     val providerId: String,
