@@ -309,49 +309,49 @@ abstract class MediaModel (
         providerType: ProviderType,
         id: String,
 
-        val album: String?,
+        val album: String? = null,
         val albumArtistName: String,
-        val albumArtists: List<RelatedArtist>,
+        val albumArtists: List<RelatedArtist> = listOf(),
         val albumId: String,
         val artistName: String,
-        val artists: List<RelatedArtist>,
-        val bitDepth: Int?,
-        val bitRate: Int,
-        val bpm: Int?,
-        val channels: Int?,
-        val comment: String?,
-        val compilation: Boolean?,
-        val container: String?,
-        val createdAt: String,
+        val artists: List<RelatedArtist> = listOf(),
+        val bitDepth: Int? = null,
+        val bitRate: Int? = null,
+        val bpm: Int? = null,
+        val channels: Int? = null,
+        val comment: String? = null,
+        val compilation: Boolean? = null,
+        val container: String? = null,
+        val createdAt: String? = null,
         val discNumber: Int,
-        val discSubtitle: String?,
-        val duration: Int,
-        val explicitStatus: ExplicitStatus?,
-        val gain: GainInfo?,
-        val genres: List<Genre>,
-        val imageId: String?,
-        val imageUrl: String?,
-        val lastPlayedAt: String?,
-        val lyrics: String?,
-        val mbzRecordingId: String?,
-        val mbzTrackId: String?,
+        val discSubtitle: String? = null,
+        val durationMs: Int,
+        val explicitStatus: ExplicitStatus? = null,
+        val gain: GainInfo? = null,
+        val genres: List<Genre> = listOf(),
+        val imageId: String? = null,
+        val imageUrl: String? = null,
+        val lastPlayedAt: String? = null,
+        val lyrics: String? = null,
+        val mbzRecordingId: String? = null,
+        val mbzTrackId: String? = null,
         val name: String,
-        val participants: Map<String, List<RelatedArtist>>?,
-        val path: String?,
-        val peak: GainInfo?,
-        val playCount: Int,
-        val playlistItemId: String?,
-        val releaseDate: String?,
-        val releaseYear: Int?,
-        val sampleRate: Int?,
-        val size: Int,
-        val sortName: String,
-        val tags: Map<String, List<String>>?,
+        val participants: Map<String, List<RelatedArtist>>? = null,
+        val path: String? = null,
+        val peak: GainInfo? = null,
+        val playCount: Int? = null,
+        val playlistItemId: String? = null,
+        val releaseDate: String? = null,
+        val releaseYear: Int? = null,
+        val sampleRate: Int? = null,
+        val size: Int? = null,
+        val sortName: String? = null,
+        val tags: Map<String, List<String>>? = null,
         val trackNumber: Int,
-        val trackSubtitle: String?,
-        val updatedAt: String,
+        val trackSubtitle: String? = null,
+        val updatedAt: String? = null,
         val userFavorite: Boolean,
-        val userRating: Int?
+        val userRating: Int? = null
     ) : MediaModel(providerId, providerType, id) {
         fun toMediaItem(): androidx.media3.common.MediaItem {
             val mediaMetadata =
@@ -365,11 +365,13 @@ abstract class MediaModel (
                     .setTrackNumber(this.trackNumber)
                     .setIsBrowsable(false).setIsPlayable(true)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                    .setDurationMs(this.duration.toLong() * 1000)
+                    .setDurationMs(this.durationMs.toLong())
                     .setGenre(this.genres.joinToString { it.name })
                     .setExtras(
                         Bundle().apply {
                             putString("id", this@Song.id)
+                            putString("providerId", this@Song.providerId)
+                            putString("albumId", this@Song.albumId)
                             putBoolean("userFavorite", this@Song.userFavorite)
                         }
                     )

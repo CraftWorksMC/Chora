@@ -33,7 +33,7 @@ import com.craftworks.music.data.model.MediaModel
 
 @Stable
 @Composable
-fun ArtistCard(artist: MediaModel, onClick: () -> Unit) {
+fun ArtistCard(artist: MediaModel.AlbumArtist, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             //.padding(12.dp)
@@ -46,10 +46,10 @@ fun ArtistCard(artist: MediaModel, onClick: () -> Unit) {
     ) {
         SubcomposeAsyncImage (
             model = ImageRequest.Builder(LocalContext.current)
-                .data(artist.artistImageUrl)
+                .data(artist.imageUrl)
                 .crossfade(true)
                 .diskCacheKey(
-                    artist.navidromeID
+                    artist.id
                 )
                 .build(),
             contentScale = ContentScale.Crop,

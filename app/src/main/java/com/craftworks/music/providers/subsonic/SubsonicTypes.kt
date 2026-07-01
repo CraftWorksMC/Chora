@@ -1,8 +1,5 @@
 package com.craftworks.music.providers.subsonic
 
-import com.craftworks.music.data.model.MediaProviderData
-import io.ktor.http.Headers
-import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 
 @Serializable

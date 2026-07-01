@@ -3,7 +3,6 @@ package com.craftworks.music.ui.elements.dialogs
 import android.content.Context
 import android.util.Patterns
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -55,14 +54,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.craftworks.music.R
-import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
-import com.craftworks.music.providers.navidrome.getNavidromeStatus
-import com.craftworks.music.providers.navidrome.navidromeStatus
 import com.craftworks.music.ui.elements.bounceClick
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -247,7 +240,8 @@ fun CreateMediaProviderDialog(
                         onClick = {
                             coroutineScope.launch {
                                 try {
-                                    LocalProviderManager.addFolder(dir)
+                                    TODO("Add folder I presume?")
+                                    //LocalProviderManager.addFolder(dir)
                                     setShowDialog(false)
                                 } catch (_: Exception) {
                                     // DO NOTHING
@@ -278,7 +272,7 @@ fun CreateMediaProviderDialog(
                         label = { Text(stringResource(R.string.Label_Navidrome_URL)) },
                         placeholder = { Text("http://domain.tld:<port>") },
                         singleLine = true,
-                        isError = navidromeStatus.value == "Invalid URL"
+                        isError = false//navidromeStatus.value == "Invalid URL" TODO("Check URL error")
                     )
                     /* USERNAME */
                     OutlinedTextField(
@@ -286,7 +280,7 @@ fun CreateMediaProviderDialog(
                         onValueChange = { username = it },
                         label = { Text(stringResource(R.string.Label_Navidrome_Username)) },
                         singleLine = true,
-                        isError = navidromeStatus.value == "Wrong username or password"
+                        isError = false//navidromeStatus.value == "Wrong username or password" TODO("Check credentials error")
                     )
                     /* PASSWORD */
                     var passwordVisible by remember { mutableStateOf(false) }
@@ -313,7 +307,7 @@ fun CreateMediaProviderDialog(
                                 )
                             }
                         },
-                        isError = navidromeStatus.value == "Wrong username or password"
+                        isError = false//navidromeStatus.value == "Wrong username or password" TODO("Check URL error")
                     )
 
                     /* Allow Self Signed Certs */
@@ -333,6 +327,8 @@ fun CreateMediaProviderDialog(
                         Switch(checked = allowCerts, onCheckedChange = { allowCerts = it })
                     }
 
+                    // TODO("Check error")
+                    /*
                     if (navidromeStatus.value != "") {
                         Column(
                             modifier = Modifier
@@ -348,16 +344,16 @@ fun CreateMediaProviderDialog(
                                 modifier = Modifier.padding(vertical = 6.dp)
                             )
                         }
-                    }
+                    }*/
 
                     Crossfade (
-                        navidromeStatus.value == "ok"
+                        true//navidromeStatus.value == "ok" TODO("Check error")
                     ) {
                         if (it) {
                             Button(
                                 onClick = {
                                     coroutineScope.launch {
-                                        val server = NavidromeProvider(
+                                        /*val server = NavidromeProvider(
                                             url,
                                             url,
                                             username,
@@ -368,7 +364,8 @@ fun CreateMediaProviderDialog(
                                         NavidromeManager.addServer(server)
                                         AppearanceSettingsManager(context).setUsername(username)
 
-                                        navidromeStatus.value = ""
+                                        navidromeStatus.value = ""*/
+                                        TODO("Add provider")
 
                                         setShowDialog(false)
                                     }
@@ -378,7 +375,7 @@ fun CreateMediaProviderDialog(
                                     .weight(1f)
                                     .fillMaxWidth()
                                     .bounceClick(),
-                                enabled = navidromeStatus.value == "ok"
+                                enabled = true//navidromeStatus.value == "ok" TODO("Enable only when it's ok I presume?")
                             ) {
                                 Text(
                                     stringResource(R.string.Action_Add)
@@ -388,7 +385,8 @@ fun CreateMediaProviderDialog(
                         else {
                             OutlinedButton(
                                 onClick = {
-                                    val server = NavidromeProvider(
+                                    TODO("Figure out this (I'm too lazy rn)")
+                                    /*val server = NavidromeProvider(
                                         url,
                                         url,
                                         username,
@@ -398,7 +396,7 @@ fun CreateMediaProviderDialog(
                                     )
                                     coroutineScope.launch {
                                         getNavidromeStatus(server)
-                                    }
+                                    }*/
                                 },
                                 modifier = Modifier
                                     .height(50.dp)

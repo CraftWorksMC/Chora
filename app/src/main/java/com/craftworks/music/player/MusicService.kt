@@ -263,7 +263,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             .setSeekParameters(SeekParameters.EXACT)
             .setMediaSourceFactory(DefaultMediaSourceFactory(resolvingDataSourceFactory))
             .setWakeMode(
-                if (MediaProviderManager.currentProvider.value?.featureFlags?.value?.has(
+                if (MediaProviderManager.currentProvider.value?.featureFlags?.has(
                         ProviderFeatures.OFFLINE_PLAYBACK
                     ) ?: false)
                     C.WAKE_MODE_NETWORK

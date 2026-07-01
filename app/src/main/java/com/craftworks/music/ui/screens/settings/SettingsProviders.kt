@@ -42,8 +42,6 @@ import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.LRCLIBProviderCard
-import com.craftworks.music.ui.elements.LocalProviderCard
-import com.craftworks.music.ui.elements.NavidromeProviderCard
 import com.craftworks.music.ui.elements.NetEaseProviderCard
 import com.craftworks.music.ui.elements.dialogs.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable

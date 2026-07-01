@@ -32,8 +32,8 @@ fun TvArtistCard(
         image = {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(artist.artistImageUrl)
-                    .diskCacheKey(artist.navidromeID)
+                    .data(artist.imageUrl)
+                    .diskCacheKey(artist.id)
                     .crossfade(true).build(),
                 placeholder = painterResource(R.drawable.placeholder),
                 fallback = painterResource(R.drawable.placeholder),

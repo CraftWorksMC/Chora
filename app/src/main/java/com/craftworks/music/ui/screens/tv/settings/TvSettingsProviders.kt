@@ -35,9 +35,7 @@ import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.ui.elements.dialogs.tv.CreateLocalProviderDialog
 import com.craftworks.music.ui.elements.dialogs.tv.CreateNavidromeProviderDialog
 import com.craftworks.music.ui.elements.dialogs.tv.ModifyLrcLibProviderDialog
-import com.craftworks.music.ui.elements.tv.LocalProviderCard
 import com.craftworks.music.ui.elements.tv.LrcLibProviderCard
-import com.craftworks.music.ui.elements.tv.NavidromeProviderCard
 import com.craftworks.music.ui.elements.tv.NetEaseProviderCard
 
 @Composable
@@ -87,9 +85,9 @@ fun TvS_ProviderScreen() {
                 contentPadding = PaddingValues(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(providers, key = { it.first }) { server ->
+                /*items(providers, key = { it.first }) { server ->
                     NavidromeProviderCard(server)
-                }
+                }*/
                 item {
                     ListItem(
                         selected = false,

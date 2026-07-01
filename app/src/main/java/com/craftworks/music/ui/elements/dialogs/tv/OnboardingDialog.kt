@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.HorizontalDivider
@@ -39,7 +38,6 @@ import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Button
 import androidx.tv.material3.CarouselDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -48,11 +46,6 @@ import androidx.tv.material3.ListItem
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.craftworks.music.R
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.ui.elements.dialogs.OnboardingStep
-import com.craftworks.music.ui.elements.tv.LocalProviderCard
-import com.craftworks.music.ui.elements.tv.NavidromeProviderCard
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Preview(
@@ -169,8 +162,8 @@ private fun OnboardingSetupProviders(
     showNavidromeServerDialog: () -> Unit = { },
     showLocalFolderDialog: () -> Unit = { }
 ) {
-    val localProviders by LocalProviderManager.allFolders.collectAsStateWithLifecycle()
-    val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
+    //val localProviders by LocalProviderManager.allFolders.collectAsStateWithLifecycle()
+    //val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
 
     Text(
         text = stringResource(R.string.Dialog_Media_Source),
@@ -191,9 +184,9 @@ private fun OnboardingSetupProviders(
             )
         }
 
-        items(localProviders, key = { it }) { local ->
+        /*items(localProviders, key = { it }) { local ->
             LocalProviderCard(local)
-        }
+        }*/
         item {
             ListItem(
                 selected = false,
@@ -219,9 +212,9 @@ private fun OnboardingSetupProviders(
             )
         }
 
-        items(navidromeServers, key = { it.id }) { server ->
+        /*items(navidromeServers, key = { it.id }) { server ->
             NavidromeProviderCard(server)
-        }
+        }*/
         item {
             ListItem(
                 selected = false,

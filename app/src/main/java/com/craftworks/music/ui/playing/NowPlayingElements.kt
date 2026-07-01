@@ -70,7 +70,6 @@ import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import com.craftworks.music.R
 import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.formatSeconds
-import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
 import kotlinx.coroutines.delay
@@ -373,7 +372,8 @@ fun DownloadButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Bo
         onClick = {
             coroutineScope.launch {
                 metadata?.let {
-                    downloadNavidromeSong(context, it)
+                    TODO("Download song")
+                    //downloadNavidromeSong(context, it)
                 }
             }
         },

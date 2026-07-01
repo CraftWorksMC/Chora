@@ -48,7 +48,6 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.formatSeconds
-import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
 import kotlinx.coroutines.launch
@@ -226,7 +225,8 @@ fun HorizontalSongCard(
                         },
                         onClick = {
                             coroutineScope.launch {
-                                downloadNavidromeSong(context, song.mediaMetadata)
+                                TODO("Download song")
+                                //downloadNavidromeSong(context, song.mediaMetadata)
                             }
                             expanded = false
                         },

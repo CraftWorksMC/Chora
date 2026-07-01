@@ -66,7 +66,6 @@ import androidx.tv.material3.OutlinedIconButtonDefaults
 import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.formatSeconds
-import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
 import kotlinx.coroutines.delay
@@ -321,7 +320,8 @@ fun DownloadButton(size: Dp, metadata: MediaMetadata?, enabled: Boolean) {
         onClick = {
             coroutineScope.launch {
                 metadata?.let {
-                    downloadNavidromeSong(context, it)
+                    TODO("Download song")
+                    //downloadNavidromeSong(context, it)
                 }
             }
         },
