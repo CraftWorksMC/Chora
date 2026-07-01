@@ -131,8 +131,8 @@ fun TvRadioScreen(
     if (showRadioAddDialog)
         AddRadioDialog(
             setShowDialog = { showRadioAddDialog = it },
-            onAdded = { name, url, homePageUrl, addToNavidrome ->
-                viewModel.addRadioStation(name, url, homePageUrl, addToNavidrome)
+            onAdded = { name, url, homePageUrl ->
+                viewModel.addRadioStation(name, url, homePageUrl)
             }
         )
 
@@ -141,11 +141,11 @@ fun TvRadioScreen(
         ModifyRadioDialog(
             setShowDialog = { showRadioModifyDialog = it },
             radio = selectedRadio,
-            onModified = { id, name, url, homepage ->
-                viewModel.modifyRadioStation(id, name, url, homepage)
+            onModified = { providerId, id, name, url, homepage ->
+                viewModel.modifyRadioStation(providerId, id, name, url, homepage)
             },
-            onDeleted = {
-                viewModel.deleteRadioStation(it)
+            onDeleted = { providerId, id ->
+                viewModel.deleteRadioStation(providerId, id)
             }
         )
     }

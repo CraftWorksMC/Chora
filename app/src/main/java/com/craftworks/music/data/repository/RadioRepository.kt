@@ -20,7 +20,7 @@ class RadioRepository {
         MediaProviderManager.getProvider(radio.providerId)?.updateInternetRadioStation(radio.id,radio.name, radio.streamUrl, radio.homepageUrl)
     }
 
-    suspend fun deleteRadio(radio: MediaModel.InternetRadioStation){
-        MediaProviderManager.getProvider(radio.providerId)?.deleteInternetRadioStation(radio.id)
+    suspend fun deleteRadio(providerId: String, id: String){
+        MediaProviderManager.getProvider(providerId)?.deleteInternetRadioStation(id)
     }
 }

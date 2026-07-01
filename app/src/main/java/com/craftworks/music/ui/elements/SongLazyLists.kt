@@ -45,10 +45,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.MediaModel
-import com.craftworks.music.data.model.albumList
-import com.craftworks.music.data.model.songsList
-import com.craftworks.music.data.model.toAlbum
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel

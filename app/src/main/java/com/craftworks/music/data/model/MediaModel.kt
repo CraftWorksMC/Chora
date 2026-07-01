@@ -194,6 +194,7 @@ abstract class MediaModel (
                     .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
                     .setExtras(
                         Bundle().apply {
+                            putString("providerId", this@InternetRadioStation.providerId)
                             putString("id", this@InternetRadioStation.id)
                             putString("homepage", this@InternetRadioStation.homepageUrl ?: "")
                         }
