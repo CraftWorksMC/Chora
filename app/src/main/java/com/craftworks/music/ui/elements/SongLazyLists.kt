@@ -147,7 +147,7 @@ fun SongsHorizontalColumn(
 fun AlbumGrid(
     albums: List<MediaItem>,
     mediaController: MediaController?,
-    onAlbumSelected: (album: com.craftworks.music.data.model.MediaModel.Album) -> Unit,
+    onAlbumSelected: (album: MediaItem) -> Unit,
     isSearch: Boolean? = false,
     viewModel: AlbumScreenViewModel = viewModel(),
 ){
@@ -217,7 +217,7 @@ fun AlbumGrid(
                 itemsIndexed(albumsInGroup) { index, album ->
                     AlbumCard(album = album,
                         onClick = {
-                            onAlbumSelected(album.toAlbum())
+                            onAlbumSelected(album)
                         },
                         onPlay = {
                             coroutineScope.launch {

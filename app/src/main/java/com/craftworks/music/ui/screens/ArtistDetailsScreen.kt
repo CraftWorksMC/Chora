@@ -156,10 +156,8 @@ fun ArtistDetails(
                         //Image and Name
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(artist?.artistImageUrl)
-                                .diskCacheKey(
-                                    artist?.navidromeID
-                                )
+                                .data(artist?.imageUrl)  // TODO("Call provider's getImageUrl")
+                                .diskCacheKey(artist?.id)
                                 .crossfade(true)
                                 .build(),
                             placeholder = painterResource(R.drawable.s_a_username),
@@ -170,7 +168,7 @@ fun ArtistDetails(
                                 .fillMaxWidth()
                                 .fadingEdge(imageFadingEdge)
                                 .clip(
-                                    if (artist?.description != "") RoundedCornerShape(
+                                    if (artist?.biography != "") RoundedCornerShape(
                                         12.dp,
                                         12.dp,
                                         0.dp,
@@ -220,7 +218,7 @@ fun ArtistDetails(
                     }
 
                     // Description
-                    artist?.description?.let { description ->
+                    artist?.biography?.let { description ->
                         var expanded by remember { mutableStateOf(false) }
 
                         val regex = Regex("""<a\s+(?:[^>]*?\s+)?href="([^"]*)"""")
@@ -374,15 +372,14 @@ fun ArtistDetails(
                     AlbumCard(
                         album = album,
                         onClick = {
-                            val album = album.toAlbum()
-                            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                            val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                                 launchSingleTop = true
                             }
                         },
                         onPlay = {
                             coroutineScope.launch {
-                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("id") ?: "")
                                 if (mediaItems.isNotEmpty())
                                     SongHelper.play(
                                         mediaItems = mediaItems.subList(1, mediaItems.size),

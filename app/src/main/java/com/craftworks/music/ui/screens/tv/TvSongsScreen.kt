@@ -37,7 +37,6 @@ import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
 import com.craftworks.music.ui.elements.tv.TvHorizontalSongCard
@@ -78,7 +77,6 @@ fun TvSongsScreen(
         focusRequester.requestFocus()
     }
 
-    if (NavidromeManager.checkActiveServers()) {
         LaunchedEffect(songs.size) {
             if (songs.size % 50 != 0) return@LaunchedEffect
             if (songs.size < 50) return@LaunchedEffect
@@ -93,7 +91,6 @@ fun TvSongsScreen(
                 viewModel.getMoreSongs(50)
             }
         }
-    }
 
     LazyVerticalGrid(
         state = gridState,
