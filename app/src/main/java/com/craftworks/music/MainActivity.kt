@@ -112,8 +112,7 @@ import androidx.tv.material3.NavigationDrawerItem
 import androidx.tv.material3.rememberDrawerState
 import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.rememberManagedMediaController
@@ -324,10 +323,7 @@ class MainActivity : ComponentActivity() {
                 var showNoProvidersDialog by rememberSaveable { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
-                    val folders = LocalProviderManager.getAllFolders()
-                    val servers = NavidromeManager.getAllServers()
-
-                    showNoProvidersDialog = !(folders.isEmpty() && servers.isEmpty())
+                    showNoProvidersDialog = MediaProviderManager.allProviders.value.isEmpty()
                 }
 
                 if (!showNoProvidersDialog) {

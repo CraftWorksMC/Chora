@@ -22,7 +22,7 @@ class SongRepository  {
         MediaProviderManager.currentProvider.value?.getSimilarSongs(songId, count)?.map { it.toMediaItem() } ?: listOf()
     }
 
-    suspend fun scrobbleSong(songId: String, position: Int, playbackRate: Float, event: ScrobbleEvent, submission: Boolean) {
+    suspend fun scrobbleSong(songId: String, position: Int, playbackRate: Float, event: ScrobbleEvent?, submission: Boolean) {
         MediaProviderManager.currentProvider.value?.scrobble(
             id=songId,
             position = position,

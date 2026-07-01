@@ -1,9 +1,7 @@
 package com.craftworks.music
 
 import android.app.Application
-import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.MediaProviderManager
-import com.craftworks.music.managers.NavidromeManager
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp

@@ -99,7 +99,23 @@ abstract class MediaModel (
         val uploadedImage: String?,
         val userFavorite: Boolean,
         val userRating: Int?
-    ) : MediaModel(providerId, providerType, id)
+    ) : MediaModel(providerId, providerType, id) {
+        fun toMediaItem(): androidx.media3.common.MediaItem {
+            val mediaMetadata =
+                MediaMetadata.Builder()
+                    .setTitle(this.name)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_ARTIST)
+                    .setArtworkUri(this.imageUrl?.toUri()) // TODO("Call provider's getImageUrl")
+                    .setIsBrowsable(true)
+                    .setIsPlayable(false)
+                    .build()
+
+            return androidx.media3.common.MediaItem.Builder()
+                .setMediaId(this.id)
+                .setUri(this.id)
+                .build()
+        }
+    }
 
     class Artist(
         providerId: String,
@@ -164,7 +180,32 @@ abstract class MediaModel (
         val name: String,
         val streamUrl: String,
         val uploadedImage: String? = null
-    ) : MediaModel(providerId, providerType, id)
+    ) : MediaModel(providerId, providerType, id) {
+        fun toMediaItem(): androidx.media3.common.MediaItem {
+            val mediaMetadata =
+                MediaMetadata.Builder()
+                    .setStation(this.name)
+                    .setArtist(this.name)
+                    .setArtworkUri(
+                        ("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder).toUri()
+                    )
+                    .setIsPlayable(true)
+                    .setIsBrowsable(false)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
+                    .setExtras(
+                        Bundle().apply {
+                            putString("id", this@InternetRadioStation.id)
+                            putString("homepage", this@InternetRadioStation.homepageUrl ?: "")
+                        }
+                    )
+                    .build()
+
+            return androidx.media3.common.MediaItem.Builder()
+                .setMediaId(this.id)
+                .setMediaMetadata(mediaMetadata)
+                .build()
+        }
+    }
 
     class Playlist(
         providerId: String,

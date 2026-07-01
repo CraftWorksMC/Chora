@@ -91,7 +91,7 @@ abstract class MediaProvider {
     abstract suspend fun removeFromPlaylist(id: String, songIds: List<String>): Boolean
     abstract suspend fun replacePlaylist(id: String, songIds: List<String>): Boolean
     abstract suspend fun savePlayQueue(songs: List<String>, currentIndex: Int? = null, positionMs: Int? = null)
-    abstract suspend fun scrobble(id: String, mediaType: ScrobbleMediaType = ScrobbleMediaType.SONG, playbackRate: Float, submission: Boolean, albumId: String? = null, event: ScrobbleEvent, position: Int? = null)
+    abstract suspend fun scrobble(id: String, mediaType: ScrobbleMediaType = ScrobbleMediaType.SONG, playbackRate: Float, submission: Boolean, albumId: String? = null, event: ScrobbleEvent?, position: Int? = null)
     abstract suspend fun search(query: MediaQuery.SearchQuery): SearchResponse
     abstract suspend fun setPlaylistSongs(id: String, songIds: List<String>)
     abstract suspend fun setRating(ids: List<String>, rating: Int, type: LibraryType): Boolean

@@ -60,6 +60,9 @@ object MediaProviderManager {
         providers[providerId]?.data?.libraries = libraries
         saveProviders()
     }
+    fun checkActiveProvider(): Boolean {
+        return providers.isNotEmpty() && currentProviderId != null
+    }
     private fun updateProvidersFlow() {
         _allProviders.value = providers.values.toList()
     }
