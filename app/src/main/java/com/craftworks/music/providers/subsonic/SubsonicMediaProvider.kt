@@ -3,20 +3,27 @@ package com.craftworks.music.providers.subsonic
 import android.annotation.SuppressLint
 import android.content.Context
 import com.craftworks.music.data.model.AlbumArtistInfo
+import com.craftworks.music.data.model.AlbumArtistListSort
 import com.craftworks.music.data.model.AlbumInfo
+import com.craftworks.music.data.model.AlbumListSort
+import com.craftworks.music.data.model.ArtistListSort
 import com.craftworks.music.data.model.AuthenticationResponse
+import com.craftworks.music.data.model.GenreListSort
 import com.craftworks.music.data.model.GetQueueResponse
 import com.craftworks.music.data.model.ImageRequest
 import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.LyricsResponse
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.MusicFolder
+import com.craftworks.music.data.model.PlaylistListSort
 import com.craftworks.music.data.model.PlaylistRules
 import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.ProviderInfo
 import com.craftworks.music.data.model.ScrobbleEvent
 import com.craftworks.music.data.model.ScrobbleMediaType
 import com.craftworks.music.data.model.SearchResponse
+import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
@@ -49,26 +56,52 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
     )
     @Transient
     override val featureFlags: StateFlow<ProviderFeatures> = _featureFlags.asStateFlow()
+    override val supportedAlbumSort: List<AlbumListSort> = listOf(
+        AlbumListSort.ALBUM_ARTIST,
+        AlbumListSort.ID,
+        AlbumListSort.PLAY_COUNT,
+        AlbumListSort.NAME,
+        AlbumListSort.RANDOM,
+        AlbumListSort.RECENTLY_ADDED,
+        AlbumListSort.RECENTLY_PLAYED,
+        AlbumListSort.FAVORITED,
+        AlbumListSort.YEAR,
+    )
+    override val supportedAlbumArtistSort: List<AlbumArtistListSort> = listOf(
+        AlbumArtistListSort.ALBUM_COUNT,
+        AlbumArtistListSort.FAVORITED,
+        AlbumArtistListSort.NAME,
+        AlbumArtistListSort.RATING,
+    )
+    override val supportedArtistSort: List<ArtistListSort> = listOf(
+        ArtistListSort.ALBUM_COUNT,
+        ArtistListSort.FAVORITED,
+        ArtistListSort.NAME,
+        ArtistListSort.RATING,
+    )
+    override val supportedGenreSort: List<GenreListSort> = listOf(GenreListSort.NAME)
+    override val supportedPlaylistSort: List<PlaylistListSort> = listOf(PlaylistListSort.NAME)
+    override val supportedSongSort: List<SongListSort> = listOf(SongListSort.NAME)
 
     @Transient
-    private var choraVersion: String = "";
+    private var choraVersion: String = ""
 
     companion object {
-        suspend fun md5Hash(input: String): String {
+        fun md5Hash(input: String): String {
             val md = MessageDigest.getInstance("MD5")
             val hashBytes = md.digest(input.toByteArray())
             return hashBytes.joinToString("") { "%02x".format(it) }
         }
 
-        suspend fun generateSalt(length: Int): String {
+        fun generateSalt(length: Int): String {
             val allowedChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
             return (1..length).map { allowedChars.random() }.joinToString("")
         }
     }
 
     private val retrofit: Retrofit by lazy {
-        var builder = Retrofit.Builder();
-        var okBuilder = OkHttpClient.Builder();
+        var builder = Retrofit.Builder()
+        var okBuilder = OkHttpClient.Builder()
 
         okBuilder.addInterceptor {
             if (_salt == null) {
@@ -116,9 +149,9 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
     private val service: SubsonicService by lazy {retrofit.create(SubsonicService::class.java)}
 
     @Transient
-    private var _salt: String? = null;
+    private var _salt: String? = null
     @Transient
-    private var _token: String? = null;
+    private var _token: String? = null
 
     override fun init(context: Context) {
         choraVersion = context.packageManager.getPackageInfo(context.packageName,0).versionName ?: ""
@@ -139,8 +172,8 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         _salt = generateSalt(8)
         _token = md5Hash(password + _salt)
 
-        val res = service.authenticate(username).awaitResponse();
-        val body = res.body();
+        val res = service.authenticate(username).awaitResponse()
+        val body = res.body()
 
         if (res.isSuccessful) return AuthenticationResponse(
             credential = "$_salt:$_token",
@@ -288,7 +321,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         TODO("Not yet implemented")
     }
 
-    override suspend fun getMusicFolderList(): List<MediaModel.Folder> {
+    override suspend fun getMusicFolderList(): List<MusicFolder> {
         TODO("Not yet implemented")
     }
 
@@ -425,7 +458,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         playbackRate: Float,
         submission: Boolean,
         albumId: String?,
-        event: ScrobbleEvent,
+        event: ScrobbleEvent?,
         position: Int?
     ) {
         TODO("Not yet implemented")

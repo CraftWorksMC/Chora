@@ -2,8 +2,12 @@ package com.craftworks.music.providers
 
 import android.content.Context
 import com.craftworks.music.data.model.AlbumArtistInfo
+import com.craftworks.music.data.model.AlbumArtistListSort
 import com.craftworks.music.data.model.AlbumInfo
+import com.craftworks.music.data.model.AlbumListSort
+import com.craftworks.music.data.model.ArtistListSort
 import com.craftworks.music.data.model.AuthenticationResponse
+import com.craftworks.music.data.model.GenreListSort
 import com.craftworks.music.data.model.GetQueueResponse
 import com.craftworks.music.data.model.ImageRequest
 import com.craftworks.music.data.model.LibraryType
@@ -12,12 +16,14 @@ import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaProviderData
 import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.MusicFolder
+import com.craftworks.music.data.model.PlaylistListSort
 import com.craftworks.music.data.model.PlaylistRules
 import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.ProviderInfo
 import com.craftworks.music.data.model.ScrobbleEvent
 import com.craftworks.music.data.model.ScrobbleMediaType
 import com.craftworks.music.data.model.SearchResponse
+import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
@@ -39,6 +45,12 @@ abstract class MediaProvider {
     }
     lateinit var data: MediaProviderData
     abstract val featureFlags: StateFlow<ProviderFeatures>
+    abstract val supportedAlbumSort: List<AlbumListSort>
+    abstract val supportedAlbumArtistSort: List<AlbumArtistListSort>
+    abstract val supportedArtistSort: List<ArtistListSort>
+    abstract val supportedGenreSort: List<GenreListSort>
+    abstract val supportedPlaylistSort: List<PlaylistListSort>
+    abstract val supportedSongSort: List<SongListSort>
 
     abstract fun init(context: Context)
     abstract suspend fun addToPlaylist(playlistId: String, songIds: List<String>) : Boolean
