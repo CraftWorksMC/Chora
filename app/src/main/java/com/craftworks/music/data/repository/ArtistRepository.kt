@@ -28,7 +28,7 @@ class ArtistRepository {
         ))?.map { it.toMediaItem() } ?: listOf()
     }
 
-    suspend fun getArtistInfo(artistId: String): AlbumArtistInfo? = coroutineScope {
-        MediaProviderManager.currentProvider.value?.getAlbumArtistInfo(artistId)
+    suspend fun getArtistDetail(artistId: String): MediaModel.AlbumArtist? = coroutineScope {
+        MediaProviderManager.currentProvider.value?.getAlbumArtistDetail(artistId)
     }
 }

@@ -3,9 +3,12 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import com.craftworks.music.data.model.AlbumListSort
+import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.managers.DataRefreshManager
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.MediaProviderManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -44,16 +47,11 @@ class HomeScreenViewModel @Inject constructor(
                 loadHomeScreenData()
             }
 
-            combine(
-                NavidromeManager.currentServerId,
-                NavidromeManager.libraries
-            ) { serverId, libs -> serverId to libs }
-                .distinctUntilChanged() // This is key!
-                .collect { (serverId, libs) ->
-                    if (serverId != null && libs.isNotEmpty()) {
-                        loadHomeScreenData()
-                    }
+            MediaProviderManager.currentProvider.collect {
+                if (it != null) {
+                    loadHomeScreenData()
                 }
+            }
         }
     }
 
@@ -61,10 +59,26 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             coroutineScope {
-                val recentlyPlayedDeferred = async { albumRepository.getAlbums("recent", 20, 0, true) }
-                val recentDeferred = async { albumRepository.getAlbums("newest", 20, 0, true) }
-                val mostPlayedDeferred = async { albumRepository.getAlbums("frequent", 20, 0, true) }
-                val shuffledDeferred = async { albumRepository.getAlbums("random", 20, 0, true) }
+                val recentlyPlayedDeferred = async { albumRepository.getAlbums(
+                    MediaQuery.AlbumListQuery(
+                    AlbumListSort.RECENTLY_PLAYED, SortOrder.ASC, limit = 20, startIndex = 0
+                    )
+                ) }
+                val recentDeferred = async { albumRepository.getAlbums(
+                    MediaQuery.AlbumListQuery(
+                        AlbumListSort.RECENTLY_ADDED, SortOrder.ASC, limit = 20, startIndex = 0
+                    )
+                ) }
+                val mostPlayedDeferred = async { albumRepository.getAlbums(
+                    MediaQuery.AlbumListQuery(
+                        AlbumListSort.PLAY_COUNT, SortOrder.DESC, limit = 20, startIndex = 0
+                    )
+                ) }
+                val shuffledDeferred = async { albumRepository.getAlbums(
+                    MediaQuery.AlbumListQuery(
+                        AlbumListSort.RANDOM, SortOrder.ASC, limit = 20, startIndex = 0
+                    )
+                ) }
 
                 _recentlyPlayedAlbums.value = recentlyPlayedDeferred.await()
                 _recentAlbums.value = recentDeferred.await()

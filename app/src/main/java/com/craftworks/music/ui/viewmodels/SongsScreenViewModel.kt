@@ -52,7 +52,7 @@ class SongsScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             coroutineScope {
-                _allSongs.value = songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RECENTLY_ADDED, sortOrder = SortOrder.ASC, startIndex = 0))
+                _allSongs.value = songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RECENTLY_ADDED, sortOrder = SortOrder.ASC, startIndex = 0, favorite = _showFavoritesOnly.value))
             }
             _isLoading.value = false
         }
@@ -63,7 +63,7 @@ class SongsScreenViewModel @Inject constructor(
             _isLoading.value = true
             coroutineScope {
                 val songOffset = _allSongs.value.size
-                _allSongs.value += songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RECENTLY_ADDED, sortOrder = SortOrder.ASC, limit = size, startIndex = songOffset))
+                _allSongs.value += songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RECENTLY_ADDED, sortOrder = SortOrder.ASC, limit = size, startIndex = songOffset, favorite = _showFavoritesOnly.value))
             }
             _isLoading.value = false
         }
