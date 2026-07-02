@@ -6,9 +6,6 @@ import com.craftworks.music.utils.StringUtils
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 
 class ProvidersRefactorMigration : Migration {
     private val PREF_SERVERS = "navidrome_servers"
@@ -76,14 +73,7 @@ class ProvidersRefactorMigration : Migration {
     )
 
     @Serializable
-    private abstract class MediaProvider {
-        companion object {
-            val serializerModule = SerializersModule {
-                polymorphic(MediaProvider::class) {
-                    subclass(SubsonicMediaProvider::class)
-                }
-            }
-        }
+    private sealed class MediaProvider {
         lateinit var data: MediaProviderData
     }
 

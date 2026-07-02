@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,12 +18,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -52,10 +53,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.managers.MediaProviderManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
+import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
+import com.craftworks.music.providers.subsonic.SubsonicProviderData
 import com.craftworks.music.ui.elements.bounceClick
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -156,6 +162,7 @@ fun CreateMediaProviderDialog(
     setShowDialog: (Boolean) -> Unit,
     context: Context = LocalContext.current
 ) {
+    var isError: Boolean by remember { mutableStateOf(false) }
     var url: String by remember { mutableStateOf("") }
     var username: String by remember { mutableStateOf("") }
     var password: String by remember { mutableStateOf("") }
@@ -165,11 +172,13 @@ fun CreateMediaProviderDialog(
 
     val coroutineScope = rememberCoroutineScope()
 
-    Dialog(onDismissRequest = { setShowDialog(false) }) {
+    Dialog(
+        onDismissRequest = { setShowDialog(false) },
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Column(
             modifier = Modifier
-                .shadow(12.dp, RoundedCornerShape(24.dp))
-                .clip(RoundedCornerShape(24.dp))
+                .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(24.dp)
                 .widthIn(max = 320.dp)
@@ -196,7 +205,7 @@ fun CreateMediaProviderDialog(
                 onExpandedChange = { expanded = !expanded },
             ) {
                 TextField(
-                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                     readOnly = true,
                     value = selectedOptionText,
                     onValueChange = {},
@@ -272,7 +281,7 @@ fun CreateMediaProviderDialog(
                         label = { Text(stringResource(R.string.Label_Navidrome_URL)) },
                         placeholder = { Text("http://domain.tld:<port>") },
                         singleLine = true,
-                        isError = false//navidromeStatus.value == "Invalid URL" TODO("Check URL error")
+                        isError = isError
                     )
                     /* USERNAME */
                     OutlinedTextField(
@@ -280,7 +289,7 @@ fun CreateMediaProviderDialog(
                         onValueChange = { username = it },
                         label = { Text(stringResource(R.string.Label_Navidrome_Username)) },
                         singleLine = true,
-                        isError = false//navidromeStatus.value == "Wrong username or password" TODO("Check credentials error")
+                        isError = isError // TODO("Check credentials error")
                     )
                     /* PASSWORD */
                     var passwordVisible by remember { mutableStateOf(false) }
@@ -307,7 +316,7 @@ fun CreateMediaProviderDialog(
                                 )
                             }
                         },
-                        isError = false//navidromeStatus.value == "Wrong username or password" TODO("Check URL error")
+                        isError = isError // TODO("Check URL error")
                     )
 
                     /* Allow Self Signed Certs */
@@ -346,28 +355,35 @@ fun CreateMediaProviderDialog(
                         }
                     }*/
 
-                    Crossfade (
+                    Crossfade(
                         true//navidromeStatus.value == "ok" TODO("Check error")
                     ) {
                         if (it) {
                             Button(
                                 onClick = {
                                     coroutineScope.launch {
-                                        /*val server = NavidromeProvider(
-                                            url,
-                                            url,
-                                            username,
-                                            password,
-                                            true,
-                                            allowCerts
+                                        val provider = SubsonicMediaProvider(
+                                            SubsonicProviderData(
+                                                url = url,
+                                                username = username,
+                                                credentials = password,
+                                                allowSelfSignedCert = allowCerts,
+                                            )
                                         )
-                                        NavidromeManager.addServer(server)
-                                        AppearanceSettingsManager(context).setUsername(username)
 
-                                        navidromeStatus.value = ""*/
-                                        TODO("Add provider")
+                                        provider.init(context)
+                                        try {
+                                            provider.authenticate(username, password)
 
-                                        setShowDialog(false)
+                                            MediaProviderManager.addProvider(provider)
+                                            AppearanceSettingsManager(context).setUsername(username)
+                                            setShowDialog(false)
+                                        }
+                                        catch (ex: Exception) {
+                                            println(ex.message)
+                                            println(ex.stackTrace)
+                                            isError = true
+                                        }
                                     }
                                 },
                                 modifier = Modifier
@@ -381,8 +397,7 @@ fun CreateMediaProviderDialog(
                                     stringResource(R.string.Action_Add)
                                 )
                             }
-                        }
-                        else {
+                        } else {
                             OutlinedButton(
                                 onClick = {
                                     TODO("Figure out this (I'm too lazy rn)")

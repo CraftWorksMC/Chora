@@ -101,6 +101,7 @@ dependencies {
 
     implementation(libs.composefadingedges)
     implementation(libs.retrofit)
+    implementation(libs.retrofit.kotlinx.serialization)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

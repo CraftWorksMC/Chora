@@ -29,16 +29,15 @@ import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.MediaProvider
 import com.craftworks.music.utils.StringUtils
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.awaitResponse
-import java.security.MessageDigest
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
@@ -106,7 +105,8 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
                     .addQueryParameter("v", choraVersion)
                     .addQueryParameter("c", "Chora")
                     .addQueryParameter("f", "json")
-                .build())
+                    .build()
+                )
                 .build())
         }
 
@@ -132,8 +132,12 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         }
 
         builder.baseUrl(providerData.url)
-        .client(okBuilder.build())
-        .build()
+            .addConverterFactory(
+                Json { ignoreUnknownKeys = true }
+                    .asConverterFactory("application/json; charset=utf-8".toMediaType())
+            )
+            .client(okBuilder.build())
+            .build()
     }
     private val service: SubsonicService by lazy {retrofit.create(SubsonicService::class.java)}
 
@@ -163,12 +167,13 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         providerData.credentials = "$_salt:$_token"
 
         val res = service.authenticate(username).awaitResponse()
+        println(res.raw().body)
         val body = res.body()
 
         if (res.isSuccessful) return AuthenticationResponse(
             credential = providerData.credentials!!,
-            isAdmin = body?.user?.adminRole ?: false,
-            userId = body?.user?.username,
+            isAdmin = body?.subsonicResponse?.user?.adminRole ?: false,
+            userId = body?.subsonicResponse?.user?.username,
             username = username
         )
 
