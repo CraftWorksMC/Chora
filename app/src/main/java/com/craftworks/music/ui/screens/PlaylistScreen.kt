@@ -66,10 +66,6 @@ fun PlaylistScreen(
         showRipple++
     }
 
-    LaunchedEffect(playlists) {
-        viewModel.updatePlaylistsImages(context)
-    }
-
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     PullToRefreshBox(

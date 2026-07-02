@@ -49,8 +49,6 @@ import androidx.tv.material3.WideCardContainer
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.screens.tv.settings.SettingsSwitchItem
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 import kotlinx.coroutines.launch
@@ -143,7 +141,8 @@ fun SongDialog(
                             headlineContent = { Text(stringResource(R.string.Action_Download)) },
                             onClick = {
                                 coroutineScope.launch {
-                                    downloadNavidromeSong(context, song.mediaMetadata)
+                                    TODO("Download song")
+                                    //downloadNavidromeSong(context, song.mediaMetadata)
 
                                     setShowDialog(false)
                                 }
@@ -206,9 +205,9 @@ private fun AddSongToPlaylist(
                 imageCard = {
                     Card(
                         onClick = {
-                            viewModel.addSongToPlaylist(
-                                playlist.mediaMetadata.extras?.getString("navidromeID") ?: "",
-                                song.mediaMetadata.extras?.getString("navidromeID") ?: ""
+                            viewModel.addSongsToPlaylist(
+                                playlist.mediaMetadata.extras?.getString("id") ?: "",
+                                listOf(song.mediaMetadata.extras?.getString("id") ?: "")
                             )
                             setShowDialog(false)
                         },
@@ -284,10 +283,6 @@ private fun NewPlaylist(
     val context = LocalContext.current
     var playlistName by remember { mutableStateOf("") }
 
-    var addToNavidrome by remember { mutableStateOf(
-        NavidromeManager.checkActiveServers()
-    ) }
-
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = MaterialTheme.colorScheme.primary,
         unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -321,26 +316,18 @@ private fun NewPlaylist(
             ),
             keyboardActions = KeyboardActions(
                 onDone = {
-                    viewModel.createPlaylist(playlistName, song.mediaMetadata.extras?.getString("navidromeID") ?: "", addToNavidrome, context)
+                    viewModel.createPlaylist(playlistName, listOf(song.mediaMetadata.extras?.getString("id") ?: ""), context)
                     setDialogMenu(DialogMenu.MAIN)
                 }
             ),
             colors = textFieldColors,
         )
 
-        SettingsSwitchItem(
-            title = stringResource(R.string.Label_Radio_Add_To_Navidrome),
-            checked = addToNavidrome,
-            onCheckedChange = {
-                addToNavidrome = it
-            }
-        )
-
         ListItem(
             selected = false,
             headlineContent = { Text(stringResource(R.string.Action_Add)) },
             onClick = {
-                viewModel.createPlaylist(playlistName, song.mediaMetadata.extras?.getString("navidromeID") ?: "", addToNavidrome, context)
+                viewModel.createPlaylist(playlistName, listOf(song.mediaMetadata.extras?.getString("id") ?: ""), context)
                 setDialogMenu(DialogMenu.MAIN)
             }
         )

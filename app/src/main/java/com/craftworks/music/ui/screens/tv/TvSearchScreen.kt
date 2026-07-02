@@ -53,7 +53,6 @@ import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.data.model.toAlbum
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
 import com.craftworks.music.ui.elements.tv.TvAlbumCard
@@ -194,9 +193,8 @@ fun TvSearchScreen(
                             focusRequester.saveFocusedChild()
                         },
                         onClick = {
-                            val albumEncoded = it.toAlbum()
-                            val encodedImage = URLEncoder.encode(albumEncoded.coverArt, "UTF-8")
-                            navHostController.navigate(Screen.AlbumDetails.route + "/${albumEncoded.navidromeID}/$encodedImage") {
+                            val encodedImage = URLEncoder.encode(it.mediaMetadata.artworkUri.toString(), "UTF-8")
+                            navHostController.navigate(Screen.AlbumDetails.route + "/${it.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                                 launchSingleTop = true
                             }
                         }
@@ -232,7 +230,7 @@ fun TvSearchScreen(
             2 -> {
                 items(
                     items = artists,
-                    key = { artist -> artist.navidromeID }
+                    key = { artist -> artist.id }
                 ) {
                     TvArtistCard(
                         artist = it,

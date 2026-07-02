@@ -160,8 +160,8 @@ fun RadioScreen(
     if (showRadioAddDialog)
         AddRadioDialog(
             setShowDialog = { showRadioAddDialog = it },
-            onAdded = { name, url, homePageUrl, addToNavidrome ->
-                viewModel.addRadioStation(name, url, homePageUrl, addToNavidrome)
+            onAdded = { name, url, homePageUrl ->
+                viewModel.addRadioStation(name, url, homePageUrl)
                 onRefresh.invoke()
             }
         )
@@ -170,12 +170,12 @@ fun RadioScreen(
         ModifyRadioDialog(
             setShowDialog = { showRadioModifyDialog = it },
             radio = selectedRadio,
-            onModified = { id, name, url, homepage ->
-                viewModel.modifyRadioStation(id, name, url, homepage)
+            onModified = { providerId, id, name, url, homepage ->
+                viewModel.modifyRadioStation(providerId, id, name, url, homepage)
                 onRefresh.invoke()
             },
-            onDeleted = {
-                viewModel.deleteRadioStation(it)
+            onDeleted = { providerId, id ->
+                viewModel.deleteRadioStation(providerId, id)
                 onRefresh.invoke()
             }
         )

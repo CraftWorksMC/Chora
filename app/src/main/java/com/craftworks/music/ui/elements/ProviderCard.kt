@@ -1,7 +1,6 @@
 package com.craftworks.music.ui.elements
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -43,10 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.craftworks.music.R
-import com.craftworks.music.data.NavidromeProvider
 import com.craftworks.music.data.repository.LyricsState
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.ui.elements.dialogs.EditLrcLibUrlDialog
@@ -87,7 +83,7 @@ fun LocalProviderCard(local: String = "", context: Context = LocalContext.curren
 
         // Delete Button
         Button(
-            onClick = { LocalProviderManager.removeFolder(local) },
+            onClick = { TODO("Delete this") },
             shape = CircleShape,
             modifier = Modifier
                 .size(32.dp),
@@ -125,6 +121,8 @@ fun LocalProviderCard(local: String = "", context: Context = LocalContext.curren
     }
 }
 
+// TODO("I wanna die")
+/*
 @Preview
 @Composable
 fun NavidromeProviderCard(
@@ -209,7 +207,7 @@ fun NavidromeProviderCard(
 
         Spacer(Modifier.width(20.dp))
     }
-}
+}*/
 
 @Preview
 @Composable

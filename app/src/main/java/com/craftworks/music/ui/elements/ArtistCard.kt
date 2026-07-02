@@ -29,11 +29,11 @@ import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.MediaModel
 
 @Stable
 @Composable
-fun ArtistCard(artist: MediaData.Artist, onClick: () -> Unit) {
+fun ArtistCard(artist: MediaModel.AlbumArtist, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             //.padding(12.dp)
@@ -46,10 +46,10 @@ fun ArtistCard(artist: MediaData.Artist, onClick: () -> Unit) {
     ) {
         SubcomposeAsyncImage (
             model = ImageRequest.Builder(LocalContext.current)
-                .data(artist.artistImageUrl)
+                .data(artist.imageUrl)
                 .crossfade(true)
                 .diskCacheKey(
-                    artist.navidromeID
+                    artist.id
                 )
                 .build(),
             contentScale = ContentScale.Crop,

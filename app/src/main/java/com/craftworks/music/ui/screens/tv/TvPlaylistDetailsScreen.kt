@@ -59,7 +59,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.formatSeconds
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
@@ -148,7 +148,7 @@ fun TvPlaylistDetails(
 
                     // duration
                     Text(
-                        text = formatMilliseconds((playlistDuration / 1000).toInt()),
+                        text = formatSeconds((playlistDuration / 1000).toInt()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center,

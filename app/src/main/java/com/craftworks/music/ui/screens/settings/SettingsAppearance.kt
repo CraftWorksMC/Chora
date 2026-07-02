@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.screens.settings
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -78,6 +79,7 @@ import com.craftworks.music.ui.playing.NowPlayingAlignment
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 @Preview(showSystemUi = false, showBackground = true)

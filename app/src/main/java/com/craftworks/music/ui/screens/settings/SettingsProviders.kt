@@ -40,12 +40,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.providers.navidrome.navidromeStatus
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.LRCLIBProviderCard
-import com.craftworks.music.ui.elements.LocalProviderCard
-import com.craftworks.music.ui.elements.NavidromeProviderCard
 import com.craftworks.music.ui.elements.NetEaseProviderCard
 import com.craftworks.music.ui.elements.dialogs.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
@@ -106,24 +102,24 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
 
                 NetEaseProviderCard(context)
 
-                val localProviders by LocalProviderManager.allFolders.collectAsStateWithLifecycle()
-                val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
+                val providers by MediaProviderManager.allProviders.collectAsStateWithLifecycle()
+
+                // TODO("Update providers settings")
 
                 // Local Providers First
-                for (local in localProviders) {
+                /*for (local in localProviders) {
                     LocalProviderCard(local, context)
-                }
+                }*/
 
                 // Then Navidrome Providers
-                for (server in navidromeServers) {
+                /*for (server in navidromeServers) {
                     NavidromeProviderCard(server)
-                }
+                }*/
             }
 
             FloatingActionButton(
                 onClick = {
                     showNavidromeServerDialog = true
-                    navidromeStatus.value = ""
                 },
                 modifier = Modifier.padding(12.dp).align(Alignment.BottomEnd),
                 shape = FloatingActionButtonDefaults.extendedFabShape,

@@ -76,8 +76,7 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.data.model.toAlbum
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.formatSeconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.tv.TvAlbumCard
@@ -255,9 +254,8 @@ fun TvHomeScreen(
                         TvAlbumCard(
                             album = album,
                             onClick = {
-                                val albumEncoded = album.toAlbum()
-                                val encodedImage = URLEncoder.encode(albumEncoded.coverArt, "UTF-8")
-                                navHostController.navigate(Screen.AlbumDetails.route + "/${albumEncoded.navidromeID}/$encodedImage") {
+                                val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                                navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                                     launchSingleTop = true
                                 }
                             }
@@ -281,7 +279,7 @@ private fun CarouselItem(
     val title = album.mediaMetadata.title?.toString() ?: ""
     val artist = album.mediaMetadata.artist?.toString() ?: ""
     val genre = album.mediaMetadata.genre?.toString() ?: ""
-    val duration = formatMilliseconds(
+    val duration = formatSeconds(
         album.mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0
     )
     val subtitle = listOf(genre, artist, duration)

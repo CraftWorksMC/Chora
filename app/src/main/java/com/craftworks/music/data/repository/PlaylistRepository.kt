@@ -1,64 +1,37 @@
 package com.craftworks.music.data.repository
 
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.datasource.local.LocalDataSource
-import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.managers.NavidromeManager
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.managers.MediaProviderManager
 import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PlaylistRepository @Inject constructor(
-    private val localDataSource: LocalDataSource,
-    private val navidromeDataSource: NavidromeDataSource
-) {
+class PlaylistRepository @Inject constructor() {
 
-    suspend fun getPlaylists(ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
-        val deferredPlaylists = mutableListOf<Deferred<List<MediaItem>>>()
-
-        if (NavidromeManager.checkActiveServers())
-            deferredPlaylists.add(async { navidromeDataSource.getNavidromePlaylists(ignoreCachedResponse) })
-
-        //if (LocalProviderManager.checkActiveFolders())
-        deferredPlaylists.add(async { localDataSource.getLocalPlaylists() })
-
-        deferredPlaylists.awaitAll().flatten()
+    suspend fun getPlaylists(query: MediaQuery.PlaylistListQuery): List<MediaItem> = coroutineScope {
+        MediaProviderManager.currentProvider.value?.getPlaylistList(query)?.map { it.toMediaItem() } ?: listOf()
     }
 
-    suspend fun getPlaylistSongs(playlistId: String, ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
-        if (playlistId.startsWith("Local_")){
-            localDataSource.getLocalPlaylistSongs(playlistId)
-        } else {
-            navidromeDataSource.getNavidromePlaylist(playlistId, ignoreCachedResponse) ?: emptyList()
-        }
+    suspend fun getPlaylistSongs(playlistId: String): List<MediaItem> = coroutineScope {
+        MediaProviderManager.currentProvider.value?.getPlaylistSongList(playlistId)?.map { it.toMediaItem() } ?: listOf()
     }
 
-    suspend fun createPlaylist(name: String, songsToAdd: String, addToNavidrome: Boolean) {
-        if (NavidromeManager.checkActiveServers() && addToNavidrome) {
-            navidromeDataSource.createNavidromePlaylist(name, listOf(songsToAdd), true)
-        }
-        else {
-            localDataSource.createLocalPlaylist(name, songsToAdd)
-        }
+    suspend fun createPlaylist(name: String, comment: String = "", songsToAdd: List<String>, public: Boolean) {
+        val playlistId = MediaProviderManager.currentProvider.value?.createPlaylist(name, comment, public = public)
+        if (playlistId != null) addSongsToPlaylist(playlistId, songsToAdd)
     }
 
-    suspend fun addSongToPlaylist(playlistId: String, songID: String) {
-        if (playlistId.startsWith("Local_")){
-            localDataSource.addSongToLocalPlaylist(playlistId, songID)
-        } else {
-            navidromeDataSource.addSongToNavidromePlaylist(playlistId, songID, true)
-        }
+    suspend fun addSongsToPlaylist(playlistId: String, songsToAdd: List<String>) {
+        MediaProviderManager.currentProvider.value?.addToPlaylist(playlistId, songsToAdd)
+    }
+
+    suspend fun removeSongsFromPlaylist(playlistId: String, songsToRemove: List<String>) {
+        MediaProviderManager.currentProvider.value?.removeFromPlaylist(playlistId,songsToRemove)
     }
 
     suspend fun deletePlaylist(playlistId: String) {
-        if (playlistId.startsWith("Local_")){
-            localDataSource.deleteLocalPlaylist(playlistId)
-        } else {
-            navidromeDataSource.deleteNavidromePlaylist(playlistId, true)
-        }
+        MediaProviderManager.currentProvider.value?.deletePlaylist(playlistId)
     }
 }

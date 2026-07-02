@@ -5,10 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.PlaylistListSort
+import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.data.repository.StarredRepository
 import com.craftworks.music.managers.DataRefreshManager
-import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -48,7 +50,13 @@ class PlaylistScreenViewModel @Inject constructor(
     fun loadPlaylists() {
         viewModelScope.launch {
             _isLoading.value = true
-            _allPlaylists.value = playlistRepository.getPlaylists(true)
+            _allPlaylists.value = playlistRepository.getPlaylists(
+                MediaQuery.PlaylistListQuery(
+                    PlaylistListSort.NAME,
+                    SortOrder.ASC,
+                    startIndex = 0
+                )
+            )
             _isLoading.value = false
         }
     }
@@ -59,28 +67,10 @@ class PlaylistScreenViewModel @Inject constructor(
         fetchPlaylistDetails() // Fetch details when playlist is set
     }
 
-    suspend fun updatePlaylistsImages(context: Context) {
-        _allPlaylists.value = _allPlaylists.value.map {
-            if (it.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true && it.mediaMetadata.artworkData == null) {
-                val songs = playlistRepository.getPlaylistSongs(it.mediaMetadata.extras?.getString("navidromeID") ?: "", true)
-                it.buildUpon()
-                    .setMediaMetadata(
-                        it.mediaMetadata.buildUpon()
-                            .setArtworkData(localPlaylistImageGenerator(songs, context), MediaMetadata.PICTURE_TYPE_OTHER)
-                            .build()
-                    )
-                    .build()
-            } else {
-                it
-            }
-        }
-    }
-
     fun fetchPlaylistDetails() {
         if (_selectedPlaylist.value == null) return
 
-        val playlistId = _selectedPlaylist.value?.mediaMetadata?.extras?.getString("navidromeID")
-        if (playlistId == null) return
+        val playlistId = _selectedPlaylist.value?.mediaMetadata?.extras?.getString("id") ?: return
 
         println("Fetching playlist details for playlist ID: $playlistId")
 
@@ -100,21 +90,20 @@ class PlaylistScreenViewModel @Inject constructor(
         }
     }
 
-    fun createPlaylist(name: String, songstoAdd: String, addToNavidrome: Boolean, context: Context) {
+    fun createPlaylist(name: String, songstoAdd: List<String>, context: Context) {
         viewModelScope.launch {
             _isLoading.value = true
-            playlistRepository.createPlaylist(name, songstoAdd, addToNavidrome)
+            playlistRepository.createPlaylist(name, "", songstoAdd, false)
             DataRefreshManager.notifyDataSourcesChanged()
             _isLoading.value = false
-            updatePlaylistsImages(context)
             loadPlaylists()
         }
     }
 
-    fun addSongToPlaylist(playlistId: String, songId: String) {
+    fun addSongsToPlaylist(playlistId: String, songIds: List<String>) {
         viewModelScope.launch {
             _isLoading.value = true
-            playlistRepository.addSongToPlaylist(playlistId, songId)
+            playlistRepository.addSongsToPlaylist(playlistId, songIds)
             _isLoading.value = false
             loadPlaylists()
         }

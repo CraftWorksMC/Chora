@@ -17,12 +17,12 @@ import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.MediaModel
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvArtistCard(
-    artist: MediaData.Artist,
+    artist: MediaModel.AlbumArtist,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -32,8 +32,8 @@ fun TvArtistCard(
         image = {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(artist.artistImageUrl)
-                    .diskCacheKey(artist.navidromeID)
+                    .data(artist.imageUrl)
+                    .diskCacheKey(artist.id)
                     .crossfade(true).build(),
                 placeholder = painterResource(R.drawable.placeholder),
                 fallback = painterResource(R.drawable.placeholder),

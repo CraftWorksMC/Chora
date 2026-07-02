@@ -1,7 +1,9 @@
-package com.craftworks.music.data
+package com.craftworks.music.legacy.data
 
 import kotlinx.serialization.Serializable
 
+// LEGACY CODE! MUST NOT BE USED
+// TODO("Delete legacy file")
 @Serializable
 data class NavidromeProvider (
     val id: String = "0",

@@ -30,23 +30,21 @@ import androidx.tv.material3.Tab
 import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
 import com.craftworks.music.R
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.ui.elements.dialogs.tv.CreateLocalProviderDialog
 import com.craftworks.music.ui.elements.dialogs.tv.CreateNavidromeProviderDialog
 import com.craftworks.music.ui.elements.dialogs.tv.ModifyLrcLibProviderDialog
-import com.craftworks.music.ui.elements.tv.LocalProviderCard
 import com.craftworks.music.ui.elements.tv.LrcLibProviderCard
-import com.craftworks.music.ui.elements.tv.NavidromeProviderCard
 import com.craftworks.music.ui.elements.tv.NetEaseProviderCard
 
 @Composable
 fun TvS_ProviderScreen() {
     val context = LocalContext.current.applicationContext
 
-    val localProviders by LocalProviderManager.allFolders.collectAsStateWithLifecycle()
-    val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
+    // TODO("Update providers settings")
+
+    val providers by MediaProviderManager.allProviders.collectAsStateWithLifecycle()
 
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Navidrome", "Folders", "Lyrics")
@@ -87,9 +85,9 @@ fun TvS_ProviderScreen() {
                 contentPadding = PaddingValues(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(navidromeServers, key = { it.id }) { server ->
+                /*items(providers, key = { it.first }) { server ->
                     NavidromeProviderCard(server)
-                }
+                }*/
                 item {
                     ListItem(
                         selected = false,
@@ -106,7 +104,7 @@ fun TvS_ProviderScreen() {
                 }
             }
 
-            1 -> LazyColumn(
+            /*1 -> LazyColumn(
                 contentPadding = PaddingValues(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -127,7 +125,7 @@ fun TvS_ProviderScreen() {
                         }
                     )
                 }
-            }
+            }*/
 
             2 -> Column(
                 modifier = Modifier.padding(vertical = 8.dp),

@@ -3,6 +3,8 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import com.craftworks.music.data.model.AlbumListSort
+import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.managers.DataRefreshManager
@@ -33,7 +35,7 @@ class AlbumScreenViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _sortOrder = MutableStateFlow(SortOrder.ALPHABETICAL)
+    private val _sortOrder = MutableStateFlow(SortOrder.ASC)
     val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
     private val _showFavoritesOnly = MutableStateFlow(false)
     val showFavoritesOnly: StateFlow<Boolean> = _showFavoritesOnly.asStateFlow()
@@ -62,22 +64,12 @@ class AlbumScreenViewModel @Inject constructor(
     fun getAlbums() {
         _allAlbums.value = emptyList()
 
-        getAlbumsJob?.cancel()
-
-        getAlbumsJob = viewModelScope.launch {
+        viewModelScope.launch {
             _isLoading.value = true
-
-            try {
-                coroutineScope {
-                    val allAlbumsDeferred = async { albumRepository.getAlbums(_sortOrder.value.key, 50, 0, true, _showFavoritesOnly.value) }
-
-                    _allAlbums.value = allAlbumsDeferred.await().sortedByDescending {
-                        it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")
-                    }
-                }
-                _isLoading.value = false
-            } finally {
-                _isLoading.value = false
+            coroutineScope {
+                _allAlbums.value = async { albumRepository.getAlbums(MediaQuery.AlbumListQuery(
+                    AlbumListSort.NAME, _sortOrder.value, limit = 50, startIndex = 0, favorite = _showFavoritesOnly.value
+                )) }.await()
             }
         }
     }
@@ -91,7 +83,9 @@ class AlbumScreenViewModel @Inject constructor(
         viewModelScope.launch {
             coroutineScope {
                 val albumOffset = _allAlbums.value.size
-                val newAlbums = albumRepository.getAlbums(_sortOrder.value.key, size, albumOffset, favoritesOnly=_showFavoritesOnly.value)
+                val newAlbums = albumRepository.getAlbums(MediaQuery.AlbumListQuery(
+                    AlbumListSort.NAME, _sortOrder.value, limit = size, startIndex = albumOffset, favorite = _showFavoritesOnly.value
+                ))
                 _allAlbums.value += newAlbums
             }
         }
@@ -105,7 +99,9 @@ class AlbumScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             coroutineScope {
-                _searchResults.value = albumRepository.searchAlbum(query)
+                _searchResults.value = albumRepository.getAlbums(MediaQuery.AlbumListQuery(
+                    AlbumListSort.NAME, _sortOrder.value, searchTerm = query, startIndex = 0
+                ))
             }
             _isLoading.value = false
         }

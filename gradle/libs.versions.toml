@@ -25,6 +25,7 @@ hiltExt = "1.3.0"
 tvMaterial = "1.1.0"
 tvFoundation = "1.0.0"
 snakeYaml = "3.0.1"
+retrofit = "3.0.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -69,6 +70,7 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltExt" }
 org-snakeyaml = { module = "org.snakeyaml:snakeyaml-engine", version.ref = "snakeYaml" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 
 [plugins]
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

@@ -70,10 +70,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.fadingEdge
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.formatSeconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.providers.navidrome.downloadNavidromeAlbum
 import com.craftworks.music.ui.elements.GenrePill
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
@@ -204,7 +203,7 @@ fun AlbumDetails(
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = currentAlbum[0].mediaMetadata.artist.toString() + " • " + formatMilliseconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0),
+                            text = currentAlbum[0].mediaMetadata.artist.toString() + " • " + formatSeconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0),
                             color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Normal,
                             fontSize = MaterialTheme.typography.titleMedium.fontSize,
@@ -272,7 +271,8 @@ fun AlbumDetails(
                         Button(
                             onClick = {
                                 coroutineScope.launch {
-                                    downloadNavidromeAlbum(context, currentAlbum[0].mediaMetadata.title.toString(), currentAlbum.subList(1, currentAlbum.size))
+                                    TODO("Download album")
+                                    //downloadNavidromeAlbum(context, currentAlbum[0].mediaMetadata.title.toString(), currentAlbum.subList(1, currentAlbum.size))
                                 }
                             },
                             shape = RoundedCornerShape(12.dp),
@@ -329,13 +329,13 @@ fun AlbumDetails(
                         onClick = {
                             mediaController?.shuffleModeEnabled = true
                             coroutineScope.launch {
-                            val random = currentAlbum.subList(1, currentAlbum.size).indices.random()
-                            SongHelper.play(
-                                currentAlbum.subList(1, currentAlbum.size),
-                                random,
-                                mediaController
-                            )
-                                }
+                                val random = currentAlbum.subList(1, currentAlbum.size).indices.random()
+                                SongHelper.play(
+                                    currentAlbum.subList(1, currentAlbum.size),
+                                    random,
+                                    mediaController
+                                )
+                            }
                         },
                         modifier = Modifier.widthIn(min = 128.dp, max = 320.dp)
                     ) {

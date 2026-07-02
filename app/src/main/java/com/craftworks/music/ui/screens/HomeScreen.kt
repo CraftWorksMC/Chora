@@ -67,7 +67,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.AlbumRow
@@ -113,7 +113,8 @@ fun HomeScreen(
         showRipple++
     }
 
-    val libraries by NavidromeManager.libraries.collectAsStateWithLifecycle()
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
+    val libraries = currentProvider?.data?.libraries
 
     PullToRefreshBox(
         modifier = Modifier,
@@ -134,7 +135,7 @@ fun HomeScreen(
                 Row (Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     val username = AppearanceSettingsManager(context).usernameFlow.collectAsState("Username")
                     val showNavidromeLogo =
-                        AppearanceSettingsManager(context).showNavidromeLogoFlow.collectAsState(true).value && NavidromeManager.checkActiveServers()
+                        AppearanceSettingsManager(context).showNavidromeLogoFlow.collectAsState(true).value //TODO("Provider-dependent logo")
 
                     if (showNavidromeLogo) NavidromeLogo()
 
@@ -174,17 +175,11 @@ fun HomeScreen(
                     .padding(horizontal = 12.dp)
                     .horizontalScroll(rememberScrollState())
             ) {
-                if (libraries.size > 1) {
-                    libraries.forEach { (library, isSelected) ->
+                if ((libraries?.size ?: 0) > 1) {
+                    libraries?.forEach { (library, isSelected) ->
                         FilterChip(
                             onClick = {
-                                NavidromeManager.currentServerId.value?.let { serverId ->
-                                    NavidromeManager.toggleServerLibraryEnabled(
-                                        serverId,
-                                        library.id,
-                                        !isSelected
-                                    )
-                                }
+                                TODO("Toggle Music folder")
                                 showRipple++
                             },
                             label = {
@@ -356,14 +351,14 @@ fun HomeScreen(
         AlbumRow(
             albums,
             onAlbumSelected = { album ->
-                val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                     launchSingleTop = true
                 }
             },
             onPlay = { album ->
                 coroutineScope.launch {
-                    val mediaItems = viewModel.getAlbumSongs(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                    val mediaItems = viewModel.getAlbumSongs(album.mediaMetadata.extras?.getString("id") ?: "")
                     if (mediaItems.isNotEmpty())
                         SongHelper.play(
                             mediaItems = mediaItems.subList(1, mediaItems.size),

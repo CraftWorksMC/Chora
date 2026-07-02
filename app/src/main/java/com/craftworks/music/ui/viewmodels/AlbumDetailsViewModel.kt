@@ -3,6 +3,7 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.data.repository.StarredRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,12 +43,12 @@ class AlbumDetailsViewModel @Inject constructor(
 
     fun starAlbum(id: String) {
         viewModelScope.launch {
-            starredRepository.starItem(albumId = id, ignoreCachedResponse = true)
+            starredRepository.starItem(listOf(id), LibraryType.ALBUM)
         }
     }
     fun unstarAlbum(id: String) {
         viewModelScope.launch {
-            starredRepository.unStarItem(albumId = id, ignoreCachedResponse = true)
+            starredRepository.unStarItem(listOf(id), LibraryType.ALBUM)
         }
     }
 }

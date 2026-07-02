@@ -61,11 +61,12 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.fadingEdge
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.formatSeconds
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
-import com.craftworks.music.providers.navidrome.downloadNavidromeAlbum
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
@@ -190,10 +191,14 @@ fun PlaylistDetails(
                         )
                     }
 
+                    if (MediaProviderManager.getProvider(
+                            playlistMetadata?.extras?.getString("providerId")?:""
+                    )?.featureFlags?.has(ProviderFeatures.DOWNLOADS) ?: false)
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                downloadNavidromeAlbum(context, playlistMetadata?.title.toString(), playlistSongs)
+                                TODO("Download playlist")
+                                //downloadNavidromeAlbum(context, playlistMetadata?.title.toString(), playlistSongs)
                             }
                         },
                         shape = RoundedCornerShape(12.dp),
@@ -226,7 +231,7 @@ fun PlaylistDetails(
                             lineHeight = 32.sp,
                         )
                         Text(
-                            text = formatMilliseconds((playlistDuration / 1000).toInt()),
+                            text = formatSeconds((playlistDuration / 1000).toInt()),
                             color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Normal,
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,

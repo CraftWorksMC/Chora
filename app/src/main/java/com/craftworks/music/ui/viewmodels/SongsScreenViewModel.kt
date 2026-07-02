@@ -3,6 +3,9 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.SongListSort
+import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
@@ -49,7 +52,7 @@ class SongsScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             coroutineScope {
-                _allSongs.value = songRepository.getSongs(ignoreCachedResponse = true, favoritesOnly = _showFavoritesOnly.value)
+                _allSongs.value = songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RECENTLY_ADDED, sortOrder = SortOrder.ASC, startIndex = 0, favorite = _showFavoritesOnly.value))
             }
             _isLoading.value = false
         }
@@ -60,7 +63,7 @@ class SongsScreenViewModel @Inject constructor(
             _isLoading.value = true
             coroutineScope {
                 val songOffset = _allSongs.value.size
-                _allSongs.value += songRepository.getSongs(songCount = size, songOffset = songOffset)
+                _allSongs.value += songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RECENTLY_ADDED, sortOrder = SortOrder.ASC, limit = size, startIndex = songOffset, favorite = _showFavoritesOnly.value))
             }
             _isLoading.value = false
         }
@@ -74,7 +77,7 @@ class SongsScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             coroutineScope {
-                _searchResults.value = songRepository.searchSongs(query)
+                _searchResults.value = songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RECENTLY_ADDED, sortOrder = SortOrder.ASC, searchTerm = query, startIndex = 0))
             }
             _isLoading.value = false
         }

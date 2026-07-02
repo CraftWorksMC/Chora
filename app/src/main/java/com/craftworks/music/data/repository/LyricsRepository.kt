@@ -6,10 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.datasource.lrclib.LrclibDataSource
-import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
 import com.craftworks.music.data.datasource.netease.NeteaseDataSource
 import com.craftworks.music.data.model.Lyric
-import com.craftworks.music.managers.NavidromeManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -29,8 +27,7 @@ object LyricsState {
 @Singleton
 class LyricsRepository @Inject constructor(
     val lrclibDataSource: LrclibDataSource,
-    val neteaseDataSource: NeteaseDataSource,
-    val navidromeDataSource: NavidromeDataSource
+    val neteaseDataSource: NeteaseDataSource
 ) {
     private var lyricsFetchJob: Job? = null
 
@@ -38,7 +35,8 @@ class LyricsRepository @Inject constructor(
         // Try getting lyrics through navidrome, first synced then plain.
         // If that fails, try LRCLIB.net or NetEase.
         // If we turned them off, or we cannot find lyrics, then return an empty list
-
+        TODO("Fetch lyrics from the current media provider")
+/*
         if (metadata?.mediaType == MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
             LyricsState.lyrics.value = listOf()
             return
@@ -136,5 +134,6 @@ class LyricsRepository @Inject constructor(
                 }
             }
         }
+        */
     }
 }

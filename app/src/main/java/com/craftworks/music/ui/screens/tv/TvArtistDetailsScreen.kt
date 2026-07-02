@@ -58,7 +58,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.data.model.toAlbum
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.tv.TvAlbumCard
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
@@ -120,8 +119,8 @@ fun TvArtistDetailsScreen(
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(artist?.artistImageUrl)
-                            .diskCacheKey(artist?.navidromeID)
+                            .data(artist?.imageUrl)  // TODO("Call provider's getImageUrl")
+                            .diskCacheKey(artist?.id)
                             .crossfade(true)
                             .build(),
                         fallback = painterResource(R.drawable.rounded_artist_24),
@@ -149,7 +148,7 @@ fun TvArtistDetailsScreen(
 
                         // Biography
                         Text(
-                            text = artist?.description?.split("<a target")?.first() ?: "",
+                            text = artist?.biography?.split("<a target")?.first() ?: "",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         )
@@ -251,9 +250,8 @@ fun TvArtistDetailsScreen(
                     TvAlbumCard(
                         album = album,
                         onClick = {
-                            val album = album.toAlbum()
-                            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                            val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                                 launchSingleTop = true
                             }
                         },

@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.compose.ui.util.fastFilter
 import androidx.core.math.MathUtils.clamp
-import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -30,14 +29,21 @@ import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionError
 import com.craftworks.music.MainActivity
 import com.craftworks.music.R
-import com.craftworks.music.data.model.toMediaItem
+import com.craftworks.music.data.model.AlbumArtistListSort
+import com.craftworks.music.data.model.AlbumListSort
+import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.PlaylistListSort
+import com.craftworks.music.data.model.ProviderFeatures
+import com.craftworks.music.data.model.ScrobbleEvent
+import com.craftworks.music.data.model.SongListSort
+import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.data.repository.ArtistRepository
 import com.craftworks.music.data.repository.LyricsRepository
 import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.data.repository.RadioRepository
 import com.craftworks.music.data.repository.SongRepository
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.TranscodeManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
@@ -257,7 +263,9 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             .setSeekParameters(SeekParameters.EXACT)
             .setMediaSourceFactory(DefaultMediaSourceFactory(resolvingDataSourceFactory))
             .setWakeMode(
-                if (NavidromeManager.checkActiveServers())
+                if (MediaProviderManager.currentProvider.value?.featureFlags?.has(
+                        ProviderFeatures.OFFLINE_PLAYBACK
+                    ) ?: false)
                     C.WAKE_MODE_NETWORK
                 else
                     C.WAKE_MODE_LOCAL
@@ -289,8 +297,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
                 serviceIOScope.launch {
                     lyricsRepository.getLyrics(mediaItem?.mediaMetadata)
-                    val mediaId = mediaItem?.mediaMetadata?.extras?.getString("navidromeID") ?: return@launch
-                    songRepository.scrobbleSong(mediaId, false)
+                    val mediaId = mediaItem?.mediaMetadata?.extras?.getString("id") ?: return@launch
+                    songRepository.scrobbleSong(mediaId, 0, 1f, ScrobbleEvent.START, false)
                 }
 
                 /*
@@ -343,13 +351,10 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
                     if (progress >= scrobblePercentage) {
                         playerScrobbled = true
-                        if (NavidromeManager.checkActiveServers() &&
-                            mediaItem?.mediaMetadata?.extras?.getString("navidromeID")
-                                ?.startsWith("Local") == false &&
-                            mediaItem.mediaMetadata.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION
-                        ) {
+                        if (mediaItem?.mediaMetadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
                             serviceIOScope.launch {
-                                songRepository.scrobbleSong(mediaItem.mediaMetadata.extras?.getString("navidromeID") ?: "", true)
+                                songRepository.scrobbleSong(mediaItem?.mediaMetadata?.extras?.getString("id") ?: "", currentPosition.toInt(), 1f,
+                                    ScrobbleEvent.START , true)
                             }
                         }
                     }
@@ -634,7 +639,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             return Futures.immediateFuture(
                 LibraryResult.ofItemList(
                     runBlocking {
-                        songRepository.getSongs(query).toMutableList()
+                        songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.NAME, sortOrder = SortOrder.ASC, searchTerm = query, startIndex = 0)).toMutableList()
                     },
                     LibraryParams.Builder().build()
                 )
@@ -653,14 +658,12 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 browser,
                 query,
                 runBlocking {
-                    songRepository.getSongs(query).size +
-                            albumRepository.searchAlbum(query).size +
-                            radioRepository.getRadios().map { it.toMediaItem() }.fastFilter {
-                                it.mediaMetadata.station?.contains(
-                                    query
-                                ) ?: false
-                            }.size +
-                            playlistRepository.getPlaylists().fastFilter {
+                    songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.NAME, sortOrder = SortOrder.ASC, searchTerm = query, startIndex = 0)).size +
+                            albumRepository.getAlbums(MediaQuery.AlbumListQuery(sortBy = AlbumListSort.NAME, sortOrder = SortOrder.ASC, searchTerm = query, startIndex = 0)).size +
+                            radioRepository.getRadios().fastFilter {
+                                it.name.contains(query)
+                            }.map { it.toMediaItem() }.size +
+                            playlistRepository.getPlaylists(MediaQuery.PlaylistListQuery(sortBy = PlaylistListSort.NAME, sortOrder = SortOrder.ASC, searchTerm = query, startIndex = 0)).fastFilter {
                                 it.mediaMetadata.title?.contains(
                                     query
                                 ) == true
@@ -751,8 +754,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         println("GETTING ANDROID AUTO SCREEN ITEMS")
         runBlocking {
             if (aHomeScreenItems.isEmpty()) {
-                val recentlyPlayedAlbums = async { albumRepository.getAlbums("recent", 6) }.await()
-                val mostPlayedAlbums = async { albumRepository.getAlbums("frequent", 6) }.await()
+                val recentlyPlayedAlbums = async { albumRepository.getAlbums(MediaQuery.AlbumListQuery(sortBy = AlbumListSort.RECENTLY_PLAYED, sortOrder = SortOrder.ASC, limit = 6, startIndex = 0)) }.await()
+                val mostPlayedAlbums = async { albumRepository.getAlbums(MediaQuery.AlbumListQuery(sortBy = AlbumListSort.PLAY_COUNT, sortOrder = SortOrder.ASC, limit = 6, startIndex = 0)) }.await()
 
                 recentlyPlayedAlbums.forEach { album ->
                     aHomeScreenItems.add(
@@ -785,7 +788,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         runBlocking {
             if (aAlbumScreenItems.isEmpty()) {
                 while (true) {
-                    val albums = async { albumRepository.getAlbums("alphabeticalByName", 250, aAlbumScreenItems.size) }.await()
+                    val albums = async { albumRepository.getAlbums(MediaQuery.AlbumListQuery(sortBy = AlbumListSort.NAME, sortOrder = SortOrder.ASC, limit = 250, startIndex = aAlbumScreenItems.size)) }.await()
                     aAlbumScreenItems.addAll(albums)
                     if (albums.isEmpty()) {
                         break
@@ -793,7 +796,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 }
             }
         }
-        println("Got ALL albums. Should be 492, is ${aAlbumScreenItems.size}")
         return aAlbumScreenItems
     }
 
@@ -801,24 +803,10 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         println("GETTING ANDROID AUTO ARTIST SCREEN ITEMS")
         runBlocking {
             if (aArtistsScreenItems.isEmpty()) {
-                val albums = async { artistRepository.getArtists() }.await()
+                val albums = async { artistRepository.getArtists(MediaQuery.AlbumArtistListQuery(sortBy = AlbumArtistListSort.NAME, sortOrder = SortOrder.ASC, startIndex = aArtistsScreenItems.size)) }.await()
 
                 albums.forEach {
-                    aArtistsScreenItems.add(
-                        MediaItem.Builder()
-                            .setMediaMetadata(
-                                MediaMetadata.Builder()
-                                    .setTitle(it.name)
-                                    .setMediaType(MediaMetadata.MEDIA_TYPE_ARTIST)
-                                    .setArtworkUri(it.artistImageUrl?.toUri())
-                                    .setIsBrowsable(true)
-                                    .setIsPlayable(false)
-                                    .build()
-                            )
-                            .setMediaId(it.navidromeID)
-                            .setUri(it.navidromeID)
-                            .build()
-                    )
+                    aArtistsScreenItems.add(it.toMediaItem())
                 }
             }
         }
@@ -843,7 +831,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
     private fun getPlaylistItems(): MutableList<MediaItem> {
         runBlocking {
             if (aPlaylistScreenItems.isEmpty()) {
-                aPlaylistScreenItems.addAll(playlistRepository.getPlaylists())
+                aPlaylistScreenItems.addAll(playlistRepository.getPlaylists(MediaQuery.PlaylistListQuery(sortBy = PlaylistListSort.NAME, sortOrder = SortOrder.ASC, startIndex = aPlaylistScreenItems.size)))
             }
         }
         return aPlaylistScreenItems

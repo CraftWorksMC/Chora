@@ -3,7 +3,10 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.AlbumArtistListSort
+import com.craftworks.music.data.model.MediaModel
+import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.data.repository.ArtistRepository
 import com.craftworks.music.managers.DataRefreshManager
@@ -29,11 +32,11 @@ class ArtistsScreenViewModel @Inject constructor(
     private val albumRepository: AlbumRepository,
     private val localDataSettingsManager: LocalDataSettingsManager
 ) : ViewModel() {
-    private val _allArtists = MutableStateFlow<List<MediaData.Artist>>(emptyList())
-    val allArtists: StateFlow<List<MediaData.Artist>> = _allArtists.asStateFlow()
+    private val _allArtists = MutableStateFlow<List<MediaModel.AlbumArtist>>(emptyList())
+    val allArtists: StateFlow<List<MediaModel.AlbumArtist>> = _allArtists.asStateFlow()
 
-    private val _selectedArtist = MutableStateFlow<MediaData.Artist?>(null)
-    val selectedArtist: StateFlow<MediaData.Artist?> = _selectedArtist
+    private val _selectedArtist = MutableStateFlow<MediaModel.AlbumArtist?>(null)
+    val selectedArtist: StateFlow<MediaModel.AlbumArtist?> = _selectedArtist
 
     private val _artistAlbums = MutableStateFlow<List<MediaItem>>(emptyList())
     val artistAlbums: StateFlow<List<MediaItem>> = _artistAlbums.asStateFlow()
@@ -63,7 +66,12 @@ class ArtistsScreenViewModel @Inject constructor(
     fun getArtists() {
         viewModelScope.launch {
             _isLoading.value = true
-            _allArtists.value = artistRepository.getArtists(ignoreCachedResponse = true, favoritesOnly = _showFavoritesOnly.value)
+            _allArtists.value = artistRepository.getArtists(MediaQuery.AlbumArtistListQuery(
+                AlbumArtistListSort.NAME,
+                SortOrder.ASC,
+                startIndex = 0,
+                favorite = _showFavoritesOnly.value
+            ))
             _isLoading.value = false
         }
     }
@@ -72,15 +80,12 @@ class ArtistsScreenViewModel @Inject constructor(
         return albumRepository.getAlbum(id) ?: emptyList()
     }
 
-//    suspend fun search(query: String) {
-//        _allArtists.value = artistRepository.searchArtists(query)
-//    }
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
     }
 
     @OptIn(FlowPreview::class)
-    val searchResults: StateFlow<List<MediaData.Artist>> = searchQuery
+    val searchResults: StateFlow<List<MediaModel.AlbumArtist>> = searchQuery
         .debounce(300L) // Adds a small delay to avoid searching on every keystroke.
         .combine(allArtists) { query, artists ->
             if (query.isBlank()) {
@@ -98,7 +103,7 @@ class ArtistsScreenViewModel @Inject constructor(
         )
 
 
-    fun setSelectedArtist(artist: MediaData.Artist) {
+    fun setSelectedArtist(artist: MediaModel.AlbumArtist) {
         _selectedArtist.value = artist
         viewModelScope.launch {
             val loadingJob = launch {
@@ -109,15 +114,10 @@ class ArtistsScreenViewModel @Inject constructor(
             }
             loadingJob.start()
             coroutineScope {
-                val artistAlbumsAsync = async { artistRepository.getArtistAlbums(artist.navidromeID) }
+                val artistAlbumsAsync = async { artistRepository.getArtistAlbums(artist.id) }
                 _artistAlbums.value = artistAlbumsAsync.await()
 
-                val artistDetails = async { artistRepository.getArtistInfo(artist.navidromeID) }.await()
-                _selectedArtist.value = _selectedArtist.value?.copy(
-                    description = artistDetails?.biography ?: "",
-                    musicBrainzId = artistDetails?.musicBrainzId,
-                    similarArtist = artistDetails?.similarArtist
-                )
+                _selectedArtist.value = async { artistRepository.getArtistDetail(artist.id) }.await()
             }
 
             loadingJob.cancel()

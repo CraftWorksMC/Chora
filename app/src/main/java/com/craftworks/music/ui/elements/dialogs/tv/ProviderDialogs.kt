@@ -3,9 +3,6 @@ package com.craftworks.music.ui.elements.dialogs.tv
 import android.content.res.Configuration
 import android.os.Environment
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,7 +18,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
@@ -46,32 +42,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.tv.material3.CarouselDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.ListItem
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.craftworks.music.R
-import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
-import com.craftworks.music.providers.navidrome.getNavidromeStatus
-import com.craftworks.music.providers.navidrome.navidromeStatus
-import com.craftworks.music.ui.screens.tv.settings.SettingsSwitchItem
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -127,6 +112,8 @@ fun CreateNavidromeProviderDialog(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Top
         ) {
+            // TODO("Remake this")
+            /*
             AnimatedContent(
                 targetState = step,
             ) {
@@ -415,6 +402,7 @@ fun CreateNavidromeProviderDialog(
 
                 }
             }
+             */
         }
     }
 }
@@ -573,7 +561,8 @@ fun CreateLocalProviderDialog(
                         )
                     },
                     onClick = {
-                        LocalProviderManager.addFolder(currentDir.canonicalPath)
+                        TODO("Add local folder")
+                        //LocalProviderManager.addFolder(currentDir.canonicalPath)
                         setShowDialog(false)
                     }
                 )

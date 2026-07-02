@@ -44,11 +44,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
-import com.craftworks.music.data.model.MediaData
-import com.craftworks.music.data.model.albumList
-import com.craftworks.music.data.model.songsList
-import com.craftworks.music.data.model.toAlbum
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.data.model.MediaModel
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
@@ -72,9 +69,8 @@ fun SongsHorizontalColumn(
     val showDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
     // Load more songs at scroll
-    if (NavidromeManager.checkActiveServers() && isSearch == false && !showFavoritesOnly){
         LaunchedEffect(listState) {
-            if (songsList.size % 100 != 0) return@LaunchedEffect
+            if (songList.size % 100 != 0) return@LaunchedEffect
 
             snapshotFlow {
                 val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
@@ -89,7 +85,6 @@ fun SongsHorizontalColumn(
                     viewModel.getMoreSongs(100)
                 }
         }
-    }
 
     LazyColumn(
         modifier = Modifier
@@ -151,7 +146,7 @@ fun SongsHorizontalColumn(
 fun AlbumGrid(
     albums: List<MediaItem>,
     mediaController: MediaController?,
-    onAlbumSelected: (album: MediaData.Album) -> Unit,
+    onAlbumSelected: (album: MediaItem) -> Unit,
     isSearch: Boolean? = false,
     viewModel: AlbumScreenViewModel = viewModel(),
 ){
@@ -165,9 +160,8 @@ fun AlbumGrid(
         if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
     }
 
-    if (NavidromeManager.checkActiveServers() && isSearch == false) {
         LaunchedEffect(gridState) {
-            if (albumList.size % 50 != 0) return@LaunchedEffect
+            if (albums.size % 50 != 0) return@LaunchedEffect
 
             snapshotFlow {
                 val lastVisibleItemIndex = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
@@ -181,7 +175,6 @@ fun AlbumGrid(
                     viewModel.getMoreAlbums(50)
                 }
         }
-    }
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(96.dp),
@@ -221,7 +214,7 @@ fun AlbumGrid(
                 itemsIndexed(albumsInGroup) { index, album ->
                     AlbumCard(album = album,
                         onClick = {
-                            onAlbumSelected(album.toAlbum())
+                            onAlbumSelected(album)
                         },
                         onPlay = {
                             coroutineScope.launch {
@@ -245,7 +238,7 @@ fun AlbumGrid(
             ) { album ->
                 AlbumCard(album = album,
                     onClick = {
-                        onAlbumSelected(album.toAlbum())
+                        onAlbumSelected(album)
                     },
                     onPlay = {
                         coroutineScope.launch {
@@ -269,7 +262,7 @@ fun AlbumGrid(
 fun AlbumGrid(
     albums: List<MediaItem>,
     mediaController: MediaController?,
-    onAlbumSelected: (album: MediaData.Album) -> Unit,
+    onAlbumSelected: (album: MediaItem) -> Unit,
     onGetAlbum: (albumID: String) -> List<MediaItem>
 ) {
     val gridState = rememberLazyGridState()
@@ -320,7 +313,7 @@ fun AlbumGrid(
                 itemsIndexed(albumsInGroup) { index, album ->
                     AlbumCard(album = album,
                         onClick = {
-                            onAlbumSelected(album.toAlbum())
+                            onAlbumSelected(album)
                         },
                         onPlay = {
                             coroutineScope.launch {
@@ -344,7 +337,7 @@ fun AlbumGrid(
             ) { album ->
                 AlbumCard(album = album,
                     onClick = {
-                        onAlbumSelected(album.toAlbum())
+                        onAlbumSelected(album)
                     },
                     onPlay = {
                         coroutineScope.launch {
@@ -367,7 +360,7 @@ fun AlbumGrid(
 @Composable
 fun AlbumRow(
     albums: List<MediaItem>,
-    onAlbumSelected: (album: MediaData.Album) -> Unit,
+    onAlbumSelected: (album: MediaItem) -> Unit,
     onPlay: (album: MediaItem) -> Unit,
 ){
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
@@ -412,7 +405,7 @@ fun AlbumRow(
             AlbumCard(
                 album = album,
                 onClick = {
-                    onAlbumSelected(album.toAlbum())
+                    onAlbumSelected(album)
                 },
                 onPlay = {
                     onPlay(album)
@@ -428,14 +421,14 @@ fun AlbumRow(
 @ExperimentalFoundationApi
 @Composable
 fun ArtistsGrid(
-    artists: List<MediaData.Artist>,
-    onArtistSelected: (artist: MediaData.Artist) -> Unit
+    artists: List<MediaModel.AlbumArtist>,
+    onArtistSelected: (artist: MediaModel.AlbumArtist) -> Unit
 ){
     val gridState = rememberLazyGridState()
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
     val groupedArtists = artists.groupBy { artist ->
-        if (artist.navidromeID.startsWith("Local_")) "Local" else "Navidrome"
+        if (artist.id.startsWith("Local_")) "Local" else "Navidrome"
     }
 
     LazyVerticalGrid(
@@ -482,7 +475,7 @@ fun ArtistsGrid(
         } else {
             items(
                 items = artists,
-                key = { it.navidromeID }
+                key = { it.id }
             ) { artist ->
                 ArtistCard(artist = artist, onClick = {
                     onArtistSelected(artist)
@@ -497,8 +490,6 @@ fun ArtistsGrid(
 @ExperimentalFoundationApi
 @Composable
 fun PlaylistGrid(playlists: List<MediaItem>, onPlaylistSelected: (playlist: MediaItem) -> Unit){
-    val currentNavidromeServer by NavidromeManager.currentServerId.collectAsStateWithLifecycle()
-
     LazyVerticalGrid(
         columns = GridCells.Adaptive(96.dp),
         modifier = Modifier

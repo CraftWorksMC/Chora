@@ -36,21 +36,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.media3.common.MediaItem
 import com.craftworks.music.R
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.ui.elements.bounceClick
 
 @Composable
 fun AddRadioDialog(
     setShowDialog: (Boolean) -> Unit,
-    onAdded: (name: String, url: String, homePageUrl: String, addToNavidrome: Boolean) -> Unit
+    onAdded: (name: String, url: String, homePageUrl: String) -> Unit
 ) {
     var radioName by remember { mutableStateOf("") }
     var radioUrl by remember { mutableStateOf("") }
     var radioPage by remember { mutableStateOf("") }
-
-    var addToNavidrome by remember { mutableStateOf(
-        NavidromeManager.checkActiveServers()
-    ) }
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
@@ -104,32 +99,6 @@ fun AddRadioDialog(
                         singleLine = true
                     )
 
-                    if (NavidromeManager.checkActiveServers()) {
-                        Row (
-                            modifier = Modifier.selectable(
-                                selected = addToNavidrome,
-                                onClick = {
-                                    addToNavidrome = !addToNavidrome
-                                },
-                                role = Role.Checkbox,
-                            ),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = addToNavidrome,
-                                onCheckedChange = { addToNavidrome = it }
-                            )
-
-                            Text(
-                                text = stringResource(R.string.Label_Radio_Add_To_Navidrome),
-                                fontWeight = FontWeight.Normal,
-                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-
                     Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
                         Button(
                             onClick = {
@@ -138,8 +107,7 @@ fun AddRadioDialog(
                                 onAdded(
                                     radioName,
                                     radioUrl,
-                                    radioPage,
-                                    addToNavidrome
+                                    radioPage
                                 )
 
                                 setShowDialog(false)
@@ -163,8 +131,8 @@ fun AddRadioDialog(
 fun ModifyRadioDialog(
     setShowDialog: (Boolean) -> Unit,
     radio: MediaItem?,
-    onModified: (id: String, name: String, url: String, homepage: String) -> Unit,
-    onDeleted: (id: String) -> Unit = {}
+    onModified: (providerId: String, id: String, name: String, url: String, homepage: String) -> Unit,
+    onDeleted: (providerId: String, id: String) -> Unit = {_,_->}
 ) {
     var radioName by remember { mutableStateOf(radio?.mediaMetadata?.station) }
     var radioUrl by remember { mutableStateOf(radio?.mediaId) }
@@ -228,7 +196,10 @@ fun ModifyRadioDialog(
                         OutlinedButton(
                             onClick = {
                                 setShowDialog(false)
-                                onDeleted(radio?.mediaMetadata?.extras?.getString("navidromeID") ?: "null")
+                                onDeleted(
+                                    radio?.mediaMetadata?.extras?.getString("providerId") ?: "",
+                                    radio?.mediaMetadata?.extras?.getString("id") ?: ""
+                                )
                             },
                             modifier = Modifier
                                 .widthIn(max = 320.dp)
@@ -243,7 +214,8 @@ fun ModifyRadioDialog(
                                 setShowDialog(false)
 
                                 onModified(
-                                    radio?.mediaMetadata?.extras?.getString("navidromeID") ?: "Local",
+                                    radio?.mediaMetadata?.extras?.getString("providerId") ?: "",
+                                    radio?.mediaMetadata?.extras?.getString("id") ?: "",
                                     radioName.toString(),
                                     radioUrl.toString(),
                                     radioPage

@@ -44,14 +44,17 @@ data class NeteaseLrc(
 )
 
 //region Convert lyric format to app format.
-fun MediaData.PlainLyrics.toLyric(): Lyric {
+
+// TODO("Update the lyrics things")
+/*
+fun MediaModel.PlainLyrics.toLyric(): Lyric {
     return Lyric(
         startMs = -1,
         text = if (value.isBlank()) emptyList() else listOf(value)
     )
 }
 
-fun MediaData.StructuredLyrics.toLyrics(): List<Lyric> {
+fun MediaModel.StructuredLyrics.toLyrics(): List<Lyric> {
     return line
         .groupBy { if (synced) it.start!! + (offset ?: 0) else -1 }
         .map { (timestamp, lines) ->
@@ -62,7 +65,7 @@ fun MediaData.StructuredLyrics.toLyrics(): List<Lyric> {
         }
         .sortedBy { it.startMs }
 }
-
+*/
 fun LrcLibLyrics.toLyrics(): List<Lyric> {
     if (instrumental) return listOf()
 

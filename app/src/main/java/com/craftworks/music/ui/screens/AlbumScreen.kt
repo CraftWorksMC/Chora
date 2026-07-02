@@ -91,8 +91,8 @@ fun AlbumScreen(
                                 searchResults,
                                 mediaController,
                                 onAlbumSelected = { album ->
-                                    val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                                    val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                                         launchSingleTop = true
                                     }
                                 },
@@ -112,49 +112,45 @@ fun AlbumScreen(
                                         )
                                     }
                                 }
-
-                                Box {
-                                    IconButton(
-                                        onClick = { showSortMenu = true }
-                                    ) {
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.rounded_sort_24),
-                                            contentDescription = stringResource(R.string.Label_Sorting),
-                                        )
-                                    }
-                                    DropdownMenu(
-                                        expanded = showSortMenu,
-                                        onDismissRequest = { showSortMenu = false }
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.Label_Sort_Alphabetical)) },
-                                            onClick = {
-                                                viewModel.setSorting(SortOrder.ALPHABETICAL)
-                                                showSortMenu = false
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.recently_added)) },
-                                            onClick = {
-                                                viewModel.setSorting(SortOrder.NEWEST)
-                                                showSortMenu = false
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.recently_played)) },
-                                            onClick = {
-                                                viewModel.setSorting(SortOrder.RECENT)
-                                                showSortMenu = false
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.most_played)) },
-                                            onClick = {
-                                                viewModel.setSorting(SortOrder.FREQUENT)
-                                                showSortMenu = false
-                                            }
-                                        )
-                                    }
+                                DropdownMenu(
+                                    expanded = showSortMenu,
+                                    onDismissRequest = { showSortMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { "TODO" }, // TODO: show provider-supported orders
+                                        onClick = {
+                                            viewModel.setSorting(SortOrder.ASC)
+                                            showSortMenu = false
+                                        }
+                                    )
+                                    /*DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.Label_Sort_Alphabetical)) },
+                                        onClick = {
+                                            viewModel.setSorting(SortOrder.ALPHABETICAL)
+                                            showSortMenu = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.recently_added)) },
+                                        onClick = {
+                                            viewModel.setSorting(SortOrder.NEWEST)
+                                            showSortMenu = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.recently_played)) },
+                                        onClick = {
+                                            viewModel.setSorting(SortOrder.RECENT)
+                                            showSortMenu = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.most_played)) },
+                                        onClick = {
+                                            viewModel.setSorting(SortOrder.FREQUENT)
+                                            showSortMenu = false
+                                        }
+                                    )*/
                                 }
                             }
                         }
@@ -171,8 +167,8 @@ fun AlbumScreen(
                     albums,
                     mediaController,
                     onAlbumSelected = { album ->
-                        val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                        navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                        val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                        navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                             launchSingleTop = true
                         }
                     },
