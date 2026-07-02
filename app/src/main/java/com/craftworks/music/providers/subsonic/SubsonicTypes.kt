@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class SubsonicProviderData (
     var url:String,
     var username:String,
-    var credentials:String,
+    var credentials:String? = null,
     var allowSelfSignedCert: Boolean = false,
 )
 

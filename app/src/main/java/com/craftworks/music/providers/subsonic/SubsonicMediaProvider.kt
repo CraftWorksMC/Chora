@@ -28,6 +28,7 @@ import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.MediaProvider
+import com.craftworks.music.utils.StringUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -86,28 +87,16 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
     @Transient
     private var choraVersion: String = ""
 
-    companion object {
-        fun md5Hash(input: String): String {
-            val md = MessageDigest.getInstance("MD5")
-            val hashBytes = md.digest(input.toByteArray())
-            return hashBytes.joinToString("") { "%02x".format(it) }
-        }
-
-        fun generateSalt(length: Int): String {
-            val allowedChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-            return (1..length).map { allowedChars.random() }.joinToString("")
-        }
-    }
-
     private val retrofit: Retrofit by lazy {
         var builder = Retrofit.Builder()
         var okBuilder = OkHttpClient.Builder()
 
         okBuilder.addInterceptor {
             if (_salt == null) {
-                val delimiter = providerData.credentials.indexOf(':')
-                _salt = providerData.credentials.substring(0, delimiter)
-                _token = providerData.credentials.substring(delimiter + 1)
+                if (providerData.credentials == null) throw Exception("Must authenticate first")
+                val delimiter = providerData.credentials!!.indexOf(':')
+                _salt = providerData.credentials!!.substring(0, delimiter)
+                _token = providerData.credentials!!.substring(delimiter + 1)
             }
             it.proceed(it.request().newBuilder()
                 .url(it.request().url.newBuilder()
@@ -169,14 +158,15 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         password: String
     ): AuthenticationResponse {
         providerData.username = username
-        _salt = generateSalt(8)
-        _token = md5Hash(password + _salt)
+        _salt = StringUtils.generateSalt(8)
+        _token = StringUtils.md5Hash(password + _salt)
+        providerData.credentials = "$_salt:$_token"
 
         val res = service.authenticate(username).awaitResponse()
         val body = res.body()
 
         if (res.isSuccessful) return AuthenticationResponse(
-            credential = "$_salt:$_token",
+            credential = providerData.credentials!!,
             isAdmin = body?.user?.adminRole ?: false,
             userId = body?.user?.username,
             username = username
