@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class LocalProviderData (
-    val yes: String
+    val yes: String // Temporary entry until more data is needed
 )

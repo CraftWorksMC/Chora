@@ -29,7 +29,12 @@ import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.MediaProvider
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
+@Serializable
+@SerialName("local")
 class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() {
     companion object {
         const val TAG = "LOCAL_PROVIDER"
@@ -40,24 +45,33 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
             AlbumListSort.RANDOM to "RANDOM()"
         )
     }
-
-    override val featureFlags: ProviderFeatures =
+    @Transient
+    private val _featureFlags: ProviderFeatures =
         ProviderFeatures.OFFLINE_PLAYBACK +
-        ProviderFeatures.SELECT_MULTIPLE_MUSIC_FOLDERS
+                ProviderFeatures.SELECT_MULTIPLE_MUSIC_FOLDERS
+    @Transient
+    override val featureFlags: ProviderFeatures = _featureFlags
 
+    @Transient
     override val supportedAlbumSort: List<AlbumListSort> = listOf(
         AlbumListSort.NAME,
     )
+    @Transient
     override val supportedAlbumArtistSort: List<AlbumArtistListSort> = listOf(
         AlbumArtistListSort.NAME,
     )
+    @Transient
     override val supportedArtistSort: List<ArtistListSort> = listOf(
         ArtistListSort.NAME,
     )
+    @Transient
     override val supportedGenreSort: List<GenreListSort> = listOf(GenreListSort.NAME)
+    @Transient
     override val supportedPlaylistSort: List<PlaylistListSort> = listOf(PlaylistListSort.NAME)
+    @Transient
     override val supportedSongSort: List<SongListSort> = listOf(SongListSort.NAME)
 
+    @Transient
     private lateinit var appContext: Context
     override fun init(context: Context) {
         appContext = context
