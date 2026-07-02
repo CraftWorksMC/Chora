@@ -75,19 +75,22 @@ class LocalDataSettingsManager @Inject constructor(
         withContext(NonCancellable) {
             context.dataStore.edit { preferences ->
                 preferences[MEDIA_RESUMPTION_PLAYLIST] =
-                    Json.encodeToString(playlist.map { MediaModel.Song(
-                        providerId = it.mediaMetadata.extras?.getString("providerId") ?: "",
-                        providerType = ProviderType.valueOf(it.mediaMetadata.extras?.getString("providerType") ?: ""),
-                        id = it.mediaMetadata.extras?.getString("id") ?: "",
-                        albumArtistName = it.mediaMetadata.artist.toString(),
-                        albumId = it.mediaMetadata.extras?.getString("albumId") ?: "",
-                        artistName = it.mediaMetadata.artist.toString(),
-                        discNumber = it.mediaMetadata.discNumber ?: 0,
-                        durationMs = it.mediaMetadata.durationMs?.toInt() ?: 0,
-                        name = it.mediaMetadata.title.toString(),
-                        trackNumber = it.mediaMetadata.trackNumber ?: 0,
-                        userFavorite = it.mediaMetadata.extras?.getBoolean("userFavorite") ?: false,
-                    ) })
+                    Json.encodeToString(playlist.map {
+                        val song = MediaModel.Song(
+                            albumArtistName = it.mediaMetadata.artist.toString(),
+                            albumId = it.mediaMetadata.extras?.getString("albumId") ?: "",
+                            artistName = it.mediaMetadata.artist.toString(),
+                            discNumber = it.mediaMetadata.discNumber ?: 0,
+                            durationMs = it.mediaMetadata.durationMs?.toInt() ?: 0,
+                            name = it.mediaMetadata.title.toString(),
+                            trackNumber = it.mediaMetadata.trackNumber ?: 0,
+                            userFavorite = it.mediaMetadata.extras?.getBoolean("userFavorite") ?: false,
+                        )
+                        song.providerType = ProviderType.valueOf(it.mediaMetadata.extras?.getString("providerType") ?: "")
+                        song.providerId = it.mediaMetadata.extras?.getString("providerId") ?: ""
+                        song.id = it.mediaMetadata.extras?.getString("id") ?: ""
+                        song
+                    })
                 preferences[MEDIA_RESUMPTION_INDEX] = currentPos
                 preferences[MEDIA_RESUMPTION_TIME] = currentTime
             }

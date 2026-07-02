@@ -2,13 +2,14 @@ package com.craftworks.music.data.model
 
 import kotlinx.serialization.Serializable
 
+@Serializable
 data class RelatedArtist(
     val id: String,
     val imageId: String?,
     val imageUrl: String?,
     val name: String,
     val userFavorite: Boolean,
-    val userRating: Number?
+    val userRating: Float?
 )
 @Serializable
 data class MusicFolder (
@@ -16,6 +17,7 @@ data class MusicFolder (
     val name: String,
 )
 
+@Serializable
 data class GainInfo(
     val album: Double? = null,
     val track: Double? = null

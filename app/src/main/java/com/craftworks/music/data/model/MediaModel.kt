@@ -4,18 +4,16 @@ import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.R
+import kotlinx.serialization.Serializable
 
-abstract class MediaModel (
-    val providerId: String,
-    val providerType: ProviderType,
-    val id: String,
-) {
+abstract class MediaModel()
+{
+    lateinit var providerId: String
+    lateinit var providerType: ProviderType
+    lateinit var id: String
+
 
     class Album(
-        providerId: String,
-        providerType: ProviderType,
-        id: String,
-
         val albumArtistName: String,
         val albumArtists: List<RelatedArtist>,
         val artists: List<RelatedArtist>,
@@ -49,7 +47,7 @@ abstract class MediaModel (
         val userFavorite: Boolean,
         val userRating: Int?,
         val version: String?
-    ) : MediaModel(providerId, providerType, id) {
+    ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
             val mediaMetadata =
                 MediaMetadata.Builder()
@@ -81,10 +79,6 @@ abstract class MediaModel (
     }
 
     class AlbumArtist(
-        providerId: String,
-        providerType: ProviderType,
-        id: String,
-
         val albumCount: Int?,
         val biography: String?,
         val duration: Int?,
@@ -100,7 +94,7 @@ abstract class MediaModel (
         val uploadedImage: String?,
         val userFavorite: Boolean,
         val userRating: Int?
-    ) : MediaModel(providerId, providerType, id) {
+    ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
             val mediaMetadata =
                 MediaMetadata.Builder()
@@ -119,10 +113,6 @@ abstract class MediaModel (
     }
 
     class Artist(
-        providerId: String,
-        providerType: ProviderType,
-        id: String,
-
         val albumCount: Int?,
         val biography: String?,
         val duration: Int?,
@@ -138,12 +128,8 @@ abstract class MediaModel (
         val uploadedImage: String?,
         val userFavorite: Boolean,
         val userRating: Int?
-    ) : MediaModel(providerId, providerType, id)
+    ) : MediaModel()
     class Folder(
-        providerId: String,
-        providerType: ProviderType,
-        id: String,
-
         val children: Children? = null,
 
         val imageId: String? = null,
@@ -151,37 +137,30 @@ abstract class MediaModel (
 
         val name: String,
         val parentId: String? = null
-    ) : MediaModel(providerId, providerType, id) {
+    ) : MediaModel() {
         data class Children(
             val folders: List<Folder>,
             val songs: List<Song>
         )
     }
 
+    @Serializable
     class Genre(
-        providerId: String,
-        providerType: ProviderType,
-        id: String,
-
         val albumCount: Int?,
         val imageId: String?,
         val imageUrl: String?,
         val name: String,
         val songCount: Int?
-    ) : MediaModel(providerId, providerType, id)
+    ) : MediaModel()
 
     class InternetRadioStation(
-        providerId: String,
-        providerType: ProviderType,
-        id: String,
-
         val homepageUrl: String?,
         val imageId: String? = null,
         val imageUrl: String? = null,
         val name: String,
         val streamUrl: String,
         val uploadedImage: String? = null
-    ) : MediaModel(providerId, providerType, id) {
+    ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
             val mediaMetadata =
                 MediaMetadata.Builder()
@@ -210,10 +189,6 @@ abstract class MediaModel (
     }
 
     class Playlist(
-        providerId: String,
-        providerType: ProviderType,
-        id: String,
-
         val description: String?,
         val duration: Int?,
         val genres: List<Genre>,
@@ -228,7 +203,7 @@ abstract class MediaModel (
         val songCount: Int?,
         val sync: Boolean?,
         val uploadedImage: String?
-    ) : MediaModel(providerId, providerType, id) {
+    ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
             val mediaMetadata =
                 MediaMetadata.Builder()
@@ -254,10 +229,6 @@ abstract class MediaModel (
     }
 
     class QueueSong(
-        providerId: String,
-        providerType: ProviderType,
-        id: String,
-
         val album: String?,
         val albumArtistName: String,
         val albumArtists: List<RelatedArtist>,
@@ -302,13 +273,10 @@ abstract class MediaModel (
         val userFavorite: Boolean,
         val userRating: Int?,
         val uniqueId: String
-    ) : MediaModel(providerId, providerType, id)
+    ) : MediaModel()
 
+    @Serializable
     class Song(
-        providerId: String,
-        providerType: ProviderType,
-        id: String,
-
         val album: String? = null,
         val albumArtistName: String,
         val albumArtists: List<RelatedArtist> = listOf(),
@@ -352,7 +320,7 @@ abstract class MediaModel (
         val updatedAt: String? = null,
         val userFavorite: Boolean,
         val userRating: Int? = null
-    ) : MediaModel(providerId, providerType, id) {
+    ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
             val mediaMetadata =
                 MediaMetadata.Builder()

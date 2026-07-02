@@ -2,6 +2,7 @@ package com.craftworks.music.managers
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.core.content.edit
 import com.craftworks.music.data.model.MediaProviderData
 import com.craftworks.music.data.model.MusicFolder
@@ -32,6 +33,10 @@ object MediaProviderManager {
     fun init(context: Context) {
         sharedPreferences = context.getSharedPreferences("MediaProvidersPrefs", Context.MODE_PRIVATE)
         loadProviders(context)
+        Log.d(
+            "PM",
+            "Providers loaded: " + providers.map {it.key + ": " + it.value.javaClass.simpleName}
+        )
     }
 
     fun getProvider(providerId: String) = providers[providerId]
@@ -81,6 +86,10 @@ object MediaProviderManager {
             val loadedProviders: Map<String, MediaProvider> = json.decodeFromString(providersJson)
             providers.putAll(loadedProviders)
             for (provider in providers) {
+                Log.d(
+                    "PM",
+                    "Init Provider: " + provider.value.javaClass.simpleName
+                )
                 provider.value.init(context)
             }
         }

@@ -14,7 +14,10 @@ class ProvidersRefactorMigration : Migration {
 
     private val PREF_PROVIDERS = "providers"
     private val PREF_CURRENT_PROVIDER = "current_provider_id"
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        serializersModule = MediaProvider.serializerModule
+    }
 
     override fun up(context: Context) {
         val localProvider = context.getSharedPreferences("LocalProviderPrefs", Context.MODE_PRIVATE)
