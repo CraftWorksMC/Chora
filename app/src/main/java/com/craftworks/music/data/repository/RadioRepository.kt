@@ -3,10 +3,11 @@ package com.craftworks.music.data.repository
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.managers.MediaProviderManager
 import kotlinx.coroutines.coroutineScope
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class RadioRepository {
+class RadioRepository @Inject constructor() {
 
     suspend fun getRadios(): List<MediaModel.InternetRadioStation> = coroutineScope {
         MediaProviderManager.currentProvider.value?.getInternetRadioStations() ?: listOf()

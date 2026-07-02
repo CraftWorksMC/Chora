@@ -8,10 +8,11 @@ import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.managers.MediaProviderManager
 import kotlinx.coroutines.coroutineScope
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ArtistRepository {
+class ArtistRepository @Inject constructor() {
 
     suspend fun getArtists(
         query: MediaQuery.AlbumArtistListQuery

@@ -5,10 +5,11 @@ import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.ScrobbleEvent
 import com.craftworks.music.managers.MediaProviderManager
 import kotlinx.coroutines.coroutineScope
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SongRepository  {
+class SongRepository @Inject constructor() {
 
     suspend fun getSongs(query: MediaQuery.SongListQuery): List<MediaItem> = coroutineScope {
         MediaProviderManager.currentProvider.value?.getSongList(query)?.map { it.toMediaItem() } ?: listOf()

@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.compose.ui.util.fastFilter
 import androidx.core.math.MathUtils.clamp
-import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -45,6 +44,7 @@ import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.data.repository.RadioRepository
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.MediaProviderManager
+import com.craftworks.music.managers.TranscodeManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import com.craftworks.music.managers.settings.PlaybackSettingsManager

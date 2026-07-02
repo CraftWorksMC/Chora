@@ -4,10 +4,11 @@ import androidx.media3.common.MediaItem
 import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.managers.MediaProviderManager
 import kotlinx.coroutines.coroutineScope
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PlaylistRepository {
+class PlaylistRepository @Inject constructor() {
 
     suspend fun getPlaylists(query: MediaQuery.PlaylistListQuery): List<MediaItem> = coroutineScope {
         MediaProviderManager.currentProvider.value?.getPlaylistList(query)?.map { it.toMediaItem() } ?: listOf()

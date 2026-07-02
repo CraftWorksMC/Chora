@@ -56,11 +56,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.craftworks.music.R
-import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.ui.elements.LocalProviderCard
-import com.craftworks.music.ui.elements.NavidromeProviderCard
 
 enum class OnboardingStep { OVERVIEW, PROVIDER_SELECTION, DONE }
 
@@ -71,11 +67,6 @@ fun OnboardingDialog(
 ) {
     var step by remember { mutableStateOf(OnboardingStep.OVERVIEW) }
     var showAddProviderDialog by remember { mutableStateOf(false) }
-
-    val localProviders by LocalProviderManager.allFolders.collectAsStateWithLifecycle()
-    val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
-
-    val hasProviders = localProviders.isNotEmpty() || navidromeServers.isNotEmpty()
 
     Dialog(
         onDismissRequest = {},
@@ -99,7 +90,7 @@ fun OnboardingDialog(
                         .fillMaxWidth()
                         .padding(top = 20.dp, bottom = 4.dp)
                 )
-
+/*
                 AnimatedContent(
                     targetState = step,
                     modifier = Modifier.weight(1f),
@@ -139,6 +130,7 @@ fun OnboardingDialog(
                         else -> {}
                     }
                 }
+ */
             }
         }
     }
@@ -191,7 +183,7 @@ private fun StepIndicator(
 @Composable
 private fun OverviewStep(
     localProviders: List<String>,
-    navidromeServers: List<NavidromeProvider>,
+    //navidromeServers: List<NavidromeProvider>,
     hasProviders: Boolean,
     onAddProvider: () -> Unit,
     onNext: () -> Unit,
@@ -229,9 +221,9 @@ private fun OverviewStep(
             items(localProviders) { local ->
                 LocalProviderCard(local)
             }
-            items(navidromeServers, key = { it.id }) { server ->
+            /*items(navidromeServers, key = { it.id }) { server ->
                 NavidromeProviderCard(server)
-            }
+            }*/
         }
 
         Button(
