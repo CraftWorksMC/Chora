@@ -27,6 +27,7 @@ import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
+import com.craftworks.music.providers.local.LocalMediaProvider
 import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
@@ -40,6 +41,7 @@ abstract class MediaProvider {
         val serializerModule = SerializersModule {
             polymorphic(MediaProvider::class) {
                 subclass(SubsonicMediaProvider::class)
+                subclass(LocalMediaProvider::class)
             }
         }
     }
