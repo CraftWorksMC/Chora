@@ -19,7 +19,7 @@ sealed class MediaData {
         val year: Int? = 0,
         val genre: String? = "",
         @SerialName("coverArt")
-        var imageUrl: String,
+        var imageUrl: String? = "",
         val size: Int? = 0,
         val contentType: String? = "audio/flac",
         @SerialName("suffix")
@@ -39,7 +39,7 @@ sealed class MediaData {
         val isVideo: Boolean? = false,
         @SerialName("played")
         val lastPlayed: String? = "",
-        val bpm: Int,
+        val bpm: Int? = 0,
         val comment: String? = "",
         val sortName: String? = "",
         val mediaType: String? = "song",
@@ -66,7 +66,7 @@ sealed class MediaData {
         val name : String? = "",
 
         val isDir : Boolean? = false,
-        var coverArt : String?,
+        var coverArt : String? = "",
         val songCount : Int,
 
         val played : String? = "",
@@ -74,7 +74,7 @@ sealed class MediaData {
         val duration : Int? = 0,
         val playCount : Int? = 0,
 
-        val artistId : String?,
+        val artistId : String? = "",
         val artist : String,
         val year : Int? = 0,
         val genre : String? = "",
