@@ -32,11 +32,11 @@ class ArtistsScreenViewModel @Inject constructor(
     private val albumRepository: AlbumRepository,
     private val localDataSettingsManager: LocalDataSettingsManager
 ) : ViewModel() {
-    private val _allArtists = MutableStateFlow<List<MediaModel.AlbumArtist>>(emptyList())
-    val allArtists: StateFlow<List<MediaModel.AlbumArtist>> = _allArtists.asStateFlow()
+    private val _allArtists = MutableStateFlow<List<MediaModel.Artist>>(emptyList())
+    val allArtists: StateFlow<List<MediaModel.Artist>> = _allArtists.asStateFlow()
 
-    private val _selectedArtist = MutableStateFlow<MediaModel.AlbumArtist?>(null)
-    val selectedArtist: StateFlow<MediaModel.AlbumArtist?> = _selectedArtist
+    private val _selectedArtist = MutableStateFlow<MediaModel.Artist?>(null)
+    val selectedArtist: StateFlow<MediaModel.Artist?> = _selectedArtist
 
     private val _artistAlbums = MutableStateFlow<List<MediaItem>>(emptyList())
     val artistAlbums: StateFlow<List<MediaItem>> = _artistAlbums.asStateFlow()
@@ -85,7 +85,7 @@ class ArtistsScreenViewModel @Inject constructor(
     }
 
     @OptIn(FlowPreview::class)
-    val searchResults: StateFlow<List<MediaModel.AlbumArtist>> = searchQuery
+    val searchResults: StateFlow<List<MediaModel.Artist>> = searchQuery
         .debounce(300L) // Adds a small delay to avoid searching on every keystroke.
         .combine(allArtists) { query, artists ->
             if (query.isBlank()) {
@@ -103,7 +103,7 @@ class ArtistsScreenViewModel @Inject constructor(
         )
 
 
-    fun setSelectedArtist(artist: MediaModel.AlbumArtist) {
+    fun setSelectedArtist(artist: MediaModel.Artist) {
         _selectedArtist.value = artist
         viewModelScope.launch {
             val loadingJob = launch {

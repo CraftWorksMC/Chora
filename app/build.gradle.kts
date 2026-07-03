@@ -1,9 +1,10 @@
 plugins {
     id("com.android.application")
     id("com.google.devtools.ksp")
-    kotlin("plugin.serialization") version "2.4.0"
+    kotlin("plugin.serialization") version "2.3.21"
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.ktorfit)
 }
 
 android {
@@ -100,8 +101,8 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.composefadingedges)
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.kotlinx.serialization)
+    implementation(libs.ktorfit)
+    ksp(libs.kotlin.metadata.jvm)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -22,7 +22,7 @@ import com.craftworks.music.data.model.MediaModel
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvArtistCard(
-    artist: MediaModel.AlbumArtist,
+    artist: MediaModel.Artist,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {

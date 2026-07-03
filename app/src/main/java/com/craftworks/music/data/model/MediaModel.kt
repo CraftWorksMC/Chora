@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.R
+import com.craftworks.music.managers.MediaProviderManager
 import kotlinx.serialization.Serializable
 
 abstract class MediaModel()
@@ -12,11 +13,9 @@ abstract class MediaModel()
     lateinit var providerType: ProviderType
     lateinit var id: String
 
-
     class Album(
-        val albumArtistName: String,
-        val albumArtists: List<RelatedArtist> = listOf(),
-        val artists: List<RelatedArtist> = listOf(),
+        val albumArtistName: String? = "Unknown Artist",
+        val artists: List<Artist> = listOf(),
         val comment: String? = null,
         val createdAt: String? = null,
         val duration: Int = 0,
@@ -56,9 +55,9 @@ abstract class MediaModel()
                     .setAlbumTitle(this.name)
                     .setDisplayTitle(this.name)
                     .setAlbumArtist(this.albumArtistName)
-                    .setArtworkUri(this.imageUrl?.toUri()) // TODO("Call provider's getImageUrl")
+                    .setArtworkUri(this.imageUrl?.let { MediaProviderManager.currentProvider.value?.getImageUrl(it)?.toUri() })
                     .setRecordingYear(this.releaseYear)
-                    .setDurationMs(this.duration?.times(1000)?.toLong())
+                    .setDurationMs(this.duration.times(1000).toLong())
                     .setIsBrowsable(true)
                     .setIsPlayable(false)
                     .setGenre(this.genres.joinToString { it.name })
@@ -66,7 +65,7 @@ abstract class MediaModel()
                     .setExtras(
                         Bundle().apply {
                             putString("id", this@Album.id)
-                            putBoolean("userFavorite", this@Album.userFavorite)
+                            putBoolean("userFavorite", this@Album.userFavorite == true)
                         }
                     )
                     .build()
@@ -78,7 +77,8 @@ abstract class MediaModel()
         }
     }
 
-    class AlbumArtist(
+    @Serializable
+    class Artist(
         val albumCount: Int?,
         val biography: String?,
         val duration: Int?,
@@ -112,23 +112,6 @@ abstract class MediaModel()
         }
     }
 
-    class Artist(
-        val albumCount: Int?,
-        val biography: String?,
-        val duration: Int?,
-        val genres: List<Genre>,
-        val imageId: String?,
-        val imageUrl: String?,
-        val lastPlayedAt: String?,
-        val mbz: String?,
-        val name: String,
-        val playCount: Double?,
-        val similarArtists: List<RelatedArtist>?,
-        val songCount: Int?,
-        val uploadedImage: String?,
-        val userFavorite: Boolean,
-        val userRating: Int?
-    ) : MediaModel()
     class Folder(
         val children: Children? = null,
 
@@ -146,11 +129,11 @@ abstract class MediaModel()
 
     @Serializable
     class Genre(
-        val albumCount: Int?,
-        val imageId: String?,
-        val imageUrl: String?,
+        val albumCount: Int? = null,
+        val imageId: String? = null,
+        val imageUrl: String? = null,
         val name: String,
-        val songCount: Int?
+        val songCount: Int? = null
     ) : MediaModel()
 
     class InternetRadioStation(
@@ -209,7 +192,7 @@ abstract class MediaModel()
                 MediaMetadata.Builder()
                     .setTitle(this.name)
                     .setDescription(this.description)
-                    .setArtworkUri(this.imageUrl?.toUri()) // TODO("Call provider's getImageUrl")
+                    .setArtworkUri(this.imageUrl?.let { MediaProviderManager.currentProvider.value?.getImageUrl(it)?.toUri() })
                     .setIsBrowsable(true)
                     .setIsPlayable(false)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
@@ -279,10 +262,10 @@ abstract class MediaModel()
     class Song(
         val album: String? = null,
         val albumArtistName: String,
-        val albumArtists: List<RelatedArtist> = listOf(),
+        val albumArtists: List<Artist> = listOf(),
         val albumId: String,
         val artistName: String,
-        val artists: List<RelatedArtist> = listOf(),
+        val artists: List<Artist> = listOf(),
         val bitDepth: Int? = null,
         val bitRate: Int? = null,
         val bpm: Int? = null,
@@ -327,7 +310,7 @@ abstract class MediaModel()
                     .setTitle(this.name)
                     .setArtist(this.artistName)
                     .setAlbumTitle(this.album)
-                    .setArtworkUri(this.imageUrl?.toUri()) // TODO("Call provider's getImageUrl")
+                    .setArtworkUri(this.imageId?.let { MediaProviderManager.currentProvider.value?.getImageUrl(it)?.toUri() })
                     .setRecordingYear(this.releaseYear)
                     .setDiscNumber(this.discNumber)
                     .setTrackNumber(this.trackNumber)
@@ -338,7 +321,7 @@ abstract class MediaModel()
                     .setExtras(
                         Bundle().apply {
                             putString("id", this@Song.id)
-                            putString("providerId", this@Song.providerId)
+                            //putString("providerId", this@Song.providerId)
                             putString("albumId", this@Song.albumId)
                             putBoolean("userFavorite", this@Song.userFavorite)
                         }
@@ -346,10 +329,13 @@ abstract class MediaModel()
                     .build()
 
             return androidx.media3.common.MediaItem.Builder()
-                .setMediaId(this.id)
-                .setUri(this.id.toUri()) // TODO("Call provider's getStreamUrl")
+                .setMediaId(MediaProviderManager.currentProvider.value?.getStreamUrl(this.id, false).toString())
+                .setUri(MediaProviderManager.currentProvider.value?.getStreamUrl(this.id, false)?.toUri())
                 .setMediaMetadata(mediaMetadata)
                 .build()
         }
     }
 }
+
+val MediaMetadata.id: String?
+    get() = extras?.getString("id")

@@ -68,7 +68,7 @@ class LrclibDataSource @Inject constructor(
     suspend fun getLrcLibLyrics(metadata: MediaMetadata?, ignoreCachedResponse: Boolean = false): List<Lyric> = withContext(Dispatchers.IO) {
         val baseUrl = settingsManager.lrcLibEndpointFlow.first()
 
-        val artist = metadata?.extras?.getString("lyricsArtist")
+        val artist = metadata?.extras?.getString("lyricsArtist") ?: metadata?.artist.toString()
         val title = metadata?.title
         val album = metadata?.albumTitle
         val duration = metadata?.durationMs?.div(1000)

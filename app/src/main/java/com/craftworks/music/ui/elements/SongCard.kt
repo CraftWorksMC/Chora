@@ -47,6 +47,7 @@ import androidx.media3.common.MediaMetadata
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.model.id
 import com.craftworks.music.formatSeconds
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
@@ -219,7 +220,7 @@ fun HorizontalSongCard(
                         }
                     )
                     DropdownMenuItem(
-                        enabled = !song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_"),
+                        enabled = !song.mediaMetadata.id!!.startsWith("Local_"),
                         text = {
                             Text(stringResource(R.string.Action_Download))
                         },

@@ -33,7 +33,7 @@ import com.craftworks.music.data.model.MediaModel
 
 @Stable
 @Composable
-fun ArtistCard(artist: MediaModel.AlbumArtist, onClick: () -> Unit) {
+fun ArtistCard(artist: MediaModel.Artist, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             //.padding(12.dp)

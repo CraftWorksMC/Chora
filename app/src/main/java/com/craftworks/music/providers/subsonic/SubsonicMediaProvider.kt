@@ -1,6 +1,5 @@
 package com.craftworks.music.providers.subsonic
 
-import android.annotation.SuppressLint
 import android.content.Context
 import com.craftworks.music.data.model.AlbumArtistInfo
 import com.craftworks.music.data.model.AlbumArtistListSort
@@ -29,19 +28,25 @@ import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.MediaProvider
 import com.craftworks.music.utils.StringUtils
+import de.jensklingenberg.ktorfit.Ktorfit
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.api.createClientPlugin
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.logging.SIMPLE
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.awaitResponse
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.time.Year
 import javax.net.ssl.SSLContext
-import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
@@ -85,61 +90,66 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
 
     @Transient
     private var choraVersion: String = ""
-
-    private val retrofit: Retrofit by lazy {
-        var builder = Retrofit.Builder()
-        var okBuilder = OkHttpClient.Builder()
-
-        okBuilder.addInterceptor {
-            if (_salt == null) {
-                if (providerData.credentials == null) throw Exception("Must authenticate first")
-                val delimiter = providerData.credentials!!.indexOf(':')
-                _salt = providerData.credentials!!.substring(0, delimiter)
-                _token = providerData.credentials!!.substring(delimiter + 1)
-            }
-            it.proceed(it.request().newBuilder()
-                .url(it.request().url.newBuilder()
-                    .addQueryParameter("u", providerData.username)
-                    .addQueryParameter("t", _token)
-                    .addQueryParameter("s", _salt)
-                    .addQueryParameter("v", choraVersion)
-                    .addQueryParameter("c", "Chora")
-                    .addQueryParameter("f", "json")
-                    .build()
-                )
-                .build())
-        }
-
-        if (providerData.allowSelfSignedCert) {
-            val trustAllCerts = arrayOf<TrustManager>(
-                @SuppressLint("CustomX509TrustManager")
-                object : X509TrustManager {
-                    @SuppressLint("TrustAllX509TrustManager")
-                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
-                    @SuppressLint("TrustAllX509TrustManager")
-                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
-                    override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+    private val ktorfit: Ktorfit by lazy {
+        val ktorClient = HttpClient(OkHttp) {
+            install(createClientPlugin("SubsonicAuthParams") {
+                onRequest { request, _ ->
+                    if (_salt == null) {
+                        val credentials = providerData.credentials ?: throw Exception("Must authenticate first")
+                        val delimiter = credentials.indexOf(':')
+                        _salt = credentials.substring(0, delimiter)
+                        _token = credentials.substring(delimiter + 1)
+                    }
+                    request.url.parameters.apply {
+                        append("u", providerData.username ?: "")
+                        append("t", _token ?: "")
+                        append("s", _salt ?: "")
+                        append("v", choraVersion)
+                        append("c", "Chora")
+                        append("f", "json")
+                    }
                 }
-            )
-            val sslContext = SSLContext.getInstance("SSL").apply {
-                init(null, trustAllCerts, SecureRandom())
-            }
-            val sslSocketFactory: SSLSocketFactory = sslContext.socketFactory
+            })
 
-            okBuilder
-                    .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)
-                    .hostnameVerifier { _, _ -> true }
+            install(Logging) {
+                logger = Logger.SIMPLE
+                level = LogLevel.INFO
+            }
+
+            install(ContentNegotiation) {
+                json(Json {
+                    ignoreUnknownKeys = true
+                })
+            }
+
+            engine {
+                config {
+                    if (providerData.allowSelfSignedCert) {
+                        val trustAllCerts = arrayOf<TrustManager>(
+                            object : X509TrustManager {
+                                override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+                                override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+                                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+                            }
+                        )
+                        val sslContext = SSLContext.getInstance("SSL").apply {
+                            init(null, trustAllCerts, SecureRandom())
+                        }
+
+                        sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+                        hostnameVerifier { _, _ -> true }
+                    }
+                }
+            }
         }
 
-        builder.baseUrl(providerData.url)
-            .addConverterFactory(
-                Json { ignoreUnknownKeys = true }
-                    .asConverterFactory("application/json; charset=utf-8".toMediaType())
-            )
-            .client(okBuilder.build())
+        Ktorfit.Builder()
+            .baseUrl(if (providerData.url.endsWith("/")) providerData.url else providerData.url + "/")
+            .httpClient(ktorClient)
             .build()
     }
-    private val service: SubsonicService by lazy {retrofit.create(SubsonicService::class.java)}
+
+    private val service: SubsonicService by lazy { ktorfit.createSubsonicService() }
 
     @Transient
     private var _salt: String? = null
@@ -166,18 +176,18 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         _token = StringUtils.md5Hash(password + _salt)
         providerData.credentials = "$_salt:$_token"
 
-        val res = service.authenticate(username).awaitResponse()
-        println(res.raw().body)
-        val body = res.body()
+        val res = try {
+            service.getMusicFolderList()
+        } catch (e: Exception) {
+            throw Exception("Failed to get music folders", e)
+        }
 
-        if (res.isSuccessful) return AuthenticationResponse(
+        return AuthenticationResponse(
             credential = providerData.credentials!!,
-            isAdmin = body?.subsonicResponse?.user?.adminRole ?: false,
-            userId = body?.subsonicResponse?.user?.username,
+            isAdmin = res.subsonicResponse.user?.adminRole ?: false,
+            userId = res.subsonicResponse.user?.username,
             username = username
         )
-
-        throw Exception("Failed to login")
     }
 
     override suspend fun createFavorite(
@@ -221,7 +231,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAlbumArtistDetail(id: String): MediaModel.AlbumArtist? {
+    override suspend fun getAlbumArtistDetail(id: String): MediaModel.Artist? {
         TODO("Not yet implemented")
     }
 
@@ -232,7 +242,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.AlbumArtist> {
+    override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist> {
         TODO("Not yet implemented")
     }
 
@@ -241,7 +251,12 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
     }
 
     override suspend fun getAlbumDetail(id: String): MediaModel.Album {
-        TODO("Not yet implemented")
+        try {
+            return service.getAlbum(id).subsonicResponse.album!!.toMediaModel()
+        }
+        catch (e: Exception) {
+            throw Exception("Failed to get album", e)
+        }
     }
 
     override suspend fun getAlbumInfo(id: String): AlbumInfo {
@@ -249,7 +264,65 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
     }
 
     override suspend fun getAlbumList(query: MediaQuery.AlbumListQuery): List<MediaModel.Album> {
-        TODO("Not yet implemented")
+        println("GETTING ALBUM LIST")
+        if (!query.searchTerm.isNullOrBlank()) {
+            val res = try {
+                service.search3(
+                    albumCount = query.limit,
+                    albumOffset = query.startIndex,
+                    artistCount = 0,
+                    artistOffset = 0,
+                    musicFolderId = query.musicFolderId?.map { it.toInt() },
+                    query = query.searchTerm,
+                    songCount = 0,
+                    songOffset = 0
+                )
+            } catch (e: Exception) {
+                throw Exception("Failed to get album list", e)
+            }
+
+            return res.subsonicResponse.searchResult3?.album?.map { it.toMediaModel() } ?: emptyList()
+        }
+
+        val currentYear = Year.now().value
+        var fromYear: Int? = null
+        var toYear: Int? = null
+
+        if (query.minYear != null) {
+            fromYear = query.minYear
+            toYear = currentYear
+        }
+
+        if (query.maxYear != null) {
+            toYear = query.maxYear
+            if (query.minYear == null) {
+                fromYear = 0
+            }
+        }
+
+        val type = when (query.sortBy) {
+            AlbumListSort.RECENTLY_PLAYED -> "frequent"
+            AlbumListSort.RECENTLY_ADDED -> "newest"
+            AlbumListSort.PLAY_COUNT -> "frequent"
+            AlbumListSort.RANDOM -> "random"
+            else -> "random"
+        }
+
+        val res = try {
+            service.getAlbumList(
+                type = type,
+                size = query.limit,
+                offset = query.startIndex,
+                fromYear = fromYear,
+                toYear = toYear,
+                genre = query.genreIds?.firstOrNull(),
+                musicFolderId = query.musicFolderId?.map { it.toInt() }
+            )
+        } catch (e: Exception) {
+            throw Exception("Failed to get album list", e)
+        }
+
+        return res.subsonicResponse.albumList?.album?.map { it.toMediaModel() } ?: emptyList()
     }
 
     override suspend fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int {
@@ -301,11 +374,25 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
 
     override fun getImageUrl(
         id: String,
-        itemType: LibraryType,
+        itemType: LibraryType?,
         size: Int?,
-        baseUrl: String?
     ): String {
-        TODO("Not yet implemented")
+        val urlBuilder = providerData.url.toHttpUrlOrNull()
+            ?.newBuilder()
+            ?.addPathSegments("rest/getCoverArt.view")
+            ?.addQueryParameter("id", id)
+
+        if (size != null) {
+            urlBuilder?.addQueryParameter("size", size.toString())
+        }
+
+        urlBuilder?.addQueryParameter("u", providerData.username ?: "")
+        urlBuilder?.addQueryParameter("t", _token ?: "")
+        urlBuilder?.addQueryParameter("s", _salt ?: "")
+        urlBuilder?.addQueryParameter("c", "Chora")
+        urlBuilder?.addQueryParameter("v", choraVersion)
+
+        return urlBuilder?.build()?.toString() ?: ""
     }
 
     override suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation> {
@@ -317,7 +404,18 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
     }
 
     override suspend fun getMusicFolderList(): List<MusicFolder> {
-        TODO("Not yet implemented")
+        val res = try {
+            service.getMusicFolderList()
+        } catch (e: Exception) {
+            throw Exception("Failed to get music folders", e)
+        }
+
+        return res.subsonicResponse.musicFolders?.musicFolder?.map {
+            MusicFolder(
+                id = it.id.toString(),
+                name = it.name
+            )
+        } ?: emptyList()
     }
 
     override suspend fun getPlaylistDetail(id: String): MediaModel.Playlist {
@@ -372,7 +470,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         TODO("Not yet implemented")
     }
 
-    override suspend fun getStreamUrl(
+    override fun getStreamUrl(
         id: String,
         transcode: Boolean,
         bitrate: Int?,
@@ -381,7 +479,18 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         offset: Int?,
         skipAutoTranscode: Boolean?
     ): String {
-        TODO("Not yet implemented")
+        val urlBuilder = providerData.url.toHttpUrlOrNull()
+            ?.newBuilder()
+            ?.addPathSegments("rest/stream.view")
+            ?.addQueryParameter("id", id)
+
+        urlBuilder?.addQueryParameter("u", providerData.username ?: "")
+        urlBuilder?.addQueryParameter("t", _token ?: "")
+        urlBuilder?.addQueryParameter("s", _salt ?: "")
+        urlBuilder?.addQueryParameter("c", "Chora")
+        urlBuilder?.addQueryParameter("v", choraVersion)
+
+        return urlBuilder?.build()?.toString() ?: ""
     }
 
     override suspend fun getTagList(
@@ -456,7 +565,12 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         event: ScrobbleEvent?,
         position: Int?
     ) {
-        TODO("Not yet implemented")
+        try {
+            service.scrobble(id, position, submission)
+        }
+        catch (e: Exception) {
+            throw Exception("Failed to scrobble", e)
+        }
     }
 
     override suspend fun search(query: MediaQuery.SearchQuery): SearchResponse {

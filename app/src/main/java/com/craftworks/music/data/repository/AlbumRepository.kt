@@ -17,6 +17,6 @@ class AlbumRepository @Inject constructor() {
 
     suspend fun getAlbum(albumId: String): List<MediaItem>? = coroutineScope {
         val album = MediaProviderManager.currentProvider.value?.getAlbumDetail(albumId)
-        if (album != null) listOf(album.toMediaItem()) + (album.songs?.map { it.toMediaItem() } ?: listOf()) else null
+        if (album != null) listOf(album.toMediaItem()) + (album.songs.map { it.toMediaItem() }) else null
     }
 }

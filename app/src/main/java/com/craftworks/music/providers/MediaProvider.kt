@@ -29,7 +29,6 @@ import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.local.LocalMediaProvider
 import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -63,9 +62,9 @@ abstract class MediaProvider {
     abstract suspend fun deleteFavorite(ids: List<String>, type: LibraryType) : Boolean
     abstract suspend fun deleteInternetRadioStation(id: String): Boolean
     abstract suspend fun deletePlaylist(id: String): Boolean
-    abstract suspend fun getAlbumArtistDetail(id: String): MediaModel.AlbumArtist?
+    abstract suspend fun getAlbumArtistDetail(id: String): MediaModel.Artist?
     abstract suspend fun getAlbumArtistInfo(id: String, limit: Int? = null): AlbumArtistInfo?
-    abstract suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.AlbumArtist>
+    abstract suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist>
     abstract suspend fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int
     abstract suspend fun getAlbumDetail(id: String): MediaModel.Album
     abstract suspend fun getAlbumInfo(id: String): AlbumInfo
@@ -79,7 +78,7 @@ abstract class MediaProvider {
     abstract suspend fun getFolder(query: MediaQuery.FolderQuery): MediaModel.Folder
     abstract suspend fun getGenreList(query: MediaQuery.GenreListQuery): List<MediaModel.Genre>
     abstract suspend fun getImageRequest(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): ImageRequest?
-    abstract fun getImageUrl(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): String
+    abstract fun getImageUrl(id: String, itemType: LibraryType? = null, size: Int? = null): String
     abstract suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation>
     abstract suspend fun getLyrics(songId: String): LyricsResponse
     abstract suspend fun getMusicFolderList(): List<MusicFolder>
@@ -95,7 +94,7 @@ abstract class MediaProvider {
     abstract suspend fun getSongDetail(id: String): MediaModel.Song
     abstract suspend fun getSongList(query: MediaQuery.SongListQuery): List<MediaModel.Song>
     abstract suspend fun getSongListCount(query: MediaQuery.SongListQuery): Int
-    abstract suspend fun getStreamUrl(id: String, transcode: Boolean, bitrate: Int? = null, format: String? = null, mediaType: String? = null, offset: Int? = null, skipAutoTranscode: Boolean? = null): String
+    abstract fun getStreamUrl(id: String, transcode: Boolean, bitrate: Int? = null, format: String? = null, mediaType: String? = null, offset: Int? = null, skipAutoTranscode: Boolean? = null): String
     abstract suspend fun getTagList(type: LibraryType, folder: String? = null, tagName: String? = null): TagListResponse
     abstract suspend fun getTopSongs(artist: String, artistId: String, limit: Int? = null, type: String? = null): List<MediaModel.Song>
     abstract suspend fun getUserInfo(id: String, username: String): UserInfoResponse

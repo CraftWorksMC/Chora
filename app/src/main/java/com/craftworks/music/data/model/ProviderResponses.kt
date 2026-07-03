@@ -54,7 +54,7 @@ data class User(
     val updatedAt: String?
 )
 data class SearchResponse(
-    val albumArtists: List<MediaModel.AlbumArtist>,
+    val albumArtists: List<MediaModel.Artist>,
     val albums: List<MediaModel.Album>,
     val songs: List<MediaModel.Song>
 )

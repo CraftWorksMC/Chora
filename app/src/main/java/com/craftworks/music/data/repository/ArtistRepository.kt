@@ -1,7 +1,6 @@
 package com.craftworks.music.data.repository
 
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.model.AlbumArtistInfo
 import com.craftworks.music.data.model.AlbumListSort
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaQuery
@@ -16,7 +15,7 @@ class ArtistRepository @Inject constructor() {
 
     suspend fun getArtists(
         query: MediaQuery.AlbumArtistListQuery
-    ): List<MediaModel.AlbumArtist> = coroutineScope {
+    ): List<MediaModel.Artist> = coroutineScope {
         MediaProviderManager.currentProvider.value?.getAlbumArtistList(query) ?: listOf()
     }
 
@@ -29,7 +28,7 @@ class ArtistRepository @Inject constructor() {
         ))?.map { it.toMediaItem() } ?: listOf()
     }
 
-    suspend fun getArtistDetail(artistId: String): MediaModel.AlbumArtist? = coroutineScope {
+    suspend fun getArtistDetail(artistId: String): MediaModel.Artist? = coroutineScope {
         MediaProviderManager.currentProvider.value?.getAlbumArtistDetail(artistId)
     }
 }

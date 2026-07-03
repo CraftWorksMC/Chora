@@ -132,7 +132,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAlbumArtistDetail(id: String): MediaModel.AlbumArtist? {
+    override suspend fun getAlbumArtistDetail(id: String): MediaModel.Artist? {
         TODO("Not yet implemented")
     }
 
@@ -143,7 +143,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.AlbumArtist> {
+    override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist> {
         TODO("Not yet implemented")
     }
 
@@ -249,9 +249,8 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
 
     override fun getImageUrl(
         id: String,
-        itemType: LibraryType,
+        itemType: LibraryType?,
         size: Int?,
-        baseUrl: String?
     ): String {
         TODO("Not yet implemented")
     }
@@ -320,7 +319,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         TODO("Not yet implemented")
     }
 
-    override suspend fun getStreamUrl(
+    override fun getStreamUrl(
         id: String,
         transcode: Boolean,
         bitrate: Int?,

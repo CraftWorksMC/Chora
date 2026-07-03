@@ -45,7 +45,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.MediaModel
-import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
@@ -157,7 +156,7 @@ fun AlbumGrid(
 
     // Group songs by their source (Local or Navidrome)
     val groupedAlbums = albums.groupBy { song ->
-        if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
+        if (song.mediaMetadata.extras?.getString("id")!!.startsWith("Local_")) "Local" else "Navidrome"
     }
 
         LaunchedEffect(gridState) {
@@ -364,7 +363,7 @@ fun AlbumRow(
     onPlay: (album: MediaItem) -> Unit,
 ){
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
-    val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_") }
+    val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("id")!!.startsWith("Local_") }
 
     LazyRow(
         modifier = Modifier
@@ -421,8 +420,8 @@ fun AlbumRow(
 @ExperimentalFoundationApi
 @Composable
 fun ArtistsGrid(
-    artists: List<MediaModel.AlbumArtist>,
-    onArtistSelected: (artist: MediaModel.AlbumArtist) -> Unit
+    artists: List<MediaModel.Artist>,
+    onArtistSelected: (artist: MediaModel.Artist) -> Unit
 ){
     val gridState = rememberLazyGridState()
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)

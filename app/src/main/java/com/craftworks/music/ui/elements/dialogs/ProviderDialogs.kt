@@ -166,6 +166,7 @@ fun CreateMediaProviderDialog(
     var url: String by remember { mutableStateOf("") }
     var username: String by remember { mutableStateOf("") }
     var password: String by remember { mutableStateOf("") }
+    var credentials: String by remember { mutableStateOf("") }
     var allowCerts: Boolean by remember { mutableStateOf(false) }
 
     var dir: String by remember { mutableStateOf("/Music/") }
@@ -366,14 +367,14 @@ fun CreateMediaProviderDialog(
                                             SubsonicProviderData(
                                                 url = url,
                                                 username = username,
-                                                credentials = password,
                                                 allowSelfSignedCert = allowCerts,
                                             )
                                         )
 
                                         provider.init(context)
                                         try {
-                                            provider.authenticate(username, password)
+                                            val auth = provider.authenticate(username, password)
+                                            provider.providerData.credentials = auth.credential
 
                                             MediaProviderManager.addProvider(provider)
                                             AppearanceSettingsManager(context).setUsername(username)
