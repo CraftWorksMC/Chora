@@ -1,6 +1,7 @@
 package com.craftworks.music.data.model
 
 import android.os.Bundle
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.R
@@ -69,6 +70,7 @@ abstract class MediaModel()
                     .setExtras(
                         Bundle().apply {
                             putString("id", this@Album.id)
+                            putString("providerId", this@Album.providerId)
                             putBoolean("userFavorite", this@Album.userFavorite == true)
                         }
                     )

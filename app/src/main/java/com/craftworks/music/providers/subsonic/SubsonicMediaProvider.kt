@@ -252,7 +252,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
 
     override suspend fun getAlbumDetail(id: String): MediaModel.Album {
         try {
-            return service.getAlbum(id).subsonicResponse.album!!.toMediaModel(id)
+            return service.getAlbum(id).subsonicResponse.album!!.toMediaModel(this.id)
         }
         catch (e: Exception) {
             throw Exception("Failed to get album", e)
@@ -281,7 +281,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
                 throw Exception("Failed to get album list", e)
             }
 
-            return res.subsonicResponse.searchResult3?.album?.map { it.toMediaModel(id) } ?: emptyList()
+            return res.subsonicResponse.searchResult3?.album?.map { it.toMediaModel(this.id) } ?: emptyList()
         }
 
         val currentYear = Year.now().value
@@ -322,7 +322,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
             throw Exception("Failed to get album list", e)
         }
 
-        return res.subsonicResponse.albumList?.album?.map { it.toMediaModel(id) } ?: emptyList()
+        return res.subsonicResponse.albumList?.album?.map { it.toMediaModel(this.id) } ?: emptyList()
     }
 
     override suspend fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int {
