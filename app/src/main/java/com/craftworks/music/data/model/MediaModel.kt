@@ -5,6 +5,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.R
 import com.craftworks.music.managers.MediaProviderManager
+import com.craftworks.music.providers.MediaProvider
 import kotlinx.serialization.Serializable
 
 abstract class MediaModel()
@@ -18,7 +19,7 @@ abstract class MediaModel()
         val artists: List<Artist> = listOf(),
         val comment: String? = null,
         val createdAt: String? = null,
-        val duration: Int = 0,
+        val durationMs: Int = 0,
         val explicitStatus: ExplicitStatus? = null,
         val genres: List<Genre> = listOf(),
         val imageId: String? = null,
@@ -48,6 +49,9 @@ abstract class MediaModel()
         val version: String? = null
     ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
+            return toMediaItem(MediaProviderManager.getProvider(providerId))
+        }
+        fun toMediaItem(provider: MediaProvider?): androidx.media3.common.MediaItem {
             val mediaMetadata =
                 MediaMetadata.Builder()
                     .setTitle(this.name)
@@ -55,9 +59,9 @@ abstract class MediaModel()
                     .setAlbumTitle(this.name)
                     .setDisplayTitle(this.name)
                     .setAlbumArtist(this.albumArtistName)
-                    .setArtworkUri(this.imageUrl?.let { MediaProviderManager.currentProvider.value?.getImageUrl(it)?.toUri() })
+                    .setArtworkUri(this.imageUrl?.let { provider?.getImageUrl(it)?.toUri() })
                     .setRecordingYear(this.releaseYear)
-                    .setDurationMs(this.duration.times(1000).toLong())
+                    .setDurationMs(this.durationMs.toLong())
                     .setIsBrowsable(true)
                     .setIsPlayable(false)
                     .setGenre(this.genres.joinToString { it.name })
@@ -81,7 +85,7 @@ abstract class MediaModel()
     class Artist(
         val albumCount: Int?,
         val biography: String?,
-        val duration: Int?,
+        val durationMs: Int?,
         val genres: List<Genre>,
         val imageId: String?,
         val imageUrl: String?,
@@ -173,7 +177,7 @@ abstract class MediaModel()
 
     class Playlist(
         val description: String?,
-        val duration: Int?,
+        val durationMs: Int?,
         val genres: List<Genre>,
         val imageId: String?,
         val imageUrl: String?,
@@ -188,15 +192,18 @@ abstract class MediaModel()
         val uploadedImage: String?
     ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
+            return toMediaItem(MediaProviderManager.getProvider(providerId))
+        }
+        fun toMediaItem(provider: MediaProvider?): androidx.media3.common.MediaItem {
             val mediaMetadata =
                 MediaMetadata.Builder()
                     .setTitle(this.name)
                     .setDescription(this.description)
-                    .setArtworkUri(this.imageUrl?.let { MediaProviderManager.currentProvider.value?.getImageUrl(it)?.toUri() })
+                    .setArtworkUri(this.imageUrl?.let { provider?.getImageUrl(it)?.toUri() })
                     .setIsBrowsable(true)
                     .setIsPlayable(false)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
-                    .setDurationMs(this.duration?.times(1000)?.toLong())
+                    .setDurationMs(this.durationMs?.toLong())
                     .setExtras(
                         Bundle().apply {
                             putString("id", this@Playlist.id)
@@ -228,7 +235,7 @@ abstract class MediaModel()
         val createdAt: String,
         val discNumber: Int,
         val discSubtitle: String?,
-        val duration: Int,
+        val durationMs: Int,
         val explicitStatus: ExplicitStatus?,
         val gain: GainInfo?,
         val genres: List<Genre>,
@@ -305,12 +312,15 @@ abstract class MediaModel()
         val userRating: Int? = null
     ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
+            return toMediaItem(MediaProviderManager.getProvider(providerId))
+        }
+        fun toMediaItem(provider: MediaProvider?): androidx.media3.common.MediaItem {
             val mediaMetadata =
                 MediaMetadata.Builder()
                     .setTitle(this.name)
                     .setArtist(this.artistName)
                     .setAlbumTitle(this.album)
-                    .setArtworkUri(this.imageId?.let { MediaProviderManager.currentProvider.value?.getImageUrl(it)?.toUri() })
+                    .setArtworkUri(this.imageId?.let { provider?.getImageUrl(it)?.toUri() })
                     .setRecordingYear(this.releaseYear)
                     .setDiscNumber(this.discNumber)
                     .setTrackNumber(this.trackNumber)
@@ -321,7 +331,7 @@ abstract class MediaModel()
                     .setExtras(
                         Bundle().apply {
                             putString("id", this@Song.id)
-                            //putString("providerId", this@Song.providerId)
+                            putString("providerId", this@Song.providerId)
                             putString("albumId", this@Song.albumId)
                             putBoolean("userFavorite", this@Song.userFavorite)
                         }
@@ -329,8 +339,8 @@ abstract class MediaModel()
                     .build()
 
             return androidx.media3.common.MediaItem.Builder()
-                .setMediaId(MediaProviderManager.currentProvider.value?.getStreamUrl(this.id, false).toString())
-                .setUri(MediaProviderManager.currentProvider.value?.getStreamUrl(this.id, false)?.toUri())
+                .setMediaId(provider?.getStreamUrl(this.id, false).toString())
+                .setUri(provider?.getStreamUrl(this.id, false)?.toUri())
                 .setMediaMetadata(mediaMetadata)
                 .build()
         }

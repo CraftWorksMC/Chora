@@ -111,13 +111,13 @@ data class SubsonicSong(
     val trackIndex: Int? = 0,
     var starred: String? = null,
 ) {
-    fun toMediaModel(): MediaModel.Song = MediaModel.Song(
+    fun toMediaModel(providerId: String): MediaModel.Song = MediaModel.Song(
         album = this.album,
         albumArtistName = this.artist,
-        albumArtists = this.artists.map { it.toMediaModel() },
+        albumArtists = this.artists.map { it.toMediaModel(providerId) },
         albumId = this.albumId,
         artistName = this.artist,
-        artists = this.artists.map { it.toMediaModel() },
+        artists = this.artists.map { it.toMediaModel(providerId) },
         bitDepth = this.bitDepth,
         bitRate = this.bitrate,
         bpm = this.bpm,
@@ -157,6 +157,7 @@ data class SubsonicSong(
         userRating = null
     ).apply {
         this.id = this@SubsonicSong.id
+        this.providerId = providerId
         this.providerType = ProviderType.SUBSONIC
     }
 }
@@ -198,7 +199,7 @@ data class SubsonicAlbum(
     val discTitles: List<SubsonicDiscTitle>? = null,
     val song: List<SubsonicSong>? = null
 ) {
-    fun toMediaModel(): MediaModel.Album {
+    fun toMediaModel(providerId: String): MediaModel.Album {
         val domainExplicitStatus = when (this.explicitStatus?.lowercase()) {
             "explicit" -> ExplicitStatus.EXPLICIT
             "clean" -> ExplicitStatus.CLEAN
@@ -207,10 +208,10 @@ data class SubsonicAlbum(
 
         return MediaModel.Album(
             albumArtistName = displayArtist,
-            artists = this.artists?.map { it.toMediaModel() } ?: emptyList(),
+            artists = this.artists?.map { it.toMediaModel(providerId) } ?: emptyList(),
             comment = null,
             createdAt = this.created,
-            duration = this.duration,
+            durationMs = this.duration,
             explicitStatus = domainExplicitStatus,
             genres = this.genres?.map { MediaModel.Genre(name = it.name) } ?: listOf(),
             imageId = this.coverArt,
@@ -231,7 +232,7 @@ data class SubsonicAlbum(
             releaseYear = this.year,
             size = null,
             songCount = this.songCount,
-            songs = this.song?.map { it.toMediaModel() } ?: emptyList(),
+            songs = this.song?.map { it.toMediaModel(providerId) } ?: emptyList(),
             sortName = this.sortName,
             tags = if (!this.moods.isNullOrEmpty()) mapOf("moods" to this.moods) else mapOf(),
             updatedAt = null,
@@ -240,6 +241,7 @@ data class SubsonicAlbum(
             version = this.version
         ).apply {
             this.id = this@SubsonicAlbum.id
+            this.providerId = providerId
             this.providerType = ProviderType.SUBSONIC
         }
     }
@@ -294,11 +296,11 @@ data class SubsonicArtist(
     val sortName: String? = null,
     val roles: List<String>? = null
 ) {
-    fun toMediaModel(): MediaModel.Artist {
+    fun toMediaModel(providerId: String): MediaModel.Artist {
         return MediaModel.Artist(
             albumCount = albumCount,
             biography = null,
-            duration = null,
+            durationMs = null,
             genres = listOf(),
             imageId = coverArt,
             imageUrl = artistImageUrl ?: coverArt,
@@ -313,6 +315,7 @@ data class SubsonicArtist(
             userRating = null
         ).apply {
             this.id = this@SubsonicArtist.id
+            this.providerId = providerId
             this.providerType = ProviderType.SUBSONIC
         }
     }

@@ -30,6 +30,7 @@ import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.local.LocalMediaProvider
 import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
@@ -52,6 +53,8 @@ abstract class MediaProvider {
     abstract val supportedGenreSort: List<GenreListSort>
     abstract val supportedPlaylistSort: List<PlaylistListSort>
     abstract val supportedSongSort: List<SongListSort>
+    @Transient
+    lateinit var id: String
 
     abstract fun init(context: Context)
     abstract suspend fun addToPlaylist(playlistId: String, songIds: List<String>) : Boolean

@@ -46,6 +46,7 @@ object MediaProviderManager {
         providers[id] = mediaProvider
         currentProviderId = id
 
+        mediaProvider.id = id
         mediaProvider.data = MediaProviderData(mediaProvider.getMusicFolderList().map { Pair(it, true) })
 
         updateProvidersFlow()
@@ -91,6 +92,7 @@ object MediaProviderManager {
                     "Init Provider: " + provider.value.javaClass.simpleName
                 )
                 provider.value.init(context)
+                provider.value.id = provider.key
             }
         }
         if (currentProviderId != null) _currentProvider.value = providers[currentProviderId]
