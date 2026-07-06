@@ -354,7 +354,16 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+            requestPermissionLauncher.launch(
+                arrayOf(
+                    android.Manifest.permission.READ_MEDIA_AUDIO,
+                    android.Manifest.permission.POST_NOTIFICATIONS,
+                    android.Manifest.permission.ACCESS_LOCAL_NETWORK
+                )
+            )
+        }
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissionLauncher.launch(
                 arrayOf(
                     android.Manifest.permission.READ_MEDIA_AUDIO,
