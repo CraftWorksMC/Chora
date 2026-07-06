@@ -2,23 +2,29 @@ package com.craftworks.music.ui.elements.tv
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media.utils.MediaConstants.METADATA_KEY_IS_EXPLICIT
 import androidx.media3.common.MediaItem
 import androidx.tv.material3.Card
+import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import androidx.tv.material3.WideCardContainer
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import com.craftworks.music.R
 
 @Composable
 fun TvHorizontalSongCard(
@@ -70,12 +76,21 @@ fun TvHorizontalSongCard(
             )
         },
         title = {
-            Text(
-                text = song.mediaMetadata.title.toString(),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 16.dp)
-            )
+            Row (
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = song.mediaMetadata.title.toString(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+                if (song.mediaMetadata.extras?.getBoolean(METADATA_KEY_IS_EXPLICIT) == true)
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.rounded_explicit_24),
+                        contentDescription = "Explicit"
+                    )
+            }
         },
         subtitle = {
             Text(

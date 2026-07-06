@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.core.net.toUri
+import androidx.media.utils.MediaConstants.METADATA_KEY_IS_EXPLICIT
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import kotlinx.serialization.Serializable
@@ -55,6 +56,7 @@ fun MediaData.Song.toMediaItem(): MediaItem {
                 putBoolean("isRadio", this@toMediaItem.isRadio == true)
                 if (this@toMediaItem.replayGain?.trackGain != null)
                     putFloat("replayGain", this@toMediaItem.replayGain.trackGain)
+                putBoolean(METADATA_KEY_IS_EXPLICIT, this@toMediaItem.explicitStatus == "explicit")
             }).build()
 
     return MediaItem.Builder()

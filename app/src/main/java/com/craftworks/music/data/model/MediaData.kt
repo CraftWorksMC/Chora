@@ -53,6 +53,7 @@ sealed class MediaData {
         var media: String? = null,
         val trackIndex: Int? = 0,
         var starred: String? = null,
+        val explicitStatus: String? = null
     ) : MediaData()
 
     @Serializable

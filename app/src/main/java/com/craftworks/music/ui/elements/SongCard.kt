@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.media.utils.MediaConstants.METADATA_KEY_IS_EXPLICIT
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import coil.compose.SubcomposeAsyncImage
@@ -123,14 +124,23 @@ fun HorizontalSongCard(
                     .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Text(
-                    text = song.mediaMetadata.title.toString(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Start
-                )
+                Row (
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = song.mediaMetadata.title.toString(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start
+                    )
+                    if (song.mediaMetadata.extras?.getBoolean(METADATA_KEY_IS_EXPLICIT) == true)
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.rounded_explicit_24),
+                            contentDescription = "Explicit"
+                        )
+                }
 
                 Text(
                     text = song.mediaMetadata.artist.toString() + if (song.mediaMetadata.recordingYear != 0) " • " + song.mediaMetadata.recordingYear else "",
