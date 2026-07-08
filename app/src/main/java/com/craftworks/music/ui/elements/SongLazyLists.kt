@@ -156,7 +156,7 @@ fun AlbumGrid(
 
     // Group songs by their source (Local or Navidrome)
     val groupedAlbums = albums.groupBy { song ->
-        if (song.mediaMetadata.extras?.getString("id")!!.startsWith("Local_")) "Local" else "Navidrome"
+        ""//if (song.mediaMetadata.extras?.getString("id")!!.startsWith("Local_")) "Local" else "Navidrome"
     }
 
         LaunchedEffect(gridState) {
@@ -271,7 +271,7 @@ fun AlbumGrid(
 
     // Group songs by their source (Local or Navidrome)
     val groupedAlbums = albums.groupBy { song ->
-        if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
+        ""//if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
     }
 
     LazyVerticalGrid(
@@ -284,9 +284,9 @@ fun AlbumGrid(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(12.dp)
     ) {
-        if (showDividers && groupedAlbums.size > 1) {
+        if (false) {
             groupedAlbums.forEach { (groupName, albumsInGroup) ->
-                item(span = { GridItemSpan(maxLineSpan) }) {
+                item(key = groupName,span = { GridItemSpan(maxLineSpan) }) {
                     Column (Modifier.padding(start = 12.dp)) {
                         HorizontalDivider(
                             modifier = Modifier

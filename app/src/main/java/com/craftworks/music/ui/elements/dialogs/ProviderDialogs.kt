@@ -56,10 +56,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
 import com.craftworks.music.R
+import com.craftworks.music.data.model.MediaProviderData
+import com.craftworks.music.data.model.MusicFolder
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
+import com.craftworks.music.providers.local.LocalMediaProvider
+import com.craftworks.music.providers.local.LocalProviderData
 import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
 import com.craftworks.music.providers.subsonic.SubsonicProviderData
 import com.craftworks.music.ui.elements.bounceClick
@@ -250,9 +254,24 @@ fun CreateMediaProviderDialog(
                         onClick = {
                             coroutineScope.launch {
                                 try {
-                                    TODO("Add folder I presume?")
+
+                                    val provider = LocalMediaProvider(
+                                        LocalProviderData("")
+                                    ).apply {
+                                        data = MediaProviderData(listOf(Pair(MusicFolder(dir,dir), true)))
+                                    }
+
+                                    provider.init(context)
+                                    try {
+                                        MediaProviderManager.addProvider(provider)
+                                        setShowDialog(false)
+                                    }
+                                    catch (ex: Exception) {
+                                        println(ex.message)
+                                        println(ex.stackTrace)
+                                        isError = true
+                                    }
                                     //LocalProviderManager.addFolder(dir)
-                                    setShowDialog(false)
                                 } catch (_: Exception) {
                                     // DO NOTHING
                                 }

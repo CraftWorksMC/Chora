@@ -3,6 +3,8 @@ package com.craftworks.music.providers.local
 import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
+import androidx.core.net.toUri
+import com.craftworks.music.R
 import com.craftworks.music.data.model.AlbumArtistInfo
 import com.craftworks.music.data.model.AlbumArtistListSort
 import com.craftworks.music.data.model.AlbumInfo
@@ -40,8 +42,9 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         const val TAG = "LOCAL_PROVIDER"
         const val ALBUM_ART_PATH = "content://media/external/audio/albumart"
 
+        const val BASE_PAGE_LENGTH = 500
         private val ALBUM_SORT_BINDING = mapOf(
-            AlbumListSort.NAME to "alphabeticalByName %f",
+            AlbumListSort.NAME to "${MediaStore.Audio.Albums.ALBUM} %s",
             AlbumListSort.RANDOM to "RANDOM()"
         )
     }
@@ -163,7 +166,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         Log.d(TAG, "Getting All Albums")
 
         val sortOrder = ALBUM_SORT_BINDING[query.sortBy]?.format(query.sortOrder.name)
-            ?: "alphabeticalByName ASC"
+            ?: ("${MediaStore.Audio.Albums.ALBUM} ASC")
 
         val contentResolver = appContext.contentResolver
         val uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI
@@ -197,7 +200,12 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         )
         if (cursor == null) return emptyList()
 
-        return LocalNormalizer.cursorToAlbums(appContext, cursor)
+        val albums = LocalNormalizer.cursorToAlbums(appContext, id, cursor)
+
+        // Paginate if needed
+        if (query.startIndex == 0 && query.limit != null) return albums
+        if (query.startIndex > albums.size) return emptyList()
+        return albums.slice(query.startIndex..<albums.size.coerceAtMost(query.startIndex+(query.limit?:BASE_PAGE_LENGTH)))
     }
 
     override suspend fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int {
@@ -252,7 +260,21 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         itemType: LibraryType?,
         size: Int?,
     ): String {
-        TODO("Not yet implemented")
+        when (itemType) {
+            LibraryType.ALBUM, LibraryType.SONG  -> {
+                val artworkUri = "$ALBUM_ART_PATH/$id".toUri().let { uri ->
+                    try {
+                        appContext.contentResolver.openInputStream(uri)?.close()
+                        uri
+                    } catch (e: Exception) {
+                        "android.resource://com.craftworks.music/${R.drawable.albumplaceholder}".toUri()
+                    }
+                }
+
+                return artworkUri.toString()
+            }
+            else -> return "android.resource://com.craftworks.music/${R.drawable.placeholder}"
+        }
     }
 
     override suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation> {
@@ -263,9 +285,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         TODO("Not yet implemented")
     }
 
-    override suspend fun getMusicFolderList(): List<MusicFolder> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getMusicFolderList(): List<MusicFolder> = data.libraries.map { it.first }
 
     override suspend fun getPlaylistDetail(id: String): MediaModel.Playlist {
         TODO("Not yet implemented")
