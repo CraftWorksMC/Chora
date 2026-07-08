@@ -181,6 +181,8 @@ class NavidromeDataSource @Inject constructor() {
 
                 endpoint.startsWith("getStarred") -> { parsedData.addAll(parseNavidromeFavouritesJSON(responseContent, server.url, server.username, server.password)) }
 
+                endpoint.startsWith("setRating") -> { NavidromeManager.setSyncingStatus(false) }
+
                 endpoint.startsWith("star") -> { NavidromeManager.setSyncingStatus(false) }
                 endpoint.startsWith("unstar") -> { NavidromeManager.setSyncingStatus(false) }
 
@@ -500,6 +502,16 @@ class NavidromeDataSource @Inject constructor() {
         }
         getRequest(endpoint, null, ignoreCachedResponse)
         true
+    }
+
+    suspend fun setNavidromeRating(
+        id: String = "", rating: Int = 0
+    ) = withContext(Dispatchers.IO) {
+        getRequest(
+            "setRating.view?id=$id&rating=$rating",
+            null,
+            true
+        )
     }
 
     suspend fun getNavidromeSimilarSong(

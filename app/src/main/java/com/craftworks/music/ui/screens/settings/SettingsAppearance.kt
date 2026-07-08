@@ -551,7 +551,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
         if(showNowPlayingLyricsAlignmentDialog)
             NowPlayingTitleAlignmentDialog(
                 setShowDialog = { showNowPlayingLyricsAlignmentDialog = it },
-                title = stringResource(R.string.Setting_NowPlayingTitleAlignment),
+                title = stringResource(R.string.Setting_NowPlayingLyricsAlignment),
                 selection = nowPlayingLyricsAlignment,
                 onSet = {
                     runBlocking {

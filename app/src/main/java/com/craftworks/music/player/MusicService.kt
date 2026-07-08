@@ -15,6 +15,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Rating
+import androidx.media3.common.StarRating
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.DefaultDataSource
@@ -28,6 +30,7 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionError
+import androidx.media3.session.SessionResult
 import com.craftworks.music.MainActivity
 import com.craftworks.music.R
 import com.craftworks.music.data.model.toMediaItem
@@ -504,6 +507,40 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     .build()
             }
             return Futures.immediateFuture(updatedMediaItems)
+        }
+
+        override fun onSetRating(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            rating: Rating
+        ): ListenableFuture<SessionResult> {
+            val currentItem = player.currentMediaItem
+                ?: return Futures.immediateFuture(SessionResult(SessionError.ERROR_INVALID_STATE))
+
+            val navidromeID = currentItem.mediaMetadata.extras?.getString("navidromeID") ?: ""
+            val newRating = (rating as StarRating).starRating.toInt()
+
+            runBlocking {
+                songRepository.setSongRating(navidromeID, newRating)
+            }
+
+            val updatedExtras = Bundle(currentItem.mediaMetadata.extras ?: Bundle()).apply {
+                putInt("rating", newRating)
+            }
+            val updatedItem = currentItem.buildUpon()
+                .setMediaMetadata(
+                    currentItem.mediaMetadata.buildUpon()
+                        .setExtras(updatedExtras)
+                        .setUserRating(rating)
+                        .build()
+                )
+                .build()
+
+            val index = player.currentMediaItemIndex
+            if (player.currentMediaItem?.mediaMetadata?.extras?.getString("navidromeID") == navidromeID) {
+                player.replaceMediaItem(index, updatedItem)
+            }
+            return super.onSetRating(session, controller, rating)
         }
 
         override fun onGetLibraryRoot(

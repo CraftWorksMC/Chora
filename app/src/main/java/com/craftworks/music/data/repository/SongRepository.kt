@@ -39,6 +39,13 @@ class SongRepository @Inject constructor(
         deferredSongs.awaitAll().flatten()
     }
 
+    suspend fun setSongRating(
+        songId: String, rating: Int = 0
+    ) {
+        if (!songId.startsWith("Local_"))
+            navidromeDataSource.setNavidromeRating(songId, rating)
+    }
+
     suspend fun getSong(songId: String, ignoreCachedResponse: Boolean = false): MediaItem? = coroutineScope {
         if (songId.startsWith("Local_"))
             localDataSource.getLocalSong(songId)

@@ -16,7 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -27,10 +29,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.StarRating
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.player.ChoraMediaLibraryService
+import com.craftworks.music.ui.elements.dialogs.RatingDialog
 import com.craftworks.music.ui.playing.tv.TvNowPlaying
 
 enum class NowPlayingAlignment {
@@ -51,6 +55,7 @@ fun NowPlayingContent(
     val lyricsOpen by viewModel.lyricsOpen.collectAsStateWithLifecycle()
     val playQueueOpen by viewModel.playQueueOpen.collectAsStateWithLifecycle()
     val detailsOpen by viewModel.detailsOpen.collectAsStateWithLifecycle()
+    var showRatingDialog by remember { mutableStateOf(false) }
     val sleepTimerOpen by viewModel.sleepTimerDialogOpen.collectAsStateWithLifecycle()
     val sleepTimerMinutes by ChoraMediaLibraryService.getInstance()?.sleepTimerRemainingTime
         ?.collectAsStateWithLifecycle(initialValue = 0)
@@ -120,7 +125,11 @@ fun NowPlayingContent(
             onDismissRequest = { viewModel.setDetailsOpen(false) },
             sheetState = playQueueSheetState,
         ) {
-            NowPlayingDetails(mediaController = mediaController)
+            NowPlayingDetails(
+                isStarred = false,
+                currentRating = (metadata?.userRating as StarRating).starRating.toInt(),
+                onOpenRating = { showRatingDialog = true }
+            )
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -146,6 +155,15 @@ fun NowPlayingContent(
             }
         )
     }
+
+    if (showRatingDialog)
+        RatingDialog(
+            currentRating = (metadata?.userRating as StarRating).starRating.toInt(),
+            onDismiss = { showRatingDialog = false },
+            onSetRating = { rating ->
+                mediaController?.setRating(StarRating(5, rating.toFloat()))
+            }
+        )
 }
 
 @Composable

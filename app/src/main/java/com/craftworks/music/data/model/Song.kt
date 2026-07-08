@@ -7,6 +7,7 @@ import androidx.core.net.toUri
 import androidx.media.utils.MediaConstants.METADATA_KEY_IS_EXPLICIT
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.StarRating
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -47,6 +48,12 @@ fun MediaData.Song.toMediaItem(): MediaItem {
             .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
             .setDurationMs(this@toMediaItem.duration.times(1000).toLong())
             .setGenre(this@toMediaItem.genres?.joinToString() { it.name ?: "" })
+            .apply {
+                if (this@toMediaItem.userRating != null)
+                    setUserRating(StarRating(5, this@toMediaItem.userRating.toFloat()))
+                else
+                    setUserRating(StarRating(5))
+            }
             .setExtras(Bundle().apply {
                 putString("navidromeID", this@toMediaItem.navidromeID)
                 putString("lyricsArtist", if (this@toMediaItem.artists.isNotEmpty()) this@toMediaItem.artists[0].name else this@toMediaItem.artist)
