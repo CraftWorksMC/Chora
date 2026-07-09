@@ -165,19 +165,25 @@ class MainActivity : ComponentActivity() {
                 val coroutineScope = rememberCoroutineScope()
 
                 // Update metadata from mediaController.
-                LaunchedEffect(mediaController) {
-                    if (mediaController?.currentMediaItem != null) {
-                        metadata = mediaController?.currentMediaItem?.mediaMetadata
-                    }
-                }
                 DisposableEffect(mediaController) {
                     val listener = object : Player.Listener {
+                        override fun onPlaylistMetadataChanged(mediaMetadata: MediaMetadata) {
+                            metadata = mediaMetadata
+                            super.onPlaylistMetadataChanged(mediaMetadata)
+                        }
+
                         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                            metadata = mediaItem?.mediaMetadata
                             super.onMediaItemTransition(mediaItem, reason)
-                            metadata = mediaController?.currentMediaItem?.mediaMetadata
+                        }
+
+                        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+                            metadata = mediaMetadata
+                            super.onMediaMetadataChanged(mediaMetadata)
                         }
                     }
 
+                    metadata = mediaController?.mediaMetadata
                     mediaController?.addListener(listener)
 
                     onDispose {

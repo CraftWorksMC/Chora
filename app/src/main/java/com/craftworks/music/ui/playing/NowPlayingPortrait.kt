@@ -184,7 +184,7 @@ fun NowPlayingPortrait(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Text(
-                                text = metadata?.title.toString(),
+                                text = (metadata?.title ?: metadata?.displayTitle).toString(),
                                 style = MaterialTheme.typography.headlineSmallEmphasized,
                                 fontWeight = FontWeight.Bold,
                                 color = iconTextColor,
@@ -338,13 +338,14 @@ fun NowPlayingPortrait(
                                                 )
                                             }
 
-                                            IconButton(onClick = onToggleDetails) {
-                                                Icon(
-                                                    Icons.Rounded.MoreVert,
-                                                    tint = iconTextColor.copy(alpha = 0.8f),
-                                                    contentDescription = null
-                                                )
-                                            }
+                                            if (!isRadio)
+                                                IconButton(onClick = onToggleDetails) {
+                                                    Icon(
+                                                        Icons.Rounded.MoreVert,
+                                                        tint = iconTextColor.copy(alpha = 0.8f),
+                                                        contentDescription = null
+                                                    )
+                                                }
                                         }
                                     }
                                 }

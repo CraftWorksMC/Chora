@@ -127,7 +127,7 @@ fun NowPlayingContent(
         ) {
             NowPlayingDetails(
                 isStarred = false,
-                currentRating = (metadata?.userRating as StarRating).starRating.toInt(),
+                currentRating = (metadata?.userRating as? StarRating)?.starRating?.toInt() ?: 0,
                 onOpenRating = { showRatingDialog = true }
             )
             Spacer(modifier = Modifier.height(16.dp))
