@@ -13,10 +13,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -24,7 +28,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -40,6 +51,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
+import androidx.media3.common.StarRating
 import androidx.tv.material3.Card
 import androidx.tv.material3.Icon
 import androidx.tv.material3.ListItem
@@ -55,7 +67,7 @@ import com.craftworks.music.ui.screens.tv.settings.SettingsSwitchItem
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 import kotlinx.coroutines.launch
 
-private enum class DialogMenu { MAIN, ADD_TO_PLAYLIST, NEW_PLAYLIST }
+private enum class DialogMenu { MAIN, ADD_TO_PLAYLIST, NEW_PLAYLIST, SET_RATING }
 
 @Preview(
     showBackground = false, showSystemUi = true, device = "id:tv_1080p",
@@ -65,6 +77,7 @@ private enum class DialogMenu { MAIN, ADD_TO_PLAYLIST, NEW_PLAYLIST }
 @Composable
 fun SongDialog(
     song: MediaItem = MediaItem.EMPTY,
+    onSetRating: (Int) -> Unit = { },
     setShowDialog: (Boolean) -> Unit = { }
 ) {
     val context = LocalContext.current
@@ -140,6 +153,16 @@ fun SongDialog(
                     DialogMenu.MAIN -> {
                         ListItem(
                             selected = false,
+                            headlineContent = {
+                                Text(stringResource(R.string.Dialog_Set_Rating))
+                            },
+                            onClick = {
+                                dialogMenu = DialogMenu.SET_RATING
+                            }
+                        )
+
+                        ListItem(
+                            selected = false,
                             headlineContent = { Text(stringResource(R.string.Action_Download)) },
                             onClick = {
                                 coroutineScope.launch {
@@ -159,9 +182,7 @@ fun SongDialog(
                                 )
                             },
                             onClick = {
-                                coroutineScope.launch {
-                                    dialogMenu = DialogMenu.ADD_TO_PLAYLIST
-                                }
+                                dialogMenu = DialogMenu.ADD_TO_PLAYLIST
                             }
                         )
                     }
@@ -176,6 +197,17 @@ fun SongDialog(
                         NewPlaylist(
                             song = song,
                             setDialogMenu = { dialogMenu = it }
+                        )
+                    }
+
+                    DialogMenu.SET_RATING -> {
+                        SetRating(
+                            currentRating = (song.mediaMetadata.userRating as StarRating).starRating.toInt(),
+                            onSetRating = { rating ->
+                                onSetRating(rating)
+                                dialogMenu = DialogMenu.MAIN
+                            },
+                            onDismiss = { dialogMenu = DialogMenu.MAIN }
                         )
                     }
                 }
@@ -344,5 +376,95 @@ private fun NewPlaylist(
                 setDialogMenu(DialogMenu.MAIN)
             }
         )
+    }
+}
+
+@Preview
+@Composable
+private fun SetRating(
+    currentRating: Int = 0,
+    onSetRating: (Int) -> Unit = { },
+    onDismiss: () -> Unit = { }
+) {
+    var selectedRating by remember { mutableIntStateOf(currentRating) }
+
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
+    Column (
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusable()
+                .focusRequester(focusRequester)
+                .onKeyEvent { keyEvent ->
+                    if (keyEvent.type == KeyEventType.KeyDown) {
+                        when (keyEvent.key) {
+                            Key.DirectionLeft -> {
+                                if (selectedRating > 1) {
+                                    selectedRating--
+                                    true
+                                } else false
+                            }
+
+                            Key.DirectionRight -> {
+                                if (selectedRating < 5) {
+                                    selectedRating++
+                                    true
+                                } else false
+                            }
+
+                            Key.DirectionCenter -> {
+                                onSetRating(selectedRating)
+                                true
+                            }
+
+                            else -> false
+                        }
+                    } else {
+                        false
+                    }
+                }
+        ) {
+            for (star in 1..5) {
+                Icon(
+                    imageVector = if (star <= selectedRating) Icons.Rounded.Star
+                    else ImageVector.vectorResource(R.drawable.rounded_star_outline_24),
+                    contentDescription = "Star $star",
+                    tint = if (star <= selectedRating) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+
+        ListItem(
+            selected = false,
+            headlineContent = { Text(stringResource(R.string.Action_Done)) },
+            onClick = {
+                    onSetRating(selectedRating)
+                }
+        )
+
+//        Row {
+//            OutlinedButton (onClick = onDismiss) {
+//                Text("Cancel")
+//            }
+//
+//            Button(
+//                onClick = {
+//                    onSetRating(selectedRating)
+//                    onDismiss()
+//                }
+//            ) {
+//                Text("Save")
+//            }
+//        }
     }
 }

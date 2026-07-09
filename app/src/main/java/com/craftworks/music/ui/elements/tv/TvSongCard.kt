@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,9 +16,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media.utils.MediaConstants.METADATA_KEY_IS_EXPLICIT
 import androidx.media3.common.MediaItem
+import androidx.media3.common.StarRating
 import androidx.tv.material3.Card
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
@@ -26,12 +30,13 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 
+@Preview(showBackground = true, device = "id:tv_1080p")
 @Composable
 fun TvHorizontalSongCard(
-    song: MediaItem,
+    song: MediaItem = MediaItem.EMPTY,
     modifier: Modifier = Modifier,
     showTrackNumber: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit = { },
     onLongClick: () -> Unit = { }
 ) {
     val context = LocalContext.current
@@ -100,5 +105,19 @@ fun TvHorizontalSongCard(
                 modifier = Modifier.padding(start = 16.dp)
             )
         },
+        description = {
+            Row (
+                modifier = Modifier.padding(start = 16.dp)
+            ) {
+                repeat((song.mediaMetadata.userRating as StarRating).starRating.toInt()) {
+                    Icon(
+                        imageVector = Icons.Rounded.Star,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+        }
     )
 }

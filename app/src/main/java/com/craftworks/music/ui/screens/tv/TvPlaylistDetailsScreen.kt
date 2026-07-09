@@ -249,6 +249,12 @@ fun TvPlaylistDetails(
     if (showSongDialog)
         SongDialog(
             song = selectedSong,
+            onSetRating = { rating ->
+                viewModel.setSongRating(
+                    songId = selectedSong.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                    rating = rating
+                )
+            },
             setShowDialog = { showSongDialog = it }
         )
 }

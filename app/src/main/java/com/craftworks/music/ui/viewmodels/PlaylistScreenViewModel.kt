@@ -5,8 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.StarRating
 import com.craftworks.music.data.repository.PlaylistRepository
-import com.craftworks.music.data.repository.StarredRepository
+import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlaylistScreenViewModel @Inject constructor(
-    private val playlistRepository: PlaylistRepository
+    private val playlistRepository: PlaylistRepository,
+    private val songRepository: SongRepository,
 ) : ViewModel() {
     private val _allPlaylists = MutableStateFlow<List<MediaItem>>(emptyList())
     val allPlaylists: StateFlow<List<MediaItem>> = _allPlaylists.asStateFlow()
@@ -127,6 +129,30 @@ class PlaylistScreenViewModel @Inject constructor(
             DataRefreshManager.notifyDataSourcesChanged()
             _isLoading.value = false
             loadPlaylists()
+        }
+    }
+
+    fun setSongRating(
+        songId: String,
+        rating: Int,
+    ) {
+        val song =_selectedPlaylistSongs.value.first {
+            it.mediaMetadata.extras?.getString("navidromeID") == songId
+        }
+        val maxStars = (song.mediaMetadata.userRating as? StarRating)?.maxStars ?: 5
+
+        val updatedSong = song.buildUpon().setMediaMetadata(
+            song.mediaMetadata.buildUpon()
+                .setUserRating(StarRating(maxStars, rating.toFloat()))
+                .build()
+        ).build()
+
+        _selectedPlaylistSongs.value = _selectedPlaylistSongs.value.map { item ->
+            if (item.mediaId == song.mediaId) updatedSong else item
+        }
+
+        viewModelScope.launch {
+            songRepository.setSongRating(songId, rating)
         }
     }
 }
