@@ -13,7 +13,6 @@ import com.craftworks.music.providers.local.localPlaylistImageGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -88,7 +87,6 @@ class PlaylistScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             val loadingJob = launch {
-                delay(1000)
                 if (_selectedPlaylistSongs.value.isEmpty()) {
                     _isLoading.value = true
                 }

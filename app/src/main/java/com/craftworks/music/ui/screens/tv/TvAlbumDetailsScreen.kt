@@ -71,7 +71,9 @@ import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
 import com.craftworks.music.ui.elements.tv.TvHorizontalSongCard
 import com.craftworks.music.ui.viewmodels.AlbumDetailsViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -90,12 +92,19 @@ fun TvAlbumDetails(
     var selectedSong by remember { mutableStateOf(MediaItem.EMPTY) }
     var showSongDialog by remember { mutableStateOf(false) }
 
+    var showLoading by remember { mutableStateOf(false) }
+
     LaunchedEffect(selectedAlbumId) {
+        showLoading = false
+
         viewModel.loadAlbumDetails(selectedAlbumId)
+
+        delay(500.milliseconds)
+        showLoading = true
     }
 
     AnimatedVisibility(
-        visible = currentAlbum.isEmpty(),
+        visible = currentAlbum.isEmpty() && showLoading,
         enter = fadeIn(),
         exit = fadeOut()
     ) {

@@ -80,7 +80,9 @@ import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.viewmodels.AlbumDetailsViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalFoundationApi
@@ -101,12 +103,17 @@ fun AlbumDetails(
     val context = LocalContext.current
 
     LaunchedEffect(selectedAlbumId) {
+        showLoading = false
+
         viewModel.loadAlbumDetails(selectedAlbumId)
+
+        delay(500.milliseconds)
+        showLoading = true
     }
 
     // Loading spinner
     AnimatedVisibility(
-        visible = showLoading,
+        visible = currentAlbum.isEmpty() && showLoading,
         enter = fadeIn(),
         exit = fadeOut()
     ) {
