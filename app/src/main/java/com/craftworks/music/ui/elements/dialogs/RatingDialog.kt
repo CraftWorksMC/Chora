@@ -28,7 +28,7 @@ import com.craftworks.music.R
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun RatingDialog(
-    currentRating: Int = 2,
+    currentRating: Int = 0,
     onDismiss: () -> Unit = { },
     onSetRating: (Int) -> Unit = { }
 ) {

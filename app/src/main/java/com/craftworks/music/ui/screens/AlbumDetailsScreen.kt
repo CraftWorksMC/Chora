@@ -63,6 +63,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaItem
+import androidx.media3.common.StarRating
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -77,6 +79,7 @@ import com.craftworks.music.providers.navidrome.downloadNavidromeAlbum
 import com.craftworks.music.ui.elements.GenrePill
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
+import com.craftworks.music.ui.elements.dialogs.RatingDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.viewmodels.AlbumDetailsViewModel
@@ -99,6 +102,8 @@ fun AlbumDetails(
     var showLoading by remember { mutableStateOf(false) }
     val currentAlbum = viewModel.songsInAlbum.collectAsStateWithLifecycle().value
     val showTrackNumbers by AppearanceSettingsManager(LocalContext.current).showTrackNumbersFlow.collectAsStateWithLifecycle(false)
+
+    var songToRate by remember { mutableStateOf<MediaItem?>(null) }
 
     val context = LocalContext.current
 
@@ -395,7 +400,8 @@ fun AlbumDetails(
                             },
                             onAddToQueue = {
                                 mediaController?.addMediaItem(song)
-                            }
+                            },
+                            onSetRating = { songToRate = song }
                         )
                     }
                 }
@@ -417,7 +423,8 @@ fun AlbumDetails(
                         },
                         onAddToQueue = {
                             mediaController?.addMediaItem(song)
-                        }
+                        },
+                        onSetRating = { songToRate = song }
                     )
                 }
             }
@@ -427,4 +434,14 @@ fun AlbumDetails(
     if(showAddSongToPlaylistDialog.value)
         AddSongToPlaylist(setShowDialog =  { showAddSongToPlaylistDialog.value = it } )
 
+    songToRate?.let { song ->
+        RatingDialog(
+            currentRating = (song.mediaMetadata.userRating as StarRating).starRating.toInt(),
+            onDismiss = { songToRate = null },
+            onSetRating = { rating ->
+                viewModel.setSongRating(song.mediaMetadata.extras?.getString("navidromeID") ?: "", rating)
+                songToRate = null
+            }
+        )
+    }
 }

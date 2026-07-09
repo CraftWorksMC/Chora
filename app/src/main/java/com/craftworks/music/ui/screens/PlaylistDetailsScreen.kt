@@ -32,8 +32,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -55,6 +58,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaItem
+import androidx.media3.common.StarRating
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -67,6 +72,7 @@ import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.navidrome.downloadNavidromeAlbum
 import com.craftworks.music.ui.elements.HorizontalSongCard
+import com.craftworks.music.ui.elements.dialogs.RatingDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 import kotlinx.coroutines.launch
@@ -95,6 +101,8 @@ fun PlaylistDetails(
         remember(playlistSongs) { playlistSongs.sumOf { it.mediaMetadata.durationMs ?: 0 } }
 
     val coroutineScope = rememberCoroutineScope()
+
+    var songToRate by remember { mutableStateOf<MediaItem?>(null) }
 
     println("artwork uri: ${playlistMetadata?.artworkUri}; artwork data: ${playlistMetadata?.artworkData}")
 
@@ -303,9 +311,21 @@ fun PlaylistDetails(
                     },
                     onAddToQueue = {
                         mediaController?.addMediaItem(song)
-                    }
+                    },
+                    onSetRating = { songToRate = song }
                 )
             }
         }
+    }
+
+    songToRate?.let { song ->
+        RatingDialog(
+            currentRating = (song.mediaMetadata.userRating as StarRating).starRating.toInt(),
+            onDismiss = { songToRate = null },
+            onSetRating = { rating ->
+                viewModel.setSongRating(song.mediaMetadata.extras?.getString("navidromeID") ?: "", rating)
+                songToRate = null
+            }
+        )
     }
 }

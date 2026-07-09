@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -45,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media.utils.MediaConstants.METADATA_KEY_IS_EXPLICIT
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.StarRating
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
@@ -61,6 +63,7 @@ fun HorizontalSongCard(
     showTrackNumber: Boolean = false,
     onClick: () -> Unit,
     onAddToQueue: () -> Unit,
+    onSetRating: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -122,7 +125,7 @@ fun HorizontalSongCard(
                 Modifier
                     .padding(end = 12.dp)
                     .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.SpaceAround
             ) {
                 Row (
                     verticalAlignment = Alignment.CenterVertically
@@ -150,6 +153,17 @@ fun HorizontalSongCard(
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Start
                 )
+
+                Row {
+                    repeat((song.mediaMetadata.userRating as StarRating).starRating.toInt()) {
+                        Icon(
+                            imageVector = Icons.Rounded.Star,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
             }
             val formattedDuration by remember(song.mediaMetadata.durationMs) {
                 derivedStateOf {
@@ -192,6 +206,21 @@ fun HorizontalSongCard(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(stringResource(R.string.Dialog_Set_Rating))
+                        },
+                        onClick = {
+                            onSetRating()
+                            expanded = false
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.rounded_star_outline_24),
+                                contentDescription = null
+                            )
+                        }
+                    )
                     DropdownMenuItem(
                         text = {
                             Text(stringResource(R.string.Action_Add_To_Queue))
@@ -264,6 +293,7 @@ fun PReviewHorizontalSongCard() {
                     .build()
             ).build(),
         onClick = {},
-        onAddToQueue = {}
+        onAddToQueue = {},
+        onSetRating = {}
     )
 }

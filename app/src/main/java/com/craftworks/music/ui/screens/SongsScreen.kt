@@ -14,6 +14,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -27,6 +28,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaItem
+import androidx.media3.common.StarRating
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
@@ -35,6 +38,7 @@ import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
 import com.craftworks.music.ui.elements.TopBarWithSearch
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
+import com.craftworks.music.ui.elements.dialogs.RatingDialog
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
@@ -65,6 +69,9 @@ fun SongsScreen(
         showRipple++
     }
 
+    var songToRate by remember { mutableStateOf<MediaItem?>(null) }
+
+
     val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -93,6 +100,7 @@ fun SongsScreen(
                             onAddToQueue = {
                                 mediaController?.addMediaItem(it)
                             },
+                            onSetRating = { songToRate = it },
                             isSearch = true,
                             showFavoritesOnly = false,
                             viewModel = viewModel
@@ -129,6 +137,7 @@ fun SongsScreen(
                     onAddToQueue = {
                         mediaController?.addMediaItem(it)
                     },
+                    onSetRating = { songToRate = it },
                     isSearch = false,
                     showFavoritesOnly = showFavoritesOnly,
                     viewModel = viewModel
@@ -139,6 +148,17 @@ fun SongsScreen(
 
     if(showAddSongToPlaylistDialog.value)
         AddSongToPlaylist(setShowDialog =  { showAddSongToPlaylistDialog.value = it } )
+
+    songToRate?.let { song ->
+        RatingDialog(
+            currentRating = (song.mediaMetadata.userRating as StarRating).starRating.toInt(),
+            onDismiss = { songToRate = null },
+            onSetRating = { rating ->
+                viewModel.setSongRating(song.mediaMetadata.extras?.getString("navidromeID") ?: "", rating)
+                songToRate = null
+            }
+        )
+    }
 
     RippleEffect(
         center = Offset(rippleXOffset.toFloat(), rippleYOffset.toFloat()),
