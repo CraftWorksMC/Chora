@@ -63,7 +63,8 @@ fun HorizontalSongCard(
     showTrackNumber: Boolean = false,
     onClick: () -> Unit,
     onAddToQueue: () -> Unit,
-    onSetRating: () -> Unit
+    onSetRating: () -> Unit,
+    extraMenuItems: @Composable (onDismiss: () -> Unit) -> Unit = {}
 ) {
     val context = LocalContext.current
 
@@ -276,6 +277,8 @@ fun HorizontalSongCard(
                             )
                         }
                     )
+
+                    extraMenuItems { expanded = false }
                 }
             }
         }

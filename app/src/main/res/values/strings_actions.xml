@@ -22,6 +22,7 @@
 
     <!-- Playlists -->
     <string name="Action_CreatePlaylist">Create Playlist</string>
+    <string name="Action_RemoveFromPlaylist">Remove From Playlist</string>
 
     <string name="Action_Download">Download</string>
 </resources>

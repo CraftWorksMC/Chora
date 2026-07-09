@@ -27,6 +27,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -72,8 +73,10 @@ import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.providers.navidrome.downloadNavidromeAlbum
 import com.craftworks.music.ui.elements.HorizontalSongCard
+import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
 import com.craftworks.music.ui.elements.dialogs.RatingDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
+import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 import kotlinx.coroutines.launch
 
@@ -312,11 +315,34 @@ fun PlaylistDetails(
                     onAddToQueue = {
                         mediaController?.addMediaItem(song)
                     },
-                    onSetRating = { songToRate = song }
+                    onSetRating = { songToRate = song },
+                    extraMenuItems = { onDismiss ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(stringResource(R.string.Action_RemoveFromPlaylist))
+                            },
+                            onClick = {
+                                viewModel.removeSongFromPlaylist(
+                                    playlistId = playlistMetadata?.extras?.getString("navidromeID") ?: "",
+                                    songId = song.mediaMetadata.extras?.getString("navidromeID") ?: ""
+                                )
+                                onDismiss()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(R.drawable.rounded_playlist_remove_24),
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
                 )
             }
         }
     }
+
+    if(showAddSongToPlaylistDialog.value)
+        AddSongToPlaylist(setShowDialog =  { showAddSongToPlaylistDialog.value = it } )
 
     songToRate?.let { song ->
         RatingDialog(

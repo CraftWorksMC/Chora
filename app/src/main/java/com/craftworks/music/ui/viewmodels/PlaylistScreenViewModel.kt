@@ -120,6 +120,14 @@ class PlaylistScreenViewModel @Inject constructor(
         }
     }
 
+    fun removeSongFromPlaylist(playlistId: String, songId: String) {
+        viewModelScope.launch {
+            val index = _selectedPlaylistSongs.value.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID") == songId }
+            playlistRepository.removeSongFromPlaylist(playlistId, index.toString())
+            _selectedPlaylistSongs.value = _selectedPlaylistSongs.value.filter { it.mediaMetadata.extras?.getString("navidromeID") != songId }
+        }
+    }
+
     fun deletePlaylist(playlistId: String) {
         viewModelScope.launch {
             _isLoading.value = true
