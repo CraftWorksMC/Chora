@@ -155,14 +155,16 @@ fun HorizontalSongCard(
                     textAlign = TextAlign.Start
                 )
 
-                Row {
-                    repeat((song.mediaMetadata.userRating as StarRating).starRating.toInt()) {
-                        Icon(
-                            imageVector = Icons.Rounded.Star,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
-                        )
+                if (song.mediaMetadata.userRating != null) {
+                    Row {
+                        repeat((song.mediaMetadata.userRating as StarRating).starRating.toInt()) {
+                            Icon(
+                                imageVector = Icons.Rounded.Star,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
                 }
             }

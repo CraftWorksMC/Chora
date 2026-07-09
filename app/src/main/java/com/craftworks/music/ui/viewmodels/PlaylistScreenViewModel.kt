@@ -54,7 +54,7 @@ class PlaylistScreenViewModel @Inject constructor(
         }
     }
 
-    fun setCurrentPlaylist(playlist: MediaItem){
+    fun setCurrentPlaylist(playlist: MediaItem) {
         _selectedPlaylistSongs.value = emptyList<MediaItem>()
         _selectedPlaylist.value = playlist
         fetchPlaylistDetails() // Fetch details when playlist is set
@@ -62,12 +62,19 @@ class PlaylistScreenViewModel @Inject constructor(
 
     suspend fun updatePlaylistsImages(context: Context) {
         _allPlaylists.value = _allPlaylists.value.map {
-            if (it.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true && it.mediaMetadata.artworkData == null) {
-                val songs = playlistRepository.getPlaylistSongs(it.mediaMetadata.extras?.getString("navidromeID") ?: "", true)
+            if (it.mediaMetadata.extras?.getString("navidromeID")
+                    ?.startsWith("Local_") == true && it.mediaMetadata.artworkData == null
+            ) {
+                val songs = playlistRepository.getPlaylistSongs(
+                    it.mediaMetadata.extras?.getString("navidromeID") ?: "", true
+                )
                 it.buildUpon()
                     .setMediaMetadata(
                         it.mediaMetadata.buildUpon()
-                            .setArtworkData(localPlaylistImageGenerator(songs, context), MediaMetadata.PICTURE_TYPE_OTHER)
+                            .setArtworkData(
+                                localPlaylistImageGenerator(songs, context),
+                                MediaMetadata.PICTURE_TYPE_OTHER
+                            )
                             .build()
                     )
                     .build()
@@ -93,14 +100,20 @@ class PlaylistScreenViewModel @Inject constructor(
             }
             loadingJob.start()
             coroutineScope {
-                _selectedPlaylistSongs.value = async { playlistRepository.getPlaylistSongs(playlistId) }.await()
+                _selectedPlaylistSongs.value =
+                    async { playlistRepository.getPlaylistSongs(playlistId) }.await()
             }
             loadingJob.cancel()
             _isLoading.value = false
         }
     }
 
-    fun createPlaylist(name: String, songstoAdd: String, addToNavidrome: Boolean, context: Context) {
+    fun createPlaylist(
+        name: String,
+        songstoAdd: String,
+        addToNavidrome: Boolean,
+        context: Context
+    ) {
         viewModelScope.launch {
             _isLoading.value = true
             playlistRepository.createPlaylist(name, songstoAdd, addToNavidrome)
@@ -122,9 +135,20 @@ class PlaylistScreenViewModel @Inject constructor(
 
     fun removeSongFromPlaylist(playlistId: String, songId: String) {
         viewModelScope.launch {
-            val index = _selectedPlaylistSongs.value.indexOfFirst { it.mediaMetadata.extras?.getString("navidromeID") == songId }
-            playlistRepository.removeSongFromPlaylist(playlistId, index.toString())
-            _selectedPlaylistSongs.value = _selectedPlaylistSongs.value.filter { it.mediaMetadata.extras?.getString("navidromeID") != songId }
+            val index = _selectedPlaylistSongs.value.indexOfFirst {
+                it.mediaMetadata.extras?.getString("navidromeID") == songId
+            }
+
+            if (_selectedPlaylistSongs.value.size == 1 && index == 0) {
+                deletePlaylist(playlistId)
+                return@launch
+            }
+
+            playlistRepository.removeSongFromPlaylist(playlistId, index)
+
+            _selectedPlaylistSongs.value = _selectedPlaylistSongs.value.filter {
+                it.mediaMetadata.extras?.getString("navidromeID") != songId
+            }
         }
     }
 
@@ -142,7 +166,7 @@ class PlaylistScreenViewModel @Inject constructor(
         songId: String,
         rating: Int,
     ) {
-        val song =_selectedPlaylistSongs.value.first {
+        val song = _selectedPlaylistSongs.value.first {
             it.mediaMetadata.extras?.getString("navidromeID") == songId
         }
         val maxStars = (song.mediaMetadata.userRating as? StarRating)?.maxStars ?: 5

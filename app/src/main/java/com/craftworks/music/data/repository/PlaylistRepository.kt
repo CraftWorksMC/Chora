@@ -53,11 +53,11 @@ class PlaylistRepository @Inject constructor(
             navidromeDataSource.addSongToNavidromePlaylist(playlistId, songID, true)
         }
     }
-    suspend fun removeSongFromPlaylist(playlistId: String, song: String) {
+    suspend fun removeSongFromPlaylist(playlistId: String, songIndex: Int) {
         if (playlistId.startsWith("Local_")){
-            localDataSource.removeSongFromLocalPlaylist(playlistId, song)
+            localDataSource.removeSongFromLocalPlaylist(playlistId, songIndex)
         } else {
-            navidromeDataSource.removeSongFromNavidromePlaylist(playlistId, song.toInt(), true)
+            navidromeDataSource.removeSongFromNavidromePlaylist(playlistId, songIndex, true)
         }
     }
 

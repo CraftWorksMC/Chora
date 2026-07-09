@@ -436,7 +436,7 @@ fun AlbumDetails(
 
     songToRate?.let { song ->
         RatingDialog(
-            currentRating = (song.mediaMetadata.userRating as StarRating).starRating.toInt(),
+            currentRating = (song.mediaMetadata.userRating as? StarRating)?.starRating?.toInt() ?: 0,
             onDismiss = { songToRate = null },
             onSetRating = { rating ->
                 viewModel.setSongRating(song.mediaMetadata.extras?.getString("navidromeID") ?: "", rating)

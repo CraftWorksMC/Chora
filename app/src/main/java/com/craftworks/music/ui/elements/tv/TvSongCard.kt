@@ -106,6 +106,9 @@ fun TvHorizontalSongCard(
             )
         },
         description = {
+            if (song.mediaMetadata.userRating == null)
+                return@WideCardContainer
+
             Row (
                 modifier = Modifier.padding(start = 16.dp)
             ) {

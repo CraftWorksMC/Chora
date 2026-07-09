@@ -202,7 +202,7 @@ fun SongDialog(
 
                     DialogMenu.SET_RATING -> {
                         SetRating(
-                            currentRating = (song.mediaMetadata.userRating as StarRating).starRating.toInt(),
+                            currentRating = (song.mediaMetadata.userRating as? StarRating)?.starRating?.toInt() ?: 0,
                             onSetRating = { rating ->
                                 onSetRating(rating)
                                 dialogMenu = DialogMenu.MAIN

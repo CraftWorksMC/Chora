@@ -137,15 +137,15 @@ class LocalDataSource @Inject constructor(
 
     suspend fun removeSongFromLocalPlaylist(
         playlistId: String,
-        songId: String
+        songIndex: Int
     ): Boolean {
         val currentPlaylistsFromStore = localDataSettingsManager.localPlaylists.first().toMutableList()
         val playlistToModify = currentPlaylistsFromStore.find { it.navidromeID == playlistId }
             ?: return false
 
-        val songRemoved = playlistToModify.songs?.removeAll { it.navidromeID == songId }
+        val songRemoved = playlistToModify.songs?.removeAt(songIndex)
 
-        if (songRemoved == true) {
+        if (songRemoved != null) {
             localDataSettingsManager.saveLocalPlaylists(currentPlaylistsFromStore)
             return true
         }
