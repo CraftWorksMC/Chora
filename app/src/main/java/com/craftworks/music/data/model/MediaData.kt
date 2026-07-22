@@ -1,6 +1,5 @@
 package com.craftworks.music.data.model
 
-import com.craftworks.music.providers.navidrome.SyncedLyrics
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -148,11 +147,42 @@ sealed class MediaData {
 
     @Serializable
     data class StructuredLyrics(
-        val displayArtist: String? = "",
-        val displayTitle: String? = "",
-        val lang: String,
+        val displayArtist: String? = null,
+        val displayTitle: String? = null,
+        val lang: String = "und",
+        val synced: Boolean = false,
         val offset: Int? = 0,
-        val synced: Boolean,
-        val line: List<SyncedLyrics>
+        val kind: String? = "main",
+        val line: List<LyricLine> = emptyList(),
+        val agents: List<LyricAgent>? = null,
+        val cueLine: List<CueLine>? = null
     ) : MediaData()
+    @Serializable
+    data class LyricAgent(
+        val id: String,
+        val role: String,
+        val name: String? = null
+    )
+    @Serializable
+    data class LyricLine(
+        val start: Int? = null,
+        val value: String
+    )
+    @Serializable
+    data class CueLine(
+        val index: Int,
+        val start: Int,
+        val end: Int,
+        val value: String,
+        val agentId: String? = null,
+        val cue: List<Cue> = emptyList()
+    )
+    @Serializable
+    data class Cue(
+        val start: Int,
+        val end: Int? = null,
+        val value: String,
+        val byteStart: Int,
+        val byteEnd: Int
+    )
 }

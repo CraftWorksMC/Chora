@@ -455,7 +455,7 @@ class NavidromeDataSource @Inject constructor() {
     suspend fun getNavidromeSyncedLyrics(
         songId: String, ignoreCachedResponse: Boolean = false
     ): List<Lyric> = withContext(Dispatchers.IO) {
-        getRequest("getLyricsBySongId.view?id=${songId}", null, ignoreCachedResponse)
+        getRequest("getLyricsBySongId.view?id=${songId}&enhanced=true", null, ignoreCachedResponse)
             .filterIsInstance<MediaData.StructuredLyrics>().flatMap { it.toLyrics() }
     }
 

@@ -52,8 +52,43 @@ fun MediaData.PlainLyrics.toLyric(): Lyric {
 }
 
 fun MediaData.StructuredLyrics.toLyrics(): List<Lyric> {
+    val lyricOffset = offset ?: 0
+
+    // Unsynced
+    if (!synced) {
+        return listOf(
+            Lyric(
+                startMs = -1,
+                text = line.map { it.value }
+            )
+        )
+    }
+
+    // V2
+    if (!cueLine.isNullOrEmpty()) {
+        return cueLine.map { cLine ->
+            Lyric(
+                startMs = cLine.start + lyricOffset,
+                endMs = cLine.end + lyricOffset,
+                text = listOf(cLine.value),
+                words = cLine.cue.mapIndexed { index, cue ->
+                    val lineBytes = cLine.value.toByteArray(Charsets.UTF_8)
+                    val cueByteEnd = cLine.cue.getOrNull(index + 1)?.byteStart?.minus(1) ?: cue.byteEnd
+                    val cueBytes = lineBytes.sliceArray(cue.byteStart..cueByteEnd)
+
+                    SyncedWord(
+                        text = String(cueBytes, Charsets.UTF_8),
+                        startMs = cue.start + lyricOffset,
+                        endMs = cue.end?.plus(lyricOffset)
+                    )
+                }
+            )
+        }.sortedBy { it.startMs }
+    }
+
+    // V1
     return line
-        .groupBy { if (synced) it.start!! + (offset ?: 0) else -1 }
+        .groupBy { (it.start ?: 0) + lyricOffset }
         .map { (timestamp, lines) ->
             Lyric(
                 startMs = timestamp,

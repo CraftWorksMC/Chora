@@ -18,7 +18,7 @@ height="80">](https://f-droid.org/packages/com.craftworks.music/)
 - Material 3 UI.
 - Download songs and albums from server.
 - Internet Radio.
-- Word Synced<sup>LrcLib Only</sup>, Line Synced And Unsynced Lyrics. [From lrclib.net or self-hosted instance and NetEase]
+- Word Synced, Line Synced And Unsynced Lyrics. [From lrclib.net or self-hosted instance and NetEase]
 - Navidrome and Local playlists.
 - Multiple Navidrome libraries.
 - Transcoding.
