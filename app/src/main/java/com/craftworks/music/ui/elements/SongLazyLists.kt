@@ -241,7 +241,7 @@ fun AlbumGrid(
                     },
                     onPlay = {
                         coroutineScope.launch {
-                            val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                            val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("id") ?: "")
                             if (mediaItems.isNotEmpty())
                                 SongHelper.play(
                                     mediaItems = mediaItems.subList(1, mediaItems.size),

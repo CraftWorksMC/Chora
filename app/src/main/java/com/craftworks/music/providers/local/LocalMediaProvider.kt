@@ -1,5 +1,6 @@
 package com.craftworks.music.providers.local
 
+import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
@@ -23,6 +24,7 @@ import com.craftworks.music.data.model.PlaylistListSort
 import com.craftworks.music.data.model.PlaylistRules
 import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.ProviderInfo
+import com.craftworks.music.data.model.ProviderType
 import com.craftworks.music.data.model.ScrobbleEvent
 import com.craftworks.music.data.model.ScrobbleMediaType
 import com.craftworks.music.data.model.SearchResponse
@@ -155,7 +157,57 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getAlbumDetail(id: String): MediaModel.Album {
-        TODO("Not yet implemented")
+        Log.d(TAG, "Getting album data for id $id")
+
+        val albumWithSongs: MediaModel.Album
+        val contentResolver = appContext.contentResolver
+
+        val albumUri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI
+        val albumProjection = arrayOf(
+            MediaStore.Audio.Albums._ID,
+            MediaStore.Audio.Albums.ALBUM,
+            MediaStore.Audio.Albums.ARTIST,
+            MediaStore.Audio.Albums.FIRST_YEAR
+        )
+
+        contentResolver.query(
+            albumUri,
+            albumProjection,
+            "${MediaStore.Audio.Albums._ID} = ?",
+            arrayOf(id),
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val idIdx = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums._ID)
+                val nameIdx = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM)
+                val artistIdx = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ARTIST)
+                val yearIdx = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.FIRST_YEAR)
+
+                val albumName = cursor.getString(nameIdx) ?: "Unknown"
+                val artistName = cursor.getString(artistIdx) ?: "Unknown"
+                val year = cursor.getInt(yearIdx)
+
+                val songs = LocalUtils.getLocalAlbumSongs(appContext, id, this.id)
+                val totalDuration = songs.sumOf { it.durationMs }
+                val genres = songs.firstOrNull()?.genres
+
+                return MediaModel.Album(
+                    albumArtistName = artistName,
+                    durationMs = totalDuration,
+                    genres = genres?:emptyList(),
+                    name = albumName,
+                    releaseYear = year,
+                    songs = songs,
+                    songCount = songs.size
+                ).apply {
+                    this.id = id
+                    this.providerId = this@LocalMediaProvider.id
+                    this.providerType = ProviderType.LOCAL_FOLDER
+                }
+            }
+        }
+
+        throw Exception("Failed to get local album $id")
     }
 
     override suspend fun getAlbumInfo(id: String): AlbumInfo {
@@ -259,10 +311,11 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         id: String,
         itemType: LibraryType?,
         size: Int?,
+        parentId: String?
     ): String {
         when (itemType) {
             LibraryType.ALBUM, LibraryType.SONG  -> {
-                val artworkUri = "$ALBUM_ART_PATH/$id".toUri().let { uri ->
+                val artworkUri = "$ALBUM_ART_PATH/${if (itemType == LibraryType.SONG) parentId else id}".toUri().let { uri ->
                     try {
                         appContext.contentResolver.openInputStream(uri)?.close()
                         uri
@@ -348,7 +401,10 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         offset: Int?,
         skipAutoTranscode: Boolean?
     ): String {
-        TODO("Not yet implemented")
+        return ContentUris.withAppendedId(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            id.toLong()
+        ).toString()
     }
 
     override suspend fun getTagList(
@@ -423,7 +479,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         event: ScrobbleEvent?,
         position: Int?
     ) {
-        TODO("Not yet implemented")
+        Log.d(TAG, "Not scrobbling on local media $id")
     }
 
     override suspend fun search(query: MediaQuery.SearchQuery): SearchResponse {

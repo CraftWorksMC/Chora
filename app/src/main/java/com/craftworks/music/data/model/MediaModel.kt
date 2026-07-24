@@ -270,7 +270,7 @@ abstract class MediaModel()
     @Serializable
     class Song(
         val album: String? = null,
-        val albumArtistName: String,
+        val albumArtistName: String? = null,
         val albumArtists: List<Artist> = listOf(),
         val albumId: String,
         val artistName: String,
@@ -310,7 +310,7 @@ abstract class MediaModel()
         val trackNumber: Int,
         val trackSubtitle: String? = null,
         val updatedAt: String? = null,
-        val userFavorite: Boolean,
+        val userFavorite: Boolean? = null,
         val userRating: Int? = null
     ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
@@ -322,7 +322,7 @@ abstract class MediaModel()
                     .setTitle(this.name)
                     .setArtist(this.artistName)
                     .setAlbumTitle(this.album)
-                    .setArtworkUri(this.imageId?.let { provider?.getImageUrl(it, LibraryType.SONG)?.toUri() })
+                    .setArtworkUri(this.imageId?.let { provider?.getImageUrl(it, LibraryType.SONG, parentId = this.albumId)?.toUri() })
                     .setRecordingYear(this.releaseYear)
                     .setDiscNumber(this.discNumber)
                     .setTrackNumber(this.trackNumber)
@@ -335,7 +335,7 @@ abstract class MediaModel()
                             putString("id", this@Song.id)
                             putString("providerId", this@Song.providerId)
                             putString("albumId", this@Song.albumId)
-                            putBoolean("userFavorite", this@Song.userFavorite)
+                            putBoolean("userFavorite", this@Song.userFavorite?:false)
                         }
                     )
                     .build()
