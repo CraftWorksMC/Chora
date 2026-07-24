@@ -32,9 +32,11 @@ data class SubsonicBody(
     val musicFolders: SubsonicMusicFolders? = null,
 
     val searchResult3: SearchResult3? = null,
+    val starred: Starred? = null,
 
     // Songs
     val song: SubsonicSong? = null,
+    val songsByGenre: SubsonicSongList? = null,
 
     // Albums
     val albumList: SubsonicAlbumList? = null,
@@ -58,7 +60,17 @@ data class SearchResult3(
     val album: List<SubsonicAlbum>? = null,
     val song: List<SubsonicSong>? = null
 )
+@Serializable
+data class Starred(
+    val artist: List<SubsonicArtist>? = null,
+    val album: List<SubsonicAlbum>? = null,
+    val song: List<SubsonicSong>? = null
+)
 
+@Serializable
+data class SubsonicSongList(
+    val song: List<SubsonicSong>? = null
+)
 @Serializable
 data class SubsonicSong(
     val id: String,

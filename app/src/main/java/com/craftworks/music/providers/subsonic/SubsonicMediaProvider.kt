@@ -268,7 +268,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         if (!query.searchTerm.isNullOrBlank()) {
             val res = try {
                 service.search3(
-                    albumCount = query.limit,
+                    albumCount = query.limit ?: 20,
                     albumOffset = query.startIndex,
                     artistCount = 0,
                     artistOffset = 0,
@@ -464,7 +464,49 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
     }
 
     override suspend fun getSongList(query: MediaQuery.SongListQuery): List<MediaModel.Song> {
-        TODO("Not yet implemented")
+        if (query.searchTerm != null) {
+            return service.search3(
+                albumCount = 0,
+                albumOffset = 0,
+                artistCount = 0,
+                artistOffset = 0,
+                musicFolderId = query.musicFolderId?.map { it.toInt() },
+                query = query.searchTerm,
+                songCount = query.limit ?: 20,
+                songOffset = query.startIndex
+            ).subsonicResponse.searchResult3?.song?.map { it.toMediaModel(this.id) } ?: emptyList()
+        }
+        if (query.genreIds?.any()?:false) {
+            return service.getSongsByGenre(
+                count = query.limit,
+                genre = query.genreIds[0],
+                musicFolderId = query.musicFolderId?.map { it.toInt() },
+                offset = query.startIndex
+            ).subsonicResponse.songsByGenre?.song?.map { it.toMediaModel(this.id) } ?: emptyList()
+        }
+        if (query.favorite?:false) {
+            return service.getStarred(query.musicFolderId?.map { it.toInt() })
+                .subsonicResponse.starred?.song?.map { it.toMediaModel(this.id) } ?: emptyList()
+        }
+
+        val artistsIds = mutableListOf<String>()
+        if (query.albumArtistIds != null) artistsIds.addAll(query.albumArtistIds)
+        if (query.artistIds != null) artistsIds.addAll(query.artistIds)
+
+        if (artistsIds.isNotEmpty()) {
+            TODO("Not yet implemented")
+        }
+
+        return service.search3(
+            albumCount = 0,
+            albumOffset = 0,
+            artistCount = 0,
+            artistOffset = 0,
+            musicFolderId = query.musicFolderId?.map { it.toInt() },
+            query = query.searchTerm?:"",
+            songCount = query.limit ?: 20,
+            songOffset = query.startIndex
+        ).subsonicResponse.searchResult3?.song?.map { it.toMediaModel(this.id) } ?: emptyList()
     }
 
     override suspend fun getSongListCount(query: MediaQuery.SongListQuery): Int {

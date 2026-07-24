@@ -26,15 +26,28 @@ interface SubsonicService {
         @Query("musicFolderId") musicFolderId: List<Int>? = null,
     ): SubsonicResponse
 
+    @GET("rest/getSongsByGenre.view")
+    suspend fun getSongsByGenre(
+        @Query("genre") genre: String,
+        @Query("count") count: Int? = 10,
+        @Query("offset") offset: Int? = 0,
+        @Query("musicFolderId") musicFolderId: List<Int>? = null,
+    ): SubsonicResponse
+
+    @GET("rest/getStarred.view")
+    suspend fun getStarred(
+        @Query("musicFolderId") musicFolderId: List<Int>? = null,
+    ): SubsonicResponse
+
     @GET("rest/search3.view")
     suspend fun search3(
         @Query("query") query: String,
-        @Query("artistCount") artistCount: Int? = 20,
-        @Query("artistOffset") artistOffset: Int? = 0,
-        @Query("albumCount") albumCount: Int? = 20,
-        @Query("albumOffset") albumOffset: Int? = 0,
-        @Query("songCount") songCount: Int? = 20,
-        @Query("songOffset") songOffset: Int? = 0,
+        @Query("artistCount") artistCount: Int = 20,
+        @Query("artistOffset") artistOffset: Int = 0,
+        @Query("albumCount") albumCount: Int = 20,
+        @Query("albumOffset") albumOffset: Int = 0,
+        @Query("songCount") songCount: Int = 20,
+        @Query("songOffset") songOffset: Int = 0,
         @Query("musicFolderId") musicFolderId: List<Int>? = null,
     ): SubsonicResponse
 

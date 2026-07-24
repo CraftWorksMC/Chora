@@ -95,7 +95,7 @@ fun SongsHorizontalColumn(
     ) {
         // Group songs by their source (Local or Navidrome)
         val groupedSongs = songList.groupBy { song ->
-            if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
+            ""
         }
 
         groupedSongs.forEach { (groupName, songsInGroup) ->
