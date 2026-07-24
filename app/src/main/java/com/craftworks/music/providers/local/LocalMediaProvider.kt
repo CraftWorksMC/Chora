@@ -149,7 +149,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getAlbumArtistDetail(id: String): MediaModel.Artist? {
-        TODO("Not yet implemented")
+        return LocalUtils.getLocalAlbumArtists(appContext, id, data.libraries.filter { it.second }.map { it.first.name }).firstOrNull { it.id == id }
     }
 
     override suspend fun getAlbumArtistInfo(
@@ -160,7 +160,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist> {
-        return LocalUtils.getLocalArtists(appContext, id, query.musicFolderId?:data.libraries.filter { it.second }.map { it.first.name })
+        return LocalUtils.getLocalAlbumArtists(appContext, id, query.musicFolderId?:data.libraries.filter { it.second }.map { it.first.name })
     }
 
     override suspend fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int {
@@ -231,39 +231,13 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         val sortOrder = ALBUM_SORT_BINDING[query.sortBy]?.format(query.sortOrder.name)
             ?: ("${MediaStore.Audio.Albums.ALBUM} ASC")
 
-        val contentResolver = appContext.contentResolver
-        val uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI
-
-        val projection = arrayOf(
-            MediaStore.Audio.Albums._ID,
-            MediaStore.Audio.Albums.ALBUM,
-            MediaStore.Audio.Albums.ARTIST
-        )
-
-        // Get all folders first
         val folders = data.libraries.filter { it.second }.map { it.first.name }
-        val albumIdsInFolders = if (folders.isNotEmpty()) {
-            LocalUtils.getAlbumIdsInFolders(appContext, folders)
-        } else {
-            emptySet()
+
+        var albums = LocalUtils.getLocalAlbums(appContext, id, sortOrder, folders)
+
+        if (query.artistIds?.isNotEmpty()?:false) {
+            albums = albums.filter { it.artists.any { artist -> query.artistIds.contains(artist.id) } }
         }
-
-        val selection = if (albumIdsInFolders.isNotEmpty()) {
-            "${MediaStore.Audio.Albums._ID} IN (${albumIdsInFolders.joinToString(",")})"
-        } else {
-            null
-        }
-
-        val cursor = contentResolver.query(
-            uri,
-            projection,
-            selection,
-            null,
-            sortOrder
-        )
-        if (cursor == null) return emptyList()
-
-        val albums = LocalNormalizer.cursorToAlbums(appContext, id, cursor)
 
         // Paginate if needed
         if (query.startIndex == 0 && query.limit != null) return albums

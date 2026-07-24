@@ -39,6 +39,41 @@ object LocalUtils {
         return albumIds
     }
 
+    fun getLocalAlbums(context: Context, providerId: String, sort: String, folders: List<String>): List<MediaModel.Album> {
+
+        val contentResolver = context.contentResolver
+        val uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI
+
+        val projection = arrayOf(
+            MediaStore.Audio.Albums._ID,
+            MediaStore.Audio.Albums.ALBUM,
+            MediaStore.Audio.Albums.ARTIST
+        )
+
+        val albumIdsInFolders = if (folders.isNotEmpty()) {
+            getAlbumIdsInFolders(context, folders)
+        } else {
+            emptySet()
+        }
+
+        val selection = if (albumIdsInFolders.isNotEmpty()) {
+            "${MediaStore.Audio.Albums._ID} IN (${albumIdsInFolders.joinToString(",")})"
+        } else {
+            null
+        }
+
+        val cursor = contentResolver.query(
+            uri,
+            projection,
+            selection,
+            null,
+            sort
+        )
+        if (cursor == null) return emptyList()
+
+        return LocalNormalizer.cursorToAlbums(context, providerId, cursor)
+    }
+
     fun getLocalAlbumSongs(context: Context, albumId: String, providerId: String): List<MediaModel.Song> {
         val songs = mutableListOf<MediaModel.Song>()
         val contentResolver = context.contentResolver
@@ -117,6 +152,19 @@ object LocalUtils {
         }
 
         return emptyList()
+    }
+    fun getLocalAlbumArtists(context: Context, providerId: String, folders: List<String>): List<MediaModel.Artist> {
+        val artists = mutableMapOf<Int, MediaModel.Artist>()
+        val albums = getLocalAlbums(context, providerId, "${MediaStore.Audio.Albums.ALBUM} ASC", folders)
+
+        albums.forEach { album ->
+            album.artists.forEach { artist ->
+                val artistId = artist.id.toInt()
+                artists[artistId] = artist
+            }
+        }
+
+        return artists.values.sortedBy { it.name }
     }
     fun getLocalArtists(context: Context, providerId: String, folders: List<String>): List<MediaModel.Artist> {
         val artists = mutableMapOf<Int, MediaModel.Artist>()
