@@ -326,7 +326,7 @@ class MainActivity : ComponentActivity() {
                     showNoProvidersDialog = MediaProviderManager.allProviders.value.isEmpty()
                 }
 
-                if (!showNoProvidersDialog) {
+                if (showNoProvidersDialog) {
                     if (isTv) {
                         OnboardingDialog { showNoProvidersDialog = true }
                     } else {

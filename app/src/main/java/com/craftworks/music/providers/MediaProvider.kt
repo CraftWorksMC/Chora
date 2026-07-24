@@ -46,6 +46,9 @@ abstract class MediaProvider {
         }
     }
     lateinit var data: MediaProviderData
+    abstract val providerIcon: Int
+    abstract val providerMonochromeIcon: Boolean
+    abstract val providerName: Int
     abstract val featureFlags: ProviderFeatures
     abstract val supportedAlbumSort: List<AlbumListSort>
     abstract val supportedAlbumArtistSort: List<AlbumArtistListSort>

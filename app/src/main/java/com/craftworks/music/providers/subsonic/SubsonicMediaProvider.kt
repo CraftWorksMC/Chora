@@ -1,6 +1,7 @@
 package com.craftworks.music.providers.subsonic
 
 import android.content.Context
+import com.craftworks.music.R
 import com.craftworks.music.data.model.AlbumArtistInfo
 import com.craftworks.music.data.model.AlbumArtistListSort
 import com.craftworks.music.data.model.AlbumInfo
@@ -53,6 +54,15 @@ import javax.net.ssl.X509TrustManager
 @Serializable
 @SerialName("subsonic")
 class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvider() {
+
+    override val providerIcon: Int
+        get() = R.drawable.s_m_navidrome
+    override val providerMonochromeIcon: Boolean
+        get() = false
+
+    override val providerName: Int
+        get() = R.string.Source_Navidrome
+
     @Transient
     private val _featureFlags: ProviderFeatures =
         ProviderFeatures.REPORT_PLAYBACK +

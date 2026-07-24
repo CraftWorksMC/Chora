@@ -54,9 +54,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.craftworks.music.R
-import com.craftworks.music.ui.elements.LocalProviderCard
+import com.craftworks.music.ui.elements.ProviderCard
 
 enum class OnboardingStep { OVERVIEW, PROVIDER_SELECTION, DONE }
 
@@ -219,7 +218,7 @@ private fun OverviewStep(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(localProviders) { local ->
-                LocalProviderCard(local)
+                //ProviderCard(local)
             }
             /*items(navidromeServers, key = { it.id }) { server ->
                 NavidromeProviderCard(server)

@@ -21,13 +21,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,17 +40,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.craftworks.music.R
 import com.craftworks.music.data.repository.LyricsState
-import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
+import com.craftworks.music.providers.MediaProvider
+import com.craftworks.music.providers.local.LocalMediaProvider
+import com.craftworks.music.providers.local.LocalProviderData
 import com.craftworks.music.ui.elements.dialogs.EditLrcLibUrlDialog
 import kotlinx.coroutines.runBlocking
 
 @Preview
 @Composable
-fun LocalProviderCard(local: String = "", context: Context = LocalContext.current){
+fun ProviderCard(provider: MediaProvider = LocalMediaProvider(LocalProviderData(""))){
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
         .clip(RoundedCornerShape(12.dp))
@@ -58,9 +59,9 @@ fun LocalProviderCard(local: String = "", context: Context = LocalContext.curren
         verticalAlignment = Alignment.CenterVertically) {
         // Provider Icon
         Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.s_m_local_filled),
-            tint = MaterialTheme.colorScheme.primary,
-            contentDescription = "Folder Icon",
+            imageVector = ImageVector.vectorResource(provider.providerIcon),
+            tint = if (provider.providerMonochromeIcon) MaterialTheme.colorScheme.primary else Color.Unspecified,
+            contentDescription = "Provider Icon",
             modifier = Modifier
                 .padding(start = 20.dp, end = 16.dp)
                 .height(32.dp)
@@ -69,16 +70,16 @@ fun LocalProviderCard(local: String = "", context: Context = LocalContext.curren
         // Provider Name
         Column(modifier = Modifier.weight(1f).padding(vertical = 10.dp)) {
             Text(
-                text = stringResource(R.string.Source_Local),
+                text = stringResource(provider.providerName),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
             )
-            Text(
+            /*Text(
                 text = local,
                 color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
                 style = MaterialTheme.typography.bodyMedium,
-            )
+            )*/
         }
 
         // Delete Button

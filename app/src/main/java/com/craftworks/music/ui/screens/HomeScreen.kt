@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
@@ -70,6 +71,7 @@ import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
+import com.craftworks.music.providers.MediaProvider
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.playing.dpToPx
@@ -134,10 +136,9 @@ fun HomeScreen(
             ) {
                 Row (Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     val username = AppearanceSettingsManager(context).usernameFlow.collectAsState("Username")
-                    val showNavidromeLogo =
-                        AppearanceSettingsManager(context).showNavidromeLogoFlow.collectAsState(true).value //TODO("Provider-dependent logo")
+                    val showProviderLogo = currentProvider != null
 
-                    if (showNavidromeLogo) NavidromeLogo()
+                    if (showProviderLogo) ProviderLogo(currentProvider!!)
 
                     Text(
                         text = "${stringResource(R.string.welcome_text)},\n${username.value}!",
@@ -146,7 +147,7 @@ fun HomeScreen(
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .padding(start = 12.dp)
-                            .offset(x = if (showNavidromeLogo) (-36).dp else 0.dp),
+                            //.offset(x = if (showProviderLogo) (-84).dp else 0.dp),
                     )
                 }
                 IconButton(
@@ -264,18 +265,18 @@ fun HomeScreen(
     )
 }
 
-@Composable fun NavidromeLogo(){
-    var rotation by remember { mutableFloatStateOf(-10f) }
+@Composable fun ProviderLogo(provider: MediaProvider){
+    var rotation by remember { mutableFloatStateOf(0f) }
     val animatedRotation by animateFloatAsState(
         targetValue = rotation,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessVeryLow
         ),
-        label = "Navidrome Logo Rotate"
+        label = "Provider Logo Rotate"
     )
     val clickAction = rememberUpdatedState {
-        rotation += 180f
+        rotation += 360f
     }
 
     val isClickable =
@@ -284,12 +285,13 @@ fun HomeScreen(
         else
             Modifier
 
-    Image(
-        painter = painterResource(R.drawable.s_m_navidrome),
-        contentDescription = "Navidrome Icon",
+    Icon(
+        painter = painterResource(provider.providerIcon),
+        contentDescription = "Provider Icon",
+        tint = if (provider.providerMonochromeIcon) MaterialTheme.colorScheme.primary else Color.Unspecified,
         modifier = Modifier
             .size(76.dp)
-            .offset(x = (-36).dp)
+            .offset(x = (8).dp)
             .shadow(24.dp, CircleShape)
             .graphicsLayer {
                 rotationZ = animatedRotation

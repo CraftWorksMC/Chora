@@ -50,10 +50,18 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
             AlbumListSort.RANDOM to "RANDOM()"
         )
     }
+
+    override val providerIcon: Int
+        get() = R.drawable.s_m_local_filled
+    override val providerMonochromeIcon: Boolean
+        get() = true
+    override val providerName: Int
+        get() = R.string.Source_Local
     @Transient
     private val _featureFlags: ProviderFeatures =
         ProviderFeatures.OFFLINE_PLAYBACK +
                 ProviderFeatures.SELECT_MULTIPLE_MUSIC_FOLDERS
+
     @Transient
     override val featureFlags: ProviderFeatures = _featureFlags
 

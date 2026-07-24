@@ -19,8 +19,8 @@ object MediaProviderManager {
     private var _currentProvider = MutableStateFlow<MediaProvider?>(null)
     val currentProvider: StateFlow<MediaProvider?> = _currentProvider.asStateFlow()
 
-    private val _allProviders = MutableStateFlow<List<Pair<String,MediaProvider>>>(emptyList())
-    val allProviders: StateFlow<List<Pair<String,MediaProvider>>> = _allProviders.asStateFlow()
+    private val _allProviders = MutableStateFlow<List<MediaProvider>>(emptyList())
+    val allProviders: StateFlow<List<MediaProvider>> = _allProviders.asStateFlow()
     private var currentProviderId: String? = null
     private lateinit var sharedPreferences: SharedPreferences
     private val json = Json {
@@ -70,7 +70,7 @@ object MediaProviderManager {
         return providers.isNotEmpty() && currentProviderId != null
     }
     private fun updateProvidersFlow() {
-        _allProviders.value = providers.toList()
+        _allProviders.value = providers.map { it.value }
     }
 
     private fun saveProviders() {
@@ -96,5 +96,6 @@ object MediaProviderManager {
             }
         }
         if (currentProviderId != null) _currentProvider.value = providers[currentProviderId]
+        updateProvidersFlow()
     }
 }

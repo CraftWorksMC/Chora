@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.screens.settings
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +44,7 @@ import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.LRCLIBProviderCard
 import com.craftworks.music.ui.elements.NetEaseProviderCard
+import com.craftworks.music.ui.elements.ProviderCard
 import com.craftworks.music.ui.elements.dialogs.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 
@@ -104,12 +106,11 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
 
                 val providers by MediaProviderManager.allProviders.collectAsStateWithLifecycle()
 
-                // TODO("Update providers settings")
+                Log.d("ProviderScreen", "Provider amount: ${providers.size}")
 
-                // Local Providers First
-                /*for (local in localProviders) {
-                    LocalProviderCard(local, context)
-                }*/
+                for (provider in providers) {
+                    ProviderCard(provider)
+                }
 
                 // Then Navidrome Providers
                 /*for (server in navidromeServers) {
