@@ -118,4 +118,17 @@ object LocalUtils {
 
         return emptyList()
     }
+    fun getLocalArtists(context: Context, providerId: String, folders: List<String>): List<MediaModel.Artist> {
+        val artists = mutableMapOf<Int, MediaModel.Artist>()
+        val songs = getLocalSongs(context, providerId, "${MediaStore.Audio.Media.TITLE} ASC", folders)
+
+        songs.forEach { song ->
+            song.artists.forEach { artist ->
+                val artistId = artist.id.toInt()
+                artists[artistId] = artist
+            }
+        }
+
+        return artists.values.sortedBy { it.name }
+    }
 }

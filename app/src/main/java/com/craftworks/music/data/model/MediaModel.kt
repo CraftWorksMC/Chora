@@ -85,21 +85,21 @@ abstract class MediaModel()
 
     @Serializable
     class Artist(
-        val albumCount: Int?,
-        val biography: String?,
-        val durationMs: Int?,
-        val genres: List<Genre>,
-        val imageId: String?,
-        val imageUrl: String?,
-        val lastPlayedAt: String?,
-        val mbz: String?,
+        val albumCount: Int? = null,
+        val biography: String? = null,
+        val durationMs: Int? = null,
+        val genres: List<Genre> = emptyList(),
+        val imageId: String? = null,
+        val imageUrl: String? = null,
+        val lastPlayedAt: String? = null,
+        val mbz: String? = null,
         val name: String,
-        val playCount: Double?,
-        val similarArtists: List<RelatedArtist>?,
-        val songCount: Int?,
-        val uploadedImage: String?,
-        val userFavorite: Boolean,
-        val userRating: Int?
+        val playCount: Double? = null,
+        val similarArtists: List<RelatedArtist> = emptyList(),
+        val songCount: Int? = null,
+        val uploadedImage: String? = null,
+        val userFavorite: Boolean? = null,
+        val userRating: Int? = null
     ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
             val mediaMetadata =

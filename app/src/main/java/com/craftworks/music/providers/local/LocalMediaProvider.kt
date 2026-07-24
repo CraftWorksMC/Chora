@@ -160,7 +160,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist> {
-        TODO("Not yet implemented")
+        return LocalUtils.getLocalArtists(appContext, id, query.musicFolderId?:data.libraries.filter { it.second }.map { it.first.name })
     }
 
     override suspend fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int {
@@ -341,7 +341,9 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation> {
-        TODO("Not yet implemented")
+        // Avoid crashing
+        //TODO("Not yet implemented")
+        return emptyList()
     }
 
     override suspend fun getLyrics(songId: String): LyricsResponse {
@@ -355,7 +357,9 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaModel.Playlist> {
-        TODO("Not yet implemented")
+    // Avoid crashing
+    //TODO("Not yet implemented")
+        return emptyList()
     }
 
     override suspend fun getPlaylistListCount(query: MediaQuery.PlaylistListQuery): Int {
@@ -363,7 +367,9 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getPlaylistSongList(id: String): List<MediaModel.Song> {
-        TODO("Not yet implemented")
+        // Avoid crashing
+        //TODO("Not yet implemented")
+        return emptyList()
     }
 
     override suspend fun getPlayQueue(): GetQueueResponse {

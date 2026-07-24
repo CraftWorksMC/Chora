@@ -21,6 +21,9 @@ object LocalNormalizer {
 
         val album = MediaModel.Album(
             albumArtistName = artistName,
+            artists = listOf(MediaModel.Artist(
+                name = artistName
+            ).apply { this.id = artistName.hashCode().toString() }),
             imageUrl = albumId.toString(),
             name = albumName
         ).apply {
@@ -67,6 +70,9 @@ object LocalNormalizer {
             album = album,
             albumId = albumId.toString(),
             artistName = artist,
+            artists = listOf(MediaModel.Artist(
+                name = artist
+            ).apply { this.id = artist.hashCode().toString() }),
             bitRate = bitrate,
             createdAt = dateAdded,
             discNumber = discNumber,

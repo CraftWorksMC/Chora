@@ -311,20 +311,11 @@ data class SubsonicArtist(
     fun toMediaModel(providerId: String): MediaModel.Artist {
         return MediaModel.Artist(
             albumCount = albumCount,
-            biography = null,
-            durationMs = null,
-            genres = listOf(),
             imageId = coverArt,
             imageUrl = artistImageUrl ?: coverArt,
-            lastPlayedAt = null,
             mbz = musicBrainzId,
             name = name,
-            playCount = null,
-            similarArtists = null,
-            songCount = null,
-            uploadedImage = null,
-            userFavorite = !this.starred.isNullOrEmpty(),
-            userRating = null
+            userFavorite = !this.starred.isNullOrEmpty()
         ).apply {
             this.id = this@SubsonicArtist.id
             this.providerId = providerId
