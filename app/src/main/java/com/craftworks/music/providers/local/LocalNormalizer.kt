@@ -72,6 +72,7 @@ object LocalNormalizer {
             discNumber = discNumber,
             durationMs = duration,
             genres = listOf(MediaModel.Genre(name = genre)),
+            imageId = albumId.toString(),
             name = title,
             path = path,
             trackNumber = track,

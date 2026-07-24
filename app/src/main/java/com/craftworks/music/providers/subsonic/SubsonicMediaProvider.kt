@@ -386,7 +386,6 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         id: String,
         itemType: LibraryType?,
         size: Int?,
-        parentId: String?
     ): String {
         val urlBuilder = providerData.url.toHttpUrlOrNull()
             ?.newBuilder()

@@ -49,6 +49,10 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
             AlbumListSort.NAME to "${MediaStore.Audio.Albums.ALBUM} %s",
             AlbumListSort.RANDOM to "RANDOM()"
         )
+        private val SONG_SORT_BINDING = mapOf(
+            SongListSort.NAME to "${MediaStore.Audio.Media.TITLE} %s",
+            SongListSort.RANDOM to "RANDOM()"
+        )
     }
 
     override val providerIcon: Int
@@ -59,8 +63,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         get() = R.string.Source_Local
     @Transient
     private val _featureFlags: ProviderFeatures =
-        ProviderFeatures.OFFLINE_PLAYBACK +
-                ProviderFeatures.SELECT_MULTIPLE_MUSIC_FOLDERS
+        ProviderFeatures.OFFLINE_PLAYBACK
 
     @Transient
     override val featureFlags: ProviderFeatures = _featureFlags
@@ -319,11 +322,10 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         id: String,
         itemType: LibraryType?,
         size: Int?,
-        parentId: String?
     ): String {
         when (itemType) {
             LibraryType.ALBUM, LibraryType.SONG  -> {
-                val artworkUri = "$ALBUM_ART_PATH/${if (itemType == LibraryType.SONG) parentId else id}".toUri().let { uri ->
+                val artworkUri = "$ALBUM_ART_PATH/$id".toUri().let { uri ->
                     try {
                         appContext.contentResolver.openInputStream(uri)?.close()
                         uri
@@ -393,7 +395,19 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getSongList(query: MediaQuery.SongListQuery): List<MediaModel.Song> {
-        TODO("Not yet implemented")
+        Log.d(TAG, "Getting All Songs")
+
+        val sortOrder = SONG_SORT_BINDING[query.sortBy]?.format(query.sortOrder.name)
+            ?: ("${MediaStore.Audio.Media.TITLE} ASC")
+
+        val folders = data.libraries.filter { it.second }.map { it.first.name }
+
+        val albums = LocalUtils.getLocalSongs(appContext, id, sortOrder, folders)
+
+        // Paginate if needed
+        if (query.startIndex == 0 && query.limit != null) return albums
+        if (query.startIndex > albums.size) return emptyList()
+        return albums.slice(query.startIndex..<albums.size.coerceAtMost(query.startIndex+(query.limit?:BASE_PAGE_LENGTH)))
     }
 
     override suspend fun getSongListCount(query: MediaQuery.SongListQuery): Int {

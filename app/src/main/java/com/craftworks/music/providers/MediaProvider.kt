@@ -84,7 +84,7 @@ abstract class MediaProvider {
     abstract suspend fun getFolder(query: MediaQuery.FolderQuery): MediaModel.Folder
     abstract suspend fun getGenreList(query: MediaQuery.GenreListQuery): List<MediaModel.Genre>
     abstract suspend fun getImageRequest(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): ImageRequest?
-    abstract fun getImageUrl(id: String, itemType: LibraryType? = null, size: Int? = null, parentId: String? = null): String
+    abstract fun getImageUrl(id: String, itemType: LibraryType? = null, size: Int? = null): String
     abstract suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation>
     abstract suspend fun getLyrics(songId: String): LyricsResponse
     abstract suspend fun getMusicFolderList(): List<MusicFolder>

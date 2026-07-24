@@ -73,4 +73,49 @@ object LocalUtils {
         }
         return emptyList()
     }
+    fun getLocalSongs(context: Context, providerId: String, sort: String, folders: List<String>): List<MediaModel.Song> {
+        val contentResolver = context.contentResolver
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+
+        val projection = mutableListOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.DATA,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.DATE_ADDED,
+            MediaStore.Audio.Media.TRACK,
+            MediaStore.Audio.Media.YEAR,
+            MediaStore.Audio.Media.DURATION
+        ).apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                add(MediaStore.Audio.Media.BITRATE)
+                add(MediaStore.Audio.Media.GENRE)
+            }
+        }.toTypedArray()
+
+        if (folders.isEmpty()) return emptyList()
+
+        val selectionBuilder = StringBuilder("${MediaStore.Audio.Media.IS_MUSIC} != 0 AND (")
+        folders.forEachIndexed { index, folder ->
+            if (index > 0) selectionBuilder.append(" OR ")
+            selectionBuilder.append("${MediaStore.Audio.Media.DATA} LIKE ?")
+        }
+        selectionBuilder.append(")")
+
+        val selectionArgs = folders.map { "%$it%" }.toTypedArray()
+
+        contentResolver.query(
+            uri,
+            projection,
+            selectionBuilder.toString(),
+            selectionArgs,
+            sort
+        )?.use {
+            return LocalNormalizer.cursorToSongs(context, providerId, it)
+        }
+
+        return emptyList()
+    }
 }
