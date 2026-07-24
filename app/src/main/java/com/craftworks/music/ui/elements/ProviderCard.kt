@@ -15,6 +15,8 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
@@ -40,8 +42,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.craftworks.music.R
 import com.craftworks.music.data.repository.LyricsState
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.providers.MediaProvider
 import com.craftworks.music.providers.local.LocalMediaProvider
@@ -52,6 +56,7 @@ import kotlinx.coroutines.runBlocking
 @Preview
 @Composable
 fun ProviderCard(provider: MediaProvider = LocalMediaProvider(LocalProviderData(""))){
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
     Row(modifier = Modifier
         .padding(bottom = 12.dp)
         .clip(RoundedCornerShape(12.dp))
@@ -80,6 +85,27 @@ fun ProviderCard(provider: MediaProvider = LocalMediaProvider(LocalProviderData(
                 color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
                 style = MaterialTheme.typography.bodyMedium,
             )*/
+        }
+
+        // Make current Button
+        Button(
+            onClick = {
+                MediaProviderManager.setCurrentProvider(provider)
+            },
+            shape = CircleShape,
+            modifier = Modifier
+                .size(32.dp),
+            contentPadding = PaddingValues(2.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+        ) {
+            Icon(
+                imageVector = if (currentProvider == provider) Icons.Rounded.CheckCircle else Icons.Rounded.Check,
+                tint = MaterialTheme.colorScheme.onBackground,
+                contentDescription = "Make current provider",
+                modifier = Modifier
+                    .height(32.dp)
+                    .size(32.dp)
+            )
         }
 
         // Delete Button

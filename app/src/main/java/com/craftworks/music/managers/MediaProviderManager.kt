@@ -62,6 +62,12 @@ object MediaProviderManager {
         saveProviders()
 
     }
+    fun setCurrentProvider(provider: MediaProvider) {
+        currentProviderId = provider.id
+        _currentProvider.value = provider
+
+        saveProviders()
+    }
     fun setProviderLibraries(providerId: String, libraries: List<Pair<MusicFolder, Boolean>>) {
         providers[providerId]?.data?.libraries = libraries
         saveProviders()
