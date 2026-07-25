@@ -144,17 +144,6 @@ fun TvS_AppearanceScreen() {
                     onClick = { showOledDialog = true }
                 )
 
-                val enabledNavbarItems by AppearanceSettingsManager(context).bottomNavItemsFlow.collectAsState(
-                    emptyList()
-                )
-
-                SettingsButtonItem(
-                    title = stringResource(R.string.Setting_Navbar_Items),
-                    subtitle = enabledNavbarItems.filter { it.enabled }
-                        .joinToString(", ") { it.title },
-                    icon = ImageVector.vectorResource(R.drawable.s_a_navbar_items),
-                    onClick = { showNavbarItemsDialog = true }
-                )
                 // Screen standby
                 val screenStandby by AppearanceSettingsManager(context).disableScreenStandby.collectAsState(
                     true
@@ -168,6 +157,19 @@ fun TvS_AppearanceScreen() {
                             AppearanceSettingsManager(context).setDisableScreenStandby(it)
                         }
                     }
+                )
+
+                // Nav Items
+                val enabledNavbarItems by AppearanceSettingsManager(context).bottomNavItemsFlow.collectAsState(
+                    emptyList()
+                )
+
+                SettingsButtonItem(
+                    title = stringResource(R.string.Setting_Navbar_Items),
+                    subtitle = enabledNavbarItems.filter { it.enabled }
+                        .joinToString(", ") { it.title },
+                    icon = ImageVector.vectorResource(R.drawable.s_a_navbar_items),
+                    onClick = { showNavbarItemsDialog = true }
                 )
 
                 // Home Items
