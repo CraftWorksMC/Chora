@@ -28,6 +28,7 @@ import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.MediaProvider
+import com.craftworks.music.utils.PagingUtils
 import com.craftworks.music.utils.StringUtils
 import de.jensklingenberg.ktorfit.Ktorfit
 import io.ktor.client.HttpClient
@@ -54,7 +55,14 @@ import javax.net.ssl.X509TrustManager
 @Serializable
 @SerialName("subsonic")
 class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvider() {
-
+    companion object {
+        private val ALBUM_ARTIST_SORT_BINDING = mapOf<AlbumArtistListSort, (MediaModel.Artist) -> Comparable<*>?>(
+            AlbumArtistListSort.ALBUM_COUNT to { it.albumCount },
+            AlbumArtistListSort.FAVORITED to { it.userFavorite },
+            AlbumArtistListSort.NAME to { it.name },
+            AlbumArtistListSort.RATING to { it.userRating },
+        )
+    }
     override val providerIcon: Int
         get() = R.drawable.s_m_opensubsonic
     override val providerMonochromeIcon: Boolean
@@ -253,7 +261,19 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
     }
 
     override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist> {
-        TODO("Not yet implemented")
+        var artists = (service.getArtists(query.musicFolderId?.map { it.toInt() }).subsonicResponse.artists?.index ?: emptyList())
+            .flatMap { it.artist }
+            .map { it.toMediaModel(id) }
+
+        if (query.searchTerm != null) {
+            artists = artists.filter { it.name.contains(query.searchTerm, true) }
+        }
+
+        if (query.favorite != null) {
+            artists = artists.filter { it.userFavorite == query.favorite }
+        }
+
+        return PagingUtils.sortAndPaginate(artists, sortBy = ALBUM_ARTIST_SORT_BINDING[query.sortBy]?:{it.name}, sortOrder = query.sortOrder)
     }
 
     override suspend fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int {

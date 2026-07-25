@@ -41,6 +41,10 @@ data class SubsonicBody(
     // Albums
     val albumList: SubsonicAlbumList? = null,
     val album: SubsonicAlbum? = null,
+
+    // Artists
+    val artists: SubsonicArtistIndexList? = null,
+    val artist: SubsonicArtist? = null,
 )
 
 @Serializable
@@ -295,6 +299,15 @@ data class SubsonicReplayGain(
     val albumPeak: Float? = 0f
 )
 
+@Serializable
+data class SubsonicArtistIndexList(
+    val index: List<SubsonicArtistIndex>? = null
+)
+@Serializable
+data class SubsonicArtistIndex(
+    val name: String? = null,
+    val artist: List<SubsonicArtist> = emptyList()
+)
 @Immutable
 @Serializable
 data class SubsonicArtist(

@@ -4,6 +4,10 @@ import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.Query
 
 interface SubsonicService {
+    @GET("rest/getArtists.view")
+    suspend fun getArtists(
+        @Query("musicFolderId") musicFolderId: List<Int>? = null,
+    ): SubsonicResponse
     @GET("rest/getUser.view")
     suspend fun authenticate(
         @Query("username") username: String

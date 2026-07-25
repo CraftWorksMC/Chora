@@ -33,6 +33,7 @@ import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.MediaProvider
+import com.craftworks.music.utils.PagingUtils
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -43,8 +44,6 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     companion object {
         const val TAG = "LOCAL_PROVIDER"
         const val ALBUM_ART_PATH = "content://media/external/audio/albumart"
-
-        const val BASE_PAGE_LENGTH = 500
         private val ALBUM_SORT_BINDING = mapOf(
             AlbumListSort.NAME to "${MediaStore.Audio.Albums.ALBUM} %s",
             AlbumListSort.RANDOM to "RANDOM()"
@@ -111,7 +110,8 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         ids: List<String>,
         type: LibraryType
     ): Boolean {
-        TODO("Not yet implemented")
+        // TODO: Manage with this a db
+        return false
     }
 
     override suspend fun createInternetRadioStation(
@@ -119,7 +119,8 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         streamUrl: String,
         homepageUrl: String?
     ): Boolean {
-        TODO("Not yet implemented")
+        // TODO: Manage with this a db
+        return false
     }
 
     override suspend fun createPlaylist(
@@ -130,14 +131,16 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         queryBuilderRules: PlaylistRules?,
         sync: Boolean
     ): String? {
-        TODO("Not yet implemented")
+        // TODO: Manage with this a db
+        return null
     }
 
     override suspend fun deleteFavorite(
         ids: List<String>,
         type: LibraryType
     ): Boolean {
-        TODO("Not yet implemented")
+        // TODO: Manage with this a db
+        return false
     }
 
     override suspend fun deleteInternetRadioStation(id: String): Boolean {
@@ -239,10 +242,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
             albums = albums.filter { it.artists.any { artist -> query.artistIds.contains(artist.id) } }
         }
 
-        // Paginate if needed
-        if (query.startIndex == 0 && query.limit != null) return albums
-        if (query.startIndex > albums.size) return emptyList()
-        return albums.slice(query.startIndex..<albums.size.coerceAtMost(query.startIndex+(query.limit?:BASE_PAGE_LENGTH)))
+        return PagingUtils.paginate(albums, query.limit, query.startIndex)
     }
 
     override suspend fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int {
@@ -315,8 +315,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation> {
-        // Avoid crashing
-        //TODO("Not yet implemented")
+        // TODO: Manage with this a db
         return emptyList()
     }
 
@@ -331,8 +330,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaModel.Playlist> {
-    // Avoid crashing
-    //TODO("Not yet implemented")
+        // TODO: Manage with this a db
         return emptyList()
     }
 
@@ -341,8 +339,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getPlaylistSongList(id: String): List<MediaModel.Song> {
-        // Avoid crashing
-        //TODO("Not yet implemented")
+        // TODO: Manage with this a db
         return emptyList()
     }
 
@@ -382,12 +379,9 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
 
         val folders = data.libraries.filter { it.second }.map { it.first.name }
 
-        val albums = LocalUtils.getLocalSongs(appContext, id, sortOrder, folders)
+        val songs = LocalUtils.getLocalSongs(appContext, id, sortOrder, folders)
 
-        // Paginate if needed
-        if (query.startIndex == 0 && query.limit != null) return albums
-        if (query.startIndex > albums.size) return emptyList()
-        return albums.slice(query.startIndex..<albums.size.coerceAtMost(query.startIndex+(query.limit?:BASE_PAGE_LENGTH)))
+        return PagingUtils.paginate(songs, query.limit, query.startIndex)
     }
 
     override suspend fun getSongListCount(query: MediaQuery.SongListQuery): Int {
@@ -447,7 +441,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun ping(): Boolean {
-        TODO("Not yet implemented")
+        return true
     }
 
     override suspend fun removeFromPlaylist(
