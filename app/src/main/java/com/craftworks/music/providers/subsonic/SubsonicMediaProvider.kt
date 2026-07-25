@@ -80,9 +80,11 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
 
     @Transient
     private val _featureFlags: ProviderFeatures =
-        ProviderFeatures.REPORT_PLAYBACK +
-        ProviderFeatures.DOWNLOADS +
-        ProviderFeatures.FAVORITES
+                ProviderFeatures.REPORT_PLAYBACK +
+                ProviderFeatures.DOWNLOADS +
+                ProviderFeatures.FAVORITES +
+                ProviderFeatures.INTERNET_RADIO +
+                ProviderFeatures.PLAYLIST
 
     @Transient
     override val featureFlags: ProviderFeatures = _featureFlags

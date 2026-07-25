@@ -111,6 +111,7 @@ import androidx.tv.material3.NavigationDrawer
 import androidx.tv.material3.NavigationDrawerItem
 import androidx.tv.material3.rememberDrawerState
 import com.craftworks.music.data.BottomNavItem
+import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
@@ -645,6 +646,7 @@ fun AnimatedBottomNavBar(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
 
     val orderedNavItems = AppearanceSettingsManager(context).bottomNavItemsFlow.collectAsState(
         initial = listOf(
@@ -663,6 +665,11 @@ fun AnimatedBottomNavBar(
             )
         )
     ).value
+
+    orderedNavItems.first {it.screenRoute == "radio_screen"}.enabled =
+        currentProvider?.featureFlags?.has(ProviderFeatures.INTERNET_RADIO) ?: false
+    orderedNavItems.first {it.screenRoute == "playlist_screen"}.enabled =
+        currentProvider?.featureFlags?.has(ProviderFeatures.PLAYLIST) ?: false
 
     if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
         val expanded by remember { derivedStateOf { scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded } }
