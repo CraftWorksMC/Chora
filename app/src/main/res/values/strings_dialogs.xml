@@ -18,6 +18,7 @@
         <string name="No_Providers_Splash">You haven\'t added a media provider yet. Add one now to start listening to some tunes!</string>
         <string name="No_Providers_Done">All done! You can now start listening to some tunes!</string>
         <string name="Source_Navidrome" translatable="false">Navidrome</string>
+        <string name="Source_OpenSubsonic" translatable="false">OpenSubsonic</string>
         <string name="Source_Local">Local Folder</string>
         <!-- Local -->
             <string name="Label_Local_Directory">Directory:</string>

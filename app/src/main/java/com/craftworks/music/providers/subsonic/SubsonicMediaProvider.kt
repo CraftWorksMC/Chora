@@ -56,12 +56,12 @@ import javax.net.ssl.X509TrustManager
 class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvider() {
 
     override val providerIcon: Int
-        get() = R.drawable.s_m_navidrome
+        get() = R.drawable.s_m_opensubsonic
     override val providerMonochromeIcon: Boolean
         get() = false
 
     override val providerName: Int
-        get() = R.string.Source_Navidrome
+        get() = R.string.Source_OpenSubsonic
 
     @Transient
     private val _featureFlags: ProviderFeatures =
