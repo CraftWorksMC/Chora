@@ -58,3 +58,7 @@ data class SearchResponse(
     val albums: List<MediaModel.Album>,
     val songs: List<MediaModel.Song>
 )
+data class AlbumArtistDetailResponse(
+    val artist: MediaModel.Artist?,
+    val albums: List<MediaModel.Album>?
+)

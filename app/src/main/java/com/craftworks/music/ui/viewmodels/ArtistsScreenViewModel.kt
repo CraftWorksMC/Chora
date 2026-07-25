@@ -114,10 +114,15 @@ class ArtistsScreenViewModel @Inject constructor(
             }
             loadingJob.start()
             coroutineScope {
-                val artistAlbumsAsync = async { artistRepository.getArtistAlbums(artist.id) }
-                _artistAlbums.value = artistAlbumsAsync.await()
+                val artistDetail = artistRepository.getArtistDetail(artist.id)
+                _selectedArtist.value = artistDetail?.artist
+                if (artistDetail?.albums.isNullOrEmpty()) {
+                    val artistAlbumsAsync = async { artistRepository.getArtistAlbums(artist.id) }
+                    _artistAlbums.value = artistAlbumsAsync.await()
+                } else {
+                    _artistAlbums.value = artistDetail.albums.map { it.toMediaItem() }
+                }
 
-                _selectedArtist.value = async { artistRepository.getArtistDetail(artist.id) }.await()
             }
 
             loadingJob.cancel()

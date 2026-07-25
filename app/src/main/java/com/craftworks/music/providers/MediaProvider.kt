@@ -1,6 +1,7 @@
 package com.craftworks.music.providers
 
 import android.content.Context
+import com.craftworks.music.data.model.AlbumArtistDetailResponse
 import com.craftworks.music.data.model.AlbumArtistInfo
 import com.craftworks.music.data.model.AlbumArtistListSort
 import com.craftworks.music.data.model.AlbumInfo
@@ -68,7 +69,7 @@ abstract class MediaProvider {
     abstract suspend fun deleteFavorite(ids: List<String>, type: LibraryType) : Boolean
     abstract suspend fun deleteInternetRadioStation(id: String): Boolean
     abstract suspend fun deletePlaylist(id: String): Boolean
-    abstract suspend fun getAlbumArtistDetail(id: String): MediaModel.Artist?
+    abstract suspend fun getAlbumArtistDetail(id: String): AlbumArtistDetailResponse
     abstract suspend fun getAlbumArtistInfo(id: String, limit: Int? = null): AlbumArtistInfo?
     abstract suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist>
     abstract suspend fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int

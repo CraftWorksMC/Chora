@@ -316,6 +316,7 @@ data class SubsonicArtist(
     val coverArt: String? = null,
     val artistImageUrl: String? = null,
     val albumCount: Int? = null,
+    val album: List<SubsonicAlbum>? = null,
     val starred: String? = null,
     val musicBrainzId: String? = null,
     val sortName: String? = null,

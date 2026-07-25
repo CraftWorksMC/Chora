@@ -6,6 +6,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.core.net.toUri
 import com.craftworks.music.R
+import com.craftworks.music.data.model.AlbumArtistDetailResponse
 import com.craftworks.music.data.model.AlbumArtistInfo
 import com.craftworks.music.data.model.AlbumArtistListSort
 import com.craftworks.music.data.model.AlbumInfo
@@ -151,8 +152,12 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAlbumArtistDetail(id: String): MediaModel.Artist? {
-        return LocalUtils.getLocalAlbumArtists(appContext, id, data.libraries.filter { it.second }.map { it.first.name }).firstOrNull { it.id == id }
+    override suspend fun getAlbumArtistDetail(id: String): AlbumArtistDetailResponse {
+        var albums = LocalUtils.getLocalAlbums(appContext, this.id, "${MediaStore.Audio.Albums.ALBUM} ASC", data.libraries.filter { it.second }.map { it.first.name })
+
+        albums = albums.filter { it.artists.any { artist -> artist.id == id} }
+
+        return AlbumArtistDetailResponse(albums.firstOrNull()?.artists?.firstOrNull(), albums)
     }
 
     override suspend fun getAlbumArtistInfo(

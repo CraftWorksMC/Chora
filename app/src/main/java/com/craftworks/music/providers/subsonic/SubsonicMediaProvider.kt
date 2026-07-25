@@ -2,6 +2,7 @@ package com.craftworks.music.providers.subsonic
 
 import android.content.Context
 import com.craftworks.music.R
+import com.craftworks.music.data.model.AlbumArtistDetailResponse
 import com.craftworks.music.data.model.AlbumArtistInfo
 import com.craftworks.music.data.model.AlbumArtistListSort
 import com.craftworks.music.data.model.AlbumInfo
@@ -249,8 +250,9 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAlbumArtistDetail(id: String): MediaModel.Artist? {
-        TODO("Not yet implemented")
+    override suspend fun getAlbumArtistDetail(id: String): AlbumArtistDetailResponse {
+        val res = service.getArtist(id).subsonicResponse.artist
+        return AlbumArtistDetailResponse(res?.toMediaModel(this.id), res?.album?.map { it.toMediaModel(this.id) })
     }
 
     override suspend fun getAlbumArtistInfo(
