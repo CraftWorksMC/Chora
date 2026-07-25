@@ -5,6 +5,20 @@ import de.jensklingenberg.ktorfit.http.Query
 
 interface SubsonicService {
 
+    @GET("rest/createInternetRadioStation.view")
+    suspend fun createInternetRadioStation(
+        @Query("streamUrl") streamUrl: String,
+        @Query("name") name: String,
+        @Query("homepageUrl") homepageUrl: String? = null,
+    ): SubsonicResponse
+
+    @GET("rest/createPlaylist.view")
+    suspend fun createPlaylist(
+        @Query("playlistId") playlistId: String? = null,
+        @Query("name") name: String? = null,
+        @Query("songId") songIds: List<String>? = null,
+    ): SubsonicResponse
+
     @GET("rest/getAlbum.view")
     suspend fun getAlbum(@Query id: String): SubsonicResponse
 
@@ -80,5 +94,15 @@ interface SubsonicService {
         @Query("songCount") songCount: Int = 20,
         @Query("songOffset") songOffset: Int = 0,
         @Query("musicFolderId") musicFolderId: List<Int>? = null,
+    ): SubsonicResponse
+
+    @GET("rest/updatePlaylist.view")
+    suspend fun updatePlaylist(
+        @Query("playlistId") playlistId: String,
+        @Query("name") name: String? = null,
+        @Query("comment") comment: String? = null,
+        @Query("public") public: Boolean? = null,
+        @Query("songIdToAdd") songIdToAdd: List<String>? = null,
+        @Query("songIndexToRemove") songIndexToRemove: List<Int>? = null,
     ): SubsonicResponse
 }

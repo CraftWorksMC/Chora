@@ -356,7 +356,7 @@ data class SubsonicUser(
 
 @Serializable
 data class SubsonicInternetRadioStationList(
-    val internetRadioStation: List<SubsonicInternetRadioStation>
+    val internetRadioStation: List<SubsonicInternetRadioStation> = emptyList()
 )
 @Serializable
 data class SubsonicInternetRadioStation(
@@ -384,7 +384,7 @@ data class SubsonicInternetRadioStation(
 
 @Serializable
 data class SubsonicPlaylistList(
-    val playlist: List<SubsonicPlaylist>
+    val playlist: List<SubsonicPlaylist> = emptyList()
 )
 
 @Serializable

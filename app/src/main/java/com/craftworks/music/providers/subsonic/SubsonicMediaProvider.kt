@@ -196,7 +196,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         playlistId: String,
         songIds: List<String>
     ): Boolean {
-        TODO("Not yet implemented")
+        return service.updatePlaylist(playlistId, songIdToAdd = songIds).subsonicResponse.status == "ok"
     }
 
     override suspend fun authenticate(
@@ -234,7 +234,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         streamUrl: String,
         homepageUrl: String?
     ): Boolean {
-        TODO("Not yet implemented")
+        return service.createInternetRadioStation(streamUrl, name, homepageUrl).subsonicResponse.status == "ok"
     }
 
     override suspend fun createPlaylist(
@@ -245,7 +245,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         queryBuilderRules: PlaylistRules?,
         sync: Boolean
     ): String? {
-        TODO("Not yet implemented")
+        return service.createPlaylist(name = name).subsonicResponse.playlist?.id
     }
 
     override suspend fun deleteFavorite(
@@ -640,7 +640,11 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         id: String,
         songIds: List<String>
     ): Boolean {
-        TODO("Not yet implemented")
+        val playlist = service.getPlaylist(id).subsonicResponse.playlist
+        return service.updatePlaylist(id, songIndexToRemove =
+            songIds.map { playlist?.entry?.indexOfFirst { song -> song.id == it } ?: -1 }
+                .filter { it != -1 }
+        ).subsonicResponse.status == "ok"
     }
 
     override suspend fun replacePlaylist(
