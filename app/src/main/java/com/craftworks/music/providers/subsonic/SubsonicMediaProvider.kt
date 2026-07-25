@@ -489,7 +489,7 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
     }
 
     override suspend fun getPlaylistSongList(id: String): List<MediaModel.Song> {
-        TODO("Not yet implemented")
+        return service.getPlaylist(id).subsonicResponse.playlist?.entry?.map { it.toMediaModel(this.id) } ?: emptyList()
     }
 
     override suspend fun getPlayQueue(): GetQueueResponse {

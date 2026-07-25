@@ -40,6 +40,11 @@ interface SubsonicService {
     @GET("rest/getMusicFolders.view")
     suspend fun getMusicFolderList(): SubsonicResponse
 
+    @GET("rest/getPlaylist.view")
+    suspend fun getPlaylist(
+        @Query("id") id: String? = null,
+    ): SubsonicResponse
+
     @GET("rest/getPlaylists.view")
     suspend fun getPlaylists(
         @Query("username") username: String? = null,

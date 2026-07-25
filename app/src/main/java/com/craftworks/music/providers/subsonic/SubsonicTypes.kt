@@ -50,6 +50,7 @@ data class SubsonicBody(
     val internetRadioStations: SubsonicInternetRadioStationList? = null,
 
     //Playlist
+    val playlist: SubsonicPlaylist? = null,
     val playlists: SubsonicPlaylistList? = null,
 )
 
@@ -389,17 +390,18 @@ data class SubsonicPlaylistList(
 @Serializable
 data class SubsonicPlaylist(
     val id: String,
-    val name: String,
+    val allowedUser: List<String>? = null,
+    val changed: String,
     val comment: String? = null,
+    val coverArt: String? = null,
+    val created: String,
+    val duration: Int,
+    val entry: List<SubsonicSong> = emptyList(),
+    val name: String,
     val owner: String? = null,
     val public: Boolean? = null,
-    val songCount: Int,
-    val duration: Int,
-    val created: String,
-    val changed: String,
-    val coverArt: String? = null,
-    val allowedUser: List<String>? = null,
     val readOnly: Boolean? = null,
+    val songCount: Int,
     val validUntil: String? = null
 ) {
     fun toMediaModel(providerId: String): MediaModel.Playlist {
