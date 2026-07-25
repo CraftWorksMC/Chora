@@ -3,6 +3,7 @@
     <string name="Settings_Header_Appearance">外观</string>
     <string name="Setting_Username">名称</string>
     <string name="Setting_Background">背景样式</string>
+    <string name="Setting_Oled_Mode">OLED Protection</string>
     <string name="Setting_Navbar_Items">导航栏项目</string>
     <string name="Setting_Home_Items">主页项目</string>
     <string name="Setting_MoreInfo">显示更多信息</string>

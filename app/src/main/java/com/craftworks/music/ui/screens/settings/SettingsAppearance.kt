@@ -65,6 +65,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.managers.settings.AppTheme
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
 import com.craftworks.music.ui.elements.dialogs.HomeItemsDialog
@@ -211,12 +212,12 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 ) {
                     //Theme
                     val selectedTheme by AppearanceSettingsManager(context).appTheme.collectAsState(
-                        AppearanceSettingsManager.Companion.AppTheme.SYSTEM.name
+                        AppTheme.SYSTEM.name
                     )
                     val themes = listOf(
-                        AppearanceSettingsManager.Companion.AppTheme.DARK.name,
-                        AppearanceSettingsManager.Companion.AppTheme.LIGHT.name,
-                        AppearanceSettingsManager.Companion.AppTheme.SYSTEM.name
+                        AppTheme.DARK.name,
+                        AppTheme.LIGHT.name,
+                        AppTheme.SYSTEM.name
                     )
                     val themeStrings = listOf(
                         R.string.Theme_Dark, R.string.Theme_Light, R.string.Theme_System
@@ -251,6 +252,20 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         ImageVector.vectorResource(R.drawable.s_a_background),
                         toggleEvent = {
                             showBackgroundDialog = true
+                        }
+                    )
+
+                    //Disable Screen Standby
+                    val disableScreenStandby =
+                        AppearanceSettingsManager(context).disableScreenStandby.collectAsState(true)
+                    SettingsSwitch(
+                        disableScreenStandby.value,
+                        stringResource(R.string.Setting_Screen_Standby),
+                        ImageVector.vectorResource(R.drawable.rounded_tv_24),
+                        toggleEvent = {
+                            coroutineScope.launch {
+                                AppearanceSettingsManager(context).setDisableScreenStandby(!disableScreenStandby.value)
+                            }
                         }
                     )
 

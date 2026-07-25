@@ -114,6 +114,7 @@ import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.LocalProviderManager
 import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.settings.AppTheme
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.rememberManagedMediaController
@@ -148,11 +149,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val selectedThemeName by AppearanceSettingsManager(this).appTheme.collectAsState(
-                AppearanceSettingsManager.Companion.AppTheme.SYSTEM.name
+                AppTheme.SYSTEM.name
             )
             val darkTheme = when (selectedThemeName) {
-                AppearanceSettingsManager.Companion.AppTheme.DARK.name -> true
-                AppearanceSettingsManager.Companion.AppTheme.LIGHT.name -> false
+                AppTheme.DARK.name -> true
+                AppTheme.LIGHT.name -> false
                 else -> isSystemInDarkTheme()
             }
 
@@ -276,9 +277,12 @@ class MainActivity : ComponentActivity() {
                                     }
 
                                     val currentView = LocalView.current
+                                    val disableScreenStandy by AppearanceSettingsManager(LocalContext.current).disableScreenStandby.collectAsStateWithLifecycle(true)
                                     DisposableEffect(scaffoldState.bottomSheetState.targetValue) {
                                         if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
-                                            currentView.keepScreenOn = true
+                                            if (disableScreenStandy)
+                                                currentView.keepScreenOn = true
+
                                             backCallback.isEnabled  = true
 
                                             /* Restore nav bars.

@@ -30,7 +30,10 @@ fun NowPlaying_Background(
 
     when (backgroundStyle){
         NowPlayingBackground.PLAIN         -> PlainBackground()
-        NowPlayingBackground.STATIC_BLUR   -> StaticBlurBackground(colorPalette)
+        NowPlayingBackground.STATIC_BLUR   -> StaticBlurBackground(
+            colors = colorPalette,
+            overlayColor = overlayColor
+        )
         NowPlayingBackground.ANIMATED_BLUR -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) AnimatedGradientBackground(
             color1 = colorPalette[0],
             color2 = colorPalette.getOrNull(1) ?: colorPalette[0],

@@ -18,7 +18,8 @@ import androidx.compose.ui.graphics.Color
 @Stable
 @Composable
 fun StaticBlurBackground(
-    colors: List<Color?>
+    colors: List<Color?>,
+    overlayColor: Color = Color.Transparent
 ) {
     Log.d("RECOMPOSITION", "Recomposing Static Blur BG")
 
@@ -79,6 +80,8 @@ fun StaticBlurBackground(
                             radius = size.height
                         )
                     )
+
+                    drawRect(color = overlayColor)
                 }
             }
     )

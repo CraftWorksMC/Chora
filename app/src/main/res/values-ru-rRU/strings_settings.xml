@@ -3,6 +3,7 @@
     <string name="Settings_Header_Appearance">Внешний вид</string>
     <string name="Setting_Username">Никнейм</string>
     <string name="Setting_Background">Задний Фон</string>
+    <string name="Setting_Oled_Mode">OLED Protection</string>
     <string name="Setting_Navbar_Items">Элементы Панели Навигации</string>
     <string name="Setting_Home_Items">Элементы Главной Страницы</string>
     <string name="Setting_MoreInfo">Показывать Дополнительную Информацию</string>

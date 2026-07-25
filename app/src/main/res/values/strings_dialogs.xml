@@ -13,6 +13,12 @@
         <string name="Theme_Light">Light</string>
         <string name="Theme_System">System</string>
 
+    <!-- OLED Dialog -->
+    <string name="Dialog_Oled_Mode">OLED Protection Mode</string>
+        <string name="Oled_Off">Off</string>
+        <string name="Oled_Lyrics_Only">Lyrics Only</string>
+        <string name="Oled_Minimal">Minimal</string>
+
     <!-- Provider Dialog -->
     <string name="Dialog_Media_Source">Media Source</string>
         <string name="No_Providers_Splash">You haven\'t added a media provider yet. Add one now to start listening to some tunes!</string>

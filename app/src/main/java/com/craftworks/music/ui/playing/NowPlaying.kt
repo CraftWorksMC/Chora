@@ -33,6 +33,7 @@ import androidx.media3.common.StarRating
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
+import com.craftworks.music.managers.settings.OLEDProtectionMode
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.ui.elements.dialogs.RatingDialog
 import com.craftworks.music.ui.playing.tv.TvNowPlaying
@@ -52,6 +53,7 @@ fun NowPlayingContent(
 ) {
     val backgroundStyle by viewModel.backgroundStyle.collectAsStateWithLifecycle(NowPlayingBackground.STATIC_BLUR)
     val backgroundDarkMode by viewModel.isBackgroundDark.collectAsStateWithLifecycle()
+    val oledProtectionMode by viewModel.oledProtectionMode.collectAsStateWithLifecycle(OLEDProtectionMode.OFF)
     val lyricsOpen by viewModel.lyricsOpen.collectAsStateWithLifecycle()
     val playQueueOpen by viewModel.playQueueOpen.collectAsStateWithLifecycle()
     val detailsOpen by viewModel.detailsOpen.collectAsStateWithLifecycle()
@@ -63,15 +65,19 @@ fun NowPlayingContent(
     val colors by viewModel.paletteColors.collectAsStateWithLifecycle()
     val iconTextColor by viewModel.iconTextColor.collectAsStateWithLifecycle()
 
-    val isSystemDark = isSystemInDarkTheme()
+    val isSystemDark = if (oledProtectionMode != OLEDProtectionMode.OFF) true
+        else isSystemInDarkTheme()
+
     LaunchedEffect(metadata?.artworkUri, backgroundStyle) {
         viewModel.updatePaletteFromUri(metadata?.artworkUri, backgroundStyle, isSystemDark)
     }
 
-    val targetOverlayColor = if (backgroundStyle == NowPlayingBackground.ANIMATED_BLUR) {
-        if (backgroundDarkMode) Color.Black.copy(0.2f) else Color.White.copy(0.2f)
-    } else {
-        Color.Transparent
+    val targetOverlayColor = when {
+        oledProtectionMode != OLEDProtectionMode.OFF -> Color.Black.copy(0.7f)
+        backgroundStyle == NowPlayingBackground.ANIMATED_BLUR -> {
+            if (backgroundDarkMode) Color.Black.copy(0.2f) else Color.White.copy(0.2f)
+        }
+        else -> Color.Transparent
     }
 
     NowPlaying_Background(colors, backgroundStyle, targetOverlayColor)
