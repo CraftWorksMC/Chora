@@ -4,21 +4,6 @@ import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.Query
 
 interface SubsonicService {
-    @GET("rest/getArtist.view")
-    suspend fun getArtist(
-        @Query("id") id: String,
-    ): SubsonicResponse
-    @GET("rest/getArtists.view")
-    suspend fun getArtists(
-        @Query("musicFolderId") musicFolderId: List<Int>? = null,
-    ): SubsonicResponse
-    @GET("rest/getUser.view")
-    suspend fun authenticate(
-        @Query("username") username: String
-    ): SubsonicResponse
-
-    @GET("rest/getMusicFolders.view")
-    suspend fun getMusicFolderList(): SubsonicResponse
 
     @GET("rest/getAlbum.view")
     suspend fun getAlbum(@Query id: String): SubsonicResponse
@@ -34,6 +19,32 @@ interface SubsonicService {
         @Query("musicFolderId") musicFolderId: List<Int>? = null,
     ): SubsonicResponse
 
+    @GET("rest/getArtist.view")
+    suspend fun getArtist(
+        @Query("id") id: String,
+    ): SubsonicResponse
+
+    @GET("rest/getArtists.view")
+    suspend fun getArtists(
+        @Query("musicFolderId") musicFolderId: List<Int>? = null,
+    ): SubsonicResponse
+
+    @GET("rest/getInternetRadioStations.view")
+    suspend fun getInternetRadioStations(): SubsonicResponse
+
+    @GET("rest/getUser.view")
+    suspend fun authenticate(
+        @Query("username") username: String
+    ): SubsonicResponse
+
+    @GET("rest/getMusicFolders.view")
+    suspend fun getMusicFolderList(): SubsonicResponse
+
+    @GET("rest/getPlaylists.view")
+    suspend fun getPlaylists(
+        @Query("username") username: String? = null,
+    ): SubsonicResponse
+
     @GET("rest/getSongsByGenre.view")
     suspend fun getSongsByGenre(
         @Query("genre") genre: String,
@@ -47,6 +58,13 @@ interface SubsonicService {
         @Query("musicFolderId") musicFolderId: List<Int>? = null,
     ): SubsonicResponse
 
+    @GET("rest/scrobble.view")
+    suspend fun scrobble(
+        @Query("id") id: String,
+        @Query("time") time: Int? = 0,
+        @Query("submission") submission: Boolean? = true
+    )
+
     @GET("rest/search3.view")
     suspend fun search3(
         @Query("query") query: String,
@@ -58,11 +76,4 @@ interface SubsonicService {
         @Query("songOffset") songOffset: Int = 0,
         @Query("musicFolderId") musicFolderId: List<Int>? = null,
     ): SubsonicResponse
-
-    @GET("rest/scrobble.view")
-    suspend fun scrobble(
-        @Query("id") id: String,
-        @Query("time") time: Int? = 0,
-        @Query("submission") submission: Boolean? = true
-    )
 }

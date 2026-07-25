@@ -63,6 +63,12 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
             AlbumArtistListSort.NAME to { it.name },
             AlbumArtistListSort.RATING to { it.userRating },
         )
+        private val PLAYLIST_SORT_BINDING = mapOf<PlaylistListSort, (SubsonicPlaylist) -> Comparable<*>?>(
+            PlaylistListSort.DURATION to { it.duration },
+            PlaylistListSort.NAME to { it.name },
+            PlaylistListSort.SONG_COUNT to { it.songCount },
+            PlaylistListSort.UPDATED_AT to { it.changed },
+        )
     }
     override val providerIcon: Int
         get() = R.drawable.s_m_opensubsonic
@@ -104,7 +110,12 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
         ArtistListSort.RATING,
     )
     override val supportedGenreSort: List<GenreListSort> = listOf(GenreListSort.NAME)
-    override val supportedPlaylistSort: List<PlaylistListSort> = listOf(PlaylistListSort.NAME)
+    override val supportedPlaylistSort: List<PlaylistListSort> = listOf(
+        PlaylistListSort.DURATION,
+        PlaylistListSort.NAME,
+        PlaylistListSort.SONG_COUNT,
+        PlaylistListSort.UPDATED_AT,
+    )
     override val supportedSongSort: List<SongListSort> = listOf(SongListSort.NAME)
 
     @Transient
@@ -428,7 +439,9 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
     }
 
     override suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation> {
-        TODO("Not yet implemented")
+        return service.getInternetRadioStations()
+            .subsonicResponse.internetRadioStations?.internetRadioStation
+            ?.map { it.toMediaModel(id) } ?: emptyList()
     }
 
     override suspend fun getLyrics(songId: String): LyricsResponse {
@@ -455,7 +468,20 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
     }
 
     override suspend fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaModel.Playlist> {
-        TODO("Not yet implemented")
+        var playlists = service.getPlaylists().subsonicResponse.playlists?.playlist ?: emptyList()
+
+        if (query.searchTerm != null) {
+            playlists = playlists.filter { it.name.contains(query.searchTerm, true) }
+        }
+
+        return PagingUtils.sortAndPaginate(
+            playlists,
+            query.limit,
+            query.startIndex,
+            true,
+            PLAYLIST_SORT_BINDING[query.sortBy] ?: { it.name },
+            query.sortOrder
+        ).map { it.toMediaModel(id) }
     }
 
     override suspend fun getPlaylistListCount(query: MediaQuery.PlaylistListQuery): Int {

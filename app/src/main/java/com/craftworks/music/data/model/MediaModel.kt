@@ -178,20 +178,20 @@ abstract class MediaModel()
     }
 
     class Playlist(
-        val description: String?,
-        val durationMs: Int?,
-        val genres: List<Genre>,
-        val imageId: String?,
-        val imageUrl: String?,
+        val description: String? = null,
+        val durationMs: Int? = null,
+        val genres: List<Genre> = emptyList(),
+        val imageId: String? = null,
+        val imageUrl: String? = null,
         val name: String,
-        val owner: String?,
-        val ownerId: String?,
-        val isPublic: Boolean?,
-        val rules: PlaylistRules?,
-        val size: Int?,
-        val songCount: Int?,
-        val sync: Boolean?,
-        val uploadedImage: String?
+        val owner: String? = null,
+        val ownerId: String? = null,
+        val isPublic: Boolean? = null,
+        val rules: PlaylistRules? = null,
+        val size: Int? = null,
+        val songCount: Int? = null,
+        val sync: Boolean? = null,
+        val uploadedImage: String? = null
     ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
             return toMediaItem(MediaProviderManager.getProvider(providerId))

@@ -45,6 +45,12 @@ data class SubsonicBody(
     // Artists
     val artists: SubsonicArtistIndexList? = null,
     val artist: SubsonicArtist? = null,
+
+    //Internet radio station
+    val internetRadioStations: SubsonicInternetRadioStationList? = null,
+
+    //Playlist
+    val playlists: SubsonicPlaylistList? = null,
 )
 
 @Serializable
@@ -346,3 +352,71 @@ data class SubsonicUser(
     val username: String,
     val adminRole: Boolean
 )
+
+@Serializable
+data class SubsonicInternetRadioStationList(
+    val internetRadioStation: List<SubsonicInternetRadioStation>
+)
+@Serializable
+data class SubsonicInternetRadioStation(
+    val id: String,
+    val name: String,
+    val streamUrl: String,
+    val homePageUrl: String? = null,
+    val coverArt: String? = null
+) {
+    fun toMediaModel(providerId: String): MediaModel.InternetRadioStation {
+        return MediaModel.InternetRadioStation(
+            homepageUrl = homePageUrl,
+            imageId = coverArt,
+            imageUrl = coverArt,
+            name = name,
+            streamUrl = streamUrl,
+            uploadedImage = null
+        ).apply {
+            this.id = this@SubsonicInternetRadioStation.id
+            this.providerId = providerId
+            this.providerType = ProviderType.SUBSONIC
+        }
+    }
+}
+
+@Serializable
+data class SubsonicPlaylistList(
+    val playlist: List<SubsonicPlaylist>
+)
+
+@Serializable
+data class SubsonicPlaylist(
+    val id: String,
+    val name: String,
+    val comment: String? = null,
+    val owner: String? = null,
+    val public: Boolean? = null,
+    val songCount: Int,
+    val duration: Int,
+    val created: String,
+    val changed: String,
+    val coverArt: String? = null,
+    val allowedUser: List<String>? = null,
+    val readOnly: Boolean? = null,
+    val validUntil: String? = null
+) {
+    fun toMediaModel(providerId: String): MediaModel.Playlist {
+        return MediaModel.Playlist(
+            name = this.name,
+            description = this.comment,
+            durationMs = this.duration * 1000,
+            imageId = this.coverArt,
+            imageUrl = this.coverArt,
+            owner = this.owner,
+            isPublic = this.public,
+            songCount = this.songCount,
+            uploadedImage = null
+        ).apply {
+            this.id = this@SubsonicPlaylist.id
+            this.providerId = providerId
+            this.providerType = ProviderType.SUBSONIC
+        }
+    }
+}
