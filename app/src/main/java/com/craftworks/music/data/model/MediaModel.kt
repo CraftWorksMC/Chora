@@ -77,6 +77,7 @@ abstract class MediaModel()
                             putString("providerId", this@Album.providerId)
                             putInt("providerType", this@Album.providerType.ordinal)
                             putBoolean("userFavorite", this@Album.userFavorite == true)
+                            putString("imageId", this@Album.imageId)
                         }
                     )
                     .build()
@@ -172,6 +173,7 @@ abstract class MediaModel()
                             putString("providerId", this@InternetRadioStation.providerId)
                             putInt("providerType", this@InternetRadioStation.providerType.ordinal)
                             putString("homepage", this@InternetRadioStation.homepageUrl ?: "")
+                            putString("imageId", this@InternetRadioStation.imageId)
                         }
                     )
                     .build()
@@ -217,7 +219,7 @@ abstract class MediaModel()
                             putString("id", this@Playlist.id)
                             putString("providerId", this@Playlist.providerId)
                             putInt("providerType", this@Playlist.providerType.ordinal)
-                            putString("id", this@Playlist.id)
+                            putString("imageId", this@Playlist.imageId)
                         }
                     )
                     .build()
@@ -345,6 +347,7 @@ abstract class MediaModel()
                             putString("providerId", this@Song.providerId)
                             putInt("providerType", this@Song.providerType.ordinal)
                             putString("albumId", this@Song.albumId)
+                            putString("imageId", this@Song.imageId)
                             putBoolean("userFavorite", this@Song.userFavorite?:false)
                         }
                     )
@@ -367,3 +370,7 @@ val MediaMetadata.providerId: String?
 
 val MediaMetadata.providerType: Int?
     get() = extras?.getInt("providerType")
+
+fun MediaMetadata.getProvider(): MediaProvider? {
+    return MediaProviderManager.getProvider(extras?.getString("providerId")?:"")
+}

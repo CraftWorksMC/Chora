@@ -75,7 +75,9 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.craftworks.music.R
+import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.model.id
 import com.craftworks.music.formatSeconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
@@ -298,8 +300,11 @@ private fun CarouselItem(
     var dominantColor by remember { mutableStateOf(Color.Black) }
     LaunchedEffect(album.mediaMetadata.artworkUri) {
         val colorRequest = ImageRequest.Builder(context)
-            .data(album.mediaMetadata.artworkUri.toString()
-                .replace("&size=128", "&size=32")) // TODO: Use MediaProvider.getImageUrl()
+            .data(album.mediaMetadata.getProvider()?.getImageUrl(
+                album.mediaMetadata.extras?.getString("imageId")?:"",
+                LibraryType.ALBUM,
+                32
+            ))
             .diskCacheKey(album.mediaMetadata.id ?: album.mediaId)
             .diskCachePolicy(CachePolicy.READ_ONLY)
             .allowHardware(false)
@@ -325,10 +330,11 @@ private fun CarouselItem(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(context)
-                .data(
-                    album.mediaMetadata.artworkUri.toString()
-                        .replace("&size=128", "&size=1024") // TODO: Use MediaProvider.getImageUrl()
-                )
+                .data(album.mediaMetadata.getProvider()?.getImageUrl(
+                    album.mediaMetadata.extras?.getString("imageId")?:"",
+                    LibraryType.ALBUM,
+                    1024
+                ))
                 .diskCacheKey(album.mediaMetadata.id ?: album.mediaId)
                 .diskCachePolicy(CachePolicy.DISABLED)
                 .crossfade(true)
