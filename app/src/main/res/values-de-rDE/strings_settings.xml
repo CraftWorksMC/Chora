@@ -3,6 +3,7 @@
     <string name="Settings_Header_Appearance">Erscheinungsbild</string>
     <string name="Setting_Username">Benutzername</string>
     <string name="Setting_Background">Hintergrundstil</string>
+    <string name="Setting_Oled_Mode">OLED Protection</string>
     <string name="Setting_Navbar_Items">Navigationsleisten-Elemente</string>
     <string name="Setting_Home_Items">Startbildschirm-Elemente</string>
     <string name="Setting_MoreInfo">Weitere Infos anzeigen</string>

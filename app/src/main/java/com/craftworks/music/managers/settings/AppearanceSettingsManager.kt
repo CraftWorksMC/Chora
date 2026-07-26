@@ -21,6 +21,13 @@ import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
+enum class OLEDProtectionMode {
+    OFF, LYRICS_ONLY, MINIMAL,
+}
+enum class AppTheme {
+    LIGHT, DARK, SYSTEM
+}
+
 @Singleton
 class AppearanceSettingsManager @Inject constructor(
     @ApplicationContext private val context: Context
@@ -37,16 +44,15 @@ class AppearanceSettingsManager @Inject constructor(
         private val HOME_ITEMS_KEY = stringPreferencesKey("home_items_order")
         private val APP_THEME = stringPreferencesKey("theme")
 
-        enum class AppTheme {
-            LIGHT, DARK, SYSTEM
-        }
-
         private val SHOW_PROVIDER_DIVIDERS = booleanPreferencesKey("provider_dividers")
         private val LYRICS_ANIMATION_SPEED = intPreferencesKey("lyrics_animation_speed")
         private val LYRICS_AUTOSCROLL = booleanPreferencesKey("lyrics_auto_scroll")
         private val LYRICS_RECENTER_AFTER_SCROLL = booleanPreferencesKey("lyrics_recenter_after_Scroll")
         private val USE_REFRESH_ANIMATION = booleanPreferencesKey("use_refresh_animation")
         private val SHOW_TRACK_NUMBERS = booleanPreferencesKey("show_track_numbers")
+
+        private val OLED_PROTECTION_MODE = stringPreferencesKey("oled_protection")
+        private val DISABLE_SCREEN_STANDBY = booleanPreferencesKey("disable_screen_standby")
     }
 
     val usernameFlow: Flow<String> = context.dataStore.data.map { preferences ->
@@ -285,6 +291,35 @@ class AppearanceSettingsManager @Inject constructor(
         withContext(NonCancellable) {
             context.dataStore.edit { preferences ->
                 preferences[LYRICS_RECENTER_AFTER_SCROLL] = recenterAfterScroll
+            }
+        }
+    }
+
+    val oledProtectionMode: Flow<OLEDProtectionMode> = context.dataStore.data.map { preferences ->
+        try {
+            OLEDProtectionMode.valueOf(preferences[OLED_PROTECTION_MODE] ?: "OFF")
+        }
+        catch (ex: Exception) {
+            OLEDProtectionMode.OFF
+        }
+    }
+
+    suspend fun setOledProtectionMode(mode: OLEDProtectionMode) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[OLED_PROTECTION_MODE] = mode.name
+            }
+        }
+    }
+
+    val disableScreenStandby: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[DISABLE_SCREEN_STANDBY] ?: false
+    }
+
+    suspend fun setDisableScreenStandby(enabled: Boolean) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[DISABLE_SCREEN_STANDBY] = enabled
             }
         }
     }

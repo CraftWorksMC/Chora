@@ -44,6 +44,8 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.repository.LyricsState
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.ui.playing.NowPlayingContent
 import com.craftworks.music.ui.playing.NowPlayingViewModel
@@ -397,9 +399,13 @@ fun SetupNavGraph(
 
             // Keep screen on
             val currentView = LocalView.current
+            val disableScreenStandy by AppearanceSettingsManager(LocalContext.current).disableScreenStandby.collectAsStateWithLifecycle(true)
             DisposableEffect(Unit) {
-                currentView.keepScreenOn = true
-                Log.d("NOW-PLAYING", "KeepScreenOn: True")
+                if (disableScreenStandy) {
+                    currentView.keepScreenOn = true
+                    Log.d("NOW-PLAYING", "KeepScreenOn: True")
+                }
+
                 onDispose {
                     currentView.keepScreenOn = false
                     Log.d("NOW-PLAYING", "KeepScreenOn: False")

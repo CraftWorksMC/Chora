@@ -63,6 +63,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaItem
+import androidx.media3.common.StarRating
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -80,10 +82,13 @@ import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.GenrePill
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
+import com.craftworks.music.ui.elements.dialogs.RatingDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.viewmodels.AlbumDetailsViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalFoundationApi
@@ -101,15 +106,22 @@ fun AlbumDetails(
     val currentAlbum = viewModel.songsInAlbum.collectAsStateWithLifecycle().value
     val showTrackNumbers by AppearanceSettingsManager(LocalContext.current).showTrackNumbersFlow.collectAsStateWithLifecycle(false)
 
+    var songToRate by remember { mutableStateOf<MediaItem?>(null) }
+
     val context = LocalContext.current
 
     LaunchedEffect(selectedAlbumId) {
+        showLoading = false
+
         viewModel.loadAlbumDetails(selectedAlbumId)
+
+        delay(500.milliseconds)
+        showLoading = true
     }
 
     // Loading spinner
     AnimatedVisibility(
-        visible = showLoading,
+        visible = currentAlbum.isEmpty() && showLoading,
         enter = fadeIn(),
         exit = fadeOut()
     ) {
@@ -393,7 +405,8 @@ fun AlbumDetails(
                             },
                             onAddToQueue = {
                                 mediaController?.addMediaItem(song)
-                            }
+                            },
+                            onSetRating = { songToRate = song }
                         )
                     }
                 }
@@ -415,7 +428,8 @@ fun AlbumDetails(
                         },
                         onAddToQueue = {
                             mediaController?.addMediaItem(song)
-                        }
+                        },
+                        onSetRating = { songToRate = song }
                     )
                 }
             }
@@ -425,4 +439,14 @@ fun AlbumDetails(
     if(showAddSongToPlaylistDialog.value)
         AddSongToPlaylist(setShowDialog =  { showAddSongToPlaylistDialog.value = it } )
 
+    songToRate?.let { song ->
+        RatingDialog(
+            currentRating = (song.mediaMetadata.userRating as? StarRating)?.starRating?.toInt() ?: 0,
+            onDismiss = { songToRate = null },
+            onSetRating = { rating ->
+                viewModel.setSongRating(song.mediaMetadata.extras?.getString("navidromeID") ?: "", rating)
+                songToRate = null
+            }
+        )
+    }
 }

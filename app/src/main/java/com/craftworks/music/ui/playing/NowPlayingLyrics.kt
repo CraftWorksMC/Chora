@@ -49,6 +49,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -89,6 +90,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.sin
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -122,8 +124,9 @@ fun LyricsView(
     )
 
     // State holding the current position
-    val currentPosition =
-        remember { mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0) }
+    var currentPosition by remember {
+        mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0)
+    }
     val currentLyricIndex = remember { mutableIntStateOf(-1) }
 
     val state = rememberLazyListState()
@@ -150,12 +153,12 @@ fun LyricsView(
         if (mediaController?.isPlaying == true) {
             trackingJob = scope.launch {
                 var position = mediaController.currentPosition.toInt()
-                currentPosition.intValue = position
+                currentPosition = position
 
                 while (isActive) {
                     position = mediaController.currentPosition.toInt()
-                    currentPosition.intValue = position
-                    delay(getNextUpdateDelay(position, lyrics))
+                    currentPosition = position
+                    delay(getNextUpdateDelay(position, lyrics).milliseconds)
                 }
             }
         }
@@ -168,12 +171,12 @@ fun LyricsView(
 
                     trackingJob = scope.launch {
                         var position = mediaController.currentPosition.toInt()
-                        currentPosition.intValue = position
+                        currentPosition = position
 
                         while (isActive) {
                             position = mediaController.currentPosition.toInt()
-                            currentPosition.intValue = position
-                            delay(getNextUpdateDelay(position, lyrics))
+                            currentPosition = position
+                            delay(getNextUpdateDelay(position, lyrics).milliseconds)
                         }
                     }
                 } else trackingJob.cancel()
@@ -182,10 +185,10 @@ fun LyricsView(
     }
 
     // Lyric index updates and scrolling
-    LaunchedEffect(currentPosition.intValue, lyrics) {
+    LaunchedEffect(currentPosition, lyrics) {
         //if (mediaController?.isPlaying == true) {
         val newCurrentLyricIndex =
-            lyrics.indexOfFirst { it.startMs > (currentPosition.intValue + lyricsAnimationSpeed / 2) }
+            lyrics.indexOfFirst { it.startMs > (currentPosition) }
                 .takeIf { it >= 0 } ?: lyrics.size
 
         val targetIndex = (newCurrentLyricIndex - 1).coerceAtLeast(-1)
@@ -220,19 +223,40 @@ fun LyricsView(
     }
 
     // Plain lyrics scrolling
-    LaunchedEffect(mediaController, lyrics) {
+    var plainLyricsViewportHeightPx by remember { mutableFloatStateOf(0f) }
+    var plainLyricsItemHeightPx by remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(mediaController, lyrics, plainLyricsItemHeightPx, plainLyricsViewportHeightPx) {
         if (lyrics.size == 1 && lyricsAutoscroll) {
-            while (true) {
+            val updateIntervalMs = 500L
+
+            while (isActive) {
                 if (mediaController?.isPlaying == true) {
-                    val totalDuration = mediaController.duration / 1000f // duration in seconds
-                    val scrollRate = state.layoutInfo.viewportSize.height / totalDuration
-                    coroutineScope.launch {
-                        state.animateScrollBy(scrollRate * 2.5f, tween(500, 0, LinearEasing))
+                    val totalDuration = mediaController.duration
+                    val position = mediaController.currentPosition
+
+                    val maxScroll = (plainLyricsItemHeightPx - plainLyricsViewportHeightPx).coerceAtLeast(0f)
+                    val currentScrollPx = state.firstVisibleItemScrollOffset.toFloat()
+
+                    val remainingDuration = totalDuration - position
+                    val remainingScroll = maxScroll - currentScrollPx
+
+                    if (remainingDuration > 0 && maxScroll > 0f) {
+                        val speedPxPerMs = remainingScroll / remainingDuration.toFloat()
+
+                        val delta = speedPxPerMs * updateIntervalMs
+
+                        if (abs(delta) > 0.5f) {
+                            launch {
+                                state.animateScrollBy(
+                                    value = delta,
+                                    animationSpec = tween(updateIntervalMs.toInt(), 0, LinearEasing)
+                                )
+                            }
+                        }
                     }
-                    delay(500)
-                } else {
-                    delay(500)
                 }
+                delay(updateIntervalMs.milliseconds)
             }
         }
     }
@@ -280,6 +304,7 @@ fun LyricsView(
                         .padding(paddingValues)
                         .onSizeChanged { size ->
                             scrollOffset = (size.height * 0.2f).toInt()
+                            plainLyricsViewportHeightPx = size.height.toFloat()
                         }
                         .verticalFadingEdges(
                             FadingEdgesContentType.Dynamic.Lazy.List(
@@ -304,7 +329,7 @@ fun LyricsView(
                                     lyric = lyric,
                                     index = index,
                                     currentLyricIndex = currentLyricIndex.intValue,
-                                    currentPosition = currentPosition.intValue,
+                                    currentPosition = currentPosition,
                                     useBlur = useBlur,
                                     visibleItemsInfo = visibleItemsInfo,
                                     color = color,
@@ -312,7 +337,7 @@ fun LyricsView(
                                     lyricsAlignment = lyricsAlignment,
                                     onClick = {
                                         mediaController?.seekTo(lyric.startMs.toLong())
-                                        currentPosition.intValue = lyric.startMs
+                                        currentPosition = lyric.startMs
                                         userScrolled = false
                                     }
                                 )
@@ -328,7 +353,7 @@ fun LyricsView(
                                     lyricsAlignment = lyricsAlignment,
                                     onClick = {
                                         mediaController?.seekTo(lyric.startMs.toLong())
-                                        currentPosition.intValue = lyric.startMs
+                                        currentPosition = lyric.startMs
                                         userScrolled = false
                                     }
                                 )
@@ -342,7 +367,10 @@ fun LyricsView(
                                 color = color,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
+                                    .padding(16.dp)
+                                    .onSizeChanged { size ->
+                                        plainLyricsItemHeightPx = size.height.toFloat()
+                                    },
                                 textAlign = when (lyricsAlignment) {
                                     NowPlayingAlignment.LEFT -> TextAlign.Start
                                     NowPlayingAlignment.CENTER -> TextAlign.Center
@@ -507,7 +535,7 @@ fun AnimatedWord(
     Text(
         text = wordText,
         style = MaterialTheme.typography.titleLarge.copy(
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             textMotion = TextMotion.Animated
         ),
         modifier = Modifier
@@ -551,7 +579,7 @@ fun SyncedLyricItem(
             index, currentLyricIndex, visibleItemsInfo
         ) else 0.dp,
         label = "Lyric Blur",
-        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
+        animationSpec = tween(lyricsAnimationSpeed / 2, 0, FastOutSlowInEasing)
     )
 
     val scale by animateFloatAsState(
@@ -612,6 +640,7 @@ fun SyncedLyricItem(
                     text = line,
                     style = if (i == 0) MaterialTheme.typography.titleLarge
                     else MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
                     color = color.copy(alpha = if (i == 0) lyricAlpha else lyricAlpha * 0.65f),
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = when (lyricsAlignment) {

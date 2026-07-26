@@ -254,6 +254,12 @@ fun TvSearchScreen(
     if (showSongDialog)
         SongDialog(
             song = selectedSong,
+            onSetRating = { rating ->
+                songsViewModel.setSongRating(
+                    songId = selectedSong.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                    rating = rating
+                )
+            },
             setShowDialog = { showSongDialog = it }
         )
 }

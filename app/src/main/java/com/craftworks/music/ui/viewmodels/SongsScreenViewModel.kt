@@ -6,6 +6,7 @@ import androidx.media3.common.MediaItem
 import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.data.model.SortOrder
+import androidx.media3.common.StarRating
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
@@ -85,6 +86,36 @@ class SongsScreenViewModel @Inject constructor(
     fun setShowFavoritesOnly(showFavorites: Boolean) {
         viewModelScope.launch {
             localDataSettingsManager.saveShowFavoriteOnly(showFavorites)
+        }
+    }
+
+    fun setSongRating(
+        songId: String,
+        rating: Int,
+    ) {
+        val song =_allSongs.value.firstOrNull {
+            it.mediaMetadata.extras?.getString("navidromeID") == songId
+        } ?: _searchResults.value.first {
+            it.mediaMetadata.extras?.getString("navidromeID") == songId
+        }
+
+        val maxStars = (song.mediaMetadata.userRating as? StarRating)?.maxStars ?: 5
+
+        val updatedSong = song.buildUpon().setMediaMetadata(
+            song.mediaMetadata.buildUpon()
+                .setUserRating(StarRating(maxStars, rating.toFloat()))
+                .build()
+        ).build()
+
+        _allSongs.value = _allSongs.value.map { item ->
+            if (item.mediaId == song.mediaId) updatedSong else item
+        }
+        _searchResults.value = _searchResults.value.map { item ->
+            if (item.mediaId == song.mediaId) updatedSong else item
+        }
+
+        viewModelScope.launch {
+            songRepository.setSongRating(songId, rating)
         }
     }
 }

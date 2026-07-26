@@ -64,6 +64,7 @@ fun SongsHorizontalColumn(
     songList: List<MediaItem>,
     onSongSelected: (itemsList: List<MediaItem>, index: Int) -> Unit,
     onAddToQueue: (song: MediaItem) -> Unit,
+    onSetRating: (sond: MediaItem) -> Unit,
     isSearch: Boolean? = false,
     showFavoritesOnly: Boolean = false,
     viewModel: SongsScreenViewModel? = null
@@ -132,6 +133,9 @@ fun SongsHorizontalColumn(
                     },
                     onAddToQueue = {
                         onAddToQueue(song)
+                    },
+                    onSetRating = {
+                        onSetRating(song)
                     }
                 )
             }

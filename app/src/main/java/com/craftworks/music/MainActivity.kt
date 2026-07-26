@@ -114,6 +114,7 @@ import com.craftworks.music.data.BottomNavItem
 import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.MediaProviderManager
+import com.craftworks.music.managers.settings.AppTheme
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.rememberManagedMediaController
@@ -148,11 +149,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val selectedThemeName by AppearanceSettingsManager(this).appTheme.collectAsState(
-                AppearanceSettingsManager.Companion.AppTheme.SYSTEM.name
+                AppTheme.SYSTEM.name
             )
             val darkTheme = when (selectedThemeName) {
-                AppearanceSettingsManager.Companion.AppTheme.DARK.name -> true
-                AppearanceSettingsManager.Companion.AppTheme.LIGHT.name -> false
+                AppTheme.DARK.name -> true
+                AppTheme.LIGHT.name -> false
                 else -> isSystemInDarkTheme()
             }
 
@@ -165,19 +166,25 @@ class MainActivity : ComponentActivity() {
                 val coroutineScope = rememberCoroutineScope()
 
                 // Update metadata from mediaController.
-                LaunchedEffect(mediaController) {
-                    if (mediaController?.currentMediaItem != null) {
-                        metadata = mediaController?.currentMediaItem?.mediaMetadata
-                    }
-                }
                 DisposableEffect(mediaController) {
                     val listener = object : Player.Listener {
+                        override fun onPlaylistMetadataChanged(mediaMetadata: MediaMetadata) {
+                            metadata = mediaMetadata
+                            super.onPlaylistMetadataChanged(mediaMetadata)
+                        }
+
                         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                            metadata = mediaItem?.mediaMetadata
                             super.onMediaItemTransition(mediaItem, reason)
-                            metadata = mediaController?.currentMediaItem?.mediaMetadata
+                        }
+
+                        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+                            metadata = mediaMetadata
+                            super.onMediaMetadataChanged(mediaMetadata)
                         }
                     }
 
+                    metadata = mediaController?.mediaMetadata
                     mediaController?.addListener(listener)
 
                     onDispose {
@@ -270,9 +277,12 @@ class MainActivity : ComponentActivity() {
                                     }
 
                                     val currentView = LocalView.current
+                                    val disableScreenStandy by AppearanceSettingsManager(LocalContext.current).disableScreenStandby.collectAsStateWithLifecycle(true)
                                     DisposableEffect(scaffoldState.bottomSheetState.targetValue) {
                                         if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
-                                            currentView.keepScreenOn = true
+                                            if (disableScreenStandy)
+                                                currentView.keepScreenOn = true
+
                                             backCallback.isEnabled  = true
 
                                             /* Restore nav bars.
@@ -351,7 +361,16 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+            requestPermissionLauncher.launch(
+                arrayOf(
+                    android.Manifest.permission.READ_MEDIA_AUDIO,
+                    android.Manifest.permission.POST_NOTIFICATIONS,
+                    android.Manifest.permission.ACCESS_LOCAL_NETWORK
+                )
+            )
+        }
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissionLauncher.launch(
                 arrayOf(
                     android.Manifest.permission.READ_MEDIA_AUDIO,

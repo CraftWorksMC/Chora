@@ -37,7 +37,9 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
+import com.craftworks.music.managers.settings.AppTheme
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.managers.settings.OLEDProtectionMode
 import com.craftworks.music.ui.playing.NowPlayingAlignment
 import com.craftworks.music.ui.playing.NowPlayingBackground
 import com.craftworks.music.ui.screens.HomeItem
@@ -127,12 +129,12 @@ fun ThemeDialog(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val selectedThemeName by AppearanceSettingsManager(context).appTheme.collectAsState(
-        AppearanceSettingsManager.Companion.AppTheme.SYSTEM.name
+        AppTheme.SYSTEM.name
     )
 
-    val themes = AppearanceSettingsManager.Companion.AppTheme.entries
+    val themes = AppTheme.entries
     val currentTheme = themes.find { it.name == selectedThemeName }
-        ?: AppearanceSettingsManager.Companion.AppTheme.SYSTEM
+        ?: AppTheme.SYSTEM
 
     GenericListDialog(
         setShowDialog = setShowDialog,
@@ -146,7 +148,7 @@ fun ThemeDialog(
                     context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
 
                 when (theme) {
-                    AppearanceSettingsManager.Companion.AppTheme.DARK -> {
+                    AppTheme.DARK -> {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                             uiModeManager.setApplicationNightMode(
                                 UiModeManager.MODE_NIGHT_YES
@@ -157,7 +159,7 @@ fun ThemeDialog(
                             )
                     }
 
-                    AppearanceSettingsManager.Companion.AppTheme.LIGHT -> {
+                    AppTheme.LIGHT -> {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                             uiModeManager.setApplicationNightMode(
                                 UiModeManager.MODE_NIGHT_NO
@@ -168,7 +170,7 @@ fun ThemeDialog(
                             )
                     }
 
-                    AppearanceSettingsManager.Companion.AppTheme.SYSTEM -> {
+                    AppTheme.SYSTEM -> {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                             uiModeManager.setApplicationNightMode(
                                 UiModeManager.MODE_NIGHT_AUTO
@@ -184,9 +186,9 @@ fun ThemeDialog(
         label = { theme ->
             stringResource(
             when (theme) {
-                    AppearanceSettingsManager.Companion.AppTheme.DARK -> R.string.Theme_Dark
-                    AppearanceSettingsManager.Companion.AppTheme.LIGHT -> R.string.Theme_Light
-                    AppearanceSettingsManager.Companion.AppTheme.SYSTEM -> R.string.Theme_System
+                    AppTheme.DARK -> R.string.Theme_Dark
+                    AppTheme.LIGHT -> R.string.Theme_Light
+                    AppTheme.SYSTEM -> R.string.Theme_System
                 }
             )
         }
@@ -253,6 +255,36 @@ fun NowPlayingAlignmentDialog(
                     NowPlayingAlignment.LEFT -> R.string.NowPlayingTitleAlignment_Left
                     NowPlayingAlignment.CENTER -> R.string.NowPlayingTitleAlignment_Center
                     NowPlayingAlignment.RIGHT -> R.string.NowPlayingTitleAlignment_Right
+                }
+            )
+        }
+    )
+}
+
+@Composable
+fun OledProtectionModeDialog(
+    setShowDialog: (Boolean) -> Unit = { }
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val protectionMode by AppearanceSettingsManager(context).oledProtectionMode.collectAsState(
+        OLEDProtectionMode.OFF
+    )
+
+    GenericListDialog(
+        setShowDialog = setShowDialog,
+        titleRes = R.string.Dialog_Oled_Mode,
+        options = OLEDProtectionMode.entries,
+        selectedOption = protectionMode,
+        onOptionSelected = { option ->
+            coroutineScope.launch { AppearanceSettingsManager(context).setOledProtectionMode(option) }
+        },
+        label = { option ->
+            stringResource(
+                when (option) {
+                    OLEDProtectionMode.OFF -> R.string.Oled_Off
+                    OLEDProtectionMode.LYRICS_ONLY -> R.string.Oled_Lyrics_Only
+                    OLEDProtectionMode.MINIMAL -> R.string.Oled_Minimal
                 }
             )
         }

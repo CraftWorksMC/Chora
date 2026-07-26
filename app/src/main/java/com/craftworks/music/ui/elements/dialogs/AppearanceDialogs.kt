@@ -50,10 +50,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
+import com.craftworks.music.managers.settings.AppTheme
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.ui.elements.bounceClick
-import com.craftworks.music.ui.playing.NowPlayingBackground
 import com.craftworks.music.ui.playing.NowPlayingAlignment
+import com.craftworks.music.ui.playing.NowPlayingBackground
 import com.craftworks.music.ui.screens.HomeItem
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -194,12 +195,12 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
 
     val selectedTheme by AppearanceSettingsManager(context).appTheme.collectAsState(
-        AppearanceSettingsManager.Companion.AppTheme.SYSTEM.name)
+        AppTheme.SYSTEM.name)
 
     val themes = listOf(
-       AppearanceSettingsManager.Companion.AppTheme.DARK,
-       AppearanceSettingsManager.Companion.AppTheme.LIGHT,
-       AppearanceSettingsManager.Companion.AppTheme.SYSTEM
+       AppTheme.DARK,
+       AppTheme.LIGHT,
+       AppTheme.SYSTEM
     )
 
     val themeStrings = listOf(
@@ -224,7 +225,7 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
                                             context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
 
                                         when (option) {
-                                            AppearanceSettingsManager.Companion.AppTheme.DARK -> {
+                                            AppTheme.DARK -> {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                     uiModeManager.setApplicationNightMode(
                                                         UiModeManager.MODE_NIGHT_YES
@@ -235,7 +236,7 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
                                                     )
                                             }
 
-                                            AppearanceSettingsManager.Companion.AppTheme.LIGHT -> {
+                                            AppTheme.LIGHT -> {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                     uiModeManager.setApplicationNightMode(
                                                         UiModeManager.MODE_NIGHT_NO
@@ -246,7 +247,7 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
                                                     )
                                             }
 
-                                            AppearanceSettingsManager.Companion.AppTheme.SYSTEM -> {
+                                            AppTheme.SYSTEM -> {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                     uiModeManager.setApplicationNightMode(
                                                         UiModeManager.MODE_NIGHT_AUTO
@@ -272,19 +273,19 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
                                     val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
 
                                     when (option) {
-                                       AppearanceSettingsManager.Companion.AppTheme.DARK -> {
+                                       AppTheme.DARK -> {
                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                 uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_YES)
                                             else
                                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
                                         }
-                                       AppearanceSettingsManager.Companion.AppTheme.LIGHT -> {
+                                       AppTheme.LIGHT -> {
                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                 uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_NO)
                                             else
                                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                                         }
-                                       AppearanceSettingsManager.Companion.AppTheme.SYSTEM -> {
+                                       AppTheme.SYSTEM -> {
                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                                                 uiModeManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_AUTO)
                                             else

@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -47,6 +48,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
@@ -57,6 +59,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -71,7 +74,10 @@ import com.craftworks.music.R
 import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.repository.LyricsState
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.managers.settings.OLEDProtectionMode
 import com.craftworks.music.player.ChoraMediaLibraryService
+import com.craftworks.music.ui.elements.tv.TvHorizontalSongCard
 import com.craftworks.music.ui.playing.LyricsView
 import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.screens.tv.requestFocusOnFirstGainingVisibility
@@ -79,6 +85,7 @@ import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.debounce
+import kotlin.time.Duration.Companion.milliseconds
 
 @kotlin.OptIn(FlowPreview::class)
 @Preview(device = "id:tv_1080p", showBackground = true, showSystemUi = true)
@@ -95,9 +102,13 @@ fun TvNowPlaying(
     // Auto-hide after 5 seconds of visibility
     val interactionFlow = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
 
+    val oledProtectionMode by AppearanceSettingsManager(LocalContext.current).oledProtectionMode.collectAsStateWithLifecycle(
+        OLEDProtectionMode.OFF
+    )
+
     LaunchedEffect(Unit) {
         interactionFlow
-            .debounce(5000)
+            .debounce(5000.milliseconds)
             .collect { controlsVisible = false }
     }
 
@@ -108,7 +119,7 @@ fun TvNowPlaying(
     )
 
     val bottomPadding by animateIntAsState(
-        targetValue = if (controlsVisible) dpToPx(64) else 0,
+        targetValue = if (controlsVisible && oledProtectionMode != OLEDProtectionMode.LYRICS_ONLY) dpToPx(64) else 0,
         animationSpec = tween(600, 0, FastOutSlowInEasing),
         label = "Move content up with controls visible"
     )
@@ -121,10 +132,7 @@ fun TvNowPlaying(
                 if (keyEvent.type == KeyEventType.KeyDown) {
                     if (!controlsVisible) {
                         when (keyEvent.nativeKeyEvent.keyCode) {
-                            KeyEvent.KEYCODE_DPAD_CENTER,
-                            KeyEvent.KEYCODE_ENTER,
-                            KeyEvent.KEYCODE_DPAD_DOWN,
-                            KeyEvent.KEYCODE_DPAD_UP -> {
+                            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_UP -> {
                                 controlsVisible = true
                                 interactionFlow.tryEmit(Unit)
                             }
@@ -146,89 +154,132 @@ fun TvNowPlaying(
             },
         contentAlignment = Alignment.Center
     ) {
-        Row (
-            Modifier.offset { IntOffset(0, -bottomPadding) }
-        ) {
-            Column(
+        if (oledProtectionMode == OLEDProtectionMode.LYRICS_ONLY) {
+            Text(
+                text = StringBuilder()
+                    .append(metadata?.title)
+                    .append(" • ")
+                    .append(metadata?.albumTitle)
+                    .append(" • ")
+                    .append(metadata?.artist)
+                    .toString(),
+                color = iconTextColor,
+                maxLines = 1,
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.SpaceEvenly,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                StandardCardContainer(
-                    imageCard = {
-                        Box (
-                            Modifier
-                                .height(320.dp)
-                                .fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(metadata?.getProvider()?.getImageUrl(
-                                        metadata.extras?.getString("imageId")?:"",
-                                        LibraryType.SONG,
-                                        500
-                                    ))
-                                    .diskCachePolicy(CachePolicy.DISABLED)
-                                    .placeholderMemoryCacheKey(metadata?.artworkUri.toString())
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = "Album Cover Art",
-                                fallback = painterResource(R.drawable.placeholder),
-                                contentScale = ContentScale.FillWidth,
-                                modifier = Modifier
-                                    .aspectRatio(1f)
-                                    .shadow(4.dp, RoundedCornerShape(12.dp), clip = true)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                            )
-                        }
-                    },
-                    title = {
-                        Text(
-                            text = metadata?.title.toString(),
-                            color = iconTextColor,
-                            maxLines = 1,
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
-                        )
-                    },
-                    subtitle = {
-                        if (metadata?.albumTitle != null && metadata.recordingYear != null) {
+                    .widthIn(max = 320.dp)
+                    .align(Alignment.TopCenter)
+                    .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+            )
+        }
+
+        Row (
+            Modifier
+                .offset { IntOffset(0, -bottomPadding) }
+                .fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (oledProtectionMode == OLEDProtectionMode.OFF) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    StandardCardContainer(
+                        imageCard = {
+                            Box(
+                                Modifier
+                                    .height(320.dp)
+                                    .fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(metadata?.getProvider()?.getImageUrl(
+                                            metadata.extras?.getString("imageId")?:"",
+                                            LibraryType.SONG,
+                                            500
+                                        ))
+                                        .diskCachePolicy(CachePolicy.DISABLED)
+                                        .placeholderMemoryCacheKey(metadata?.artworkUri.toString())
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "Album Cover Art",
+                                    fallback = painterResource(R.drawable.placeholder),
+                                    contentScale = ContentScale.FillWidth,
+                                    modifier = Modifier
+                                        .aspectRatio(1f)
+                                        .shadow(4.dp, RoundedCornerShape(12.dp), clip = true)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                )
+                            }
+                        },
+                        title = {
                             Text(
-                                text = metadata.albumTitle.toString()  + if (metadata.recordingYear != 0) " • " + metadata.recordingYear else "",
+                                text = metadata?.title.toString(),
+                                color = iconTextColor,
+                                maxLines = 1,
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+                            )
+                        },
+                        subtitle = {
+                            if (metadata?.albumTitle != null && metadata.recordingYear != null) {
+                                Text(
+                                    text = metadata.albumTitle.toString() + if (metadata.recordingYear != 0) " • " + metadata.recordingYear else "",
+                                    color = iconTextColor,
+                                    maxLines = 1,
+                                    modifier = Modifier
+                                        .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
+                                )
+                            }
+                        },
+                        description = {
+                            Text(
+                                text = metadata?.artist.toString(),
                                 color = iconTextColor,
                                 maxLines = 1,
                                 modifier = Modifier
                                     .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
                             )
                         }
-                    },
-                    description = {
-                        Text(
-                            text = metadata?.artist.toString(),
-                            color = iconTextColor,
-                            maxLines = 1,
-                            modifier = Modifier
-                                .marqueeHorizontalFadingEdges(marqueeProvider = { Modifier.basicMarquee() })
-                        )
-                    }
+                    )
+                }
+            }
+
+            if (oledProtectionMode == OLEDProtectionMode.MINIMAL) {
+                TvHorizontalSongCard(
+                    song = mediaController?.currentMediaItem ?: MediaItem.EMPTY,
+                    modifier = Modifier
+                        .focusable(false)
+                        .graphicsLayer {
+                            alpha = 0.75f
+                        },
+                    showTrackNumber = false,
+                    onClick = { },
+                    onLongClick = { }
                 )
             }
 
             AnimatedVisibility(
-                visible = metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && lyrics.isNotEmpty(),
-                modifier = Modifier.weight(1f)
+                visible = metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && lyrics.isNotEmpty() && oledProtectionMode != OLEDProtectionMode.MINIMAL,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(
+                        if (oledProtectionMode == OLEDProtectionMode.LYRICS_ONLY) 0.5f
+                        else 1f
+                    )
             ) {
-                Box(Modifier
-                    .fillMaxHeight()
-                    .focusable(false)
-                    .focusProperties {
-                        canFocus = false
-                    }
-                ){
+                Box(
+                    modifier = Modifier
+                        .focusable(false)
+                        .focusProperties {
+                            canFocus = false
+                        }
+                ) {
                     LyricsView(
                         iconTextColor,
                         true,
@@ -281,8 +332,7 @@ fun TvNowPlaying(
                         .onKeyEvent { keyEvent ->
                             if (keyEvent.type == KeyEventType.KeyDown) {
                                 if (controlsVisible) {
-                                    if (keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_UP ||
-                                        keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
+                                    if (keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_UP || keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
                                         controlsVisible = false
                                         return@onKeyEvent true
                                     }
