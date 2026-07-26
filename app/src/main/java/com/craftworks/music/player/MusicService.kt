@@ -37,6 +37,7 @@ import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.ScrobbleEvent
 import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.data.model.SortOrder
+import com.craftworks.music.data.model.id
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.data.repository.ArtistRepository
 import com.craftworks.music.data.repository.LyricsRepository
@@ -297,7 +298,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
                 serviceIOScope.launch {
                     lyricsRepository.getLyrics(mediaItem?.mediaMetadata)
-                    val mediaId = mediaItem?.mediaMetadata?.extras?.getString("id") ?: return@launch
+                    val mediaId = mediaItem?.mediaMetadata?.id ?: return@launch
                     songRepository.scrobbleSong(mediaId, 0, 1f, ScrobbleEvent.START, false)
                 }
 
@@ -353,7 +354,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                         playerScrobbled = true
                         if (mediaItem?.mediaMetadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION) {
                             serviceIOScope.launch {
-                                songRepository.scrobbleSong(mediaItem?.mediaMetadata?.extras?.getString("id") ?: "", currentPosition.toInt(), 1f,
+                                songRepository.scrobbleSong(mediaItem?.mediaMetadata?.id ?: "", currentPosition.toInt(), 1f,
                                     ScrobbleEvent.START , true)
                             }
                         }

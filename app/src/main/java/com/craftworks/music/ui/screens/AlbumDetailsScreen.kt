@@ -69,8 +69,12 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.model.ProviderFeatures
+import com.craftworks.music.data.model.id
+import com.craftworks.music.data.model.providerId
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatSeconds
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.GenrePill
@@ -222,18 +226,19 @@ fun AlbumDetails(
                     }
 
                     // Star/unstar button and download album, NAVIDROME ONLY
-                    if (currentAlbum[0].mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == false) {
+                    if (MediaProviderManager.getProvider(currentAlbum[0].mediaMetadata.providerId?:"")
+                            ?.featureFlags?.has(ProviderFeatures.FAVORITES)?:false) {
                         Button(
                             onClick = {
                                 coroutineScope.launch {
                                     if (isStarred)
-                                        viewModel.unstarAlbum(
-                                            currentAlbum[0].mediaMetadata.extras?.getString("navidromeID").toString()
-                                        )
+                                        currentAlbum[0].mediaMetadata.id?.let {
+                                            viewModel.unstarAlbum(it)
+                                        }
                                     else
-                                        viewModel.starAlbum(
-                                            currentAlbum[0].mediaMetadata.extras?.getString("navidromeID").toString()
-                                        )
+                                        currentAlbum[0].mediaMetadata.id?.let {
+                                            viewModel.starAlbum(it)
+                                        }
                                     viewModel.loadAlbumDetails(selectedAlbumId)
                                     isStarred = !isStarred
                                 }

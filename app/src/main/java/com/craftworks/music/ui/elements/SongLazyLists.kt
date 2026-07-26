@@ -45,6 +45,11 @@ import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.MediaModel
+import com.craftworks.music.data.model.ProviderType
+import com.craftworks.music.data.model.id
+import com.craftworks.music.data.model.providerId
+import com.craftworks.music.data.model.providerType
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
@@ -95,10 +100,10 @@ fun SongsHorizontalColumn(
     ) {
         // Group songs by their source (Local or Navidrome)
         val groupedSongs = songList.groupBy { song ->
-            ""
+            song.mediaMetadata.providerId
         }
 
-        groupedSongs.forEach { (groupName, songsInGroup) ->
+        groupedSongs.forEach { (providerId, songsInGroup) ->
             if (showDividers && groupedSongs.size > 1) {
                 item {
                     HorizontalDivider(
@@ -109,11 +114,7 @@ fun SongsHorizontalColumn(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                     )
                     Text(
-                        text = when (groupName) {
-                            "Navidrome" -> stringResource(R.string.Source_Navidrome)
-                            "Local" -> stringResource(R.string.Source_Local)
-                            else -> ""
-                        },
+                        text = MediaProviderManager.getProvider(providerId?:"")?.providerName?.let {stringResource(it)} ?: "",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         modifier = Modifier
@@ -155,8 +156,8 @@ fun AlbumGrid(
     val showDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
     // Group songs by their source (Local or Navidrome)
-    val groupedAlbums = albums.groupBy { song ->
-        ""//if (song.mediaMetadata.extras?.getString("id")!!.startsWith("Local_")) "Local" else "Navidrome"
+    val groupedAlbums = albums.groupBy {
+        it.mediaMetadata.providerId
     }
 
         LaunchedEffect(gridState) {
@@ -186,7 +187,7 @@ fun AlbumGrid(
         contentPadding = PaddingValues(12.dp)
     ) {
         if (showDividers && groupedAlbums.size > 1) {
-            groupedAlbums.forEach { (groupName, albumsInGroup) ->
+            groupedAlbums.forEach { (providerId, albumsInGroup) ->
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Column (Modifier.padding(start = 12.dp)) {
                         HorizontalDivider(
@@ -196,11 +197,7 @@ fun AlbumGrid(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                         )
                         Text(
-                            text = when (groupName) {
-                                "Navidrome" -> stringResource(R.string.Source_Navidrome)
-                                "Local" -> stringResource(R.string.Source_Local)
-                                else -> ""
-                            },
+                            text = MediaProviderManager.getProvider(providerId?:"")?.providerName?.let { stringResource(it) } ?: "",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             modifier = Modifier
@@ -217,7 +214,7 @@ fun AlbumGrid(
                         },
                         onPlay = {
                             coroutineScope.launch {
-                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.id ?: "")
                                 if (mediaItems.isNotEmpty())
                                     SongHelper.play(
                                         mediaItems = mediaItems.subList(1, mediaItems.size),
@@ -241,7 +238,7 @@ fun AlbumGrid(
                     },
                     onPlay = {
                         coroutineScope.launch {
-                            val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("id") ?: "")
+                            val mediaItems = viewModel.getAlbum(album.mediaMetadata.id ?: "")
                             if (mediaItems.isNotEmpty())
                                 SongHelper.play(
                                     mediaItems = mediaItems.subList(1, mediaItems.size),
@@ -271,7 +268,7 @@ fun AlbumGrid(
 
     // Group songs by their source (Local or Navidrome)
     val groupedAlbums = albums.groupBy { song ->
-        ""//if (song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_")) "Local" else "Navidrome"
+        song.mediaMetadata.providerId
     }
 
     LazyVerticalGrid(
@@ -285,8 +282,8 @@ fun AlbumGrid(
         contentPadding = PaddingValues(12.dp)
     ) {
         if (false) {
-            groupedAlbums.forEach { (groupName, albumsInGroup) ->
-                item(key = groupName,span = { GridItemSpan(maxLineSpan) }) {
+            groupedAlbums.forEach { (providerId, albumsInGroup) ->
+                item(key = providerId,span = { GridItemSpan(maxLineSpan) }) {
                     Column (Modifier.padding(start = 12.dp)) {
                         HorizontalDivider(
                             modifier = Modifier
@@ -295,11 +292,7 @@ fun AlbumGrid(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                         )
                         Text(
-                            text = when (groupName) {
-                                "Navidrome" -> stringResource(R.string.Source_Navidrome)
-                                "Local" -> stringResource(R.string.Source_Local)
-                                else -> ""
-                            },
+                            text = MediaProviderManager.getProvider(providerId?:"")?.providerName?.let { stringResource(it) } ?: "",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             modifier = Modifier
@@ -316,7 +309,7 @@ fun AlbumGrid(
                         },
                         onPlay = {
                             coroutineScope.launch {
-                                val mediaItems = onGetAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                                val mediaItems = onGetAlbum(album.mediaMetadata.id ?: "")
                                 if (mediaItems.isNotEmpty())
                                     SongHelper.play(
                                         mediaItems = mediaItems.subList(1, mediaItems.size),
@@ -340,7 +333,7 @@ fun AlbumGrid(
                     },
                     onPlay = {
                         coroutineScope.launch {
-                            val mediaItems = onGetAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                            val mediaItems = onGetAlbum(album.mediaMetadata.id ?: "")
                             if (mediaItems.isNotEmpty())
                                 SongHelper.play(
                                     mediaItems = mediaItems.subList(1, mediaItems.size),
@@ -363,7 +356,7 @@ fun AlbumRow(
     onPlay: (album: MediaItem) -> Unit,
 ){
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
-    val dividerIndex = albums.indexOfFirst { it.mediaMetadata.extras?.getString("id")!!.startsWith("Local_") }
+    val dividerIndex = albums.indexOfFirst { it.mediaMetadata.providerType == ProviderType.LOCAL_FOLDER.ordinal }
 
     LazyRow(
         modifier = Modifier
@@ -426,9 +419,7 @@ fun ArtistsGrid(
     val gridState = rememberLazyGridState()
     val showProviderDividers by AppearanceSettingsManager(LocalContext.current).showProviderDividersFlow.collectAsStateWithLifecycle(true)
 
-    val groupedArtists = artists.groupBy { artist ->
-        if (artist.id.startsWith("Local_")) "Local" else "Navidrome"
-    }
+    val groupedArtists = artists.groupBy { artist -> artist.getProvider()}
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(96.dp),
@@ -441,7 +432,7 @@ fun ArtistsGrid(
         contentPadding = PaddingValues(12.dp)
     ) {
         if (showProviderDividers && groupedArtists.size > 1) {
-            groupedArtists.forEach { (groupName, artistsInGroup) ->
+            groupedArtists.forEach { (provider, artistsInGroup) ->
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Column(Modifier.padding(start = 12.dp)) {
                         HorizontalDivider(
@@ -451,11 +442,7 @@ fun ArtistsGrid(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                         )
                         Text(
-                            text = when (groupName) {
-                                "Navidrome" -> stringResource(R.string.Source_Navidrome)
-                                "Local" -> stringResource(R.string.Source_Local)
-                                else -> ""
-                            },
+                            text = provider?.providerName?.let { stringResource(it) } ?: "",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             modifier = Modifier

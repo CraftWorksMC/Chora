@@ -59,6 +59,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.id
 import com.craftworks.music.formatSeconds
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
@@ -119,7 +120,7 @@ fun TvPlaylistDetails(
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(playlistMetadata?.artworkUri)
-                        .diskCacheKey(playlistMetadata?.extras?.getString("navidromeID"))
+                        .diskCacheKey(playlistMetadata?.id)
                         .crossfade(true)
                         .build(),
                     placeholder = painterResource(R.drawable.placeholder),

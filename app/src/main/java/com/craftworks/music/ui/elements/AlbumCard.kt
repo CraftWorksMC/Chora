@@ -35,6 +35,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import com.craftworks.music.data.model.id
 
 @Stable
 @Composable
@@ -65,7 +66,7 @@ fun AlbumCard(
                     .data(album.mediaMetadata.artworkUri)
                     .crossfade(true)
                     .diskCacheKey(
-                        album.mediaMetadata.extras?.getString("navidromeID") ?: album.mediaId
+                        album.mediaMetadata.id ?: album.mediaId
                     )
                     .build(),
                 contentDescription = "Album Image",

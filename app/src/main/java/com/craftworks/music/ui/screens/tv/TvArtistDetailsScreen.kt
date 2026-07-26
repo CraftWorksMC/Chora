@@ -57,7 +57,9 @@ import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.id
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.tv.TvAlbumCard
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
@@ -119,7 +121,7 @@ fun TvArtistDetailsScreen(
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(artist?.imageUrl)  // TODO("Call provider's getImageUrl")
+                            .data(artist?.let { it.getProvider()?.getImageUrl(it.imageId ?: "", LibraryType.ARTIST) } ?: "android.resource://com.craftworks.music/${R.drawable.placeholder}")
                             .diskCacheKey(artist?.id)
                             .crossfade(true)
                             .build(),
@@ -160,8 +162,8 @@ fun TvArtistDetailsScreen(
                                 onClick = {
                                     coroutineScope.launch {
                                         val allArtistSongsList = artistAlbums.map {
-                                            it.mediaMetadata.extras?.getString("navidromeID").let {
-                                                val album = viewModel.getAlbum(it ?: "")
+                                            it.mediaMetadata.id.let { id ->
+                                                val album = viewModel.getAlbum(id ?: "")
                                                 if (album.isNotEmpty())
                                                     album.subList(1, album.size)
                                                 else
@@ -198,8 +200,8 @@ fun TvArtistDetailsScreen(
                                     mediaController?.shuffleModeEnabled = true
                                     coroutineScope.launch {
                                         val allArtistSongsList = artistAlbums.map {
-                                            it.mediaMetadata.extras?.getString("navidromeID").let {
-                                                val album = viewModel.getAlbum(it ?: "")
+                                            it.mediaMetadata.id.let { id ->
+                                                val album = viewModel.getAlbum(id ?: "")
                                                 if (album.isNotEmpty())
                                                     album.subList(1, album.size)
                                                 else
@@ -251,7 +253,7 @@ fun TvArtistDetailsScreen(
                         album = album,
                         onClick = {
                             val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
-                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
+                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.id}/$encodedImage") {
                                 launchSingleTop = true
                             }
                         },

@@ -103,7 +103,7 @@ fun SongDialog(
                                         .crossfade(true)
                                         .size(64)
                                         .diskCacheKey(
-                                            song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
+                                            song.mediaMetadata.extras?.getString("id") ?: song.mediaId
                                         )
                                         .build(),
                                     contentDescription = null,
@@ -219,7 +219,7 @@ private fun AddSongToPlaylist(
                                     .crossfade(true)
                                     .size(64)
                                     .diskCacheKey(
-                                        playlist.mediaMetadata.extras?.getString("navidromeID") ?: playlist.mediaId
+                                        playlist.mediaMetadata.extras?.getString("id") ?: playlist.mediaId
                                     )
                                     .build(),
                                 contentDescription = null,

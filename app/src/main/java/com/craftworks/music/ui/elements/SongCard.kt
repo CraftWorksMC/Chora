@@ -47,8 +47,11 @@ import androidx.media3.common.MediaMetadata
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.id
+import com.craftworks.music.data.model.providerId
 import com.craftworks.music.formatSeconds
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
 import kotlinx.coroutines.launch
@@ -102,7 +105,7 @@ fun HorizontalSongCard(
                         .crossfade(true)
                         .size(64)
                         .diskCacheKey(
-                            song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
+                            song.mediaMetadata.id ?: song.mediaId
                         )
                         .build(),
                     contentDescription = "Album Image",
@@ -220,7 +223,8 @@ fun HorizontalSongCard(
                         }
                     )
                     DropdownMenuItem(
-                        enabled = !song.mediaMetadata.id!!.startsWith("Local_"),
+                        enabled = !(MediaProviderManager.getProvider(song.mediaMetadata.providerId?:"")?.featureFlags?.has(
+                            ProviderFeatures.DOWNLOADS)?:false),
                         text = {
                             Text(stringResource(R.string.Action_Download))
                         },

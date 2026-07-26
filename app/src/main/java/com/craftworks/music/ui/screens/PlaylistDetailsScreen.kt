@@ -62,6 +62,9 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.ProviderFeatures
+import com.craftworks.music.data.model.ProviderType
+import com.craftworks.music.data.model.id
+import com.craftworks.music.data.model.providerType
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatSeconds
 import com.craftworks.music.managers.MediaProviderManager
@@ -149,15 +152,13 @@ fun PlaylistDetails(
                     SubcomposeAsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(
-                                if (playlistMetadata?.extras?.getString("navidromeID")
-                                        ?.startsWith("Local") == true
-                                )
+                                if (playlistMetadata?.providerType == ProviderType.LOCAL_FOLDER.ordinal)
                                     playlistMetadata.artworkData else
                                     playlistMetadata?.artworkUri
                             )
                             .crossfade(true)
                             .diskCacheKey(
-                                playlistMetadata?.extras?.getString("navidromeID")
+                                playlistMetadata?.id
                                     ?: playlistMetadata?.title.toString()
                             )
                             .build(),

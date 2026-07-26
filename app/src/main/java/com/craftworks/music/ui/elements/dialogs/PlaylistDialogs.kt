@@ -47,6 +47,10 @@ import androidx.media3.common.MediaItem
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.model.ProviderType
+import com.craftworks.music.data.model.id
+import com.craftworks.music.data.model.providerId
+import com.craftworks.music.data.model.providerType
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
@@ -130,9 +134,8 @@ fun AddSongToPlaylist(
                         println("there are ${playlists.size} playlists")
 
                         for (playlist in playlists) {
-                            // Allow ONLY adding local songs to local playlists and navidrome songs to navidrome playlists.
-                            val disabled = songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true xor
-                                    (playlist.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local_") == true)
+                            // Allow ONLY adding songs to playlists of the same provider.
+                            val disabled = songToAddToPlaylist.value.mediaMetadata.providerId != playlist.mediaMetadata.providerId
 
                             Row(modifier = Modifier
                                 .padding(bottom = 12.dp)
@@ -141,19 +144,15 @@ fun AddSongToPlaylist(
                                 .clickable(
                                     enabled = !disabled
                                 ) {
-                                    if (playlist.mediaMetadata.extras?.getString("navidromeID") ==
-                                        songToAddToPlaylist.value.mediaMetadata.extras?.getString("navidromeID"))
+                                    if (playlist.mediaMetadata.id == songToAddToPlaylist.value.mediaMetadata.id)
                                         return@clickable
 
-                                    viewModel.addSongsToPlaylist(playlist.mediaMetadata.extras?.getString("id")
-                                        ?: "",
-                                        listOf(songToAddToPlaylist.value.mediaMetadata.extras?.getString(
-                                            "navidromeID"
-                                        ) ?: ""))
+                                    viewModel.addSongsToPlaylist(playlist.mediaMetadata.id ?: "",
+                                        listOf(songToAddToPlaylist.value.mediaMetadata.id ?: ""))
                                     setShowDialog(false)
                                 }, verticalAlignment = Alignment.CenterVertically
                             ) {
-                                val artwork = if (playlist.mediaMetadata.extras?.getString("navidromeID")?.startsWith("Local") == true)
+                                val artwork = if (playlist.mediaMetadata.providerType == ProviderType.LOCAL_FOLDER.ordinal)
                                     playlist.mediaMetadata.artworkData
                                 else
                                     playlist.mediaMetadata.artworkUri
@@ -163,7 +162,7 @@ fun AddSongToPlaylist(
                                         .data(artwork)
                                         .crossfade(true)
                                         .diskCacheKey(
-                                            playlist.mediaMetadata.extras?.getString("navidromeID") ?: playlist.mediaId
+                                            playlist.mediaMetadata.id ?: playlist.mediaId
                                         )
                                         .build(),
                                     contentScale = ContentScale.FillHeight,
@@ -248,12 +247,12 @@ fun NewPlaylist(
                         val context = LocalContext.current
                         Button(
                             onClick = {
-                                //TODO("Return is the playlist already exists")
+                                //TODO("Return if the playlist already exists")
                                 //if (playlistList.firstOrNull { it.name == name } != null) return@Button
 
                                 viewModel.createPlaylist(
                                     name,
-                                    listOf(songToAddToPlaylist.value.mediaMetadata.extras?.getString("is") ?: ""),
+                                    listOf(songToAddToPlaylist.value.mediaMetadata.id ?: ""),
                                     context
                                 )
 

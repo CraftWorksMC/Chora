@@ -41,6 +41,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import com.craftworks.music.data.model.id
 import com.craftworks.music.player.ChoraMediaLibraryService
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -76,7 +77,7 @@ fun NowPlayingMiniPlayer(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(metadata?.artworkUri)
                 .diskCacheKey(
-                    metadata?.extras?.getString("navidromeID")
+                    metadata?.id
                 )
                 .crossfade(true)
                 .build(),

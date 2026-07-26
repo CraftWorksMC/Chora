@@ -31,6 +31,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.id
 import com.craftworks.music.ui.elements.tv.TvPlaylistCard
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 
@@ -77,7 +78,7 @@ fun TvPlaylistScreen(
                     }
                 },
                 onLongClick = {
-                    viewModel.deletePlaylist(playlist.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                    playlist.mediaMetadata.id?.let { viewModel.deletePlaylist(it) }
                 }
             )
         }

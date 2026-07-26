@@ -53,6 +53,7 @@ import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.id
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
 import com.craftworks.music.ui.elements.tv.TvAlbumCard
@@ -185,7 +186,7 @@ fun TvSearchScreen(
             0 -> {
                 items(
                     items = albums,
-                    key = { album -> album.mediaMetadata.extras?.getString("navidromeID") ?: album.mediaId },
+                    key = { album -> album.mediaMetadata.id ?: album.mediaId },
                 ) {
                     TvAlbumCard(
                         album = it,
@@ -194,7 +195,7 @@ fun TvSearchScreen(
                         },
                         onClick = {
                             val encodedImage = URLEncoder.encode(it.mediaMetadata.artworkUri.toString(), "UTF-8")
-                            navHostController.navigate(Screen.AlbumDetails.route + "/${it.mediaMetadata.extras?.getString("id")}/$encodedImage") {
+                            navHostController.navigate(Screen.AlbumDetails.route + "/${it.mediaMetadata.id}/$encodedImage") {
                                 launchSingleTop = true
                             }
                         }
@@ -204,7 +205,7 @@ fun TvSearchScreen(
             1 -> {
                 itemsIndexed(
                     items = songs,
-                    key = { _, song -> song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId },
+                    key = { _, song -> song.mediaMetadata.id ?: song.mediaId },
                     span = { _, _ -> GridItemSpan(5) }
                 ) { index, song ->
                     TvHorizontalSongCard(

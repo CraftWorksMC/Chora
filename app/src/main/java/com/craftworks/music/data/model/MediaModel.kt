@@ -15,6 +15,10 @@ abstract class MediaModel()
     lateinit var providerType: ProviderType
     lateinit var id: String
 
+    fun getProvider(): MediaProvider? {
+        return MediaProviderManager.getProvider(providerId)
+    }
+
     class Album(
         val albumArtistName: String? = "Unknown Artist",
         val artists: List<Artist> = listOf(),
@@ -50,7 +54,7 @@ abstract class MediaModel()
         val version: String? = null
     ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
-            return toMediaItem(MediaProviderManager.getProvider(providerId))
+            return toMediaItem(getProvider())
         }
         fun toMediaItem(provider: MediaProvider?): androidx.media3.common.MediaItem {
             val mediaMetadata =
@@ -71,6 +75,7 @@ abstract class MediaModel()
                         Bundle().apply {
                             putString("id", this@Album.id)
                             putString("providerId", this@Album.providerId)
+                            putInt("providerType", this@Album.providerType.ordinal)
                             putBoolean("userFavorite", this@Album.userFavorite == true)
                         }
                     )
@@ -163,8 +168,9 @@ abstract class MediaModel()
                     .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
                     .setExtras(
                         Bundle().apply {
-                            putString("providerId", this@InternetRadioStation.providerId)
                             putString("id", this@InternetRadioStation.id)
+                            putString("providerId", this@InternetRadioStation.providerId)
+                            putInt("providerType", this@InternetRadioStation.providerType.ordinal)
                             putString("homepage", this@InternetRadioStation.homepageUrl ?: "")
                         }
                     )
@@ -194,7 +200,7 @@ abstract class MediaModel()
         val uploadedImage: String? = null
     ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
-            return toMediaItem(MediaProviderManager.getProvider(providerId))
+            return toMediaItem(getProvider())
         }
         fun toMediaItem(provider: MediaProvider?): androidx.media3.common.MediaItem {
             val mediaMetadata =
@@ -208,6 +214,9 @@ abstract class MediaModel()
                     .setDurationMs(this.durationMs?.toLong())
                     .setExtras(
                         Bundle().apply {
+                            putString("id", this@Playlist.id)
+                            putString("providerId", this@Playlist.providerId)
+                            putInt("providerType", this@Playlist.providerType.ordinal)
                             putString("id", this@Playlist.id)
                         }
                     )
@@ -314,7 +323,7 @@ abstract class MediaModel()
         val userRating: Int? = null
     ) : MediaModel() {
         fun toMediaItem(): androidx.media3.common.MediaItem {
-            return toMediaItem(MediaProviderManager.getProvider(providerId))
+            return toMediaItem(getProvider())
         }
         fun toMediaItem(provider: MediaProvider?): androidx.media3.common.MediaItem {
             val mediaMetadata =
@@ -334,6 +343,7 @@ abstract class MediaModel()
                         Bundle().apply {
                             putString("id", this@Song.id)
                             putString("providerId", this@Song.providerId)
+                            putInt("providerType", this@Song.providerType.ordinal)
                             putString("albumId", this@Song.albumId)
                             putBoolean("userFavorite", this@Song.userFavorite?:false)
                         }
@@ -351,3 +361,9 @@ abstract class MediaModel()
 
 val MediaMetadata.id: String?
     get() = extras?.getString("id")
+
+val MediaMetadata.providerId: String?
+    get() = extras?.getString("providerId")
+
+val MediaMetadata.providerType: Int?
+    get() = extras?.getInt("providerType")

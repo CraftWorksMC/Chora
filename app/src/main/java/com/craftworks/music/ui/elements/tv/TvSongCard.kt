@@ -19,6 +19,7 @@ import androidx.tv.material3.Text
 import androidx.tv.material3.WideCardContainer
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import com.craftworks.music.data.model.id
 
 @Composable
 fun TvHorizontalSongCard(
@@ -57,7 +58,7 @@ fun TvHorizontalSongCard(
                                 .crossfade(true)
                                 .size(64)
                                 .diskCacheKey(
-                                    song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
+                                    song.mediaMetadata.id ?: song.mediaId
                                 )
                                 .build(),
                             contentDescription = null,

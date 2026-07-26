@@ -76,6 +76,7 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.id
 import com.craftworks.music.formatSeconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
@@ -204,7 +205,7 @@ fun TvHomeScreen(
                     onPlay = {
                         coroutineScope.launch {
                             val mediaItems = viewModel.getAlbumSongs(
-                                album.mediaMetadata.extras?.getString("navidromeID") ?: ""
+                                album.mediaMetadata.id ?: ""
                             )
                             if (mediaItems.size > 1)
                                 SongHelper.play(
@@ -255,7 +256,7 @@ fun TvHomeScreen(
                             album = album,
                             onClick = {
                                 val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
-                                navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
+                                navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.id}/$encodedImage") {
                                     launchSingleTop = true
                                 }
                             }
@@ -298,8 +299,8 @@ private fun CarouselItem(
     LaunchedEffect(album.mediaMetadata.artworkUri) {
         val colorRequest = ImageRequest.Builder(context)
             .data(album.mediaMetadata.artworkUri.toString()
-                .replace("&size=128", "&size=32"))
-            .diskCacheKey(album.mediaMetadata.extras?.getString("navidromeID"))
+                .replace("&size=128", "&size=32")) // TODO: Use MediaProvider.getImageUrl()
+            .diskCacheKey(album.mediaMetadata.id ?: album.mediaId)
             .diskCachePolicy(CachePolicy.READ_ONLY)
             .allowHardware(false)
             .build()
@@ -326,9 +327,9 @@ private fun CarouselItem(
             model = ImageRequest.Builder(context)
                 .data(
                     album.mediaMetadata.artworkUri.toString()
-                        .replace("&size=128", "&size=1024")
+                        .replace("&size=128", "&size=1024") // TODO: Use MediaProvider.getImageUrl()
                 )
-                .diskCacheKey(album.mediaMetadata.extras?.getString("navidromeID"))
+                .diskCacheKey(album.mediaMetadata.id ?: album.mediaId)
                 .diskCachePolicy(CachePolicy.DISABLED)
                 .crossfade(true)
                 .build(),

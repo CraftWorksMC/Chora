@@ -73,6 +73,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.id
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.AlbumCard
@@ -282,8 +283,8 @@ fun ArtistDetails(
                         onClick = {
                             coroutineScope.launch {
                                 val allArtistSongsList = artistAlbums.map {
-                                    it.mediaMetadata.extras?.getString("navidromeID").let {
-                                        val album = viewModel.getAlbum(it ?: "")
+                                    it.mediaMetadata.id.let { id ->
+                                        val album = viewModel.getAlbum(id ?: "")
                                         if (album.isNotEmpty())
                                             album.subList(1, album.size)
                                         else
@@ -312,8 +313,8 @@ fun ArtistDetails(
                         onClick = {
                             coroutineScope.launch {
                                 val allArtistSongsList = artistAlbums.map {
-                                    it.mediaMetadata.extras?.getString("navidromeID").let {
-                                        val album = viewModel.getAlbum(it ?: "")
+                                    it.mediaMetadata.id.let { id ->
+                                        val album = viewModel.getAlbum(id ?: "")
                                         if (album.isNotEmpty())
                                             album.subList(1, album.size)
                                         else
@@ -373,13 +374,13 @@ fun ArtistDetails(
                         album = album,
                         onClick = {
                             val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
-                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
+                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.id}/$encodedImage") {
                                 launchSingleTop = true
                             }
                         },
                         onPlay = {
                             coroutineScope.launch {
-                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("id") ?: "")
+                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.id ?: "")
                                 if (mediaItems.isNotEmpty())
                                     SongHelper.play(
                                         mediaItems = mediaItems.subList(1, mediaItems.size),

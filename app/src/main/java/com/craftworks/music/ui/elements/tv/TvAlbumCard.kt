@@ -19,6 +19,7 @@ import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.model.id
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -38,7 +39,7 @@ fun TvAlbumCard(
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(coverArtUrl)
-                            .diskCacheKey(album.mediaMetadata.extras?.getString("navidromeID"))
+                            .diskCacheKey(album.mediaMetadata.id ?: album.mediaId)
                             .crossfade(true)
                             .build(),
                         fallback = painterResource(R.drawable.placeholder),
