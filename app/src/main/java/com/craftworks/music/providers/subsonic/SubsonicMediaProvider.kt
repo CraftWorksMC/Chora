@@ -13,7 +13,8 @@ import com.craftworks.music.data.model.GenreListSort
 import com.craftworks.music.data.model.GetQueueResponse
 import com.craftworks.music.data.model.ImageRequest
 import com.craftworks.music.data.model.LibraryType
-import com.craftworks.music.data.model.LyricsResponse
+import com.craftworks.music.data.model.Lyric
+import com.craftworks.music.data.model.Lyrics
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.MusicFolder
@@ -446,8 +447,11 @@ class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvi
             ?.map { it.toMediaModel(id) } ?: emptyList()
     }
 
-    override suspend fun getLyrics(songId: String): LyricsResponse {
-        TODO("Not yet implemented")
+    override suspend fun getLyrics(songId: String): List<Lyrics> {
+        return service.getLyricsBySongId(songId, true)
+            .subsonicResponse.lyricsList?.structuredLyrics
+            ?.filter { it.kind == "main" || it.kind == null }
+            ?.map { it.toLyrics() }.orEmpty()
     }
 
     override suspend fun getMusicFolderList(): List<MusicFolder> {

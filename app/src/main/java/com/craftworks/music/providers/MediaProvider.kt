@@ -12,7 +12,8 @@ import com.craftworks.music.data.model.GenreListSort
 import com.craftworks.music.data.model.GetQueueResponse
 import com.craftworks.music.data.model.ImageRequest
 import com.craftworks.music.data.model.LibraryType
-import com.craftworks.music.data.model.LyricsResponse
+import com.craftworks.music.data.model.Lyric
+import com.craftworks.music.data.model.Lyrics
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaProviderData
 import com.craftworks.music.data.model.MediaQuery
@@ -87,7 +88,7 @@ abstract class MediaProvider {
     abstract suspend fun getImageRequest(id: String, itemType: LibraryType, size: Int? = null, baseUrl: String? = null): ImageRequest?
     abstract fun getImageUrl(id: String, itemType: LibraryType? = null, size: Int? = null): String
     abstract suspend fun getInternetRadioStations(): List<MediaModel.InternetRadioStation>
-    abstract suspend fun getLyrics(songId: String): LyricsResponse
+    abstract suspend fun getLyrics(songId: String): List<Lyrics>
     abstract suspend fun getMusicFolderList(): List<MusicFolder>
     abstract suspend fun getPlaylistDetail(id: String): MediaModel.Playlist
     abstract suspend fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaModel.Playlist>

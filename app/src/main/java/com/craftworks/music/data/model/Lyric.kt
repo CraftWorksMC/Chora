@@ -8,6 +8,12 @@ import org.snakeyaml.engine.v2.api.LoadSettings
 
 // Universal Lyric object
 @Stable
+data class Lyrics(
+    val wordSynced: Boolean,
+    val synced: Boolean,
+    val lines: List<Lyric>
+)
+@Stable
 data class Lyric(
     val startMs: Int,
     val text: List<String>,

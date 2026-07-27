@@ -3,8 +3,11 @@ package com.craftworks.music.providers.subsonic
 import androidx.compose.runtime.Immutable
 import com.craftworks.music.data.model.ExplicitStatus
 import com.craftworks.music.data.model.GainInfo
+import com.craftworks.music.data.model.Lyric
+import com.craftworks.music.data.model.Lyrics
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.ProviderType
+import com.craftworks.music.data.model.SyncedWord
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -46,12 +49,15 @@ data class SubsonicBody(
     val artists: SubsonicArtistIndexList? = null,
     val artist: SubsonicArtist? = null,
 
-    //Internet radio station
+    // Internet radio station
     val internetRadioStations: SubsonicInternetRadioStationList? = null,
 
-    //Playlist
+    // Playlist
     val playlist: SubsonicPlaylist? = null,
     val playlists: SubsonicPlaylistList? = null,
+
+    // Lyrics
+    val lyricsList: SubsonicLyricsList? = null,
 )
 
 @Serializable
@@ -422,3 +428,103 @@ data class SubsonicPlaylist(
         }
     }
 }
+
+@Serializable
+data class SubsonicLyricsList(
+    val structuredLyrics: List<SubsonicStructuredLyrics> = emptyList()
+)
+
+@Serializable
+data class SubsonicStructuredLyrics(
+    val lang: String? = null,
+    val synced: Boolean,
+    val offset: Int? = null,
+    val displayArtist: String? = null,
+    val displayTitle: String? = null,
+    val line: List<SubsonicLine> = emptyList(),
+    // Added in Version 2 (songLyrics extension)
+    val kind: String? = null,
+    val agents: List<SubsonicAgent>? = null,
+    val cueLine: List<SubsonicCueLine>? = null
+) {
+    fun toLyrics(): Lyrics {
+        val lyricOffset = offset ?: 0
+
+        // Unsynced
+        if (!synced) {
+            return Lyrics(
+                wordSynced = false, synced = false, lines = listOf(
+                    Lyric(
+                        startMs = -1,
+                        text = line.map { it.value }
+                    )
+                ))
+        }
+
+        // V2
+        if (!cueLine.isNullOrEmpty()) {
+            return Lyrics(wordSynced = true, synced = true, lines = cueLine.map { cLine ->
+                Lyric(
+                    startMs = cLine.start + lyricOffset,
+                    endMs = cLine.end?.plus(lyricOffset),
+                    text = listOf(cLine.value),
+                    words = cLine.cue.mapIndexed { index, cue ->
+                        val lineBytes = cLine.value.toByteArray(Charsets.UTF_8)
+                        val cueByteEnd = cLine.cue.getOrNull(index + 1)?.byteStart?.minus(1) ?: cue.byteEnd
+                        val cueBytes = lineBytes.sliceArray(cue.byteStart..cueByteEnd)
+
+                        SyncedWord(
+                            text = String(cueBytes, Charsets.UTF_8),
+                            startMs = cue.start + lyricOffset,
+                            endMs = cue.end?.plus(lyricOffset)
+                        )
+                    }
+                )
+            }.sortedBy { it.startMs })
+        }
+
+        // V1
+        return Lyrics(
+            wordSynced = false, synced = true, lines = line
+                .groupBy { (it.start ?: 0) + lyricOffset }
+                .map { (timestamp, lines) ->
+                    Lyric(
+                        startMs = timestamp,
+                        text = lines.map { it.value }
+                    )
+                }
+                .sortedBy { it.startMs }
+        )
+    }
+}
+
+@Serializable
+data class SubsonicLine(
+    val start: Int? = null,
+    val value: String
+)
+
+@Serializable
+data class SubsonicAgent(
+    val id: String,
+    val name: String? = null,
+    val role: String? = null
+)
+
+@Serializable
+data class SubsonicCueLine(
+    val start: Int,
+    val end: Int? = null,
+    val index: Int,
+    val value: String,
+    val agentId: String? = null,
+    val cue: List<SubsonicCue> = emptyList()
+)
+
+@Serializable
+data class SubsonicCue(
+    val start: Int,
+    val end: Int? = null,
+    val byteStart: Int,
+    val byteEnd: Int
+)

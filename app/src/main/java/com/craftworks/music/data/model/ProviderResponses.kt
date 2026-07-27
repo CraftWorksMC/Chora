@@ -13,10 +13,6 @@ data class ImageRequest(
     val headers: Map<String, String>? = null,
     val url: String
 )
-sealed interface LyricsResponse {
-    data class Plain(val text: String) : LyricsResponse
-    data class Synchronized(val lines: List<Pair<Double, String>>) : LyricsResponse
-}
 data class GetQueueResponse(
     val changed: String,
     val changedBy: String,

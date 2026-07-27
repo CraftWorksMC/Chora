@@ -17,7 +17,8 @@ import com.craftworks.music.data.model.GenreListSort
 import com.craftworks.music.data.model.GetQueueResponse
 import com.craftworks.music.data.model.ImageRequest
 import com.craftworks.music.data.model.LibraryType
-import com.craftworks.music.data.model.LyricsResponse
+import com.craftworks.music.data.model.Lyric
+import com.craftworks.music.data.model.Lyrics
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.MusicFolder
@@ -324,7 +325,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         return emptyList()
     }
 
-    override suspend fun getLyrics(songId: String): LyricsResponse {
+    override suspend fun getLyrics(songId: String): List<Lyrics> {
         TODO("Not yet implemented")
     }
 

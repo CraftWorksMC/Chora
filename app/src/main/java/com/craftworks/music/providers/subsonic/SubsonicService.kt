@@ -45,6 +45,12 @@ interface SubsonicService {
 
     @GET("rest/getInternetRadioStations.view")
     suspend fun getInternetRadioStations(): SubsonicResponse
+    
+    @GET("rest/getLyricsBySongId.view")
+    suspend fun getLyricsBySongId(
+        @Query("id") id: String,
+        @Query("enhanced") enhanced: Boolean? = null,
+    ): SubsonicResponse
 
     @GET("rest/getUser.view")
     suspend fun authenticate(
