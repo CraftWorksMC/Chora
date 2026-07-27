@@ -30,6 +30,7 @@ import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
 import com.craftworks.music.providers.local.LocalMediaProvider
+import com.craftworks.music.providers.navidrome.NavidromeMediaProvider
 import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -42,6 +43,7 @@ abstract class MediaProvider {
     companion object {
         val serializerModule = SerializersModule {
             polymorphic(MediaProvider::class) {
+                subclass(NavidromeMediaProvider::class)
                 subclass(SubsonicMediaProvider::class)
                 subclass(LocalMediaProvider::class)
             }

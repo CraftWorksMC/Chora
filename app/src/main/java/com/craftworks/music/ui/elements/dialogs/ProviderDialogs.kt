@@ -64,6 +64,7 @@ import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.providers.local.LocalMediaProvider
 import com.craftworks.music.providers.local.LocalProviderData
+import com.craftworks.music.providers.navidrome.NavidromeMediaProvider
 import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
 import com.craftworks.music.providers.subsonic.SubsonicProviderData
 import com.craftworks.music.ui.elements.bounceClick
@@ -201,6 +202,7 @@ fun CreateMediaProviderDialog(
 
             val options = listOf(
                 stringResource(R.string.Source_Local),
+                stringResource(R.string.Source_OpenSubsonic),
                 stringResource(R.string.Source_Navidrome)
             )
             var selectedOptionText by remember { mutableStateOf(options[1]) }
@@ -298,7 +300,7 @@ fun CreateMediaProviderDialog(
                     OutlinedTextField(
                         value = url,
                         onValueChange = { url = it },
-                        label = { Text(stringResource(R.string.Label_Navidrome_URL)) },
+                        label = { Text(stringResource(R.string.Label_Server_URL)) },
                         placeholder = { Text("http://domain.tld:<port>") },
                         singleLine = true,
                         isError = isError
@@ -307,7 +309,7 @@ fun CreateMediaProviderDialog(
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
-                        label = { Text(stringResource(R.string.Label_Navidrome_Username)) },
+                        label = { Text(stringResource(R.string.Label_Server_Username)) },
                         singleLine = true,
                         isError = isError // TODO("Check credentials error")
                     )
@@ -316,7 +318,7 @@ fun CreateMediaProviderDialog(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text(stringResource(R.string.Label_Navidrome_Password)) },
+                        label = { Text(stringResource(R.string.Label_Server_Password)) },
                         singleLine = true,
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -382,13 +384,174 @@ fun CreateMediaProviderDialog(
                             Button(
                                 onClick = {
                                     coroutineScope.launch {
-                                        val provider = SubsonicMediaProvider(
-                                            SubsonicProviderData(
+                                        val provider = NavidromeMediaProvider().apply {
+                                            this.providerData = SubsonicProviderData(
                                                 url = url,
                                                 username = username,
                                                 allowSelfSignedCert = allowCerts,
                                             )
-                                        )
+                                        }
+
+                                        provider.init(context)
+                                        try {
+                                            val auth = provider.authenticate(username, password)
+                                            provider.providerData.credentials = auth.credential
+
+                                            MediaProviderManager.addProvider(provider)
+                                            AppearanceSettingsManager(context).setUsername(username)
+                                            setShowDialog(false)
+                                        }
+                                        catch (ex: Exception) {
+                                            println(ex.message)
+                                            println(ex.stackTrace)
+                                            isError = true
+                                        }
+                                    }
+                                },
+                                modifier = Modifier
+                                    .height(50.dp)
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                                    .bounceClick(),
+                                enabled = true//navidromeStatus.value == "ok" TODO("Enable only when it's ok I presume?")
+                            ) {
+                                Text(
+                                    stringResource(R.string.Action_Add)
+                                )
+                            }
+                        } else {
+                            OutlinedButton(
+                                onClick = {
+                                    TODO("Figure out this (I'm too lazy rn)")
+                                    /*val server = NavidromeProvider(
+                                        url,
+                                        url,
+                                        username,
+                                        password,
+                                        true,
+                                        allowCerts
+                                    )
+                                    coroutineScope.launch {
+                                        getNavidromeStatus(server)
+                                    }*/
+                                },
+                                modifier = Modifier
+                                    .height(50.dp)
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                                    .bounceClick()
+                            ) {
+                                Text(
+                                    stringResource(R.string.Action_Login)
+                                )
+                            }
+                        }
+                    }
+                }
+            //endregion
+
+
+            //region Subsonic
+            else if (selectedOptionText == stringResource(R.string.Source_OpenSubsonic))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    /* SERVER URL */
+                    OutlinedTextField(
+                        value = url,
+                        onValueChange = { url = it },
+                        label = { Text(stringResource(R.string.Label_Server_URL)) },
+                        placeholder = { Text("http://domain.tld:<port>") },
+                        singleLine = true,
+                        isError = isError
+                    )
+                    /* USERNAME */
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { Text(stringResource(R.string.Label_Server_Username)) },
+                        singleLine = true,
+                        isError = isError // TODO("Check credentials error")
+                    )
+                    /* PASSWORD */
+                    var passwordVisible by remember { mutableStateOf(false) }
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text(stringResource(R.string.Label_Server_Password)) },
+                        singleLine = true,
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            val image = if (passwordVisible)
+                                R.drawable.round_visibility_24
+                            else
+                                R.drawable.round_visibility_off_24
+
+                            // Please provide localized description for accessibility services
+                            val description =
+                                if (passwordVisible) "Hide password" else "Show password"
+
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(id = image),
+                                    description
+                                )
+                            }
+                        },
+                        isError = isError // TODO("Check URL error")
+                    )
+
+                    /* Allow Self Signed Certs */
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                    ) {
+                        Text(
+                            text = stringResource(R.string.Label_Allow_Self_Signed_Certs),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Start
+                        )
+                        Switch(checked = allowCerts, onCheckedChange = { allowCerts = it })
+                    }
+
+                    // TODO("Check error")
+                    /*
+                    if (navidromeStatus.value != "") {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateContentSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Status: ${navidromeStatus.value}",
+                                fontWeight = FontWeight.Medium,
+                                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.padding(vertical = 6.dp)
+                            )
+                        }
+                    }*/
+
+                    Crossfade(
+                        true//navidromeStatus.value == "ok" TODO("Check error")
+                    ) {
+                        if (it) {
+                            Button(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        val provider = SubsonicMediaProvider().apply {
+                                            this.providerData = SubsonicProviderData(
+                                                url = url,
+                                                username = username,
+                                                allowSelfSignedCert = allowCerts,
+                                            )
+                                        }
 
                                         provider.init(context)
                                         try {

@@ -28,10 +28,10 @@
         <string name="Source_Local">Local Folder</string>
         <!-- Local -->
             <string name="Label_Local_Directory">Directory:</string>
-        <!-- Navidrome -->
-            <string name="Label_Navidrome_URL">Navidrome URL:</string>
-            <string name="Label_Navidrome_Username">Username:</string>
-            <string name="Label_Navidrome_Password">Password:</string>
+        <!-- Server -->
+            <string name="Label_Server_URL">Server URL:</string>
+            <string name="Label_Server_Username">Username:</string>
+            <string name="Label_Server_Password">Password:</string>
             <string name="Label_Allow_Self_Signed_Certs">Allow self-signed certs</string>
 
     <!-- LRCLIB Dialog -->

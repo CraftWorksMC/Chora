@@ -18,10 +18,10 @@
     <string name="Source_Local">本地目录</string>
     <!-- Local -->
     <string name="Label_Local_Directory">目录：</string>
-    <!-- Navidrome -->
-    <string name="Label_Navidrome_URL">Navidrome 地址：</string>
-    <string name="Label_Navidrome_Username">用户名：</string>
-    <string name="Label_Navidrome_Password">密码：</string>
+    <!-- Server -->
+    <string name="Label_Server_URL">服务器网址：</string>
+    <string name="Label_Server_Username">用户名：</string>
+    <string name="Label_Server_Password">密码：</string>
     <string name="Label_Allow_Self_Signed_Certs">允许自签名证书</string>
     <!-- LRCLIB Dialog -->
     <string name="Dialog_LRCLIB_Url">LRCLIB 地址</string>

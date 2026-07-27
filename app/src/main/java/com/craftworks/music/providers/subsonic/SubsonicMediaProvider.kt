@@ -56,7 +56,8 @@ import javax.net.ssl.X509TrustManager
 
 @Serializable
 @SerialName("subsonic")
-class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvider() {
+open class SubsonicMediaProvider : MediaProvider() {
+    lateinit var providerData: SubsonicProviderData
     companion object {
         private val ALBUM_ARTIST_SORT_BINDING = mapOf<AlbumArtistListSort, (MediaModel.Artist) -> Comparable<*>?>(
             AlbumArtistListSort.ALBUM_COUNT to { it.albumCount },

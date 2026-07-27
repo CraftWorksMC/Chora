@@ -18,10 +18,10 @@
     <string name="Source_Local">Cartella Locale</string>
     <!-- Local -->
     <string name="Label_Local_Directory">Percorso:</string>
-    <!-- Navidrome -->
-    <string name="Label_Navidrome_URL">URL Navidrome:</string>
-    <string name="Label_Navidrome_Username">Username:</string>
-    <string name="Label_Navidrome_Password">Password:</string>
+    <!-- Server -->
+    <string name="Label_Server_URL">URL del server:</string>
+    <string name="Label_Server_Username">Username:</string>
+    <string name="Label_Server_Password">Password:</string>
     <string name="Label_Allow_Self_Signed_Certs">Consenti certificati autofirmati</string>
     <!-- LRCLIB Dialog -->
     <string name="Dialog_LRCLIB_Url">Url LRCLIB</string>

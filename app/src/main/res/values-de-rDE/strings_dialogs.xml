@@ -18,10 +18,10 @@
     <string name="Source_Local">Lokaler Ordner</string>
     <!-- Local -->
     <string name="Label_Local_Directory">Verzeichnis:</string>
-    <!-- Navidrome -->
-    <string name="Label_Navidrome_URL">Navidrome URL:</string>
-    <string name="Label_Navidrome_Username">Benutzername:</string>
-    <string name="Label_Navidrome_Password">Passwort:</string>
+    <!-- Server -->
+    <string name="Label_Server_URL">Server URL:</string>
+    <string name="Label_Server_Username">Benutzername:</string>
+    <string name="Label_Server_Password">Passwort:</string>
     <string name="Label_Allow_Self_Signed_Certs">Erlaube selbst signierte Zertifikate</string>
     <!-- LRCLIB Dialog -->
     <string name="Dialog_LRCLIB_Url">LRCLIB-URL</string>
