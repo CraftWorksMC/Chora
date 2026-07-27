@@ -37,16 +37,21 @@ class AlbumScreenViewModel @Inject constructor(
 
     private val _sortOrder = MutableStateFlow(SortOrder.ASC)
     val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
+
+    private val _sort = MutableStateFlow(AlbumListSort.NAME)
+    val sort: StateFlow<AlbumListSort> = _sort.asStateFlow()
     private val _showFavoritesOnly = MutableStateFlow(false)
     val showFavoritesOnly: StateFlow<Boolean> = _showFavoritesOnly.asStateFlow()
 
     init {
         viewModelScope.launch {
             combine(
+                localDataSettingsManager.sortAlbum,
                 localDataSettingsManager.sortAlbumOrder,
                 localDataSettingsManager.showFavoriteOnly
-            ) { sortOrder, showFavorites -> sortOrder to showFavorites }
-                .collect { (sortOrder, showFavorites) ->
+            ) { sort, sortOrder, showFavorites -> Triple(sort, sortOrder, showFavorites) }
+                .collect { (sort, sortOrder, showFavorites) ->
+                    _sort.value = sort
                     _sortOrder.value = sortOrder
                     _showFavoritesOnly.value = showFavorites
                     getAlbums()
@@ -68,7 +73,7 @@ class AlbumScreenViewModel @Inject constructor(
             _isLoading.value = true
             coroutineScope {
                 _allAlbums.value = async { albumRepository.getAlbums(MediaQuery.AlbumListQuery(
-                    AlbumListSort.NAME, _sortOrder.value, limit = 50, startIndex = 0, favorite = _showFavoritesOnly.value
+                    _sort.value, _sortOrder.value, limit = 50, startIndex = 0, favorite = _showFavoritesOnly.value
                 )) }.await()
             }
         }
@@ -84,7 +89,7 @@ class AlbumScreenViewModel @Inject constructor(
             coroutineScope {
                 val albumOffset = _allAlbums.value.size
                 val newAlbums = albumRepository.getAlbums(MediaQuery.AlbumListQuery(
-                    AlbumListSort.NAME, _sortOrder.value, limit = size, startIndex = albumOffset, favorite = _showFavoritesOnly.value
+                    _sort.value, _sortOrder.value, limit = size, startIndex = albumOffset, favorite = _showFavoritesOnly.value
                 ))
                 _allAlbums.value += newAlbums
             }
@@ -100,14 +105,19 @@ class AlbumScreenViewModel @Inject constructor(
             _isLoading.value = true
             coroutineScope {
                 _searchResults.value = albumRepository.getAlbums(MediaQuery.AlbumListQuery(
-                    AlbumListSort.NAME, _sortOrder.value, searchTerm = query, startIndex = 0
+                    _sort.value, _sortOrder.value, searchTerm = query, startIndex = 0, favorite = _showFavoritesOnly.value
                 ))
             }
             _isLoading.value = false
         }
     }
 
-    fun setSorting(newSortOrder: SortOrder) {
+    fun setSorting(newSort: AlbumListSort) {
+        viewModelScope.launch {
+            localDataSettingsManager.saveSortAlbum(newSort)
+        }
+    }
+    fun setOrder(newSortOrder: SortOrder) {
         viewModelScope.launch {
             localDataSettingsManager.saveSortAlbumOrder(newSortOrder)
         }

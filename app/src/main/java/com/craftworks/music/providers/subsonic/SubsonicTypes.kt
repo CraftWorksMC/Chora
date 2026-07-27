@@ -42,6 +42,7 @@ data class SubsonicBody(
 
     // Albums
     val albumList: SubsonicAlbumList? = null,
+    val albumList2: SubsonicAlbumList? = null,
     val album: SubsonicAlbum? = null,
 
     // Artists

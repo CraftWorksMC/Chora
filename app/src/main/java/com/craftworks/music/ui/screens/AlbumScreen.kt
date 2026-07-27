@@ -36,8 +36,10 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
+import com.craftworks.music.data.model.AlbumListSort
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.SortOrder
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.TopBarWithSearch
@@ -72,6 +74,17 @@ fun AlbumScreen(
     var showSortMenu by remember { mutableStateOf(false) }
 
     val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()
+
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
+
+    val sortTranslationBindings = mapOf(
+        AlbumListSort.ALBUM_ARTIST to R.string.Label_Sort_Album_Artist,
+        AlbumListSort.PLAY_COUNT to R.string.Label_Sort_Play_Count,
+        AlbumListSort.NAME to R.string.Label_Sort_Name,
+        AlbumListSort.RANDOM to R.string.Label_Sort_Random,
+        AlbumListSort.RECENTLY_ADDED to R.string.Label_Sort_Recently_Added,
+        AlbumListSort.RECENTLY_PLAYED to R.string.Label_Sort_Recently_Played,
+    )
 
     PullToRefreshBox(
         state = state,
@@ -112,18 +125,30 @@ fun AlbumScreen(
                                         )
                                     }
                                 }
-                                DropdownMenu(
-                                    expanded = showSortMenu,
-                                    onDismissRequest = { showSortMenu = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { "TODO" }, // TODO: show provider-supported orders
-                                        onClick = {
-                                            viewModel.setSorting(SortOrder.ASC)
-                                            showSortMenu = false
+                                Box {
+                                    IconButton(
+                                        onClick = { showSortMenu = true }
+                                    ) {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(R.drawable.rounded_sort_24),
+                                            contentDescription = stringResource(R.string.Label_Sorting),
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = showSortMenu,
+                                        onDismissRequest = { showSortMenu = false }
+                                    ) {
+                                        currentProvider?.supportedAlbumSort.orEmpty().map {
+                                            return@map DropdownMenuItem(
+                                                text = { Text(sortTranslationBindings[it]?.let { id -> stringResource(id) } ?: it.name) },
+                                                onClick = {
+                                                    viewModel.setSorting(it)
+                                                    showSortMenu = false
+                                                }
+                                            )
                                         }
-                                    )
-                                    /*DropdownMenuItem(
+
+                                        /*DropdownMenuItem(
                                         text = { Text(stringResource(R.string.Label_Sort_Alphabetical)) },
                                         onClick = {
                                             viewModel.setSorting(SortOrder.ALPHABETICAL)
@@ -151,6 +176,7 @@ fun AlbumScreen(
                                             showSortMenu = false
                                         }
                                     )*/
+                                    }
                                 }
                             }
                         }

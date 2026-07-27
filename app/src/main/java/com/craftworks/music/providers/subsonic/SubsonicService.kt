@@ -22,7 +22,7 @@ interface SubsonicService {
     @GET("rest/getAlbum.view")
     suspend fun getAlbum(@Query id: String): SubsonicResponse
 
-    @GET("rest/getAlbumList.view")
+    @GET("rest/getAlbumList2.view")
     suspend fun getAlbumList(
         @Query("type") type: String,
         @Query("size") size: Int? = 10,
@@ -45,7 +45,7 @@ interface SubsonicService {
 
     @GET("rest/getInternetRadioStations.view")
     suspend fun getInternetRadioStations(): SubsonicResponse
-    
+
     @GET("rest/getLyricsBySongId.view")
     suspend fun getLyricsBySongId(
         @Query("id") id: String,

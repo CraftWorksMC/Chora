@@ -65,8 +65,13 @@
 
     <!-- Sorting -->
     <string name="Label_Sorting">Sort By</string>
-    <string name="Label_Sort_Alphabetical">Alphabetical</string>
+    <string name="Label_Sort_Album_Artist">Album Artist</string>
+    <string name="Label_Sort_Play_Count">Play Count</string>
+    <string name="Label_Sort_Name">Name</string>
+    <string name="Label_Sort_Random">Random</string>
+    <string name="Label_Sort_Recently_Added">Recently Added</string>
     <string name="Label_Sort_Starred">Starred</string>
+    <string name="Label_Sort_Recently_Played">Recently Played</string>
 
     <!-- Favorites -->
     <string name="Label_Toggle_Favorites">Toggle Favorites</string>

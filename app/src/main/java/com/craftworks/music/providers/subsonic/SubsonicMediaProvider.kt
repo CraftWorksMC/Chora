@@ -92,14 +92,11 @@ open class SubsonicMediaProvider : MediaProvider() {
     override val featureFlags: ProviderFeatures = _featureFlags
     override val supportedAlbumSort: List<AlbumListSort> = listOf(
         AlbumListSort.ALBUM_ARTIST,
-        AlbumListSort.ID,
         AlbumListSort.PLAY_COUNT,
         AlbumListSort.NAME,
         AlbumListSort.RANDOM,
         AlbumListSort.RECENTLY_ADDED,
         AlbumListSort.RECENTLY_PLAYED,
-        AlbumListSort.FAVORITED,
-        AlbumListSort.YEAR,
     )
     override val supportedAlbumArtistSort: List<AlbumArtistListSort> = listOf(
         AlbumArtistListSort.ALBUM_COUNT,
@@ -344,11 +341,13 @@ open class SubsonicMediaProvider : MediaProvider() {
         }
 
         val type = when (query.sortBy) {
+            AlbumListSort.ALBUM_ARTIST -> "alphabeticalByArtist"
+            AlbumListSort.NAME -> "alphabeticalByName"
             AlbumListSort.RECENTLY_PLAYED -> "recent"
             AlbumListSort.RECENTLY_ADDED -> "newest"
             AlbumListSort.PLAY_COUNT -> "frequent"
             AlbumListSort.RANDOM -> "random"
-            else -> "random"
+            else -> "alphabeticalByName"
         }
 
         val res = try {
@@ -365,7 +364,7 @@ open class SubsonicMediaProvider : MediaProvider() {
             throw Exception("Failed to get album list", e)
         }
 
-        return res.subsonicResponse.albumList?.album?.map { it.toMediaModel(this.id) } ?: emptyList()
+        return res.subsonicResponse.albumList2?.album?.map { it.toMediaModel(this.id) } ?: emptyList()
     }
 
     override suspend fun getAlbumRadio(

@@ -48,7 +48,7 @@ fun TvAlbumScreen(
 ) {
     val albums by viewModel.allAlbums.collectAsStateWithLifecycle()
     val tabs = listOf(
-        stringResource(R.string.Label_Sort_Alphabetical),
+        stringResource(R.string.Label_Sort_Name),
         stringResource(R.string.recently_added),
         stringResource(R.string.recently_played),
         stringResource(R.string.most_played),
@@ -122,7 +122,7 @@ fun TvAlbumScreen(
                                 }
                                 else {
                                     viewModel.setShowFavoritesOnly(false)
-                                    viewModel.setSorting(
+                                    viewModel.setOrder(
                                         when (index) {
                                         0 -> SortOrder.ASC
                                         else -> SortOrder.DESC
