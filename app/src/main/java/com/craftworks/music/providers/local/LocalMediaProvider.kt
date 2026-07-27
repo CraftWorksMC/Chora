@@ -326,7 +326,8 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getLyrics(songId: String): List<Lyrics> {
-        TODO("Not yet implemented")
+        //TODO("Not yet implemented")
+        return emptyList()
     }
 
     override suspend fun getMusicFolderList(): List<MusicFolder> = data.libraries.map { it.first }
