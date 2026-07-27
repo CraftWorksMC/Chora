@@ -13,7 +13,6 @@ import com.craftworks.music.data.model.GenreListSort
 import com.craftworks.music.data.model.GetQueueResponse
 import com.craftworks.music.data.model.ImageRequest
 import com.craftworks.music.data.model.LibraryType
-import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.data.model.Lyrics
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaQuery
@@ -271,7 +270,7 @@ open class SubsonicMediaProvider : MediaProvider() {
         id: String,
         limit: Int?
     ): AlbumArtistInfo? {
-        TODO("Not yet implemented")
+        return service.getArtistInfo(id = id, count = limit).subsonicResponse.artistInfo?.toArtistInfo(this.id)
     }
 
     override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist> {

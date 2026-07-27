@@ -5,6 +5,9 @@ import de.jensklingenberg.ktorfit.http.Query
 
 interface SubsonicService {
 
+    @GET("rest/ping.view")
+    suspend fun ping(): SubsonicResponse
+
     @GET("rest/createInternetRadioStation.view")
     suspend fun createInternetRadioStation(
         @Query("streamUrl") streamUrl: String,
@@ -36,6 +39,13 @@ interface SubsonicService {
     @GET("rest/getArtist.view")
     suspend fun getArtist(
         @Query("id") id: String,
+    ): SubsonicResponse
+
+    @GET("rest/getArtistInfo.view")
+    suspend fun getArtistInfo(
+        @Query("id") id: String,
+        @Query("count") count: Int? = 20,
+        @Query("includeNotPresent") includeNotPresent: Boolean = false
     ): SubsonicResponse
 
     @GET("rest/getArtists.view")
@@ -110,5 +120,118 @@ interface SubsonicService {
         @Query("public") public: Boolean? = null,
         @Query("songIdToAdd") songIdToAdd: List<String>? = null,
         @Query("songIndexToRemove") songIndexToRemove: List<Int>? = null,
+    ): SubsonicResponse
+
+    @GET("rest/deletePlaylist.view")
+    suspend fun deletePlaylist(
+        @Query("id") id: String,
+    ): SubsonicResponse
+
+    @GET("rest/updateInternetRadioStation.view")
+    suspend fun updateInternetRadioStation(
+        @Query("id") id: String,
+        @Query("streamUrl") streamUrl: String,
+        @Query("name") name: String,
+        @Query("homepageUrl") homepageUrl: String? = null,
+    ): SubsonicResponse
+
+    @GET("rest/deleteInternetRadioStation.view")
+    suspend fun deleteInternetRadioStation(
+        @Query("id") id: String,
+    ): SubsonicResponse
+
+    @GET("rest/getSong.view")
+    suspend fun getSong(
+        @Query("id") id: String,
+    ): SubsonicResponse
+
+    @GET("rest/getGenres.view")
+    suspend fun getGenres(): SubsonicResponse
+
+    @GET("rest/getRandomSongs.view")
+    suspend fun getRandomSongs(
+        @Query("size") size: Int? = 10,
+        @Query("genre") genre: String? = null,
+        @Query("fromYear") fromYear: Int? = null,
+        @Query("toYear") toYear: Int? = null,
+        @Query("musicFolderId") musicFolderId: List<Int>? = null,
+    ): SubsonicResponse
+
+    @GET("rest/getTopSongs.view")
+    suspend fun getTopSongs(
+        @Query("artist") artist: String,
+        @Query("count") count: Int? = 50,
+    ): SubsonicResponse
+
+    @GET("rest/getSimilarSongs2.view")
+    suspend fun getSimilarSongs2(
+        @Query("id") id: String,
+        @Query("count") count: Int? = 50,
+    ): SubsonicResponse
+
+    @GET("rest/star.view")
+    suspend fun star(
+        @Query("id") id: List<String>? = null,
+        @Query("albumId") albumId: List<String>? = null,
+        @Query("artistId") artistId: List<String>? = null,
+    ): SubsonicResponse
+
+    @GET("rest/unstar.view")
+    suspend fun unstar(
+        @Query("id") id: List<String>? = null,
+        @Query("albumId") albumId: List<String>? = null,
+        @Query("artistId") artistId: List<String>? = null,
+    ): SubsonicResponse
+
+    @GET("rest/setRating.view")
+    suspend fun setRating(
+        @Query("id") id: String,
+        @Query("rating") rating: Int,
+    ): SubsonicResponse
+
+    @GET("rest/getLyrics.view")
+    suspend fun getLyrics(
+        @Query("artist") artist: String? = null,
+        @Query("title") title: String? = null,
+    ): SubsonicResponse
+
+    @GET("rest/getLyricsBySongId.view")
+    suspend fun getLyricsBySongId(
+        @Query("id") id: String,
+    ): SubsonicResponse
+
+    @GET("rest/getAlbumInfo2.view")
+    suspend fun getAlbumInfo2(
+        @Query("id") id: String,
+    ): SubsonicResponse
+
+    @GET("rest/getMusicDirectory.view")
+    suspend fun getMusicDirectory(
+        @Query("id") id: String,
+    ): SubsonicResponse
+
+    @GET("rest/getPlayQueue.view")
+    suspend fun getPlayQueue(): SubsonicResponse
+
+    @GET("rest/savePlayQueue.view")
+    suspend fun savePlayQueue(
+        @Query("id") id: List<String>,
+        @Query("current") current: String? = null,
+        @Query("position") position: Long? = null,
+    ): SubsonicResponse
+
+    @GET("rest/getUser.view")
+    suspend fun getUser(
+        @Query("username") username: String,
+    ): SubsonicResponse
+
+    @GET("rest/getUsers.view")
+    suspend fun getUsers(): SubsonicResponse
+
+    @GET("rest/createShare.view")
+    suspend fun createShare(
+        @Query("id") id: List<String>,
+        @Query("description") description: String? = null,
+        @Query("expires") expires: Long? = null,
     ): SubsonicResponse
 }

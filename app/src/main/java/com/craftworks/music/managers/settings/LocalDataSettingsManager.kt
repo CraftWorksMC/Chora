@@ -79,6 +79,9 @@ class LocalDataSettingsManager @Inject constructor(
                 preferences[MEDIA_RESUMPTION_PLAYLIST] =
                     Json.encodeToString(playlist.map {
                         val song = MediaModel.Song(
+                            id = it.mediaMetadata.extras?.getString("id") ?: "",
+                            providerId = it.mediaMetadata.extras?.getString("providerId") ?: "",
+                            providerType = ProviderType.valueOf(it.mediaMetadata.extras?.getString("providerType") ?: ""),
                             albumArtistName = it.mediaMetadata.artist.toString(),
                             albumId = it.mediaMetadata.extras?.getString("albumId") ?: "",
                             artistName = it.mediaMetadata.artist.toString(),
@@ -88,9 +91,6 @@ class LocalDataSettingsManager @Inject constructor(
                             trackNumber = it.mediaMetadata.trackNumber ?: 0,
                             userFavorite = it.mediaMetadata.extras?.getBoolean("userFavorite") ?: false,
                         )
-                        song.providerType = ProviderType.valueOf(it.mediaMetadata.extras?.getString("providerType") ?: "")
-                        song.providerId = it.mediaMetadata.extras?.getString("providerId") ?: ""
-                        song.id = it.mediaMetadata.extras?.getString("id") ?: ""
                         song
                     })
                 preferences[MEDIA_RESUMPTION_INDEX] = currentPos

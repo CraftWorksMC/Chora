@@ -17,7 +17,6 @@ import com.craftworks.music.data.model.GenreListSort
 import com.craftworks.music.data.model.GetQueueResponse
 import com.craftworks.music.data.model.ImageRequest
 import com.craftworks.music.data.model.LibraryType
-import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.data.model.Lyrics
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaQuery
@@ -208,6 +207,9 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
                 val genres = songs.firstOrNull()?.genres
 
                 return MediaModel.Album(
+                    id = id,
+                    providerId = this@LocalMediaProvider.id,
+                    providerType = ProviderType.LOCAL_FOLDER,
                     albumArtistName = artistName,
                     durationMs = totalDuration,
                     genres = genres?:emptyList(),
@@ -215,11 +217,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
                     releaseYear = year,
                     songs = songs,
                     songCount = songs.size
-                ).apply {
-                    this.id = id
-                    this.providerId = this@LocalMediaProvider.id
-                    this.providerType = ProviderType.LOCAL_FOLDER
-                }
+                )
             }
         }
 

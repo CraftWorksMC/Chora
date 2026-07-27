@@ -1,7 +1,6 @@
 package com.craftworks.music.data.model
 
 import android.os.Bundle
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.R
@@ -11,15 +10,18 @@ import kotlinx.serialization.Serializable
 
 abstract class MediaModel()
 {
-    lateinit var providerId: String
-    lateinit var providerType: ProviderType
-    lateinit var id: String
+    abstract val providerId: String
+    abstract val providerType: ProviderType
+    abstract val id: String
 
     fun getProvider(): MediaProvider? {
         return MediaProviderManager.getProvider(providerId)
     }
 
-    class Album(
+    data class Album(
+        override val id: String,
+        override val providerId: String,
+        override val providerType: ProviderType,
         val albumArtistName: String? = "Unknown Artist",
         val artists: List<Artist> = listOf(),
         val comment: String? = null,
@@ -36,7 +38,7 @@ abstract class MediaModel()
         val name: String,
         val originalDate: String? = null,
         val originalYear: Int? = null,
-        val participants: Map<String, List<RelatedArtist>> = mapOf(),
+        val participants: Map<String, List<Artist>> = mapOf(),
         val playCount: Double? = null,
         val recordLabels: List<String> = listOf(),
         val releaseDate: String? = null,
@@ -90,7 +92,10 @@ abstract class MediaModel()
     }
 
     @Serializable
-    class Artist(
+    data class Artist(
+        override val id: String,
+        override val providerId: String,
+        override val providerType: ProviderType,
         val albumCount: Int? = null,
         val biography: String? = null,
         val durationMs: Int? = null,
@@ -101,7 +106,7 @@ abstract class MediaModel()
         val mbz: String? = null,
         val name: String,
         val playCount: Double? = null,
-        val similarArtists: List<RelatedArtist> = emptyList(),
+        val similarArtists: List<Artist> = emptyList(),
         val songCount: Int? = null,
         val uploadedImage: String? = null,
         val userFavorite: Boolean? = null,
@@ -124,7 +129,11 @@ abstract class MediaModel()
         }
     }
 
-    class Folder(
+    data class Folder(
+        override val id: String,
+        override val providerId: String,
+        override val providerType: ProviderType,
+
         val children: Children? = null,
 
         val imageId: String? = null,
@@ -140,15 +149,18 @@ abstract class MediaModel()
     }
 
     @Serializable
-    class Genre(
+    data class Genre(
         val albumCount: Int? = null,
         val imageId: String? = null,
         val imageUrl: String? = null,
         val name: String,
         val songCount: Int? = null
-    ) : MediaModel()
+    )
 
-    class InternetRadioStation(
+    data class InternetRadioStation(
+        override val id: String,
+        override val providerId: String,
+        override val providerType: ProviderType,
         val homepageUrl: String?,
         val imageId: String? = null,
         val imageUrl: String? = null,
@@ -185,7 +197,10 @@ abstract class MediaModel()
         }
     }
 
-    class Playlist(
+    data class Playlist(
+        override val id: String,
+        override val providerId: String,
+        override val providerType: ProviderType,
         val description: String? = null,
         val durationMs: Int? = null,
         val genres: List<Genre> = emptyList(),
@@ -232,7 +247,10 @@ abstract class MediaModel()
     }
 
     @Serializable
-    class Song(
+    data class Song(
+        override val id: String,
+        override val providerId: String,
+        override val providerType: ProviderType,
         val album: String? = null,
         val albumArtistName: String? = null,
         val albumArtists: List<Artist> = listOf(),
@@ -260,7 +278,7 @@ abstract class MediaModel()
         val mbzRecordingId: String? = null,
         val mbzTrackId: String? = null,
         val name: String,
-        val participants: Map<String, List<RelatedArtist>>? = null,
+        val participants: Map<String, List<Artist>>? = null,
         val path: String? = null,
         val peak: GainInfo? = null,
         val playCount: Int? = null,

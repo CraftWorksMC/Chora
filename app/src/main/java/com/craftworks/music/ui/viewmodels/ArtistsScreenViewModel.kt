@@ -14,7 +14,6 @@ import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -105,6 +104,8 @@ class ArtistsScreenViewModel @Inject constructor(
 
     fun setSelectedArtist(artist: MediaModel.Artist) {
         _selectedArtist.value = artist
+        _artistAlbums.value = emptyList()
+
         viewModelScope.launch {
             val loadingJob = launch {
                 delay(1000)
@@ -113,8 +114,11 @@ class ArtistsScreenViewModel @Inject constructor(
                 }
             }
             loadingJob.start()
-            coroutineScope {
+            try {
+                val infoDeferred = async { artistRepository.getArtistInfo(artist.id) }
+
                 val artistDetail = artistRepository.getArtistDetail(artist.id)
+
                 _selectedArtist.value = artistDetail?.artist
                 if (artistDetail?.albums.isNullOrEmpty()) {
                     val artistAlbumsAsync = async { artistRepository.getArtistAlbums(artist.id) }
@@ -123,10 +127,16 @@ class ArtistsScreenViewModel @Inject constructor(
                     _artistAlbums.value = artistDetail.albums.map { it.toMediaItem() }
                 }
 
+                val artistInfo = infoDeferred.await()
+                _selectedArtist.value = _selectedArtist.value?.copy(
+                    biography = artistInfo?.biography,
+                    similarArtists = artistInfo?.similarArtists ?: emptyList()
+                )
             }
-
-            loadingJob.cancel()
-            _isLoading.value = false
+            finally {
+                loadingJob.cancel()
+                _isLoading.value = false
+            }
         }
     }
     fun setShowFavoritesOnly(showFavorites: Boolean) {

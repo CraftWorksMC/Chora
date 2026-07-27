@@ -1,14 +1,10 @@
 package com.craftworks.music.providers.local
 
-import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.provider.MediaStore
-import android.util.Log
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
-import androidx.core.net.toUri
-import com.craftworks.music.R
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.ProviderType
 
@@ -20,17 +16,19 @@ object LocalNormalizer {
         val artistName = cursor.getString(artistIdx) ?: "Unknown"
 
         val album = MediaModel.Album(
+            id = albumId.toString(),
+            providerId = providerId,
+            providerType = ProviderType.LOCAL_FOLDER,
             albumArtistName = artistName,
             artists = listOf(MediaModel.Artist(
+                id = artistName.hashCode().toString(),
+                providerId = providerId,
+                providerType = ProviderType.LOCAL_FOLDER,
                 name = artistName
-            ).apply { this.id = artistName.hashCode().toString() }),
+            )),
             imageUrl = albumId.toString(),
             name = albumName
-        ).apply {
-            this.id = albumId.toString()
-            this.providerId = providerId
-            this.providerType = ProviderType.LOCAL_FOLDER
-        }
+        )
 
         return album
     }
@@ -67,12 +65,18 @@ object LocalNormalizer {
         val discNumber = if (rawTrack >= 1000) rawTrack / 1000 else 1
 
         return MediaModel.Song(
+            id = albumId.toString(),
+            providerId = providerId,
+            providerType = ProviderType.LOCAL_FOLDER,
             album = album,
             albumId = albumId.toString(),
             artistName = artist,
             artists = listOf(MediaModel.Artist(
+                id = artist.hashCode().toString(),
+                providerId = providerId,
+                providerType = ProviderType.LOCAL_FOLDER,
                 name = artist
-            ).apply { this.id = artist.hashCode().toString() }),
+            )),
             bitRate = bitrate,
             createdAt = dateAdded,
             discNumber = discNumber,
@@ -83,11 +87,7 @@ object LocalNormalizer {
             path = path,
             trackNumber = track,
             releaseYear = year
-        ).apply {
-            this.id = id.toString()
-            this.providerId = providerId
-            this.providerType = ProviderType.LOCAL_FOLDER
-        }
+        )
     }
     fun cursorToSongs(context: Context, providerId: String, cursor: Cursor) : List<MediaModel.Song> {
         val songs = mutableListOf<MediaModel.Song>()

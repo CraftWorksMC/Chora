@@ -1,6 +1,7 @@
 package com.craftworks.music.providers.subsonic
 
 import androidx.compose.runtime.Immutable
+import com.craftworks.music.data.model.AlbumArtistInfo
 import com.craftworks.music.data.model.GainInfo
 import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.data.model.Lyrics
@@ -48,6 +49,7 @@ data class SubsonicBody(
     // Artists
     val artists: SubsonicArtistIndexList? = null,
     val artist: SubsonicArtist? = null,
+    val artistInfo: SubsonicArtistInfo? = null,
 
     // Internet radio station
     val internetRadioStations: SubsonicInternetRadioStationList? = null,
@@ -141,6 +143,9 @@ data class SubsonicSong(
     var starred: String? = null,
 ) {
     fun toMediaModel(providerId: String): MediaModel.Song = MediaModel.Song(
+        id = id,
+        providerId = providerId,
+        providerType = ProviderType.SUBSONIC,
         album = this.album,
         albumArtistName = this.artist,
         albumArtists = this.artists.map { it.toMediaModel(providerId) },
@@ -184,11 +189,7 @@ data class SubsonicSong(
         updatedAt = null,
         userFavorite = !this.starred.isNullOrEmpty(),
         userRating = null
-    ).apply {
-        this.id = this@SubsonicSong.id
-        this.providerId = providerId
-        this.providerType = ProviderType.SUBSONIC
-    }
+    )
 }
 
 @Serializable
@@ -230,6 +231,9 @@ data class SubsonicAlbum(
 ) {
     fun toMediaModel(providerId: String): MediaModel.Album {
         return MediaModel.Album(
+            id = id,
+            providerId = providerId,
+            providerType = ProviderType.SUBSONIC,
             albumArtistName = displayArtist,
             artists = this.artists?.map { it.toMediaModel(providerId) } ?: emptyList(),
             comment = null,
@@ -262,11 +266,7 @@ data class SubsonicAlbum(
             userFavorite = !this.starred.isNullOrEmpty(),
             userRating = this.userRating,
             version = this.version
-        ).apply {
-            this.id = this@SubsonicAlbum.id
-            this.providerId = providerId
-            this.providerType = ProviderType.SUBSONIC
-        }
+        )
     }
 }
 
@@ -331,18 +331,36 @@ data class SubsonicArtist(
 ) {
     fun toMediaModel(providerId: String): MediaModel.Artist {
         return MediaModel.Artist(
+            id = this@SubsonicArtist.id,
+            providerId = providerId,
+            providerType = ProviderType.SUBSONIC,
             albumCount = albumCount,
             imageId = coverArt,
             imageUrl = artistImageUrl ?: coverArt,
             mbz = musicBrainzId,
             name = name,
             userFavorite = !this.starred.isNullOrEmpty()
-        ).apply {
-            this.id = this@SubsonicArtist.id
-            this.providerId = providerId
-            this.providerType = ProviderType.SUBSONIC
-        }
+        )
     }
+}
+
+@Immutable
+@Serializable
+data class SubsonicArtistInfo(
+    val biography: String? = null,
+    val musicBrainzId: String? = null,
+    val lastFmUrl: String? = null,
+    val smallImageUrl: String? = null,
+    val mediumImageUrl: String? = null,
+    val largeImageUrl: String? = null,
+    val similarArtist: List<SubsonicArtist>? = null
+) {
+    fun toArtistInfo(providerId: String): AlbumArtistInfo =
+        AlbumArtistInfo(
+            biography = biography,
+            imageUrl = largeImageUrl,
+            similarArtists = similarArtist?.map { it.toMediaModel(providerId) }
+        )
 }
 
 @Serializable
@@ -368,17 +386,16 @@ data class SubsonicInternetRadioStation(
 ) {
     fun toMediaModel(providerId: String): MediaModel.InternetRadioStation {
         return MediaModel.InternetRadioStation(
+            id = id,
+            providerId = providerId,
+            providerType = ProviderType.SUBSONIC,
             homepageUrl = homePageUrl,
             imageId = coverArt,
             imageUrl = coverArt,
             name = name,
             streamUrl = streamUrl,
             uploadedImage = null
-        ).apply {
-            this.id = this@SubsonicInternetRadioStation.id
-            this.providerId = providerId
-            this.providerType = ProviderType.SUBSONIC
-        }
+        )
     }
 }
 
@@ -406,6 +423,9 @@ data class SubsonicPlaylist(
 ) {
     fun toMediaModel(providerId: String): MediaModel.Playlist {
         return MediaModel.Playlist(
+            id = id,
+            providerId = providerId,
+            providerType = ProviderType.SUBSONIC,
             name = this.name,
             description = this.comment,
             durationMs = this.duration * 1000,
@@ -415,11 +435,7 @@ data class SubsonicPlaylist(
             isPublic = this.public,
             songCount = this.songCount,
             uploadedImage = null
-        ).apply {
-            this.id = this@SubsonicPlaylist.id
-            this.providerId = providerId
-            this.providerType = ProviderType.SUBSONIC
-        }
+        )
     }
 }
 

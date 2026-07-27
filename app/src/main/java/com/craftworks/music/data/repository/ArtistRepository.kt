@@ -2,6 +2,7 @@ package com.craftworks.music.data.repository
 
 import androidx.media3.common.MediaItem
 import com.craftworks.music.data.model.AlbumArtistDetailResponse
+import com.craftworks.music.data.model.AlbumArtistInfo
 import com.craftworks.music.data.model.AlbumListSort
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaQuery
@@ -31,5 +32,9 @@ class ArtistRepository @Inject constructor() {
 
     suspend fun getArtistDetail(artistId: String): AlbumArtistDetailResponse? = coroutineScope {
         MediaProviderManager.currentProvider.value?.getAlbumArtistDetail(artistId)
+    }
+
+    suspend fun getArtistInfo(artistId: String): AlbumArtistInfo? = coroutineScope {
+        MediaProviderManager.currentProvider.value?.getAlbumArtistInfo(artistId)
     }
 }

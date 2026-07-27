@@ -3,15 +3,6 @@ package com.craftworks.music.data.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class RelatedArtist(
-    val id: String,
-    val imageId: String?,
-    val imageUrl: String?,
-    val name: String,
-    val userFavorite: Boolean,
-    val userRating: Float?
-)
-@Serializable
 data class MusicFolder (
     val id: String,
     val name: String,
@@ -44,7 +35,7 @@ enum class LibraryType {
 data class AlbumArtistInfo(
     val biography: String? = null,
     val imageUrl: String? = null,
-    val similarArtists: List<RelatedArtist>? = null
+    val similarArtists: List<MediaModel.Artist>? = null
 )
 data class AlbumInfo(
     val imageUrl: String?,
