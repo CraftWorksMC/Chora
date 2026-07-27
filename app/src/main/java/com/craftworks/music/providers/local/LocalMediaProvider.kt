@@ -172,10 +172,6 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         return LocalUtils.getLocalAlbumArtists(appContext, id, query.musicFolderId?:data.libraries.filter { it.second }.map { it.first.name })
     }
 
-    override suspend fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun getAlbumDetail(id: String): MediaModel.Album {
         Log.d(TAG, "Getting album data for id $id")
 
@@ -251,10 +247,6 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         return PagingUtils.paginate(albums, query.limit, query.startIndex)
     }
 
-    override suspend fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun getAlbumRadio(
         albumId: String,
         count: Int?
@@ -263,10 +255,6 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     }
 
     override suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaModel.Artist> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getArtistListCount(query: MediaQuery.ArtistListQuery): Int {
         TODO("Not yet implemented")
     }
 
@@ -341,10 +329,6 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         return emptyList()
     }
 
-    override suspend fun getPlaylistListCount(query: MediaQuery.PlaylistListQuery): Int {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun getPlaylistSongList(id: String): List<MediaModel.Song> {
         // TODO: Manage with this a db
         return emptyList()
@@ -389,10 +373,6 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         val songs = LocalUtils.getLocalSongs(appContext, id, sortOrder, folders)
 
         return PagingUtils.paginate(songs, query.limit, query.startIndex)
-    }
-
-    override suspend fun getSongListCount(query: MediaQuery.SongListQuery): Int {
-        TODO("Not yet implemented")
     }
 
     override fun getStreamUrl(

@@ -293,10 +293,6 @@ open class SubsonicMediaProvider : MediaProvider() {
         return PagingUtils.sortAndPaginate(artists, sortBy = ALBUM_ARTIST_SORT_BINDING[query.sortBy]?:{it.name}, sortOrder = query.sortOrder)
     }
 
-    override suspend fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun getAlbumDetail(id: String): MediaModel.Album {
         try {
             return service.getAlbum(id).subsonicResponse.album!!.toMediaModel(this.id)
@@ -372,10 +368,6 @@ open class SubsonicMediaProvider : MediaProvider() {
         return res.subsonicResponse.albumList?.album?.map { it.toMediaModel(this.id) } ?: emptyList()
     }
 
-    override suspend fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun getAlbumRadio(
         albumId: String,
         count: Int?
@@ -384,10 +376,6 @@ open class SubsonicMediaProvider : MediaProvider() {
     }
 
     override suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaModel.Artist> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getArtistListCount(query: MediaQuery.ArtistListQuery): Int {
         TODO("Not yet implemented")
     }
 
@@ -491,10 +479,6 @@ open class SubsonicMediaProvider : MediaProvider() {
         ).map { it.toMediaModel(id) }
     }
 
-    override suspend fun getPlaylistListCount(query: MediaQuery.PlaylistListQuery): Int {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun getPlaylistSongList(id: String): List<MediaModel.Song> {
         return service.getPlaylist(id).subsonicResponse.playlist?.entry?.map { it.toMediaModel(this.id) } ?: emptyList()
     }
@@ -571,10 +555,6 @@ open class SubsonicMediaProvider : MediaProvider() {
             songCount = query.limit ?: 20,
             songOffset = query.startIndex
         ).subsonicResponse.searchResult3?.song?.map { it.toMediaModel(this.id) } ?: emptyList()
-    }
-
-    override suspend fun getSongListCount(query: MediaQuery.SongListQuery): Int {
-        TODO("Not yet implemented")
     }
 
     override fun getStreamUrl(

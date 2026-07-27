@@ -75,14 +75,11 @@ abstract class MediaProvider {
     abstract suspend fun getAlbumArtistDetail(id: String): AlbumArtistDetailResponse
     abstract suspend fun getAlbumArtistInfo(id: String, limit: Int? = null): AlbumArtistInfo?
     abstract suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist>
-    abstract suspend fun getAlbumArtistListCount(query: MediaQuery.AlbumArtistListQuery): Int
     abstract suspend fun getAlbumDetail(id: String): MediaModel.Album
     abstract suspend fun getAlbumInfo(id: String): AlbumInfo
     abstract suspend fun getAlbumList(query: MediaQuery.AlbumListQuery): List<MediaModel.Album>
-    abstract suspend fun getAlbumListCount(query: MediaQuery.AlbumListQuery): Int
     abstract suspend fun getAlbumRadio(albumId: String, count: Int? = null): List<MediaModel.Song>
     abstract suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaModel.Artist>
-    abstract suspend fun getArtistListCount(query: MediaQuery.ArtistListQuery): Int
     abstract suspend fun getArtistRadio(artistId: String, count: Int? = null): List<MediaModel.Song>
     abstract suspend fun getDownloadUrl(id: String): String
     abstract suspend fun getFolder(query: MediaQuery.FolderQuery): MediaModel.Folder
@@ -94,7 +91,6 @@ abstract class MediaProvider {
     abstract suspend fun getMusicFolderList(): List<MusicFolder>
     abstract suspend fun getPlaylistDetail(id: String): MediaModel.Playlist
     abstract suspend fun getPlaylistList(query: MediaQuery.PlaylistListQuery): List<MediaModel.Playlist>
-    abstract suspend fun getPlaylistListCount(query: MediaQuery.PlaylistListQuery): Int
     abstract suspend fun getPlaylistSongList(id: String): List<MediaModel.Song>
     abstract suspend fun getPlayQueue(): GetQueueResponse
     abstract suspend fun getRandomSongList(query: MediaQuery.RandomSongListQuery): List<MediaModel.Song>
@@ -103,7 +99,6 @@ abstract class MediaProvider {
     abstract suspend fun getSimilarSongs(songId: String, count: Int? = null, musicFolderId: List<String>? = null): List<MediaModel.Song>
     abstract suspend fun getSongDetail(id: String): MediaModel.Song
     abstract suspend fun getSongList(query: MediaQuery.SongListQuery): List<MediaModel.Song>
-    abstract suspend fun getSongListCount(query: MediaQuery.SongListQuery): Int
     abstract fun getStreamUrl(id: String, transcode: Boolean, bitrate: Int? = null, format: String? = null, mediaType: String? = null, offset: Int? = null, skipAutoTranscode: Boolean? = null): String
     abstract suspend fun getTagList(type: LibraryType, folder: String? = null, tagName: String? = null): TagListResponse
     abstract suspend fun getTopSongs(artist: String, artistId: String, limit: Int? = null, type: String? = null): List<MediaModel.Song>
