@@ -238,7 +238,7 @@ data class SubsonicAlbum(
             artists = this.artists?.map { it.toMediaModel(providerId) } ?: emptyList(),
             comment = null,
             createdAt = this.created,
-            durationMs = this.duration,
+            durationMs = this.duration * 1000,
             explicit = this.explicitStatus?.let { it == "explicit"},
             genres = this.genres?.map { MediaModel.Genre(name = it.name) } ?: listOf(),
             imageId = this.coverArt,
