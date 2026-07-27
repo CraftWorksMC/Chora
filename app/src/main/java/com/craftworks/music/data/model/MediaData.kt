@@ -23,11 +23,6 @@ data class GainInfo(
     val track: Double? = null
 )
 
-enum class ExplicitStatus {
-    CLEAN,
-    EXPLICIT,
-}
-
 data class PlaylistRules(
     val limit: Int? = null,
     val limitPercent: Int? = null,

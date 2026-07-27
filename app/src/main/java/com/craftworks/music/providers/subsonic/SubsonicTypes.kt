@@ -1,7 +1,6 @@
 package com.craftworks.music.providers.subsonic
 
 import androidx.compose.runtime.Immutable
-import com.craftworks.music.data.model.ExplicitStatus
 import com.craftworks.music.data.model.GainInfo
 import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.data.model.Lyrics
@@ -131,7 +130,7 @@ data class SubsonicSong(
     val replayGain: SubsonicReplayGain? = null,
     val channelCount: Int? = 2,
     val samplingRate: Int? = 0,
-    val explicitStatus: String? = "",
+    val explicitStatus: String? = null,
     val displayArtist: String? = null,
     val displayAlbumArtist: String? = null,
 
@@ -158,7 +157,7 @@ data class SubsonicSong(
         discNumber = this.discNumber ?: 1,
         discSubtitle = null,
         durationMs = this.duration * 1000,
-        explicitStatus = null,
+        explicit = this.explicitStatus?.let { it == "explicit"},
         gain = GainInfo(replayGain?.albumPeak?.toDouble(), replayGain?.trackGain?.toDouble()),
         genres = this.genres?.map { MediaModel.Genre(name = it.name) } ?: listOf(),
         imageId = this.imageUrl,
@@ -229,19 +228,13 @@ data class SubsonicAlbum(
     val song: List<SubsonicSong>? = null
 ) {
     fun toMediaModel(providerId: String): MediaModel.Album {
-        val domainExplicitStatus = when (this.explicitStatus?.lowercase()) {
-            "explicit" -> ExplicitStatus.EXPLICIT
-            "clean" -> ExplicitStatus.CLEAN
-            else -> null
-        }
-
         return MediaModel.Album(
             albumArtistName = displayArtist,
             artists = this.artists?.map { it.toMediaModel(providerId) } ?: emptyList(),
             comment = null,
             createdAt = this.created,
             durationMs = this.duration,
-            explicitStatus = domainExplicitStatus,
+            explicit = this.explicitStatus?.let { it == "explicit"},
             genres = this.genres?.map { MediaModel.Genre(name = it.name) } ?: listOf(),
             imageId = this.coverArt,
             imageUrl = this.coverArt,
