@@ -3,8 +3,9 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.model.LibraryType
 import androidx.media3.common.StarRating
+import com.craftworks.music.data.model.LibraryType
+import com.craftworks.music.data.model.id
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.data.repository.StarredRepository
@@ -58,7 +59,7 @@ class AlbumDetailsViewModel @Inject constructor(
         rating: Int,
     ) {
         val song =_songsInAlbum.value.first {
-            it.mediaMetadata.extras?.getString("navidromeID") == songId
+            it.mediaMetadata.id == songId
         }
         val maxStars = (song.mediaMetadata.userRating as? StarRating)?.maxStars ?: 5
 

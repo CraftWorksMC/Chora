@@ -37,6 +37,7 @@ import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.id
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
 import com.craftworks.music.ui.elements.tv.TvHorizontalSongCard
@@ -164,7 +165,7 @@ fun TvSongsScreen(
             song = selectedSong,
             onSetRating = { rating ->
                 viewModel.setSongRating(
-                    songId = selectedSong.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                    songId = selectedSong.mediaMetadata.id ?: "",
                     rating = rating
                 )
             },

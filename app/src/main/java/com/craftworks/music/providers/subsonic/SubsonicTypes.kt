@@ -10,6 +10,7 @@ import com.craftworks.music.data.model.ProviderType
 import com.craftworks.music.data.model.SyncedWord
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.util.Locale.getDefault
 
 @Serializable
 data class SubsonicProviderData(
@@ -141,6 +142,7 @@ data class SubsonicSong(
     var media: String? = null,
     val trackIndex: Int? = 0,
     var starred: String? = null,
+    val userRating: Int? = null,
 ) {
     fun toMediaModel(providerId: String): MediaModel.Song = MediaModel.Song(
         id = id,
@@ -154,6 +156,7 @@ data class SubsonicSong(
         artists = this.artists.map { it.toMediaModel(providerId) },
         bitDepth = this.bitDepth,
         bitRate = this.bitrate,
+        format = format?.uppercase(getDefault()),
         bpm = this.bpm,
         channels = this.channelCount,
         comment = this.comment,
@@ -188,7 +191,7 @@ data class SubsonicSong(
         trackSubtitle = null,
         updatedAt = null,
         userFavorite = !this.starred.isNullOrEmpty(),
-        userRating = null
+        userRating = this.userRating
     )
 }
 

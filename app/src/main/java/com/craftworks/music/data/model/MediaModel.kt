@@ -2,7 +2,9 @@ package com.craftworks.music.data.model
 
 import android.os.Bundle
 import androidx.core.net.toUri
+import androidx.media.utils.MediaConstants.METADATA_KEY_IS_EXPLICIT
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.StarRating
 import com.craftworks.music.R
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.providers.MediaProvider
@@ -259,6 +261,7 @@ abstract class MediaModel()
         val artists: List<Artist> = listOf(),
         val bitDepth: Int? = null,
         val bitRate: Int? = null,
+        val format: String? = null,
         val bpm: Int? = null,
         val channels: Int? = null,
         val comment: String? = null,
@@ -312,6 +315,12 @@ abstract class MediaModel()
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
                     .setDurationMs(this.durationMs.toLong())
                     .setGenre(this.genres.joinToString { it.name })
+                    .apply {
+                        if (this@Song.userRating != null)
+                            setUserRating(StarRating(5, this@Song.userRating.toFloat()))
+                        else
+                            setUserRating(StarRating(5))
+                    }
                     .setExtras(
                         Bundle().apply {
                             putString("id", this@Song.id)
@@ -319,7 +328,10 @@ abstract class MediaModel()
                             putInt("providerType", this@Song.providerType.ordinal)
                             putString("albumId", this@Song.albumId)
                             putString("imageId", this@Song.imageId)
+                            putString("format", this@Song.format)
+                            putLong("bitrate", this@Song.bitRate?.toLong() ?: 0)
                             putBoolean("userFavorite", this@Song.userFavorite?:false)
+                            putBoolean(METADATA_KEY_IS_EXPLICIT, this@Song.explicit == true)
                         }
                     )
                     .build()

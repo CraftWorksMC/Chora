@@ -93,8 +93,6 @@ fun PlaylistDetails(
     mediaController: MediaController? = rememberManagedMediaController().value,
     viewModel: PlaylistScreenViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red, Color.Transparent))
 
     val requester = remember { FocusRequester() }
@@ -329,8 +327,8 @@ fun PlaylistDetails(
                             },
                             onClick = {
                                 viewModel.removeSongFromPlaylist(
-                                    playlistId = playlistMetadata?.extras?.getString("navidromeID") ?: "",
-                                    songId = song.mediaMetadata.extras?.getString("navidromeID") ?: ""
+                                    playlistId = playlistMetadata?.id ?: "",
+                                    songId = song.mediaMetadata.id ?: ""
                                 )
                                 onDismiss()
                             },
@@ -355,7 +353,7 @@ fun PlaylistDetails(
             currentRating = (song.mediaMetadata.userRating as? StarRating)?.starRating?.toInt() ?: 0,
             onDismiss = { songToRate = null },
             onSetRating = { rating ->
-                viewModel.setSongRating(song.mediaMetadata.extras?.getString("navidromeID") ?: "", rating)
+                viewModel.setSongRating(song.mediaMetadata.id ?: "", rating)
                 songToRate = null
             }
         )

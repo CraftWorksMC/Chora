@@ -65,6 +65,7 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.id
 import com.craftworks.music.formatSeconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
@@ -342,7 +343,7 @@ fun TvAlbumDetails(
             song = selectedSong,
             onSetRating = { rating ->
                 viewModel.setSongRating(
-                    songId = selectedSong.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                    songId = selectedSong.mediaMetadata.id ?: "",
                     rating = rating
                 )
             },

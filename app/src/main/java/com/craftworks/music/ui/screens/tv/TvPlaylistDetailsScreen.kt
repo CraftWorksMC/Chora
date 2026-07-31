@@ -252,7 +252,7 @@ fun TvPlaylistDetails(
             song = selectedSong,
             onSetRating = { rating ->
                 viewModel.setSongRating(
-                    songId = selectedSong.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                    songId = selectedSong.mediaMetadata.id ?: "",
                     rating = rating
                 )
             },

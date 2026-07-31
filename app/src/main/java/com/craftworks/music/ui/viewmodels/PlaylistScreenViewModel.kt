@@ -5,12 +5,11 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
+import androidx.media3.common.StarRating
+import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.PlaylistListSort
 import com.craftworks.music.data.model.SortOrder
-import androidx.media3.common.StarRating
-import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.model.id
 import com.craftworks.music.data.repository.PlaylistRepository
@@ -154,7 +153,7 @@ class PlaylistScreenViewModel @Inject constructor(
         rating: Int,
     ) {
         val song = _selectedPlaylistSongs.value.first {
-            it.mediaMetadata.extras?.getString("navidromeID") == songId
+            it.mediaMetadata.id == songId
         }
         val maxStars = (song.mediaMetadata.userRating as? StarRating)?.maxStars ?: 5
 

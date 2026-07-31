@@ -681,7 +681,7 @@ open class SubsonicMediaProvider : MediaProvider() {
         rating: Int,
         type: LibraryType
     ): Boolean {
-        TODO("Not yet implemented")
+        return service.setRating(id, rating).subsonicResponse.status == "ok"
     }
 
     override suspend fun shareItem(

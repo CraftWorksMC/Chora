@@ -3,10 +3,11 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.StarRating
 import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.data.model.SortOrder
-import androidx.media3.common.StarRating
+import com.craftworks.music.data.model.id
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
@@ -94,9 +95,9 @@ class SongsScreenViewModel @Inject constructor(
         rating: Int,
     ) {
         val song =_allSongs.value.firstOrNull {
-            it.mediaMetadata.extras?.getString("navidromeID") == songId
+            it.mediaMetadata.id == songId
         } ?: _searchResults.value.first {
-            it.mediaMetadata.extras?.getString("navidromeID") == songId
+            it.mediaMetadata.id == songId
         }
 
         val maxStars = (song.mediaMetadata.userRating as? StarRating)?.maxStars ?: 5

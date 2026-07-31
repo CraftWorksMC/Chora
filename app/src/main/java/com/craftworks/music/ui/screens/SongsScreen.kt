@@ -33,6 +33,7 @@ import androidx.media3.common.StarRating
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
+import com.craftworks.music.data.model.id
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
@@ -154,7 +155,7 @@ fun SongsScreen(
             currentRating = (song.mediaMetadata.userRating as? StarRating)?.starRating?.toInt() ?: 0,
             onDismiss = { songToRate = null },
             onSetRating = { rating ->
-                viewModel.setSongRating(song.mediaMetadata.extras?.getString("navidromeID") ?: "", rating)
+                viewModel.setSongRating(song.mediaMetadata.id ?: "", rating)
                 songToRate = null
             }
         )
