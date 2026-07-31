@@ -286,11 +286,11 @@ open class SubsonicMediaProvider : MediaProvider() {
     }
 
     override suspend fun deleteInternetRadioStation(id: String): Boolean {
-        TODO("Not yet implemented")
+        return service.deleteInternetRadioStation(id).subsonicResponse.status == "ok"
     }
 
     override suspend fun deletePlaylist(id: String): Boolean {
-        TODO("Not yet implemented")
+        return service.deletePlaylist(id).subsonicResponse.status == "ok"
     }
 
     override suspend fun getAlbumArtistDetail(id: String): AlbumArtistDetailResponse {
