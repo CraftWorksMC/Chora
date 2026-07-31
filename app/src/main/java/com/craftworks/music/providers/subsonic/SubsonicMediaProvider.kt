@@ -339,7 +339,7 @@ open class SubsonicMediaProvider : MediaProvider() {
             }
         }
 
-        val type = when (query.sortBy) {
+        var type = when (query.sortBy) {
             AlbumListSort.ALBUM_ARTIST -> "alphabeticalByArtist"
             AlbumListSort.NAME -> "alphabeticalByName"
             AlbumListSort.RECENTLY_PLAYED -> "recent"
@@ -348,6 +348,9 @@ open class SubsonicMediaProvider : MediaProvider() {
             AlbumListSort.RANDOM -> "random"
             else -> "alphabeticalByName"
         }
+
+        if (query.favorite == true)
+            type = "starred"
 
         val res = try {
             service.getAlbumList(
