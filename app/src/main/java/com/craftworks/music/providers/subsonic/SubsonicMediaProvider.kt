@@ -224,7 +224,23 @@ open class SubsonicMediaProvider : MediaProvider() {
         ids: List<String>,
         type: LibraryType
     ): Boolean {
-        TODO("Not yet implemented")
+        val res = when (type) {
+            LibraryType.SONG -> {
+                service.star(ids, null, null)
+            }
+
+            LibraryType.ALBUM -> {
+                service.star(null, ids, null)
+            }
+
+            LibraryType.ARTIST -> {
+                service.star(null, null, ids)
+            }
+
+            else -> return false
+        }
+
+        return res.subsonicResponse.status == "ok"
     }
 
     override suspend fun createInternetRadioStation(
@@ -250,7 +266,23 @@ open class SubsonicMediaProvider : MediaProvider() {
         ids: List<String>,
         type: LibraryType
     ): Boolean {
-        TODO("Not yet implemented")
+        val res = when (type) {
+            LibraryType.SONG -> {
+                service.unstar(ids, null, null)
+            }
+
+            LibraryType.ALBUM -> {
+                service.unstar(null, ids, null)
+            }
+
+            LibraryType.ARTIST -> {
+                service.unstar(null, null, ids)
+            }
+
+            else -> return false
+        }
+
+        return res.subsonicResponse.status == "ok"
     }
 
     override suspend fun deleteInternetRadioStation(id: String): Boolean {

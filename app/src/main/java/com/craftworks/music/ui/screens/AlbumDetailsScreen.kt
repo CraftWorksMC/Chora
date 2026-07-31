@@ -72,6 +72,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.ProviderFeatures
+import com.craftworks.music.data.model.favorite
 import com.craftworks.music.data.model.id
 import com.craftworks.music.data.model.providerId
 import com.craftworks.music.fadingEdge
@@ -150,7 +151,7 @@ fun AlbumDetails(
         visible = currentAlbum.isNotEmpty(),
         enter = fadeIn()
     ) {
-        var isStarred by remember { mutableStateOf(currentAlbum[0].mediaMetadata.extras?.getString("starred")?.isNotEmpty() ?: false) }
+        var isStarred by remember { mutableStateOf(currentAlbum[0].mediaMetadata.favorite ?: false) }
         val requester = remember { FocusRequester() }
 
         val coroutineScope = rememberCoroutineScope()

@@ -65,6 +65,7 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.favorite
 import com.craftworks.music.data.model.id
 import com.craftworks.music.formatSeconds
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
@@ -127,8 +128,7 @@ fun TvAlbumDetails(
 
         var isStarred by remember {
             mutableStateOf(
-                currentAlbum[0].mediaMetadata.extras
-                    ?.getString("starred")?.isNotEmpty() ?: false
+                currentAlbum[0].mediaMetadata.favorite ?: false
             )
         }
 

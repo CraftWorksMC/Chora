@@ -330,7 +330,7 @@ abstract class MediaModel()
                             putString("imageId", this@Song.imageId)
                             putString("format", this@Song.format)
                             putLong("bitrate", this@Song.bitRate?.toLong() ?: 0)
-                            putBoolean("userFavorite", this@Song.userFavorite?:false)
+                            putBoolean("userFavorite", this@Song.userFavorite ?: false)
                             putBoolean(METADATA_KEY_IS_EXPLICIT, this@Song.explicit == true)
                         }
                     )
@@ -353,6 +353,10 @@ val MediaMetadata.providerId: String?
 
 val MediaMetadata.providerType: Int?
     get() = extras?.getInt("providerType")
+
+val MediaMetadata.favorite: Boolean?
+    get() = extras?.getBoolean("userFavorite")
+
 
 fun MediaMetadata.getProvider(): MediaProvider? {
     return MediaProviderManager.getProvider(extras?.getString("providerId")?:"")

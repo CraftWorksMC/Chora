@@ -12,6 +12,7 @@ import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,7 +39,6 @@ class SongsScreenViewModel @Inject constructor(
     val showFavoritesOnly: StateFlow<Boolean> = _showFavoritesOnly.asStateFlow()
 
     init {
-        getSongs()
         viewModelScope.launch {
             localDataSettingsManager.showFavoriteOnly.collect { showFavorites ->
                 _showFavoritesOnly.value = showFavorites
@@ -50,13 +50,25 @@ class SongsScreenViewModel @Inject constructor(
         }
     }
 
+    private var getSongsJob: Job? = null
     fun getSongs() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            coroutineScope {
-                _allSongs.value = songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RECENTLY_ADDED, sortOrder = SortOrder.ASC, startIndex = 0, favorite = _showFavoritesOnly.value))
+        getSongsJob?.cancel()
+
+        getSongsJob = viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _allSongs.value = songRepository.getSongs(
+                    MediaQuery.SongListQuery(
+                        sortBy = SongListSort.RECENTLY_ADDED,
+                        sortOrder = SortOrder.ASC,
+                        startIndex = 0,
+                        favorite = _showFavoritesOnly.value
+                    )
+                )
             }
-            _isLoading.value = false
+            finally {
+                _isLoading.value = false
+            }
         }
     }
 
