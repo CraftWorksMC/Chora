@@ -11,6 +11,10 @@ android {
     namespace = "com.craftworks.music"
     compileSdk = 37
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     androidResources {
         generateLocaleConfig = true
     }
@@ -79,8 +83,6 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
 
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-
     implementation(libs.reorderable)
     implementation(libs.androidx.media)
 
@@ -98,6 +100,7 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.mediarouter)
     implementation(libs.androidx.material3.android)
+    implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.composefadingedges)

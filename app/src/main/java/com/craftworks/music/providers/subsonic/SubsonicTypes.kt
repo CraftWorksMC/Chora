@@ -16,7 +16,7 @@ import java.util.Locale.getDefault
 data class SubsonicProviderData(
     var url: String,
     var username: String,
-    var credentials: String? = null,
+    var password: String,
     var allowSelfSignedCert: Boolean = false,
 )
 

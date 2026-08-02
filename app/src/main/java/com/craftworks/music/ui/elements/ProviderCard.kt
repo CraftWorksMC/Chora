@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -15,16 +14,14 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,22 +43,33 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.craftworks.music.R
 import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.MediaProviderManager
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import com.craftworks.music.providers.MediaProvider
 import com.craftworks.music.providers.local.LocalMediaProvider
 import com.craftworks.music.providers.local.LocalProviderData
+import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
 import com.craftworks.music.ui.elements.dialogs.EditLrcLibUrlDialog
 import kotlinx.coroutines.runBlocking
 
 @Preview
 @Composable
-fun ProviderCard(provider: MediaProvider = LocalMediaProvider(LocalProviderData(""))){
+fun ProviderCard(
+    provider: MediaProvider = LocalMediaProvider(
+        LocalProviderData("")
+    )
+) {
     val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
-    Row(modifier = Modifier
-        .padding(bottom = 12.dp)
-        .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.surfaceBright),
-        verticalAlignment = Alignment.CenterVertically) {
+    val context = LocalContext.current
+    val appearanceSettingsManager = AppearanceSettingsManager(context)
+
+    Row(
+        modifier = Modifier
+            .padding(bottom = 12.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceBright),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         // Provider Icon
         Icon(
             imageVector = ImageVector.vectorResource(provider.providerIcon),
@@ -72,181 +80,80 @@ fun ProviderCard(provider: MediaProvider = LocalMediaProvider(LocalProviderData(
                 .height(32.dp)
                 .size(32.dp)
         )
+
         // Provider Name
-        Column(modifier = Modifier.weight(1f).padding(vertical = 10.dp)) {
+        Column(modifier = Modifier
+            .weight(1f)
+            .padding(vertical = 10.dp)) {
             Text(
                 text = stringResource(provider.providerName),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
             )
-            /*Text(
-                text = local,
+            Text(
+                text = when (provider) {
+                    is LocalMediaProvider -> provider.data.libraries.joinToString(", ") { it.first.name }
+                    is SubsonicMediaProvider -> provider.providerData.url
+                    else -> ""
+                },
                 color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
                 style = MaterialTheme.typography.bodyMedium,
-            )*/
+            )
         }
 
         // Make current Button
-        Button(
+        RadioButton(
+            selected = currentProvider == provider,
             onClick = {
                 MediaProviderManager.setCurrentProvider(provider)
+                runBlocking {
+                    if (provider is SubsonicMediaProvider)
+                        appearanceSettingsManager.setUsername(provider.providerData.username)
+                }
+            },
+            modifier = Modifier
+                .size(32.dp),
+        )
+
+        // Delete Button
+        IconButton(
+            onClick = {
+                MediaProviderManager.removeProvider(provider.id)
+                runBlocking {
+                    if (currentProvider is SubsonicMediaProvider)
+                        appearanceSettingsManager.setUsername((currentProvider as SubsonicMediaProvider).providerData.username)
+                }
             },
             shape = CircleShape,
-            modifier = Modifier
-                .size(32.dp),
-            contentPadding = PaddingValues(2.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-        ) {
-            Icon(
-                imageVector = if (currentProvider == provider) Icons.Rounded.CheckCircle else Icons.Rounded.Check,
-                tint = MaterialTheme.colorScheme.onBackground,
-                contentDescription = "Make current provider",
-                modifier = Modifier
-                    .height(32.dp)
-                    .size(32.dp)
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.onBackground
             )
-        }
-
-        // Delete Button
-        Button(
-            onClick = { TODO("Delete this") },
-            shape = CircleShape,
-            modifier = Modifier
-                .size(32.dp),
-            contentPadding = PaddingValues(2.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
             Icon(
                 imageVector = Icons.Rounded.Delete,
-                tint = MaterialTheme.colorScheme.onBackground,
-                contentDescription = "Delete Local Provider",
+                contentDescription = "Delete Provider",
                 modifier = Modifier
-                    .height(32.dp)
-                    .size(32.dp)
             )
         }
 
-        Spacer(Modifier.width(20.dp))
-        // Enabled Checkbox
-//        var enabled by remember { mutableStateOf(false) }
-//        enabled = true
-//
-//        Checkbox(
-//            checked = enabled,
-//            onCheckedChange = {enabled = it
-//                LocalProviderManager.addServer(local.directory)
-//
-//                if (enabled){
-//                    if (LocalProviderManager.checkActiveFolders())
-//                        getSongsOnDevice(context)
-//                }
-//                else if (NavidromeManager.checkActiveServers())
-//                        GlobalViewModels.refreshAll()
-//            }
-//        )
+        Spacer(Modifier.width(12.dp))
     }
 }
-
-// TODO("I wanna die")
-/*
-@Preview
-@Composable
-fun NavidromeProviderCard(
-    server: NavidromeProvider = NavidromeProvider(
-        "0",
-        "https://demo.navidrome.org",
-        "CraftWorks",
-        "demo",
-        enabled = true,
-        allowSelfSignedCert = true
-    )
-) {
-    rememberCoroutineScope()
-
-    Row(modifier = Modifier
-        .padding(bottom = 12.dp)
-        .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.surfaceBright)
-        .selectableGroup(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Provider Icon
-        Image(
-            painter = painterResource(R.drawable.s_m_navidrome),
-            contentDescription = "Navidrome Icon",
-            modifier = Modifier
-                .padding(start = 20.dp, end = 16.dp)
-                .size(32.dp)
-        )
-        // Provider Name
-        Column(modifier = Modifier.weight(1f).padding(vertical = 10.dp)) {
-            Text(
-                text = server.username,
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier
-            )
-            Text(
-                text = server.url,
-                color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-
-        var checked by remember { mutableStateOf(false) }
-        checked = server.id == NavidromeManager.currentServerId.collectAsStateWithLifecycle().value
-
-        // Enabled Checkbox
-        val context = LocalContext.current
-        Checkbox(
-            checked = checked,
-            onCheckedChange = {
-                if (!it && NavidromeManager.getAllServers().size == 1)
-                    NavidromeManager.setCurrentServer(null)
-                else
-                    NavidromeManager.setCurrentServer(server.id)
-                runBlocking {
-                    AppearanceSettingsManager(context).setUsername(server.username)
-                }
-                Log.d("NAVIDROME", "Navidrome Current Server: ${server.id}")
-            }
-        )
-
-        // Delete Button
-        Button(
-            onClick = { NavidromeManager.removeServer(server.id) },
-            shape = CircleShape,
-            modifier = Modifier
-                .size(32.dp),
-            contentPadding = PaddingValues(2.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Delete,
-                tint = MaterialTheme.colorScheme.onBackground,
-                contentDescription = "Remove Navidrome Server",
-                modifier = Modifier
-                    .height(32.dp)
-                    .size(32.dp)
-            )
-        }
-
-        Spacer(Modifier.width(20.dp))
-    }
-}*/
 
 @Preview
 @Composable
 fun LRCLIBProviderCard(
     context: Context = LocalContext.current
-){
+) {
     var showEditDialog by remember { mutableStateOf(false) }
-    Row(modifier = Modifier
-        .padding(bottom = 12.dp)
-        .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.surfaceBright)
-        .selectableGroup(),
+    Row(
+        modifier = Modifier
+            .padding(bottom = 12.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceBright)
+            .selectableGroup(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Provider Icon
@@ -258,7 +165,9 @@ fun LRCLIBProviderCard(
                 .size(32.dp)
         )
         // Provider Name
-        Column(modifier = Modifier.weight(1f).padding(vertical = 10.dp)) {
+        Column(modifier = Modifier
+            .weight(1f)
+            .padding(vertical = 10.dp)) {
             Text(
                 text = "Lyrics",
                 color = MaterialTheme.colorScheme.onBackground,
@@ -269,6 +178,21 @@ fun LRCLIBProviderCard(
                 text = "LRCLIB.net",
                 color = MaterialTheme.colorScheme.onBackground.copy(0.75f),
                 style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+
+        // Edit Button
+        IconButton(
+            onClick = { showEditDialog = true },
+            shape = CircleShape,
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.onBackground
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Edit,
+                contentDescription = "Edit LRCLIB Endpoint",
             )
         }
 
@@ -283,43 +207,25 @@ fun LRCLIBProviderCard(
             }
         )
 
-        if (showEditDialog)
-            EditLrcLibUrlDialog(setShowDialog = { showEditDialog = it })
-
-        // Edit Button
-        Button(
-            onClick = { showEditDialog = true },
-            shape = CircleShape,
-            modifier = Modifier
-                .size(32.dp),
-            contentPadding = PaddingValues(2.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Edit,
-                tint = MaterialTheme.colorScheme.onBackground,
-                contentDescription = "Remove Navidrome Server",
-                modifier = Modifier
-                    .height(32.dp)
-                    .size(32.dp)
-            )
-        }
-
-        Spacer(Modifier.width(20.dp))
+        Spacer(Modifier.width(12.dp))
     }
+
+    if (showEditDialog)
+        EditLrcLibUrlDialog(setShowDialog = { showEditDialog = it })
 }
 
 @Preview
 @Composable
 fun NetEaseProviderCard(
     context: Context = LocalContext.current
-){
+) {
     var showEditDialog by remember { mutableStateOf(false) }
-    Row(modifier = Modifier
-        .padding(bottom = 12.dp)
-        .clip(RoundedCornerShape(12.dp))
-        .background(MaterialTheme.colorScheme.surfaceBright)
-        .selectableGroup(),
+    Row(
+        modifier = Modifier
+            .padding(bottom = 12.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceBright)
+            .selectableGroup(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Provider Icon
@@ -331,7 +237,9 @@ fun NetEaseProviderCard(
                 .size(32.dp)
         )
         // Provider Name
-        Column(modifier = Modifier.weight(1f).padding(vertical = 10.dp)) {
+        Column(modifier = Modifier
+            .weight(1f)
+            .padding(vertical = 10.dp)) {
             Text(
                 text = "Lyrics",
                 color = MaterialTheme.colorScheme.onBackground,

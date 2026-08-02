@@ -1,6 +1,7 @@
 package com.craftworks.music.providers.subsonic
 
 import android.content.Context
+import com.craftworks.music.BuildConfig
 import com.craftworks.music.R
 import com.craftworks.music.data.model.AlbumArtistDetailResponse
 import com.craftworks.music.data.model.AlbumArtistInfo
@@ -119,17 +120,15 @@ open class SubsonicMediaProvider : MediaProvider() {
     override val supportedSongSort: List<SongListSort> = listOf(SongListSort.NAME)
 
     @Transient
-    private var choraVersion: String = ""
+    private var choraVersion: String = BuildConfig.VERSION_NAME
+
     private val ktorfit: Ktorfit by lazy {
         val ktorClient = HttpClient(OkHttp) {
             install(createClientPlugin("SubsonicAuthParams") {
                 onRequest { request, _ ->
-                    if (_salt == null) {
-                        val credentials = providerData.credentials ?: throw Exception("Must authenticate first")
-                        val delimiter = credentials.indexOf(':')
-                        _salt = credentials.substring(0, delimiter)
-                        _token = credentials.substring(delimiter + 1)
-                    }
+                    _salt = StringUtils.generateSalt(8)
+                    _token = StringUtils.md5Hash(providerData.password + _salt)
+
                     request.url.parameters.apply {
                         append("u", providerData.username ?: "")
                         append("t", _token ?: "")
@@ -186,9 +185,7 @@ open class SubsonicMediaProvider : MediaProvider() {
     @Transient
     private var _token: String? = null
 
-    override fun init(context: Context) {
-        choraVersion = context.packageManager.getPackageInfo(context.packageName,0).versionName ?: ""
-    }
+    override fun init(context: Context) { }
 
     override suspend fun addToPlaylist(
         playlistId: String,
@@ -202,9 +199,7 @@ open class SubsonicMediaProvider : MediaProvider() {
         password: String
     ): AuthenticationResponse {
         providerData.username = username
-        _salt = StringUtils.generateSalt(8)
-        _token = StringUtils.md5Hash(password + _salt)
-        providerData.credentials = "$_salt:$_token"
+        providerData.password = password
 
         val res = try {
             service.getMusicFolderList()
@@ -213,7 +208,7 @@ open class SubsonicMediaProvider : MediaProvider() {
         }
 
         return AuthenticationResponse(
-            credential = providerData.credentials!!,
+            credential = "$_salt:$_token",
             isAdmin = res.subsonicResponse.user?.adminRole ?: false,
             userId = res.subsonicResponse.user?.username,
             username = username
@@ -306,7 +301,10 @@ open class SubsonicMediaProvider : MediaProvider() {
     }
 
     override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist> {
-        var artists = (service.getArtists(query.musicFolderId?.map { it.toInt() }).subsonicResponse.artists?.index ?: emptyList())
+        var artists = (service.getArtists(
+            //musicFolderId = query.musicFolderId?.map { it.toInt() }
+            musicFolderId = data.libraries.filter { it.second }.map { it.first.id.toInt() },
+        ).subsonicResponse.artists?.index ?: emptyList())
             .flatMap { it.artist }
             .map { it.toMediaModel(id) }
 
@@ -318,7 +316,11 @@ open class SubsonicMediaProvider : MediaProvider() {
             artists = artists.filter { it.userFavorite == query.favorite }
         }
 
-        return PagingUtils.sortAndPaginate(artists, sortBy = ALBUM_ARTIST_SORT_BINDING[query.sortBy]?:{it.name}, sortOrder = query.sortOrder)
+        return PagingUtils.sortAndPaginate(
+            artists,
+            sortBy = ALBUM_ARTIST_SORT_BINDING[query.sortBy] ?: { it.name },
+            sortOrder = query.sortOrder
+        )
     }
 
     override suspend fun getAlbumDetail(id: String): MediaModel.Album {
@@ -343,7 +345,8 @@ open class SubsonicMediaProvider : MediaProvider() {
                     albumOffset = query.startIndex,
                     artistCount = 0,
                     artistOffset = 0,
-                    musicFolderId = query.musicFolderId?.map { it.toInt() },
+                    //musicFolderId = query.musicFolderId?.map { it.toInt() },
+                    musicFolderId = data.libraries.filter { it.second }.map { it.first.id.toInt() },
                     query = query.searchTerm,
                     songCount = 0,
                     songOffset = 0
@@ -392,7 +395,8 @@ open class SubsonicMediaProvider : MediaProvider() {
                 fromYear = fromYear,
                 toYear = toYear,
                 genre = query.genreIds?.firstOrNull(),
-                musicFolderId = query.musicFolderId?.map { it.toInt() }
+                //musicFolderId = query.musicFolderId?.map { it.toInt() }
+                musicFolderId = data.libraries.filter { it.second }.map { it.first.id.toInt() },
             )
         } catch (e: Exception) {
             throw Exception("Failed to get album list", e)
@@ -551,7 +555,8 @@ open class SubsonicMediaProvider : MediaProvider() {
                 albumOffset = 0,
                 artistCount = 0,
                 artistOffset = 0,
-                musicFolderId = query.musicFolderId?.map { it.toInt() },
+                //musicFolderId = query.musicFolderId?.map { it.toInt() },
+                musicFolderId = data.libraries.filter { it.second }.map { it.first.id.toInt() },
                 query = query.searchTerm,
                 songCount = query.limit ?: 20,
                 songOffset = query.startIndex
@@ -561,13 +566,15 @@ open class SubsonicMediaProvider : MediaProvider() {
             return service.getSongsByGenre(
                 count = query.limit,
                 genre = query.genreIds[0],
-                musicFolderId = query.musicFolderId?.map { it.toInt() },
+                //musicFolderId = query.musicFolderId?.map { it.toInt() },
+                musicFolderId = data.libraries.filter { it.second }.map { it.first.id.toInt() },
                 offset = query.startIndex
             ).subsonicResponse.songsByGenre?.song?.map { it.toMediaModel(this.id) } ?: emptyList()
         }
         if (query.favorite?:false) {
-            return service.getStarred(query.musicFolderId?.map { it.toInt() })
-                .subsonicResponse.starred?.song?.map { it.toMediaModel(this.id) } ?: emptyList()
+            return service.getStarred(
+                musicFolderId = data.libraries.filter { it.second }.map { it.first.id.toInt() },
+            ).subsonicResponse.starred?.song?.map { it.toMediaModel(this.id) } ?: emptyList()
         }
 
         val artistsIds = mutableListOf<String>()
@@ -583,7 +590,8 @@ open class SubsonicMediaProvider : MediaProvider() {
             albumOffset = 0,
             artistCount = 0,
             artistOffset = 0,
-            musicFolderId = query.musicFolderId?.map { it.toInt() },
+            //musicFolderId = query.musicFolderId?.map { it.toInt() },
+            musicFolderId = data.libraries.filter { it.second }.map { it.first.id.toInt() },
             query = query.searchTerm?:"",
             songCount = query.limit ?: 20,
             songOffset = query.startIndex

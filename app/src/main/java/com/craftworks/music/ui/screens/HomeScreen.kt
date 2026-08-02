@@ -5,7 +5,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -180,7 +179,16 @@ fun HomeScreen(
                     libraries?.forEach { (library, isSelected) ->
                         FilterChip(
                             onClick = {
-                                TODO("Toggle Music folder")
+                                MediaProviderManager.setProviderLibraries(
+                                    currentProvider!!.id,
+                                    libraries = libraries.map { (currentLibrary, currentEnabled) ->
+                                        if (currentLibrary.id == library.id) {
+                                            Pair(library, !isSelected)
+                                        } else {
+                                            Pair(currentLibrary, currentEnabled)
+                                        }
+                                    }
+                                )
                                 showRipple++
                             },
                             label = {

@@ -264,6 +264,7 @@ fun CreateMediaProviderDialog(
                                     }
 
                                     provider.init(context)
+
                                     try {
                                         MediaProviderManager.addProvider(provider)
                                         setShowDialog(false)
@@ -388,15 +389,15 @@ fun CreateMediaProviderDialog(
                                             this.providerData = SubsonicProviderData(
                                                 url = url,
                                                 username = username,
+                                                password = password,
                                                 allowSelfSignedCert = allowCerts,
                                             )
                                         }
 
                                         provider.init(context)
-                                        try {
-                                            val auth = provider.authenticate(username, password)
-                                            provider.providerData.credentials = auth.credential
 
+                                        try {
+                                            provider.authenticate(username, password)
                                             MediaProviderManager.addProvider(provider)
                                             AppearanceSettingsManager(context).setUsername(username)
                                             setShowDialog(false)
@@ -549,15 +550,13 @@ fun CreateMediaProviderDialog(
                                             this.providerData = SubsonicProviderData(
                                                 url = url,
                                                 username = username,
+                                                password = password,
                                                 allowSelfSignedCert = allowCerts,
                                             )
                                         }
 
-                                        provider.init(context)
                                         try {
-                                            val auth = provider.authenticate(username, password)
-                                            provider.providerData.credentials = auth.credential
-
+                                            provider.authenticate(username, password)
                                             MediaProviderManager.addProvider(provider)
                                             AppearanceSettingsManager(context).setUsername(username)
                                             setShowDialog(false)

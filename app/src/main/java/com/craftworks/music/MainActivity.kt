@@ -339,9 +339,9 @@ class MainActivity : ComponentActivity() {
 
                 if (showNoProvidersDialog) {
                     if (isTv) {
-                        OnboardingDialog { showNoProvidersDialog = true }
+                        OnboardingDialog { showNoProvidersDialog = it }
                     } else {
-                        com.craftworks.music.ui.elements.dialogs.OnboardingDialog() { showNoProvidersDialog = true }
+                        com.craftworks.music.ui.elements.dialogs.OnboardingDialog() { showNoProvidersDialog = it }
 //                        NoMediaProvidersDialog(
 //                            setShowDialog = { showNoProvidersDialog = true },
 //                            navController
