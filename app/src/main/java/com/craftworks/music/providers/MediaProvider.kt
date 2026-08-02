@@ -12,7 +12,6 @@ import com.craftworks.music.data.model.GenreListSort
 import com.craftworks.music.data.model.GetQueueResponse
 import com.craftworks.music.data.model.ImageRequest
 import com.craftworks.music.data.model.LibraryType
-import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.data.model.Lyrics
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaProviderData
@@ -41,11 +40,13 @@ import kotlinx.serialization.modules.subclass
 @Serializable
 abstract class MediaProvider {
     companion object {
-        val serializerModule = SerializersModule {
-            polymorphic(MediaProvider::class) {
-                subclass(NavidromeMediaProvider::class)
-                subclass(SubsonicMediaProvider::class)
-                subclass(LocalMediaProvider::class)
+        val serializerModule: SerializersModule by lazy {
+            SerializersModule {
+                polymorphic(MediaProvider::class) {
+                    subclass(NavidromeMediaProvider::class)
+                    subclass(SubsonicMediaProvider::class)
+                    subclass(LocalMediaProvider::class)
+                }
             }
         }
     }

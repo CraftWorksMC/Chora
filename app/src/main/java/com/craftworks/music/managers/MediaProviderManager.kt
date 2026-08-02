@@ -130,6 +130,12 @@ object MediaProviderManager {
 
         updateProvidersFlow()
     }
+
+    suspend fun importProviders(context: Context, providers: Map<String, MediaProvider>, currentProviderId: String?) {
+        context.providerDataStore.updateData { current ->
+            current.copy(currentProviderId = currentProviderId, providers = providers)
+        }
+    }
 }
 
 //region Serialization

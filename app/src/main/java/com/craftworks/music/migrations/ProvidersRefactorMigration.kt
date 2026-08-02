@@ -1,112 +1,89 @@
 package com.craftworks.music.migrations
 
 import android.content.Context
-import androidx.core.content.edit
-import com.craftworks.music.utils.StringUtils
-import kotlinx.serialization.SerialName
+import com.craftworks.music.data.model.MediaProviderData
+import com.craftworks.music.data.model.MusicFolder
+import com.craftworks.music.managers.MediaProviderManager
+import com.craftworks.music.providers.MediaProvider
+import com.craftworks.music.providers.local.LocalMediaProvider
+import com.craftworks.music.providers.local.LocalProviderData
+import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
+import com.craftworks.music.providers.subsonic.SubsonicProviderData
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
+import java.util.UUID
 
 class ProvidersRefactorMigration : Migration {
     private val PREF_SERVERS = "navidrome_servers"
     private val PREF_CURRENT_SERVER = "current_server_id"
+
     private val PREF_FOLDERS = "local_folders"
 
-    private val PREF_PROVIDERS = "providers"
-    private val PREF_CURRENT_PROVIDER = "current_provider_id"
-    private val json = Json {
-        ignoreUnknownKeys = true
-        serializersModule = MediaProvider.serializerModule
-    }
+    private val oldJson = Json { ignoreUnknownKeys = true }
 
     override fun up(context: Context) {
-        val localProvider = context.getSharedPreferences("LocalProviderPrefs", Context.MODE_PRIVATE)
         val navidromeProvider = context.getSharedPreferences("NavidromePrefs", Context.MODE_PRIVATE)
-        val provider = context.getSharedPreferences("MediaProvidersPrefs", Context.MODE_PRIVATE)
-
-        // TODO: Migrate local provider
+        val localProvider = context.getSharedPreferences("LocalProviderPrefs", Context.MODE_PRIVATE)
 
         val currentId = navidromeProvider.getString(PREF_CURRENT_SERVER, null)
         val serversJson = navidromeProvider.getString(PREF_SERVERS, null)
-        var servers = mapOf<String, NavidromeProvider>()
-        if (serversJson != null) {
-            servers = json.decodeFromString(serversJson)
-        }
+        val servers: Map<String, NavidromeProvider> =
+            serversJson?.let { oldJson.decodeFromString(it) } ?: emptyMap()
+
+        val foldersJson = localProvider.getString(PREF_FOLDERS, null)
+        val folders: List<String> =
+            foldersJson?.let { oldJson.decodeFromString(it) } ?: emptyList()
+
         val providers = mutableMapOf<String, MediaProvider>()
-
-        for (server in servers) {
-            val salt = StringUtils.generateSalt(8)
-            val token = StringUtils.md5Hash(server.value.password + salt)
-
-            val newProvider = SubsonicMediaProvider(SubsonicProviderData(
-                url = server.value.url,
-                username = server.value.username,
-                credentials = "$salt:$token",
-                allowSelfSignedCert = server.value.allowSelfSignedCert?:false
-            ))
+        for ((key, server) in servers) {
+            val newProvider = SubsonicMediaProvider()
+            newProvider.providerData = SubsonicProviderData(
+                url = server.url,
+                username = server.username,
+                password = server.password,
+                allowSelfSignedCert = server.allowSelfSignedCert ?: false
+            )
+            newProvider.id = key
             newProvider.data = MediaProviderData(
-                server.value.libraryIds.map {
+                server.libraryIds.map {
                     Pair(MusicFolder(it.first.id.toString(), it.first.name), it.second)
                 }
             )
-
-            providers[server.key] = newProvider
+            providers[key] = newProvider
         }
 
-        val providersJson = json.encodeToString(providers)
-        provider.edit { putString(PREF_PROVIDERS, providersJson) }
-        provider.edit { putString(PREF_CURRENT_PROVIDER, currentId) }
+        for (folder in folders) {
+            val key = UUID.randomUUID().toString()
+            val newProvider = LocalMediaProvider(LocalProviderData(folder))
+            newProvider.init(context)
+            newProvider.id = key
+            newProvider.data = MediaProviderData(listOf(Pair(MusicFolder(folder, folder), true)))
+            providers[key] = newProvider
+        }
+
+        val newCurrentId = currentId ?: providers.keys.firstOrNull()
+
+        runBlocking {
+            MediaProviderManager.importProviders(context, providers, newCurrentId)
+        }
     }
 
     @Serializable
-    private data class NavidromeProvider (
+    private data class NavidromeProvider(
         val id: String = "0",
-        var url:String,
-        var username:String,
-        val password:String,
-        val enabled:Boolean? = true,
+        var url: String,
+        var username: String,
+        val password: String,
+        val enabled: Boolean? = true,
         var allowSelfSignedCert: Boolean? = false,
-        var libraryIds: List<Pair<NavidromeLibrary, Boolean>> = listOf(Pair(NavidromeLibrary(0, "Media Library"), true))
+        var libraryIds: List<Pair<NavidromeLibrary, Boolean>> =
+            listOf(Pair(NavidromeLibrary(0, "Media Library"), true))
     )
 
     @Serializable
-    private data class NavidromeLibrary (
+    private data class NavidromeLibrary(
         val id: Int = 0,
-        var name:String,
-    )
-
-    @Serializable
-    private abstract class MediaProvider {
-        companion object {
-            val serializerModule = SerializersModule {
-                polymorphic(MediaProvider::class) {
-                    subclass(SubsonicMediaProvider::class)
-                }
-            }
-        }
-        lateinit var data: MediaProviderData
-    }
-
-    @Serializable
-    private data class MusicFolder (
-        val id: String,
-        val name: String,
-    )
-    @Serializable
-    private data class MediaProviderData (var libraries: List<Pair<MusicFolder, Boolean>>)
-    @Serializable
-    @SerialName("subsonic")
-    private class SubsonicMediaProvider(var providerData: SubsonicProviderData) : MediaProvider() {
-    }
-
-    @Serializable
-    private data class SubsonicProviderData (
-        var url:String,
-        var username:String,
-        var credentials:String,
-        var allowSelfSignedCert: Boolean = false,
+        var name: String,
     )
 }
