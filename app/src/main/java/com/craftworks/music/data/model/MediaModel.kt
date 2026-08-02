@@ -332,6 +332,7 @@ abstract class MediaModel()
                             putLong("bitrate", this@Song.bitRate?.toLong() ?: 0)
                             putBoolean("userFavorite", this@Song.userFavorite ?: false)
                             putBoolean(METADATA_KEY_IS_EXPLICIT, this@Song.explicit == true)
+                            putString("lyricsArtist", if (this@Song.artists.isNotEmpty()) this@Song.artists[0].name else this@Song.artistName)
                         }
                     )
                     .build()

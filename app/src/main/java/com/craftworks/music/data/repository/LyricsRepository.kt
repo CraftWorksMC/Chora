@@ -77,6 +77,14 @@ class LyricsRepository @Inject constructor(
                         return@coroutineScope
                     }
 
+                    val lrclibWordSynced = lrcLib.count { !it.words.isNullOrEmpty() } > 1
+                    if (lrclibWordSynced) {
+                        Log.d("LYRICS", "Using LRCLIB word synced Lyrics")
+                        LyricsState.lyrics.value = lrcLib
+                        LyricsState.loading.value = false
+                        return@coroutineScope
+                    }
+
                     val providerSynced = provider.firstOrNull { it.synced }
                     if (providerSynced != null) {
                         Log.d("LYRICS", "Using provider synced lyrics")
