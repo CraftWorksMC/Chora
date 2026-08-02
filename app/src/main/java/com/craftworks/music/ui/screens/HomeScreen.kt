@@ -298,7 +298,7 @@ fun ProviderLogo(provider: MediaProvider){
     val coroutineScope = rememberCoroutineScope()
     val clickAction = rememberUpdatedState {
         when (provider) {
-            is NavidromeMediaProvider -> rotation += 360f
+            is NavidromeMediaProvider -> rotation += 180f
             is SubsonicMediaProvider -> {
                 coroutineScope.launch {
                     bounceAnimatable.animateTo(

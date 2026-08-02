@@ -3,25 +3,19 @@ package com.craftworks.music.managers
 import android.content.Context
 import android.util.Log
 import androidx.datastore.core.DataStore
-import androidx.datastore.core.Serializer
 import androidx.datastore.dataStore
 import com.craftworks.music.data.model.MediaProviderData
 import com.craftworks.music.data.model.MusicFolder
 import com.craftworks.music.providers.MediaProvider
-import com.craftworks.music.utils.CryptoData
-import kotlinx.coroutines.Dispatchers
+import com.craftworks.music.utils.EncryptedMediaProviderSerializer
+import com.craftworks.music.utils.MediaProviderConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import java.io.InputStream
-import java.io.OutputStream
 import java.util.UUID
-import kotlin.io.encoding.Base64
 
 object MediaProviderManager {
     private val providers = mutableMapOf<String, MediaProvider>()
@@ -137,50 +131,3 @@ object MediaProviderManager {
         }
     }
 }
-
-//region Serialization
-
-@Serializable
-data class MediaProviderConfig(
-    val currentProviderId: String? = null,
-    val providers: Map<String, MediaProvider> = emptyMap()
-)
-
-object EncryptedMediaProviderSerializer : Serializer<MediaProviderConfig> {
-    private val json = Json {
-        ignoreUnknownKeys = true
-        serializersModule = MediaProvider.serializerModule
-    }
-
-    private val cryptoData = CryptoData()
-
-    override val defaultValue: MediaProviderConfig
-        get() = MediaProviderConfig()
-
-    override suspend fun readFrom(input: InputStream): MediaProviderConfig {
-        return try {
-            val bytes = input.readBytes().decodeToString()
-            if (bytes.isBlank()) return defaultValue
-
-            val decryptedBytes = cryptoData.decrypt(Base64.decode(bytes))
-                ?: return defaultValue
-
-            json.decodeFromString<MediaProviderConfig>(decryptedBytes.decodeToString())
-        } catch (e: Exception) {
-            e.printStackTrace()
-            defaultValue
-        }
-    }
-
-    override suspend fun writeTo(t: MediaProviderConfig, output: OutputStream) {
-        val jsonString = json.encodeToString(t)
-        val encryptedBytes = cryptoData.encrypt(jsonString.toByteArray())
-        val encodedString = Base64.encode(encryptedBytes)
-
-        withContext(Dispatchers.IO) {
-            output.write(encodedString.toByteArray())
-        }
-    }
-}
-
-//endregion

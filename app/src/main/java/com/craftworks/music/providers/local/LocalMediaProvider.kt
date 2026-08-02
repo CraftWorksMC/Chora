@@ -104,7 +104,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         username: String,
         password: String
     ): AuthenticationResponse {
-        return AuthenticationResponse(credential = password, username = username)
+        return AuthenticationResponse(username = username)
     }
 
     override suspend fun createFavorite(

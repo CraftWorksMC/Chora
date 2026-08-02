@@ -1,9 +1,7 @@
 package com.craftworks.music.data.model
 
 data class AuthenticationResponse(
-    val credential: String,
     val isAdmin: Boolean? = null,
-    val ndCredential: String? = null,
     val userId: String? = null,
     val username: String
 )
