@@ -1,10 +1,12 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -71,6 +73,9 @@ import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.providers.MediaProvider
+import com.craftworks.music.providers.local.LocalMediaProvider
+import com.craftworks.music.providers.navidrome.NavidromeMediaProvider
+import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.playing.dpToPx
@@ -273,7 +278,11 @@ fun HomeScreen(
     )
 }
 
-@Composable fun ProviderLogo(provider: MediaProvider){
+@Composable
+fun ProviderLogo(provider: MediaProvider){
+    if (provider is LocalMediaProvider)
+        return
+
     var rotation by remember { mutableFloatStateOf(0f) }
     val animatedRotation by animateFloatAsState(
         targetValue = rotation,
@@ -283,15 +292,27 @@ fun HomeScreen(
         ),
         label = "Provider Logo Rotate"
     )
-    val clickAction = rememberUpdatedState {
-        rotation += 360f
-    }
 
-    val isClickable =
-        if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION)
-            Modifier.clickable { clickAction.value.invoke() }
-        else
-            Modifier
+    val impulseVelocity = dpToPx(200)
+    val bounceAnimatable = remember { Animatable(0f) }
+    val coroutineScope = rememberCoroutineScope()
+    val clickAction = rememberUpdatedState {
+        when (provider) {
+            is NavidromeMediaProvider -> rotation += 360f
+            is SubsonicMediaProvider -> {
+                coroutineScope.launch {
+                    bounceAnimatable.animateTo(
+                        targetValue = 0f,
+                        initialVelocity = -impulseVelocity.toFloat(),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    )
+                }
+            }
+        }
+    }
 
     Icon(
         painter = painterResource(provider.providerIcon),
@@ -301,10 +322,14 @@ fun HomeScreen(
             .size(76.dp)
             .offset(x = (8).dp)
             .shadow(24.dp, CircleShape)
+            .clickable {
+                clickAction.value.invoke()
+            }
+            .background(Color.White)
             .graphicsLayer {
                 rotationZ = animatedRotation
+                translationY = bounceAnimatable.value
             }
-            .then(isClickable)
     )
 }
 
