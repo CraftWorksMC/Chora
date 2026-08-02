@@ -523,27 +523,23 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             val currentItem = player.currentMediaItem
                 ?: return Futures.immediateFuture(SessionResult(SessionError.ERROR_INVALID_STATE))
 
-            val navidromeID = currentItem.mediaMetadata.extras?.getString("navidromeID") ?: ""
+            val id = currentItem.mediaMetadata.id ?: ""
             val newRating = (rating as StarRating).starRating.toInt()
 
             runBlocking {
-                songRepository.setSongRating(navidromeID, newRating)
+                songRepository.setSongRating(id, newRating)
             }
 
-            val updatedExtras = Bundle(currentItem.mediaMetadata.extras ?: Bundle()).apply {
-                putInt("rating", newRating)
-            }
             val updatedItem = currentItem.buildUpon()
                 .setMediaMetadata(
                     currentItem.mediaMetadata.buildUpon()
-                        .setExtras(updatedExtras)
                         .setUserRating(rating)
                         .build()
                 )
                 .build()
 
             val index = player.currentMediaItemIndex
-            if (player.currentMediaItem?.mediaMetadata?.extras?.getString("navidromeID") == navidromeID) {
+            if (player.currentMediaItem?.mediaMetadata?.id == id) {
                 player.replaceMediaItem(index, updatedItem)
             }
             return super.onSetRating(session, controller, rating)
