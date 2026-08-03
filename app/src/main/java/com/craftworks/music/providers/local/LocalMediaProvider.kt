@@ -164,7 +164,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         id: String,
         limit: Int?
     ): AlbumArtistInfo? {
-        TODO("Not yet implemented")
+        return null // No artist info for local provider
     }
 
     override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist> {
