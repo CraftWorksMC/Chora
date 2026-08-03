@@ -9,11 +9,12 @@ import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.ProviderType
 
 object LocalNormalizer {
-    fun cursorToAlbum(context: Context, providerId: String, cursor: Cursor, idIdx: Int, nameIdx: Int, artistIdx: Int): MediaModel.Album {
+    fun cursorToAlbum(context: Context, providerId: String, cursor: Cursor, idIdx: Int, nameIdx: Int, artistIdx: Int, yearIdx: Int): MediaModel.Album {
 
         val albumId = cursor.getLong(idIdx)
         val albumName = cursor.getString(nameIdx) ?: "Unknown"
         val artistName = cursor.getString(artistIdx) ?: "Unknown"
+        val year = cursor.getInt(yearIdx)
 
         val album = MediaModel.Album(
             id = albumId.toString(),
@@ -27,7 +28,9 @@ object LocalNormalizer {
                 name = artistName
             )),
             imageUrl = albumId.toString(),
-            name = albumName
+            name = albumName,
+            releaseYear = year,
+            originalYear = year
         )
 
         return album
@@ -38,9 +41,10 @@ object LocalNormalizer {
             val idIdx = it.getColumnIndexOrThrow(MediaStore.Audio.Albums._ID)
             val nameIdx = it.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM)
             val artistIdx = it.getColumnIndexOrThrow(MediaStore.Audio.Albums.ARTIST)
+            val yearIdx = it.getColumnIndexOrThrow(MediaStore.Audio.Albums.LAST_YEAR)
 
             while (it.moveToNext()) {
-                albums.add(cursorToAlbum(context, providerId, it, idIdx, nameIdx, artistIdx))
+                albums.add(cursorToAlbum(context, providerId, it, idIdx, nameIdx, artistIdx, yearIdx))
             }
         }
         return albums

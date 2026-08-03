@@ -52,7 +52,8 @@ object LocalUtils {
         val projection = arrayOf(
             MediaStore.Audio.Albums._ID,
             MediaStore.Audio.Albums.ALBUM,
-            MediaStore.Audio.Albums.ARTIST
+            MediaStore.Audio.Albums.ARTIST,
+            MediaStore.Audio.Albums.LAST_YEAR
         )
 
         val albumIdsInFolders = if (folders.isNotEmpty()) {
