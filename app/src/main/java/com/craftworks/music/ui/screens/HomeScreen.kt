@@ -101,6 +101,8 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
 
+    val settingsManager = remember(context) { AppearanceSettingsManager(context) }
+
     val recentlyPlayedAlbums by viewModel.recentlyPlayedAlbums.collectAsStateWithLifecycle()
     val recentAlbums by viewModel.recentAlbums.collectAsStateWithLifecycle()
     val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsStateWithLifecycle()
@@ -139,7 +141,7 @@ fun HomeScreen(
                     )
             ) {
                 Row (Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                    val username = AppearanceSettingsManager(context).usernameFlow.collectAsState("Username")
+                    val username = settingsManager.usernameFlow.collectAsState("Username")
                     val showProviderLogo = currentProvider != null
 
                     if (showProviderLogo) ProviderLogo(currentProvider!!)
@@ -218,26 +220,26 @@ fun HomeScreen(
             }
 
 
-            val orderedHomeItems = AppearanceSettingsManager(context).homeItemsItemsFlow.collectAsState(
+            val orderedHomeItems by settingsManager.homeItemsItemsFlow.collectAsState(
                 initial = listOf(
                     HomeItem(
                         "recently_played",
-                        true
+                        false
                     ),
                     HomeItem(
                         "recently_added",
-                        true
+                        false
                     ),
                     HomeItem(
                         "most_played",
-                        true
+                        false
                     ),
                     HomeItem(
                         "random_songs",
-                        true
+                        false
                     )
                 )
-            ).value
+            )
 
             orderedHomeItems.forEach { item ->
                 if (item.enabled) {

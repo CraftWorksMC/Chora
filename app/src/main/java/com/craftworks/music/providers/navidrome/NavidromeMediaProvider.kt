@@ -21,6 +21,8 @@ import io.ktor.client.plugins.plugin
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.util.AttributeKey
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -103,6 +105,9 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
 
     @Transient
     private var _token: String? = null
+    @Transient
+    private val authMutex = Mutex()
+
     private val ktorfit: Ktorfit by lazy {
         val ktorClient = HttpClient(OkHttp) {
             install(createClientPlugin("NavidromeAuthHeaders") {
@@ -147,19 +152,25 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
                 val originalCall = execute(request)
 
                 if (originalCall.response.status == HttpStatusCode.Unauthorized && !(request.attributes.getOrNull(isPublicKey) ?: false)) {
-                    val newToken = service.authenticate(
-                        NavidromeLoginRequest(
-                            username = providerData.username,
-                            password = providerData.password
-                        )).token
+
+                    val tokenBeforeRefresh = _token
+
+                    val newToken = authMutex.withLock {
+                        if (_token != tokenBeforeRefresh) {
+                            _token
+                        } else service.authenticate(
+                            NavidromeLoginRequest(
+                                username = providerData.username,
+                                password = providerData.password
+                            )
+                        ).token.also {
+                            _token = it
+                        }
+                    }
 
                     request.headers["X-ND-Authorization"] = "Bearer $newToken"
 
-                    val retriedCall = execute(request)
-
-                    if (retriedCall.response.status != HttpStatusCode.Unauthorized) _token = newToken
-
-                    return@intercept retriedCall
+                    return@intercept execute(request)
                 }
 
                 originalCall
