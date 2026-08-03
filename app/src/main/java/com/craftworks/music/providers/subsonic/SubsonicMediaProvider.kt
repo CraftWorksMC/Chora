@@ -91,6 +91,7 @@ open class SubsonicMediaProvider : MediaProvider() {
 
     @Transient
     override val featureFlags: ProviderFeatures = _featureFlags
+    @Transient
     override val supportedAlbumSort: List<AlbumListSort> = listOf(
         AlbumListSort.ALBUM_ARTIST,
         AlbumListSort.PLAY_COUNT,
@@ -99,29 +100,34 @@ open class SubsonicMediaProvider : MediaProvider() {
         AlbumListSort.RECENTLY_ADDED,
         AlbumListSort.RECENTLY_PLAYED,
     )
+    @Transient
     override val supportedAlbumArtistSort: List<AlbumArtistListSort> = listOf(
         AlbumArtistListSort.ALBUM_COUNT,
         AlbumArtistListSort.FAVORITED,
         AlbumArtistListSort.NAME,
         AlbumArtistListSort.RATING,
     )
+    @Transient
     override val supportedArtistSort: List<ArtistListSort> = listOf(
         ArtistListSort.ALBUM_COUNT,
         ArtistListSort.FAVORITED,
         ArtistListSort.NAME,
         ArtistListSort.RATING,
     )
+    @Transient
     override val supportedGenreSort: List<GenreListSort> = listOf(GenreListSort.NAME)
+    @Transient
     override val supportedPlaylistSort: List<PlaylistListSort> = listOf(
         PlaylistListSort.DURATION,
         PlaylistListSort.NAME,
         PlaylistListSort.SONG_COUNT,
         PlaylistListSort.UPDATED_AT,
     )
+    @Transient
     override val supportedSongSort: List<SongListSort> = listOf(SongListSort.NAME)
 
     @Transient
-    private val choraVersion: String = BuildConfig.VERSION_NAME
+    protected val choraVersion: String = BuildConfig.VERSION_NAME
 
     private val ktorfit: Ktorfit by lazy {
         val ktorClient = HttpClient(OkHttp) {

@@ -13,6 +13,7 @@ abstract class MediaQuery<T> (
         val compilation: Boolean? = null,
         val favorite: Boolean? = null,
         val genreIds: List<String>? = null,
+        val hasRating: Boolean? = null,
         val limit: Int? = null,
         val maxYear: Int? = null,
         val minYear: Int? = null,
