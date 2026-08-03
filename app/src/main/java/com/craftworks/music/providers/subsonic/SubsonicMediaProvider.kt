@@ -135,7 +135,7 @@ open class SubsonicMediaProvider : MediaProvider() {
             install(createClientPlugin("SubsonicAuthParams") {
                 onRequest { request, _ ->
                     val salt = StringUtils.generateSalt(8)
-                    val token = StringUtils.md5Hash(providerData.password + _salt)
+                    val token = StringUtils.md5Hash(providerData.password + salt)
 
                     request.url.parameters.apply {
                         append("u", providerData.username)
