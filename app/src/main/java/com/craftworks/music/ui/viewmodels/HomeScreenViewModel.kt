@@ -61,12 +61,12 @@ class HomeScreenViewModel @Inject constructor(
             coroutineScope {
                 val recentlyPlayedDeferred = async { albumRepository.getAlbums(
                     MediaQuery.AlbumListQuery(
-                    AlbumListSort.RECENTLY_PLAYED, SortOrder.ASC, limit = 20, startIndex = 0
+                    AlbumListSort.RECENTLY_PLAYED, SortOrder.DESC, limit = 20, startIndex = 0
                     )
                 ) }
                 val recentDeferred = async { albumRepository.getAlbums(
                     MediaQuery.AlbumListQuery(
-                        AlbumListSort.RECENTLY_ADDED, SortOrder.ASC, limit = 20, startIndex = 0
+                        AlbumListSort.RECENTLY_ADDED, SortOrder.DESC, limit = 20, startIndex = 0
                     )
                 ) }
                 val mostPlayedDeferred = async { albumRepository.getAlbums(
