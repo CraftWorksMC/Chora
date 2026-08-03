@@ -82,7 +82,7 @@ abstract class MediaQuery<T> (
         val artistIds: List<String>? = null,
         val favorite: Boolean? = null,
         val genreIds: List<String>? = null,
-        val hasRating: Boolean = false,
+        val hasRating: Boolean? = null,
         val imageSize: Int? = null,
         val limit: Int? = null,
         val maxYear: Int? = null,

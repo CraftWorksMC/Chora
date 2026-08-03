@@ -6,6 +6,7 @@ import com.craftworks.music.data.model.AlbumListSort
 import com.craftworks.music.data.model.ArtistListSort
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
 import de.jensklingenberg.ktorfit.Ktorfit
 import io.ktor.client.HttpClient
@@ -72,6 +73,28 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
                 ArtistListSort.PLAY_COUNT to "playCount",
                 ArtistListSort.RATING to "rating",
                 ArtistListSort.SONG_COUNT to "songCount",
+            )
+        private val SONG_SORT_BINDING =
+            mapOf(
+                SongListSort.ALBUM to "album",
+                SongListSort.ALBUM_ARTIST to "order_album_artist_name",
+                SongListSort.ARTIST to "artist",
+                SongListSort.BPM to "bpm",
+                SongListSort.CHANNELS to "channels",
+                SongListSort.COMMENT to "comment",
+                SongListSort.DURATION to "duration",
+                SongListSort.EXPLICIT_STATUS to "explicitStatus",
+                SongListSort.FAVORITED to "starred_at",
+                SongListSort.GENRE to "genre",
+                SongListSort.ID to "id",
+                SongListSort.NAME to "title",
+                SongListSort.PLAY_COUNT to "playCount",
+                SongListSort.RANDOM to "random",
+                SongListSort.RATING to "rating",
+                SongListSort.RECENTLY_ADDED to "createdAt",
+                SongListSort.RECENTLY_PLAYED to "playDate",
+                SongListSort.SORT_NAME to "title",
+                SongListSort.YEAR to "year",
             )
     }
 
@@ -212,6 +235,24 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
             libraryId = query.musicFolderId ?: data.libraries.filter { it.second }.map { it.first.id },
             name = query.searchTerm,
             starred = query.favorite,
+        ).map { it.toMediaModel(id) }
+    }
+
+    override suspend fun getSongList(query: MediaQuery.SongListQuery): List<MediaModel.Song> {
+        return service.getSongList(
+            end = query.startIndex + (query.limit ?: 50),
+            order = query.sortOrder.name,
+            start = query.startIndex,
+            sort = SONG_SORT_BINDING[query.sortBy],
+            albumId = query.albumIds,
+            genreId = query.genreIds,
+            artistsId = query.artistIds,
+            hasRating = query.hasRating,
+            libraryId = query.musicFolderId ?: data.libraries.filter { it.second }.map { it.first.id },
+            starred = query.favorite,
+            title = query.searchTerm,
+            year = query.maxYear ?: query.minYear,
+            missing = false
         ).map { it.toMediaModel(id) }
     }
 }
