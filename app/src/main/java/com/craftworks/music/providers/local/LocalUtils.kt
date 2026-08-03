@@ -3,8 +3,6 @@ package com.craftworks.music.providers.local
 import android.content.Context
 import android.os.Build
 import android.provider.MediaStore
-import androidx.core.database.getIntOrNull
-import androidx.core.database.getStringOrNull
 import com.craftworks.music.data.model.MediaModel
 
 object LocalUtils {
@@ -95,7 +93,8 @@ object LocalUtils {
             MediaStore.Audio.Media.DATE_ADDED,
             MediaStore.Audio.Media.TRACK,
             MediaStore.Audio.Media.YEAR,
-            MediaStore.Audio.Media.DURATION
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.MIME_TYPE
         ).apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 add(MediaStore.Audio.Media.BITRATE)
@@ -128,7 +127,8 @@ object LocalUtils {
             MediaStore.Audio.Media.DATE_ADDED,
             MediaStore.Audio.Media.TRACK,
             MediaStore.Audio.Media.YEAR,
-            MediaStore.Audio.Media.DURATION
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.MIME_TYPE
         ).apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 add(MediaStore.Audio.Media.BITRATE)

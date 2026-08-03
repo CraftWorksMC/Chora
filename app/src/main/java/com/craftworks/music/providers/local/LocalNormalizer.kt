@@ -7,6 +7,7 @@ import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.ProviderType
+import java.util.Locale.getDefault
 
 object LocalNormalizer {
     fun cursorToAlbum(context: Context, providerId: String, cursor: Cursor, idIdx: Int, nameIdx: Int, artistIdx: Int, yearIdx: Int): MediaModel.Album {
@@ -50,7 +51,7 @@ object LocalNormalizer {
         return albums
     }
 
-    fun cursorToSong(context: Context, providerId: String, cursor: Cursor, idIdx: Int, albumIdIdx: Int, pathIdx: Int, titleIdx: Int, albumIdx: Int, artistIdx: Int, dateAddedIdx: Int, trackIdx: Int, yearIdx: Int, durationIdx: Int, bitrateIdx: Int, genreIdx: Int) : MediaModel.Song {
+    fun cursorToSong(context: Context, providerId: String, cursor: Cursor, idIdx: Int, albumIdIdx: Int, pathIdx: Int, titleIdx: Int, albumIdx: Int, artistIdx: Int, dateAddedIdx: Int, trackIdx: Int, yearIdx: Int, durationIdx: Int, bitrateIdx: Int, formatIdx: Int, genreIdx: Int) : MediaModel.Song {
 
         val id = cursor.getLong(idIdx)
         val albumId = cursor.getLong(albumIdIdx)
@@ -63,13 +64,14 @@ object LocalNormalizer {
         val year = cursor.getIntOrNull(yearIdx) ?: 0
         val duration = cursor.getIntOrNull(durationIdx) ?: 0
         val bitrate = cursor.getIntOrNull(bitrateIdx) ?: 0
+        val format = cursor.getStringOrNull(formatIdx) ?: ""
         val genre = cursor.getStringOrNull(genreIdx) ?: ""
 
         val track = if (rawTrack >= 1000) rawTrack % 1000 else rawTrack
         val discNumber = if (rawTrack >= 1000) rawTrack / 1000 else 1
 
         return MediaModel.Song(
-            id = albumId.toString(),
+            id = id.toString(),
             providerId = providerId,
             providerType = ProviderType.LOCAL_FOLDER,
             album = album,
@@ -81,7 +83,8 @@ object LocalNormalizer {
                 providerType = ProviderType.LOCAL_FOLDER,
                 name = artist
             )),
-            bitRate = bitrate,
+            bitRate = bitrate / 1000,
+            format = format.substringAfter("/").uppercase(getDefault()).removePrefix("X-"),
             createdAt = dateAdded,
             discNumber = discNumber,
             durationMs = duration,
@@ -107,10 +110,11 @@ object LocalNormalizer {
             val yearIdx = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
             val durationIdx = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
             val bitrateIdx = cursor.getColumnIndex(MediaStore.Audio.Media.BITRATE)
+            val formatIdx = cursor.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE)
             val genreIdx = cursor.getColumnIndex(MediaStore.Audio.Media.GENRE)
 
             while (it.moveToNext()) {
-                songs.add(cursorToSong(context, providerId, it, idIdx, albumIdIdx, pathIdx, titleIdx, albumIdx, artistIdx, dateAddedIdx, trackIdx, yearIdx, durationIdx, bitrateIdx, genreIdx))
+                songs.add(cursorToSong(context, providerId, it, idIdx, albumIdIdx, pathIdx, titleIdx, albumIdx, artistIdx, dateAddedIdx, trackIdx, yearIdx, durationIdx, bitrateIdx, formatIdx, genreIdx))
             }
         }
         return songs
