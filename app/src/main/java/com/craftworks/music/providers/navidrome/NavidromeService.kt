@@ -43,4 +43,21 @@ interface NavidromeService {
         @Query role: String? = null,
         @Query starred: Boolean? = null,
     ): List<NavidromeArtist>
+    @GET("api/song")
+    suspend fun getSongList(
+        @Query("_end") end: Int? = null,
+        @Query("_order") order: String? = null,
+        @Query("_start") start: Int? = null,
+        @Query("_sort") sort: String? = null,
+        @Query("album_id") albumId: List<String>? = null,
+        @Query("artists_id") artistsId: List<String>? = null,
+        @Query("genre_id") genreId: List<String>? = null,
+        @Query("has_rating") hasRating: Boolean? = null,
+        @Query("library_id") libraryId : List<String>? = null,
+        @Query missing: Boolean? = null,
+        @Query path: String? = null,
+        @Query starred: Boolean? = null,
+        @Query title: String? = null,
+        @Query year: Int? = null
+    ): List<NavidromeSong>
 }
