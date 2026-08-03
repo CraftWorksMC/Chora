@@ -29,6 +29,7 @@ data class SubsonicResponse(
 @Serializable
 data class SubsonicBody(
     val status: String,
+    val type: String,
     val version: String,
     val error: SubsonicError? = null,
 
