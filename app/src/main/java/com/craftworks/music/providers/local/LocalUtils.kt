@@ -13,11 +13,16 @@ object LocalUtils {
         val contentResolver = context.contentResolver
         val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
+        val pathColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Audio.Media.RELATIVE_PATH
+        } else {
+            MediaStore.Audio.Media.DATA
+        }
 
         val selectionBuilder = StringBuilder("${MediaStore.Audio.Media.IS_MUSIC} != 0 AND (")
         folders.forEachIndexed { index, _ ->
             if (index > 0) selectionBuilder.append(" OR ")
-            selectionBuilder.append("${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?")
+            selectionBuilder.append("$pathColumn LIKE ?")
         }
         selectionBuilder.append(")")
 
