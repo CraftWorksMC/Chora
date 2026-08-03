@@ -1,6 +1,7 @@
 package com.craftworks.music.providers.subsonic
 
 import android.content.Context
+import android.util.Log
 import com.craftworks.music.BuildConfig
 import com.craftworks.music.R
 import com.craftworks.music.data.model.AlbumArtistDetailResponse
@@ -133,13 +134,13 @@ open class SubsonicMediaProvider : MediaProvider() {
         val ktorClient = HttpClient(OkHttp) {
             install(createClientPlugin("SubsonicAuthParams") {
                 onRequest { request, _ ->
-                    _salt = StringUtils.generateSalt(8)
-                    _token = StringUtils.md5Hash(providerData.password + _salt)
+                    val salt = StringUtils.generateSalt(8)
+                    val token = StringUtils.md5Hash(providerData.password + _salt)
 
                     request.url.parameters.apply {
-                        append("u", providerData.username ?: "")
-                        append("t", _token ?: "")
-                        append("s", _salt ?: "")
+                        append("u", providerData.username)
+                        append("t", token)
+                        append("s", salt)
                         append("v", choraVersion)
                         append("c", "Chora")
                         append("f", "json")
@@ -192,7 +193,10 @@ open class SubsonicMediaProvider : MediaProvider() {
     @Transient
     private var _token: String? = null
 
-    override fun init(context: Context) { }
+    override fun init(context: Context) {
+        _salt = StringUtils.generateSalt(8)
+        _token = StringUtils.md5Hash(providerData.password + _salt)
+    }
 
     override suspend fun addToPlaylist(
         playlistId: String,
@@ -207,6 +211,9 @@ open class SubsonicMediaProvider : MediaProvider() {
     ): AuthenticationResponse {
         providerData.username = username
         providerData.password = password
+
+        _salt = StringUtils.generateSalt(8)
+        _token = StringUtils.md5Hash(providerData.password + _salt)
 
         val res = try {
             service.ping()
@@ -468,7 +475,6 @@ open class SubsonicMediaProvider : MediaProvider() {
         urlBuilder?.addQueryParameter("s", _salt ?: "")
         urlBuilder?.addQueryParameter("c", "Chora")
         urlBuilder?.addQueryParameter("v", choraVersion)
-
         return urlBuilder?.build()?.toString() ?: ""
     }
 

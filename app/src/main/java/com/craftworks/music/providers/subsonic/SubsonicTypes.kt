@@ -340,7 +340,7 @@ data class SubsonicArtist(
             providerType = ProviderType.SUBSONIC,
             albumCount = albumCount,
             imageId = coverArt,
-            imageUrl = artistImageUrl ?: coverArt,
+            imageUrl = artistImageUrl,
             mbz = musicBrainzId,
             name = name,
             userFavorite = !this.starred.isNullOrEmpty()

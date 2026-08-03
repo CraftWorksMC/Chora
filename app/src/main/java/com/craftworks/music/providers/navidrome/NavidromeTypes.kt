@@ -99,7 +99,7 @@ data class NavidromeAlbum(
             explicit = explicit,
             genres = this.genres?.map { MediaModel.Genre(name = it.name) } ?: emptyList(),
             imageId = this.id,
-            imageUrl = null,
+            imageUrl = this.id,
             isCompilation = this.compilation,
             lastPlayedAt = this.playDate,
             mbzId = this.mbzAlbumId,
@@ -260,7 +260,7 @@ data class NavidromeSong(
             } else null,
             genres = this.genres?.map { MediaModel.Genre(name = it.name) } ?: emptyList(),
             imageId = this.id,
-            imageUrl = null,
+            imageUrl = this.id,
             lastPlayedAt = this.playDate,
             lyrics = this.lyrics,
             mbzRecordingId = this.mbzReleaseTrackId,
@@ -287,3 +287,78 @@ data class NavidromeSong(
         )
     }
 }
+
+@Serializable
+data class NavidromeArtist(
+    val id: String,
+    val name: String,
+    val albumCount: Int? = null,
+    val biography: String? = null,
+    val externalInfoUpdatedAt: String? = null,
+    val externalUrl: String? = null,
+    val fullText: String? = null,
+    val genres: List<NavidromeGenre>? = null,
+    val orderArtistName: String? = null,
+    val rating: Int? = null,
+    val size: Long? = null,
+    val songCount: Int? = null,
+    val starred: Boolean? = null,
+    val starredAt: String? = null,
+    val createdAt: String? = null,
+    val largeImageUrl: String? = null,
+    val mbzArtistId: String? = null,
+    val mediumImageUrl: String? = null,
+    val playCount: Int? = null,
+    val playDate: String? = null,
+    val smallImageUrl: String? = null,
+    val stats: Map<String, ArtistStats>? = null,
+    val updatedAt: String? = null,
+    val uploadedImage: String? = null
+) {
+    fun toMediaModel(providerId: String): MediaModel.Artist {
+        val (albumCount, songCount) = if (this.stats != null) {
+            val albumArtistStats = this.stats["albumartist"]
+            val artistStats = this.stats["artist"]
+
+            val calculatedAlbumCount = maxOf(
+                albumArtistStats?.albumCount ?: 0,
+                artistStats?.albumCount ?: 0
+            )
+            val calculatedSongCount = maxOf(
+                albumArtistStats?.songCount ?: 0,
+                artistStats?.songCount ?: 0
+            )
+
+            Pair(calculatedAlbumCount, calculatedSongCount)
+        } else {
+            Pair(this.albumCount, this.songCount)
+        }
+
+        return MediaModel.Artist(
+            id = this.id,
+            providerId = providerId,
+            providerType = ProviderType.NAVIDROME,
+            name = this.name,
+            albumCount = albumCount,
+            biography = this.biography,
+            durationMs = null,
+            genres = this.genres?.map { MediaModel.Genre(name = it.name) } ?: emptyList(),
+            imageId = this.id,
+            lastPlayedAt = this.playDate,
+            playCount = (this.playCount ?: 0).toDouble(),
+            songCount = songCount,
+            uploadedImage = this.uploadedImage,
+            userFavorite = this.starred,
+            userRating = this.rating
+        )
+    }
+
+}
+
+@Serializable
+data class ArtistStats(
+    val albumCount: Int? = null,
+    val size: Long? = null,
+    val songCount: Int? = null
+    // Add additional fields as needed for the artist stats object
+)

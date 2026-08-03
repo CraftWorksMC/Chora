@@ -46,7 +46,7 @@ fun ArtistCard(artist: MediaModel.Artist, onClick: () -> Unit) {
     ) {
         SubcomposeAsyncImage (
             model = ImageRequest.Builder(LocalContext.current)
-                .data(artist.imageUrl)
+                .data(artist.imageUrl ?: artist.imageId?.let {artist.getProvider()?.getImageUrl(it)})
                 .crossfade(true)
                 .diskCacheKey(
                     artist.id

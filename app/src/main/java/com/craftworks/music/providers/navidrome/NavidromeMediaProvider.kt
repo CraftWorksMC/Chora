@@ -1,7 +1,9 @@
 package com.craftworks.music.providers.navidrome
 
 import com.craftworks.music.R
+import com.craftworks.music.data.model.AlbumArtistListSort
 import com.craftworks.music.data.model.AlbumListSort
+import com.craftworks.music.data.model.ArtistListSort
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
@@ -35,6 +37,15 @@ import javax.net.ssl.X509TrustManager
 class NavidromeMediaProvider : SubsonicMediaProvider() {
 
     companion object {
+        private val ALBUM_ARTIST_SORT_BINDING =
+            mapOf(
+                AlbumArtistListSort.ALBUM_COUNT to "albumCount",
+                AlbumArtistListSort.FAVORITED to "starred_at",
+                AlbumArtistListSort.NAME to "name",
+                AlbumArtistListSort.PLAY_COUNT to "playCount",
+                AlbumArtistListSort.RATING to "rating",
+                AlbumArtistListSort.SONG_COUNT to "songCount",
+            )
         private val ALBUM_SORT_BINDING =
             mapOf(
                 AlbumListSort.ALBUM_ARTIST to "album_artist",
@@ -52,6 +63,15 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
                 AlbumListSort.SONG_COUNT to "songCount",
                 AlbumListSort.SORT_NAME to "name",
                 AlbumListSort.YEAR to "max_year",
+            )
+        private val ARTIST_SORT_BINDING =
+            mapOf(
+                ArtistListSort.ALBUM_COUNT to "albumCount",
+                ArtistListSort.FAVORITED to "starred_at",
+                ArtistListSort.NAME to "name",
+                ArtistListSort.PLAY_COUNT to "playCount",
+                ArtistListSort.RATING to "rating",
+                ArtistListSort.SONG_COUNT to "songCount",
             )
     }
 
@@ -154,6 +174,18 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
 
     private val service: NavidromeService by lazy { ktorfit.createNavidromeService() }
 
+    override suspend fun getAlbumArtistList(query: MediaQuery.AlbumArtistListQuery): List<MediaModel.Artist> {
+        return service.getAlbumArtistList(
+            end = query.startIndex + (query.limit ?: 0),
+            order = query.sortOrder.name,
+            start = query.startIndex,
+            sort = ALBUM_ARTIST_SORT_BINDING[query.sortBy],
+            libraryId = query.musicFolderId ?: data.libraries.filter { it.second }.map { it.first.id },
+            name = query.searchTerm,
+            role = "albumartist",
+            starred = query.favorite,
+        ).map { it.toMediaModel(id) }
+    }
     override suspend fun getAlbumList(query: MediaQuery.AlbumListQuery): List<MediaModel.Album> {
         return service.getAlbumList(
             end = query.startIndex + (query.limit ?: 0),
@@ -168,6 +200,18 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
             name = query.searchTerm,
             starred = query.favorite,
             year = query.maxYear ?: query.minYear
+        ).map { it.toMediaModel(id) }
+    }
+
+    override suspend fun getArtistList(query: MediaQuery.ArtistListQuery): List<MediaModel.Artist> {
+        return service.getAlbumArtistList(
+            end = query.startIndex + (query.limit ?: 0),
+            order = query.sortOrder.name,
+            start = query.startIndex,
+            sort = ARTIST_SORT_BINDING[query.sortBy],
+            libraryId = query.musicFolderId ?: data.libraries.filter { it.second }.map { it.first.id },
+            name = query.searchTerm,
+            starred = query.favorite,
         ).map { it.toMediaModel(id) }
     }
 }
