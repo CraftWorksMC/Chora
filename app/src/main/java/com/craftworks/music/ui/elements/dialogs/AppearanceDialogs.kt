@@ -96,7 +96,7 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
 
     AlertDialog(
         onDismissRequest = { setShowDialog(false) },
-        title = { Text(stringResource(R.string.Setting_Username)) },
+        title = { Text(stringResource(R.string.appearance_username)) },
         text = {
             OutlinedTextField(
                 value = usernameTextField,
@@ -105,7 +105,7 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
                         AppearanceSettingsManager(context).setUsername(it)
                     }
                 },
-                label = { stringResource(R.string.Setting_Username) },
+                label = { stringResource(R.string.appearance_username) },
                 singleLine = true
             )
         },
@@ -116,7 +116,7 @@ fun NameDialog(setShowDialog: (Boolean) -> Unit = {} ) {
                     setShowDialog(false)
                 }
             }) {
-                Text(stringResource(R.string.Action_Done))
+                Text(stringResource(R.string.action_done))
             }
         }
     )
@@ -130,14 +130,14 @@ fun BackgroundDialog(setShowDialog: (Boolean) -> Unit) {
     val backgroundType by AppearanceSettingsManager(context).npBackgroundFlow.collectAsState(NowPlayingBackground.ANIMATED_BLUR)
 
     val backgroundTypeLabels = mapOf(
-        NowPlayingBackground.PLAIN to R.string.Background_Plain,
-        NowPlayingBackground.STATIC_BLUR to R.string.Background_Blur,
-        NowPlayingBackground.ANIMATED_BLUR to R.string.Background_Anim
+        NowPlayingBackground.PLAIN to R.string.background_style_plain,
+        NowPlayingBackground.STATIC_BLUR to R.string.background_style_blur,
+        NowPlayingBackground.ANIMATED_BLUR to R.string.background_style_anim
     )
 
     AlertDialog(
         onDismissRequest = { setShowDialog(false) },
-        title = { Text(stringResource(R.string.Setting_Background)) },
+        title = { Text(stringResource(R.string.appearance_background_style)) },
         text = {
             Column{
                 NowPlayingBackground.entries.forEach { option ->
@@ -204,12 +204,12 @@ fun ThemeDialog(setShowDialog: (Boolean) -> Unit) {
     )
 
     val themeStrings = listOf(
-        R.string.Theme_Dark, R.string.Theme_Light, R.string.Theme_System
+        R.string.theme_dark, R.string.theme_light, R.string.theme_system
     )
 
     AlertDialog(
         onDismissRequest = { setShowDialog(false) },
-        title = { Text(stringResource(R.string.Dialog_Theme)) },
+        title = { Text(stringResource(R.string.appearance_theme)) },
         text = {
             Column{
                 for ((index, option) in themes.withIndex()) {
@@ -322,7 +322,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
 
     AlertDialog(
         onDismissRequest = { setShowDialog(false) },
-        title = { Text(stringResource(R.string.Setting_Navbar_Items)) },
+        title = { Text(stringResource(R.string.appearance_navbar_items)) },
         text = {
             val lazyListState = rememberLazyListState()
             val reorderableLazyColumnState =
@@ -391,7 +391,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
             Button(onClick = {
                 setShowDialog(false)
             }) {
-                Text(stringResource(R.string.Action_Done))
+                Text(stringResource(R.string.action_done))
             }
         },
         dismissButton = {
@@ -428,7 +428,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
                     }
                 }
             ) {
-                Text(stringResource(R.string.Action_Reset))
+                Text(stringResource(R.string.action_reset))
             }
         }
     )
@@ -444,7 +444,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
 
     AlertDialog(
         onDismissRequest = { setShowDialog(false) },
-        title = { Text(stringResource(R.string.Setting_Home_Items)) },
+        title = { Text(stringResource(R.string.appearance_home_items)) },
         text = {
             val lazyListState = rememberLazyListState()
             val reorderableLazyColumnState =
@@ -482,10 +482,10 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
                             )
                             val titleMap = remember {
                                 mapOf(
-                                    "recently_played" to R.string.recently_played,
-                                    "recently_added" to R.string.recently_added,
-                                    "most_played" to R.string.most_played,
-                                    "random_songs" to R.string.random_songs
+                                    "recently_played" to R.string.home_recently_played,
+                                    "recently_added" to R.string.home_recently_added,
+                                    "most_played" to R.string.home_most_played,
+                                    "random_songs" to R.string.home_explore_library
                                 )
                             }
                             Text(
@@ -519,7 +519,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
             Button(onClick = {
                 setShowDialog(false)
             }) {
-                Text(stringResource(R.string.Action_Done))
+                Text(stringResource(R.string.action_done))
             }
         },
         dismissButton = {
@@ -551,7 +551,7 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
                     }
                 }
             ) {
-                Text(stringResource(R.string.Action_Reset))
+                Text(stringResource(R.string.action_reset))
             }
         }
     )
@@ -594,9 +594,9 @@ fun NowPlayingTitleAlignmentDialog(
                             modifier = Modifier.bounceClick()
                         )
                         val alignmentStringRes = when (alignment) {
-                            NowPlayingAlignment.LEFT -> R.string.NowPlayingTitleAlignment_Left
-                            NowPlayingAlignment.CENTER -> R.string.NowPlayingTitleAlignment_Center
-                            NowPlayingAlignment.RIGHT -> R.string.NowPlayingTitleAlignment_Right
+                            NowPlayingAlignment.LEFT -> R.string.alignment_setting_left
+                            NowPlayingAlignment.CENTER -> R.string.alignment_setting_center
+                            NowPlayingAlignment.RIGHT -> R.string.alignment_setting_right
                         }
 
                         Text(

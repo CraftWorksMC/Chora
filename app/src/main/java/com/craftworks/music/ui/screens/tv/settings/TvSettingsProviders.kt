@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.runtime.Composable
@@ -98,7 +97,7 @@ fun TvS_ProviderScreen() {
                             Icon(Icons.Rounded.Add, contentDescription = null)
                         },
                         headlineContent = {
-                            Text(stringResource(R.string.Action_Add))
+                            Text(stringResource(R.string.action_add))
                         }
                     )
                 }

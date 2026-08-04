@@ -114,9 +114,9 @@ fun TvHomeScreen(
 
     val titleMap = remember {
         mapOf(
-            "recently_played" to R.string.recently_played,
-            "recently_added" to R.string.recently_added,
-            "most_played" to R.string.most_played
+            "recently_played" to R.string.home_recently_played,
+            "recently_added" to R.string.home_recently_added,
+            "most_played" to R.string.home_most_played
         )
     }
 
@@ -240,7 +240,7 @@ fun TvHomeScreen(
                 Modifier.focusGroup()
             ) {
                 Text(
-                    text = stringResource(titleMap[item.key] ?: R.string.recently_played),
+                    text = stringResource(titleMap[item.key] ?: R.string.home_recently_played),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold,
@@ -410,7 +410,7 @@ private fun CarouselItem(
                     contentDescription = null
                 )
                 Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.Action_Play))
+                Text(stringResource(R.string.action_play))
             }
         }
     }

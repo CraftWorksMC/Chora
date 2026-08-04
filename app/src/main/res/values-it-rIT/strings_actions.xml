@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Common -->
-    <string name="Action_Done">Fatto</string>
-    <string name="Action_Remove">Rimuovi</string>
-    <string name="Action_Reset">Reimposta</string>
-    <string name="Action_Search">Cerca</string>
-    <string name="Action_Play">Riproduci</string>
-    <string name="Action_Shuffle">Shuffle</string>
+    <string name="action_done">Fatto</string>
+    <string name="action_remove">Rimuovi</string>
+    <string name="action_reset">Reimposta</string>
+    <string name="action_search">Cerca</string>
+    <string name="action_play">Riproduci</string>
+    <string name="action_shuffle">Shuffle</string>
     <!-- Navidrome Provider -->
-    <string name="Action_Add">Aggiungi</string>
-    <string name="Action_Add_To_Queue">Aggiungi Alla Coda</string>
-    <string name="Action_Next">Avanti</string>
-    <string name="Action_Success">Successo</string>
-    <string name="Action_Login">Accedi</string>
-    <string name="Action_Go">Andiamo!</string>
-    <string name="Action_Exit">Esci</string>
+    <string name="action_add">Aggiungi</string>
+    <string name="action_add_to_queue">Aggiungi Alla Coda</string>
+    <string name="action_next">Avanti</string>
+    <string name="add_media_provider_login">Accedi</string>
+    <string name="onboarding_lets_go">Andiamo!</string>
     <!-- Playlists -->
-    <string name="Action_CreatePlaylist">Crea Playlist</string>
-    <string name="Action_Download">Scarica</string>
+    <string name="action_create_playlist">Crea Playlist</string>
+    <string name="action_download">Scarica</string>
 </resources>

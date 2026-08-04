@@ -306,7 +306,7 @@ fun ArtistDetails(
                             modifier = Modifier.height(24.dp)
                         ) {
                             Icon(Icons.Rounded.PlayArrow, "Play Album")
-                            Text(stringResource(R.string.Action_Play))
+                            Text(stringResource(R.string.action_play))
                         }
                     }
                     OutlinedButton (
@@ -341,7 +341,7 @@ fun ArtistDetails(
                                 ImageVector.vectorResource(R.drawable.round_shuffle_28),
                                 "Shuffle Album"
                             )
-                            Text(stringResource(R.string.Action_Shuffle))
+                            Text(stringResource(R.string.action_shuffle))
                         }
                     }
                 }
@@ -350,7 +350,7 @@ fun ArtistDetails(
             /* Discography header */
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Text(
-                    text = stringResource(R.string.Screen_Discography),
+                    text = stringResource(R.string.artist_details_discography),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.headlineSmall,

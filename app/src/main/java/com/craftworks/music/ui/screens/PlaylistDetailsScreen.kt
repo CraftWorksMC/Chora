@@ -276,7 +276,7 @@ fun PlaylistDetails(
                             modifier = Modifier.height(24.dp)
                         ) {
                             Icon(Icons.Rounded.PlayArrow, "Play Album")
-                            Text(stringResource(R.string.Action_Play), maxLines = 1)
+                            Text(stringResource(R.string.action_play), maxLines = 1)
                         }
                     }
                     OutlinedButton (
@@ -297,7 +297,7 @@ fun PlaylistDetails(
                                 ImageVector.vectorResource(R.drawable.round_shuffle_28),
                                 "Shuffle Album"
                             )
-                            Text(stringResource(R.string.Action_Shuffle), maxLines = 1)
+                            Text(stringResource(R.string.action_shuffle), maxLines = 1)
                         }
                     }
                 }
@@ -323,7 +323,7 @@ fun PlaylistDetails(
                     extraMenuItems = { onDismiss ->
                         DropdownMenuItem(
                             text = {
-                                Text(stringResource(R.string.Action_RemoveFromPlaylist))
+                                Text(stringResource(R.string.action_remove_from_playlist))
                             },
                             onClick = {
                                 viewModel.removeSongFromPlaylist(

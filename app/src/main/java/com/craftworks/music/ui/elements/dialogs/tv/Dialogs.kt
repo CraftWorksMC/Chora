@@ -129,7 +129,7 @@ fun <T> GenericCheckDialog(
             Button(
                 onClick = { setShowDialog(false) }
             ) {
-                Text(stringResource(R.string.Action_Done))
+                Text(stringResource(R.string.action_done))
             }
         },
         dismissButton = {
@@ -137,7 +137,7 @@ fun <T> GenericCheckDialog(
                 onReset()
                 setShowDialog(false)
             }) {
-                Text(stringResource(R.string.Action_Reset))
+                Text(stringResource(R.string.action_reset))
             }
         }
     )

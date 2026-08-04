@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Settings_Header_Appearance">Внешний вид</string>
-    <string name="Setting_Username">Никнейм</string>
-    <string name="Setting_Background">Задний Фон</string>
-    <string name="Setting_Oled_Mode">OLED Protection</string>
-    <string name="Setting_Navbar_Items">Элементы Панели Навигации</string>
-    <string name="Setting_Home_Items">Элементы Главной Страницы</string>
-    <string name="Setting_MoreInfo">Показывать Дополнительную Информацию</string>
-    <string name="Setting_NowPlayingLyricsBlur">Эффект Блюра Субтитров</string>
-    <string name="Setting_NavidromeLogo">Отображать Navidrome Лого На Главном Экране</string>
-    <string name="Setting_ProviderDividers">Разделять Разные Медиа-провайдеры</string>
-    <string name="Setting_RefreshAnimation">Показывать Анимацию Обновления</string>
-    <string name="Setting_LyricsAnimationSpeed">Скорость Анимации Субтитров</string>
-    <string name="Setting_LyricsAutoscroll">Автоматически Скроллить Стандартные Субтитры</string>
-    <string name="Setting_LyricsRecenter">Поставить По Центру После Скролла</string>
-    <string name="Setting_TrackNumbersAlbum">Показывать Номера Песен В Альбоме</string>
-    <string name="Settings_Header_Media">Медиа-провайдеры</string>
-    <string name="Settings_Header_Playback">Проигрывание</string>
-    <string name="Setting_Transcoding">Максимальный Битрейт</string>
-    <string name="Setting_Transcoding_Wifi">Максимальный Битрейт (от WiFi)</string>
-    <string name="Setting_Transcoding_Data">Максимальный Битрейт (от Мобильного Интернета)</string>
-    <string name="Setting_Transcoding_Format">Формат Транскодирования</string>
-    <string name="Setting_Scrobble_Percent">Минимальный Процент Скробблинга (Отслеживание Музыки)</string>
-    <string name="Setting_Scrobble_Description">Только Navidrome.</string>
+    <string name="settings_appearance">Внешний вид</string>
+    <string name="appearance_username">Никнейм</string>
+    <string name="appearance_oled_mode">OLED Protection</string>
+    <string name="appearance_navbar_items">Элементы Панели Навигации</string>
+    <string name="appearance_home_items">Элементы Главной Страницы</string>
+    <string name="appearance_more_info">Показывать Дополнительную Информацию</string>
+    <string name="appearance_now_playing_lyrics_blur">Эффект Блюра Субтитров</string>
+    <string name="appearance_provider_logo">Отображать Navidrome Лого На Главном Экране</string>
+    <string name="appearance_provider_dividers">Разделять Разные Медиа-провайдеры</string>
+    <string name="appearance_refresh_animation">Показывать Анимацию Обновления</string>
+    <string name="appearance_lyrics_animation_speed">Скорость Анимации Субтитров</string>
+    <string name="appearance_lyrics_auto_scroll">Автоматически Скроллить Стандартные Субтитры</string>
+    <string name="appearance_lyrics_recenter">Поставить По Центру После Скролла</string>
+    <string name="appearance_track_numbers_in_album_view">Показывать Номера Песен В Альбоме</string>
+    <string name="settings_media_providers">Медиа-провайдеры</string>
+    <string name="settings_playback">Проигрывание</string>
+    <string name="playback_max_bitrate">Максимальный Битрейт</string>
+    <string name="playback_max_bitrate_wifi">Максимальный Битрейт (от WiFi)</string>
+    <string name="playback_max_bitrate_mobile_data">Максимальный Битрейт (от Мобильного Интернета)</string>
+    <string name="playback_transcoding_format">Формат Транскодирования</string>
+    <string name="playback_min_scrobble_percentage">Минимальный Процент Скробблинга (Отслеживание Музыки)</string>
 </resources>

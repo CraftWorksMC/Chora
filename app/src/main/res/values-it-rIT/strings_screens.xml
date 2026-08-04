@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Home -->
-    <string name="welcome_text">Benvenuto</string>
-    <string name="recently_added">Aggiunte Recentemente</string>
-    <string name="most_played">Più Ascoltate</string>
-    <string name="recently_played">Ascoltate Recentemente</string>
-    <string name="random_songs">Esplora La Tua Libreria</string>
+    <string name="home_welcome">Benvenuto,\n%s!</string>
+    <string name="home_recently_added">Aggiunte Recentemente</string>
+    <string name="home_most_played">Più Ascoltate</string>
+    <string name="home_recently_played">Ascoltate Recentemente</string>
+    <string name="home_explore_library">Esplora La Tua Libreria</string>
+    <string name="home_settings">Impostazioni</string>
     <!-- Artist Details -->
-    <string name="Screen_Discography">Discografia</string>
-    <string name="Screen_Top_Songs">Canzoni Popolari</string>
+    <string name="artist_details_discography">Discografia</string>
     <!-- Album Details -->
-    <string name="Album_Disc_Number">Disco </string>
+    <string name="album_details_disc">Disco %s</string>
 </resources>

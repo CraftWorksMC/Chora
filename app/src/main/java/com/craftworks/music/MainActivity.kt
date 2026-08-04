@@ -388,8 +388,8 @@ class MainActivity : ComponentActivity() {
         createNotificationChannel(
             this,
             "download_channel",
-            R.string.Notification_Download_Name,
-            R.string.Notification_Download_Desc,
+            R.string.notification_download_name,
+            R.string.notification_download_desc,
             IMPORTANCE_LOW
         )
 
@@ -436,19 +436,19 @@ fun TvSideNavigation(
                 "Home", R.drawable.rounded_home_24, "home_screen"
             ),
             BottomNavItem(
-                stringResource((R.string.Albums)), R.drawable.rounded_library_music_24, "album_screen"
+                stringResource((R.string.nav_albums)), R.drawable.rounded_library_music_24, "album_screen"
             ),
             BottomNavItem(
-                stringResource((R.string.songs)), R.drawable.round_music_note_24, "songs_screen", false
+                stringResource((R.string.nav_songs)), R.drawable.round_music_note_24, "songs_screen", false
             ),
             BottomNavItem(
-                stringResource((R.string.Artists)), R.drawable.rounded_artist_24, "artists_screen"
+                stringResource((R.string.nav_artists)), R.drawable.rounded_artist_24, "artists_screen"
             ),
             BottomNavItem(
-                stringResource((R.string.radios)), R.drawable.rounded_radio, "radio_screen"
+                stringResource((R.string.nav_radios)), R.drawable.rounded_radio, "radio_screen"
             ),
             BottomNavItem(
-                stringResource((R.string.playlists)), R.drawable.placeholder, "playlist_screen"
+                stringResource((R.string.nav_playlists)), R.drawable.placeholder, "playlist_screen"
             ),
         )
     ).value
@@ -617,7 +617,7 @@ fun TvSideNavigation(
                             )
                         }
                     ) {
-                        androidx.tv.material3.Text(text = stringResource(R.string.settings))
+                        androidx.tv.material3.Text(text = stringResource(R.string.home_settings))
                     }
                     /*
                     NavigationDrawerItem(
@@ -672,15 +672,15 @@ fun AnimatedBottomNavBar(
             BottomNavItem(
                 "Home", R.drawable.rounded_home_24, "home_screen"
             ), BottomNavItem(
-                stringResource(R.string.Albums), R.drawable.rounded_library_music_24, "album_screen"
+                stringResource(R.string.nav_albums), R.drawable.rounded_library_music_24, "album_screen"
             ), BottomNavItem(
-                stringResource(R.string.songs), R.drawable.round_music_note_24, "songs_screen"
+                stringResource(R.string.nav_songs), R.drawable.round_music_note_24, "songs_screen"
             ), BottomNavItem(
-                stringResource(R.string.Artists), R.drawable.rounded_artist_24, "artists_screen"
+                stringResource(R.string.nav_artists), R.drawable.rounded_artist_24, "artists_screen"
             ), BottomNavItem(
-                stringResource(R.string.radios), R.drawable.rounded_radio, "radio_screen"
+                stringResource(R.string.nav_radios), R.drawable.rounded_radio, "radio_screen"
             ), BottomNavItem(
-                stringResource(R.string.playlists), R.drawable.placeholder, "playlist_screen"
+                stringResource(R.string.nav_playlists), R.drawable.placeholder, "playlist_screen"
             )
         )
     ).value

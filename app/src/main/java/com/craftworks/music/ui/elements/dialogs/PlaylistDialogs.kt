@@ -31,13 +31,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -54,6 +52,7 @@ import com.craftworks.music.data.model.providerType
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
+import androidx.core.text.htmlEncode
 
 //region PREVIEWS
 @Preview(showBackground = true)
@@ -102,13 +101,12 @@ fun AddSongToPlaylist(
 
                     // Header
                     Text(
-                        text = buildAnnotatedString {
-                            append(stringResource(R.string.Dialog_Add_To_Playlist).split("/")[0])
-                            withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                                append(songToAddToPlaylist.value.mediaMetadata.title)
-                            }
-                            append(stringResource(R.string.Dialog_Add_To_Playlist).split("/")[1])
-                        },
+                        text = AnnotatedString.fromHtml(
+                            stringResource(
+                                R.string.add_to_playlist_title,
+                                songToAddToPlaylist.value.mediaMetadata.title.toString().htmlEncode()
+                            )
+                        ),
                         style = TextStyle(
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontFamily = FontFamily.Default,
@@ -199,7 +197,7 @@ fun AddSongToPlaylist(
                                 .height(50.dp)
                                 .bounceClick()
                         ) {
-                            Text(stringResource(R.string.Dialog_New_Playlist))
+                            Text(stringResource(R.string.button_new_playlist))
                         }
                     }
 
@@ -229,7 +227,7 @@ fun NewPlaylist(
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = stringResource(R.string.Dialog_New_Playlist),
+                        text = stringResource(R.string.button_new_playlist),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -240,7 +238,7 @@ fun NewPlaylist(
                         OutlinedTextField(
                             value = name,
                             onValueChange = { name = it },
-                            label = { Text(stringResource(R.string.Label_Playlist_Name)) },
+                            label = { Text(stringResource(R.string.new_playlist_playlist_name)) },
                             singleLine = true
                         )
 
@@ -267,7 +265,7 @@ fun NewPlaylist(
                                 .bounceClick()
                         ) {
                             Text(
-                                stringResource(R.string.Action_CreatePlaylist),
+                                stringResource(R.string.action_create_playlist),
                                 modifier = Modifier.height(24.dp)
                             )
                         }
@@ -293,7 +291,7 @@ fun DeletePlaylist(
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = stringResource(R.string.Dialog_Delete_Playlist),
+                        text = stringResource(R.string.playlist_delete_playlist),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -302,7 +300,7 @@ fun DeletePlaylist(
                     Column {
 
                         Text(
-                            text = stringResource(R.string.Label_Confirm_Delete_Playlist),
+                            text = stringResource(R.string.delete_playlist_are_you_sure),
                             fontWeight = FontWeight.Normal,
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             color = MaterialTheme.colorScheme.onBackground,
@@ -322,7 +320,7 @@ fun DeletePlaylist(
                                 .bounceClick()
                         ) {
                             Text(
-                                stringResource(R.string.Action_Remove),
+                                stringResource(R.string.action_remove),
                                 modifier = Modifier.height(24.dp)
                             )
                         }

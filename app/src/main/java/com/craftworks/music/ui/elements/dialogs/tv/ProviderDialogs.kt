@@ -545,7 +545,7 @@ fun CreateLocalProviderDialog(
                         .widthIn(max = 260.dp)
                         .focusRequester(action),
                     headlineContent = {
-                        Text(stringResource(R.string.Action_Add))
+                        Text(stringResource(R.string.action_add))
                     },
                     supportingContent = {
                         Text(
@@ -663,7 +663,7 @@ fun ModifyLrcLibProviderDialog(
 
                 ListItem(
                     selected = false,
-                    headlineContent = { Text(stringResource(R.string.Action_Done)) },
+                    headlineContent = { Text(stringResource(R.string.action_done)) },
                     onClick = {
                         coroutineScope.launch {
                             settingsManager.setLrcLibEndpoint(url)

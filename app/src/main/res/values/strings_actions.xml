@@ -1,28 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Common -->
-    <string name="Action_Done">Done</string>
-    <string name="Action_Remove">Remove</string>
-    <string name="Action_Reset">Reset</string>
+    <string name="action_done">Done</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_reset">Reset</string>
 
-    <string name="Action_Search">Search</string>
+    <string name="action_search">Search</string>
 
-    <string name="Action_Play">Play</string>
-    <string name="Action_Shuffle">Shuffle</string>
+    <string name="action_play">Play</string>
+    <string name="action_shuffle">Shuffle</string>
 
-    <!-- Navidrome Provider -->
-    <string name="Action_Add">Add</string>
-    <string name="Action_Add_To_Queue">Add To Queue</string>
-    <string name="Action_Next">Next</string>
-    <string name="Action_Success">Success</string>
-    <string name="Action_Login">Login</string>
-    <string name="Action_Go">Let\'s Go!</string>
+    <string name="action_add">Add</string>
+    <string name="action_add_to_queue">Add To Queue</string>
+    <string name="action_add_to_playlist">Add To Playlist</string>
+    <string name="action_set_rating">Set Rating</string>
+    <string name="action_next">Next</string>
 
-    <string name="Action_Exit">Exit</string>
+    // Playlists
+    <string name="action_create_playlist">Create Playlist</string>
+    <string name="action_remove_from_playlist">Remove From Playlist</string>
 
-    <!-- Playlists -->
-    <string name="Action_CreatePlaylist">Create Playlist</string>
-    <string name="Action_RemoveFromPlaylist">Remove From Playlist</string>
-
-    <string name="Action_Download">Download</string>
+    <string name="action_download">Download</string>
 </resources>

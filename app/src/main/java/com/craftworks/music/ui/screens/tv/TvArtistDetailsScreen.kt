@@ -192,7 +192,7 @@ fun TvArtistDetailsScreen(
                                     modifier = Modifier.size(ButtonDefaults.IconSize),
                                 )
                                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                Text(stringResource(R.string.Action_Play))
+                                Text(stringResource(R.string.action_play))
                             }
 
                             OutlinedButton(
@@ -231,7 +231,7 @@ fun TvArtistDetailsScreen(
                                     modifier = Modifier.size(ButtonDefaults.IconSize),
                                 )
                                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                Text(stringResource(R.string.Action_Shuffle))
+                                Text(stringResource(R.string.action_shuffle))
                             }
                         }
                     }

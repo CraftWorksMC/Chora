@@ -35,7 +35,6 @@ import androidx.tv.material3.ListItem
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.craftworks.music.R
-import com.craftworks.music.ui.screens.tv.settings.SettingsSwitchItem
 import kotlinx.coroutines.launch
 
 @Composable
@@ -87,7 +86,7 @@ fun AddRadioDialog(
                     onValueChange = { radioName = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_Name),
+                            text = stringResource(R.string.label_radio_name),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -111,7 +110,7 @@ fun AddRadioDialog(
                     onValueChange = { radioUrl = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_URL),
+                            text = stringResource(R.string.label_radio_url),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -135,7 +134,7 @@ fun AddRadioDialog(
                     onValueChange = { radioPage = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_URL),
+                            text = stringResource(R.string.label_radio_url),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -164,7 +163,7 @@ fun AddRadioDialog(
 
                 ListItem(
                     selected = false,
-                    headlineContent = { Text(stringResource(R.string.Action_Done)) },
+                    headlineContent = { Text(stringResource(R.string.action_done)) },
                     onClick = {
                         coroutineScope.launch {
                             onAdded(
@@ -233,7 +232,7 @@ fun ModifyRadioDialog(
                     onValueChange = { radioName = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_Name),
+                            text = stringResource(R.string.label_radio_name),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -257,7 +256,7 @@ fun ModifyRadioDialog(
                     onValueChange = { radioUrl = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_URL),
+                            text = stringResource(R.string.label_radio_url),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -281,7 +280,7 @@ fun ModifyRadioDialog(
                     onValueChange = { radioPage = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_URL),
+                            text = stringResource(R.string.label_radio_url),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -312,7 +311,7 @@ fun ModifyRadioDialog(
 
                 ListItem(
                     selected = false,
-                    headlineContent = { Text(stringResource(R.string.Action_Done)) },
+                    headlineContent = { Text(stringResource(R.string.action_done)) },
                     onClick = {
                         coroutineScope.launch {
                             onModified(
@@ -328,7 +327,7 @@ fun ModifyRadioDialog(
                 )
                 ListItem(
                     selected = false,
-                    headlineContent = { Text(stringResource(R.string.Action_Remove)) },
+                    headlineContent = { Text(stringResource(R.string.action_remove)) },
                     onClick = {
                         coroutineScope.launch {
                             onDeleted(

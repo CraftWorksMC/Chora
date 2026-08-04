@@ -93,7 +93,7 @@ fun RadioScreen(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 TopAppBar(
-                    title = { Text(text = stringResource(R.string.radios)) },
+                    title = { Text(text = stringResource(R.string.nav_radios)) },
                     actions = {
                         Button(
                             onClick = { showRadioAddDialog = true },

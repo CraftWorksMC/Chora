@@ -340,7 +340,7 @@ fun AlbumDetails(
                             modifier = Modifier.height(24.dp)
                         ) {
                             Icon(Icons.Rounded.PlayArrow, "Play Album")
-                            Text(stringResource(R.string.Action_Play), maxLines = 1)
+                            Text(stringResource(R.string.action_play), maxLines = 1)
                         }
                     }
                     OutlinedButton(
@@ -359,7 +359,7 @@ fun AlbumDetails(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(24.dp)) {
                             Icon(ImageVector.vectorResource(R.drawable.round_shuffle_28), "Shuffle Album")
-                            Text(stringResource(R.string.Action_Shuffle), maxLines = 1)
+                            Text(stringResource(R.string.action_shuffle), maxLines = 1)
                         }
                     }
                 }
@@ -375,7 +375,7 @@ fun AlbumDetails(
                     item() {
                         Column {
                             Text(
-                                text = stringResource(R.string.Album_Disc_Number) + discNumber.toString(),
+                                text = stringResource(R.string.album_details_disc, discNumber.toString()),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                 modifier = Modifier

@@ -388,7 +388,7 @@ fun AlbumRow(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                         )
                         Text(
-                            text = stringResource(R.string.Source_Local),
+                            text = stringResource(R.string.source_local_folder),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             modifier = Modifier

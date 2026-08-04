@@ -73,7 +73,7 @@ fun ArtistsScreen(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 TopBarWithSearch(
-                    headerText = stringResource(R.string.Artists),
+                    headerText = stringResource(R.string.nav_artists),
                     scrollBehavior = scrollBehavior,
                     onSearch = { query -> viewModel.onSearchQueryChange(query) },
                     searchResults = {
@@ -91,7 +91,7 @@ fun ArtistsScreen(
                             ) {
                                 Icon(
                                     imageVector = ImageVector.vectorResource(if (showFavoritesOnly) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
-                                    contentDescription = stringResource(R.string.Label_Toggle_Favorites),
+                                    contentDescription = stringResource(R.string.button_toggle_favorites),
                                 )
                             }
                         }

@@ -1,69 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Now-Playing Background Dialog -->
-    <string name="Dialog_Background_Type">Hintergrundstil</string>
-    <string name="Background_Plain">Schlicht</string>
-    <string name="Background_Blur">Unscharf</string>
-    <string name="Background_Anim">Animiert</string>
-    <string name="Background_Anim_Simple">Einfach animiert</string>
+    <string name="appearance_background_style">Hintergrundstil</string>
+        <string name="background_style_plain">Schlicht</string>
+        <string name="background_style_blur">Unscharf</string>
+        <string name="background_style_anim">Animiert</string>
     <!-- App Theme Dialog -->
-    <string name="Dialog_Theme">Thema</string>
-    <string name="Theme_Dark">Dunkel</string>
-    <string name="Theme_Light">Hell</string>
-    <string name="Theme_System">System</string>
+    <string name="appearance_theme">Thema</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_system">System</string>
     <!-- Provider Dialog -->
-    <string name="Dialog_Media_Source">Medienquelle</string>
-    <string name="No_Providers_Splash">Du hast noch keinen Medienanbieter hinzugefügt. Füge jetzt einen hinzu, um Musik zu hören!</string>
-    <string name="No_Providers_Done">Fertig! Du kannst jetzt anfangen, Musik zu hören!</string>
-    <string name="Source_Local">Lokaler Ordner</string>
+    <string name="media_providers_media_source">Medienquelle</string>
+    <string name="onboarding_no_provider_splash">Du hast noch keinen Medienanbieter hinzugefügt. Füge jetzt einen hinzu, um Musik zu hören!</string>
+    <string name="onboarding_all_done">Fertig! Du kannst jetzt anfangen, Musik zu hören!</string>
     <!-- Local -->
-    <string name="Label_Local_Directory">Verzeichnis:</string>
+    <string name="add_media_provider_local_directory">Verzeichnis</string>
     <!-- Server -->
-    <string name="Label_Server_URL">Server URL:</string>
-    <string name="Label_Server_Username">Benutzername:</string>
-    <string name="Label_Server_Password">Passwort:</string>
-    <string name="Label_Allow_Self_Signed_Certs">Erlaube selbst signierte Zertifikate</string>
+    <string name="add_media_provider_server_url">Server URL</string>
+    <string name="add_media_provider_server_username">Benutzername</string>
+    <string name="add_media_provider_server_password">Passwort</string>
+    <string name="add_media_provider_server_allow_self_signed_certs">Erlaube selbst signierte Zertifikate</string>
     <!-- LRCLIB Dialog -->
-    <string name="Dialog_LRCLIB_Url">LRCLIB-URL</string>
+    <string name="media_providers_lrclib_url">LRCLIB-URL</string>
     <!-- Transcoding -->
-    <string name="Dialog_Transcoding">Transkodierung</string>
-    <string name="Option_No_Transcoding">Keine Transkodierung</string>
+    <string name="playback_no_transcoding">Keine Transkodierung</string>
     <!-- Radios -->
-    <string name="Dialog_Add_Radio">Internet Radio hinzufügen</string>
-    <string name="Dialog_Modify_Radio">Bearbeiten </string>
-    <string name="Label_Radio_Name">Radioname:</string>
-    <string name="Label_Radio_URL">Radio-URL:</string>
-    <string name="Label_Radio_Homepage">URL der Radio Homepage:</string>
-    <string name="Label_Radio_Add_To_Navidrome">Zu Navidrome hinzufügen</string>
+    <string name="radio_add_internet_radio">Internet Radio hinzufügen</string>
+    <string name="radio_modify_internet_radio">Bearbeiten %s</string>
+    <string name="label_radio_name">Radioname</string>
+    <string name="label_radio_url">Radio-URL</string>
+    <string name="label_radio_homepage">URL der Radio Homepage</string>
     <!-- Playlists -->
-    <string name="Dialog_New_Playlist">Neue Wiedergabeliste</string>
-    <string name="Dialog_Delete_Playlist">Wiedergabeliste löschen</string>
-    <string name="Label_Confirm_Delete_Playlist">Möchtest du diese Wiedergabeliste wirklich löschen?</string>
-    <string name="Dialog_Add_To_Playlist">Hinzufügen / zur Playlist</string>
-    <string name="Label_Playlist_Name">Name der Wiedergabeliste</string>
+    <string name="button_new_playlist">Neue Wiedergabeliste</string>
+    <string name="playlist_delete_playlist">Wiedergabeliste löschen</string>
+    <string name="delete_playlist_are_you_sure">Möchtest du diese Wiedergabeliste wirklich löschen?</string>
+    <string name="add_to_playlist_title">Hinzufügen &lt;i&gt;%s&lt;/i&gt; zur Playlist</string>
+    <string name="new_playlist_playlist_name">Name der Wiedergabeliste</string>
     <!-- Albums -->
-    <string name="Label_MoreSongsFrom">Weitere Titel von</string>
     <!-- Artists -->
-    <string name="Label_NoDescription">Keine Beschreibung verfügbar.</string>
     <!-- Sorting -->
-    <string name="Label_Sorting">Sortieren nach</string>
-    <string name="Label_Sort_Alphabetical">Alphabetisch</string>
-    <string name="Label_Sort_Starred">Markiert</string>
+    <string name="button_sort_by">Sortieren nach</string>
+    <string name="sort_by_starred">Markiert</string>
     <!-- Connection Errors -->
-    <string name="Navidrome_Error">Navidrome Server nicht erreichbar.</string>
-    <string name="Navidrome_Sync">Lädt…</string>
     <!-- Downloading -->
-    <string name="Notification_Download_Name">Download-Benachrichtigung</string>
-    <string name="Notification_Download_Desc">Benachrichtigungen für den Downloadstatus</string>
-    <string name="Notification_Download_Progress">Wird heruntergeladen</string>
-    <string name="Notification_Download_Success">Download abgeschlossen!</string>
-    <string name="Notification_Download_Failure">Oh oh, beim Herunterladen ist etwas schief gelaufen</string>
+    <string name="notification_download_name">Download-Benachrichtigung</string>
+    <string name="notification_download_desc">Benachrichtigungen für den Downloadstatus</string>
     <!-- Now Playing Title Alignment -->
-    <string name="Setting_NowPlayingTitleAlignment">Jetzt spielt Titelausrichtung</string>
-    <string name="Setting_NowPlayingLyricsAlignment">Jetzt spielt Songtextausrichtung</string>
-    <string name="NowPlayingTitleAlignment_Left">Links</string>
-    <string name="NowPlayingTitleAlignment_Center">Mitte</string>
-    <string name="NowPlayingTitleAlignment_Right">Rechts</string>
+    <string name="appearance_now_playing_title_alignment">Jetzt spielt Titelausrichtung</string>
+    <string name="appearance_now_playing_lyrics_alignment">Jetzt spielt Songtextausrichtung</string>
+    <string name="alignment_setting_left">Links</string>
+    <string name="alignment_setting_center">Mitte</string>
+    <string name="alignment_setting_right">Rechts</string>
     <!-- Now Playing Title Alignment -->
-    <string name="Dialog_SetSleepTimer">Sleep-Timer setzen</string>
+    <string name="now_playing_set_sleep_timer">Sleep-Timer setzen</string>
 </resources>

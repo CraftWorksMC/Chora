@@ -10,12 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -30,8 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.media3.common.MediaItem
@@ -65,7 +61,7 @@ fun AddRadioDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = stringResource(id = R.string.Dialog_Add_Radio),
+                            text = stringResource(id = R.string.radio_add_internet_radio),
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.weight(1f)
                         )
@@ -83,19 +79,19 @@ fun AddRadioDialog(
                     OutlinedTextField(
                         value = radioName,
                         onValueChange = { radioName = it },
-                        label = { Text(stringResource(id = R.string.Label_Radio_Name)) },
+                        label = { Text(stringResource(id = R.string.label_radio_name)) },
                         singleLine = true
                     )
                     OutlinedTextField(
                         value = radioUrl,
                         onValueChange = { radioUrl = it },
-                        label = { Text(stringResource(id = R.string.Label_Radio_URL)) },
+                        label = { Text(stringResource(id = R.string.label_radio_url)) },
                         singleLine = true
                     )
                     OutlinedTextField(
                         value = radioPage,
                         onValueChange = { radioPage = it },
-                        label = { Text(stringResource(id = R.string.Label_Radio_Homepage)) },
+                        label = { Text(stringResource(id = R.string.label_radio_homepage)) },
                         singleLine = true
                     )
 
@@ -118,7 +114,7 @@ fun AddRadioDialog(
                                 .height(50.dp)
                                 .bounceClick()
                         ) {
-                            Text(stringResource(R.string.Action_Done))
+                            Text(stringResource(R.string.action_done))
                         }
                     }
                 }
@@ -155,7 +151,7 @@ fun ModifyRadioDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = stringResource(id = R.string.Dialog_Modify_Radio) + radioName,
+                            text = stringResource(R.string.radio_modify_internet_radio, radioName.toString()),
                             style = MaterialTheme.typography.titleLarge
                         )
                         Icon(
@@ -172,19 +168,19 @@ fun ModifyRadioDialog(
                     OutlinedTextField(
                         value = radioName.toString(),
                         onValueChange = { radioName = it },
-                        label = { Text(stringResource(id = R.string.Label_Radio_Name)) },
+                        label = { Text(stringResource(id = R.string.label_radio_name)) },
                         singleLine = true
                     )
                     OutlinedTextField(
                         value = radioUrl.toString(),
                         onValueChange = { radioUrl = it },
-                        label = { Text(stringResource(id = R.string.Label_Radio_URL)) },
+                        label = { Text(stringResource(id = R.string.label_radio_url)) },
                         singleLine = true
                     )
                     OutlinedTextField(
                         value = radioPage,
                         onValueChange = { radioPage = it },
-                        label = { Text(stringResource(id = R.string.Label_Radio_Homepage)) },
+                        label = { Text(stringResource(id = R.string.label_radio_homepage)) },
                         singleLine = true
                     )
 
@@ -207,7 +203,7 @@ fun ModifyRadioDialog(
                                 .height(50.dp)
                                 .bounceClick()
                         ) {
-                            Text(stringResource(R.string.Action_Remove))
+                            Text(stringResource(R.string.action_remove))
                         }
                         Button(
                             onClick = {
@@ -227,7 +223,7 @@ fun ModifyRadioDialog(
                                 .height(50.dp)
                                 .bounceClick()
                         ) {
-                            Text(stringResource(R.string.Action_Done))
+                            Text(stringResource(R.string.action_done))
                         }
                     }
                 }

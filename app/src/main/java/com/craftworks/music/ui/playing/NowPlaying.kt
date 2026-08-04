@@ -143,7 +143,7 @@ fun NowPlayingContent(
     if (sleepTimerOpen) {
         AlertDialog(
             onDismissRequest = { viewModel.setSleepTimerDialogOpen(false) },
-            title = { Text(stringResource(R.string.Dialog_SetSleepTimer)) },
+            title = { Text(stringResource(R.string.now_playing_set_sleep_timer)) },
             text = {
                 TimePicker(
                     state = timePickerState,
@@ -156,7 +156,7 @@ fun NowPlayingContent(
                         viewModel.setSleepTimerDialogOpen(false)
                     }
                 ) {
-                    Text(stringResource(R.string.Action_Done))
+                    Text(stringResource(R.string.action_done))
                 }
             }
         )

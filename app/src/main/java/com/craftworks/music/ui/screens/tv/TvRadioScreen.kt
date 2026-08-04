@@ -118,7 +118,7 @@ fun TvRadioScreen(
                 },
                 title = {
                     Text(
-                        text = stringResource(R.string.Dialog_Add_Radio),
+                        text = stringResource(R.string.radio_add_internet_radio),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 8.dp)

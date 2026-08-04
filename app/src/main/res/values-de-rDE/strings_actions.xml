@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Common -->
-    <string name="Action_Done">Fertig</string>
-    <string name="Action_Remove">Entfernen</string>
-    <string name="Action_Reset">Zurücksetzen</string>
-    <string name="Action_Search">Suchen</string>
-    <string name="Action_Play">Wiedergabe</string>
-    <string name="Action_Shuffle">Zufallswiedergabe</string>
+    <string name="action_done">Fertig</string>
+    <string name="action_remove">Entfernen</string>
+    <string name="action_reset">Zurücksetzen</string>
+    <string name="action_search">Suchen</string>
+    <string name="action_play">Wiedergabe</string>
+    <string name="action_shuffle">Zufallswiedergabe</string>
     <!-- Navidrome Provider -->
-    <string name="Action_Add">Hinzufügen</string>
-    <string name="Action_Add_To_Queue">Add To Queue</string>
-    <string name="Action_Next">Weiter</string>
-    <string name="Action_Success">Erfolgreich</string>
-    <string name="Action_Login">Anmelden</string>
-    <string name="Action_Go">Los geht\'s!</string>
-    <string name="Action_Exit">Verlassen</string>
+    <string name="action_add">Hinzufügen</string>
+    <string name="action_add_to_queue">Add To Queue</string>
+    <string name="action_next">Weiter</string>
+    <string name="add_media_provider_login">Anmelden</string>
+    <string name="onboarding_lets_go">Los geht\'s!</string>
     <!-- Playlists -->
-    <string name="Action_CreatePlaylist">Wiedergabeliste erstellen</string>
-    <string name="Action_Download">Herunterladen</string>
+    <string name="action_create_playlist">Wiedergabeliste erstellen</string>
+    <string name="action_download">Herunterladen</string>
 </resources>

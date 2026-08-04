@@ -60,7 +60,7 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
     override val providerMonochromeIcon: Boolean
         get() = true
     override val providerName: Int
-        get() = R.string.Source_Local
+        get() = R.string.source_local_folder
     @Transient
     private val _featureFlags: ProviderFeatures =
         ProviderFeatures.OFFLINE_PLAYBACK

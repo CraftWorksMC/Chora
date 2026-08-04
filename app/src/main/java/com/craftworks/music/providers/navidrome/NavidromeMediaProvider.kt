@@ -103,7 +103,7 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
     override val providerIcon: Int
         get() = R.drawable.s_m_navidrome
     override val providerName: Int
-        get() = R.string.Source_Navidrome
+        get() = R.string.source_navidrome
 
     @Transient
     override val supportedAlbumSort: List<AlbumListSort> = listOf(

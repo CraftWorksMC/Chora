@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Settings_Header_Appearance">Apparence</string>
-    <string name="Setting_Username">Nom</string>
-    <string name="Setting_Background">Types de fonds</string>
-    <string name="Setting_Oled_Mode">OLED Protection</string>
-    <string name="Setting_Navbar_Items">Éléments de la barre de navigation</string>
-    <string name="Setting_Home_Items">Éléments de l\'écran d\'accueil</string>
-    <string name="Setting_MoreInfo">Afficher plus d\'informations</string>
-    <string name="Setting_NowPlayingLyricsBlur">Flou du texte</string>
-    <string name="Setting_NavidromeLogo">Afficher le logo de Navidrome</string>
-    <string name="Setting_ProviderDividers">Afficher les séparateurs de fournisseurs</string>
-    <string name="Setting_RefreshAnimation">Afficher l\'animation d\'actualisation</string>
-    <string name="Setting_LyricsAnimationSpeed">Vitesse d\'animation du texte</string>
-    <string name="Setting_LyricsAutoscroll">Autoscroll Plain Lyrics</string>
-    <string name="Setting_LyricsRecenter">Recenter After Scroll</string>
-    <string name="Setting_TrackNumbersAlbum">Afficher les numéros de piste de l\'album</string>
-    <string name="Settings_Header_Media">Fournisseurs de médias</string>
-    <string name="Settings_Header_Playback">Playback</string>
-    <string name="Setting_Transcoding">Max Bitrate</string>
-    <string name="Setting_Transcoding_Wifi">Max Bitrate (WiFi)</string>
-    <string name="Setting_Transcoding_Data">Max Bitrate (Mobile data)</string>
-    <string name="Setting_Transcoding_Format">Format de transcodage</string>
-    <string name="Setting_Scrobble_Percent">Min. Scrobble Percentage</string>
-    <string name="Setting_Scrobble_Description">Navidrome seulement.</string>
+    <string name="settings_appearance">Apparence</string>
+    <string name="appearance_username">Nom</string>
+    <string name="appearance_oled_mode">OLED Protection</string>
+    <string name="appearance_navbar_items">Éléments de la barre de navigation</string>
+    <string name="appearance_home_items">Éléments de l\'écran d\'accueil</string>
+    <string name="appearance_more_info">Afficher plus d\'informations</string>
+    <string name="appearance_now_playing_lyrics_blur">Flou du texte</string>
+    <string name="appearance_provider_logo">Afficher le logo de Navidrome</string>
+    <string name="appearance_provider_dividers">Afficher les séparateurs de fournisseurs</string>
+    <string name="appearance_refresh_animation">Afficher l\'animation d\'actualisation</string>
+    <string name="appearance_lyrics_animation_speed">Vitesse d\'animation du texte</string>
+    <string name="appearance_lyrics_auto_scroll">Autoscroll Plain Lyrics</string>
+    <string name="appearance_lyrics_recenter">Recenter After Scroll</string>
+    <string name="appearance_track_numbers_in_album_view">Afficher les numéros de piste de l\'album</string>
+    <string name="settings_media_providers">Fournisseurs de médias</string>
+    <string name="settings_playback">Playback</string>
+    <string name="playback_max_bitrate">Max Bitrate</string>
+    <string name="playback_max_bitrate_wifi">Max Bitrate (WiFi)</string>
+    <string name="playback_max_bitrate_mobile_data">Max Bitrate (Mobile data)</string>
+    <string name="playback_transcoding_format">Format de transcodage</string>
+    <string name="playback_min_scrobble_percentage">Min. Scrobble Percentage</string>
 </resources>

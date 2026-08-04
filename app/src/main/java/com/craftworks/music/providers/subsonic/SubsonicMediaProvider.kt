@@ -1,7 +1,6 @@
 package com.craftworks.music.providers.subsonic
 
 import android.content.Context
-import android.util.Log
 import com.craftworks.music.BuildConfig
 import com.craftworks.music.R
 import com.craftworks.music.data.model.AlbumArtistDetailResponse
@@ -80,7 +79,7 @@ open class SubsonicMediaProvider : MediaProvider() {
         get() = false
 
     override val providerName: Int
-        get() = R.string.Source_OpenSubsonic
+        get() = R.string.source_open_subsonic
 
     @Transient
     private val _featureFlags: ProviderFeatures =

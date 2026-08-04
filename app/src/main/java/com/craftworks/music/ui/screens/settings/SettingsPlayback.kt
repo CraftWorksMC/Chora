@@ -71,7 +71,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(R.string.Settings_Header_Playback)) },
+                title = { Text(text = stringResource(R.string.settings_playback)) },
                 actions = {
                     IconButton(
                         onClick = {
@@ -116,7 +116,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         PlaybackSettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("").value
 
                     SettingsDialogButton(
-                        settingsName = stringResource(R.string.Setting_Transcoding_Wifi),
+                        settingsName = stringResource(R.string.playback_max_bitrate_wifi),
                         settingsSubtitle = if (transcodingBitrateWifi != "No Transcoding") "$transcodingBitrateWifi Kbps" else transcodingBitrateWifi,
                         settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
                         toggleEvent = { showWifiTranscodingDialog = true },
@@ -130,7 +130,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         ).value
 
                     SettingsDialogButton(
-                        settingsName = stringResource(R.string.Setting_Transcoding_Data),
+                        settingsName = stringResource(R.string.playback_max_bitrate_mobile_data),
                         settingsSubtitle = if (transcodingBitrateData != "No Transcoding") "$transcodingBitrateData Kbps" else transcodingBitrateData,
                         settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
                         toggleEvent = { showDataTranscodingDialog = true },
@@ -144,7 +144,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         (transcodingBitrateData != "No Transcoding" || transcodingBitrateWifi != "No Transcoding") && currentProvider != null
 
                     SettingsDialogButton(
-                        settingsName = stringResource(R.string.Setting_Transcoding_Format),
+                        settingsName = stringResource(R.string.playback_transcoding_format),
                         settingsSubtitle = transcodingFormat,
                         settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
                         enabled = transcodingFormatEnabled,
@@ -180,7 +180,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         PlaybackSettingsManager(context).scrobblePercentFlow.collectAsState(7)
 
                     SettingsSlider(
-                        settingsName = stringResource(R.string.Setting_Scrobble_Percent),
+                        settingsName = stringResource(R.string.playback_min_scrobble_percentage),
                         value = sliderValue.value.toFloat(),
                         steps = 8,
                         minValue = 1f, maxValue = 10f,

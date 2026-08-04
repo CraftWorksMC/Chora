@@ -147,7 +147,7 @@ fun HomeScreen(
                     if (showProviderLogo) ProviderLogo(currentProvider!!)
 
                     Text(
-                        text = "${stringResource(R.string.welcome_text)},\n${username.value}!",
+                        text = stringResource(R.string.home_welcome,username.value),
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.SemiBold,
@@ -253,10 +253,10 @@ fun HomeScreen(
 
                     val titleMap = remember {
                         mapOf(
-                            "recently_played" to R.string.recently_played,
-                            "recently_added" to R.string.recently_added,
-                            "most_played" to R.string.most_played,
-                            "random_songs" to R.string.random_songs
+                            "recently_played" to R.string.home_recently_played,
+                            "recently_added" to R.string.home_recently_added,
+                            "most_played" to R.string.home_most_played,
+                            "random_songs" to R.string.home_explore_library
                         )
                     }
 

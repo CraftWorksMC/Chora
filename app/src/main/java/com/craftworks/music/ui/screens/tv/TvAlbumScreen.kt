@@ -48,11 +48,11 @@ fun TvAlbumScreen(
 ) {
     val albums by viewModel.allAlbums.collectAsStateWithLifecycle()
     val tabs = listOf(
-        stringResource(R.string.Label_Sort_Name),
-        stringResource(R.string.recently_added),
-        stringResource(R.string.recently_played),
-        stringResource(R.string.most_played),
-        stringResource(R.string.Label_Sort_Starred),
+        stringResource(R.string.sort_by_name),
+        stringResource(R.string.home_recently_added),
+        stringResource(R.string.home_recently_played),
+        stringResource(R.string.home_most_played),
+        stringResource(R.string.sort_by_starred),
     )
     val sortOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()

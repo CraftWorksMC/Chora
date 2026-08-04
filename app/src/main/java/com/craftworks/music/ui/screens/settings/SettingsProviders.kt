@@ -62,7 +62,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(R.string.Settings_Header_Media)) },
+                title = { Text(text = stringResource(R.string.settings_media_providers)) },
                 actions = {
                     IconButton(
                         onClick = {

@@ -86,9 +86,9 @@ fun TvSearchScreen(
     var showSongDialog by remember { mutableStateOf(false) }
 
     val tabs = listOf(
-        stringResource(R.string.Albums),
-        stringResource(R.string.songs),
-        stringResource(R.string.Artists)
+        stringResource(R.string.nav_albums),
+        stringResource(R.string.nav_songs),
+        stringResource(R.string.nav_artists)
     )
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
 
@@ -143,7 +143,7 @@ fun TvSearchScreen(
                 ),
                 placeholder = {
                     Text(
-                        text = stringResource(R.string.Action_Search),
+                        text = stringResource(R.string.action_search),
                         color = androidx.compose.material3.LocalContentColor.current
                     )
                 },

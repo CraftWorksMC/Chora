@@ -38,7 +38,6 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.AlbumListSort
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.RippleEffect
@@ -78,12 +77,12 @@ fun AlbumScreen(
     val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
 
     val sortTranslationBindings = mapOf(
-        AlbumListSort.ALBUM_ARTIST to R.string.Label_Sort_Album_Artist,
-        AlbumListSort.PLAY_COUNT to R.string.Label_Sort_Play_Count,
-        AlbumListSort.NAME to R.string.Label_Sort_Name,
-        AlbumListSort.RANDOM to R.string.Label_Sort_Random,
-        AlbumListSort.RECENTLY_ADDED to R.string.Label_Sort_Recently_Added,
-        AlbumListSort.RECENTLY_PLAYED to R.string.Label_Sort_Recently_Played,
+        AlbumListSort.ALBUM_ARTIST to R.string.sort_by_album_artist,
+        AlbumListSort.PLAY_COUNT to R.string.sort_by_play_count,
+        AlbumListSort.NAME to R.string.sort_by_name,
+        AlbumListSort.RANDOM to R.string.sort_by_random,
+        AlbumListSort.RECENTLY_ADDED to R.string.sort_by_recently_added,
+        AlbumListSort.RECENTLY_PLAYED to R.string.sort_by_recently_played,
     )
 
     PullToRefreshBox(
@@ -96,7 +95,7 @@ fun AlbumScreen(
             topBar = {
                 Column {
                     TopBarWithSearch(
-                        headerText = stringResource(R.string.Albums),
+                        headerText = stringResource(R.string.nav_albums),
                         scrollBehavior = scrollBehavior,
                         onSearch = { query -> viewModel.search(query) },
                         searchResults = {
@@ -121,7 +120,7 @@ fun AlbumScreen(
                                     ) {
                                         Icon(
                                             imageVector = ImageVector.vectorResource(if (showFavoritesOnly) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
-                                            contentDescription = stringResource(R.string.Label_Toggle_Favorites),
+                                            contentDescription = stringResource(R.string.button_toggle_favorites),
                                         )
                                     }
                                 }
@@ -131,7 +130,7 @@ fun AlbumScreen(
                                     ) {
                                         Icon(
                                             imageVector = ImageVector.vectorResource(R.drawable.rounded_sort_24),
-                                            contentDescription = stringResource(R.string.Label_Sorting),
+                                            contentDescription = stringResource(R.string.button_sort_by),
                                         )
                                     }
                                     DropdownMenu(

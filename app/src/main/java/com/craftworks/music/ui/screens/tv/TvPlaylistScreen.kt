@@ -1,6 +1,5 @@
 package com.craftworks.music.ui.screens.tv
 
-import android.os.Bundle
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,11 +21,8 @@ import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
@@ -46,8 +42,8 @@ fun TvPlaylistScreen(
     val playlists by viewModel.allPlaylists.collectAsStateWithLifecycle()
 
     val tabs = listOf(
-        stringResource(R.string.playlists),
-        stringResource(R.string.Label_Sort_Starred),
+        stringResource(R.string.nav_playlists),
+        stringResource(R.string.sort_by_starred),
     )
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 

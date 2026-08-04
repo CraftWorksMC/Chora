@@ -125,7 +125,7 @@ fun EditLrcLibUrlDialog(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = stringResource(R.string.Dialog_LRCLIB_Url),
+                text = stringResource(R.string.media_providers_lrclib_url),
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -135,7 +135,7 @@ fun EditLrcLibUrlDialog(
                     url = it
                     isValidUrl = Patterns.WEB_URL.matcher(url).matches()
                 },
-                label = { Text(stringResource(R.string.Dialog_LRCLIB_Url)) },
+                label = { Text(stringResource(R.string.media_providers_lrclib_url)) },
                 singleLine = true,
                 isError = !isValidUrl
             )
@@ -153,7 +153,7 @@ fun EditLrcLibUrlDialog(
                     .bounceClick(),
                 enabled = isValidUrl
             ) {
-                Text(stringResource(R.string.Action_Done))
+                Text(stringResource(R.string.action_done))
             }
         }
     }
@@ -195,15 +195,15 @@ fun CreateMediaProviderDialog(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = stringResource(R.string.Settings_Header_Media),
+                text = stringResource(R.string.settings_media_providers),
                 style = MaterialTheme.typography.titleLarge
             )
 
             var expanded by remember { mutableStateOf(false) }
 
             val options = listOf(
-                stringResource(R.string.Source_Local),
-                "${stringResource(R.string.Source_OpenSubsonic)} / ${stringResource(R.string.Source_Navidrome)}",
+                stringResource(R.string.source_local_folder),
+                "${stringResource(R.string.source_open_subsonic)} / ${stringResource(R.string.source_navidrome)}",
             )
             var selectedOptionText by remember { mutableStateOf(options[1]) }
 
@@ -216,7 +216,7 @@ fun CreateMediaProviderDialog(
                     readOnly = true,
                     value = selectedOptionText,
                     onValueChange = {},
-                    label = { Text(stringResource(R.string.Dialog_Media_Source)) },
+                    label = { Text(stringResource(R.string.media_providers_media_source)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     colors = ExposedDropdownMenuDefaults.textFieldColors()
                 )
@@ -241,7 +241,7 @@ fun CreateMediaProviderDialog(
             // maybe find a better way to check the selected option rather than comparing strings.
 
             //region Local Folder
-            if (selectedOptionText == stringResource(R.string.Source_Local))
+            if (selectedOptionText == stringResource(R.string.source_local_folder))
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -250,7 +250,7 @@ fun CreateMediaProviderDialog(
                     OutlinedTextField(
                         value = dir,
                         onValueChange = { dir = it },
-                        label = { Text(stringResource(R.string.Label_Local_Directory)) },
+                        label = { Text(stringResource(R.string.add_media_provider_local_directory)) },
                         singleLine = true
                     )
 
@@ -287,7 +287,7 @@ fun CreateMediaProviderDialog(
                             .bounceClick(),
                     ) {
                         Text(
-                            stringResource(R.string.Action_Add)
+                            stringResource(R.string.action_add)
                         )
                     }
                 }
@@ -303,7 +303,7 @@ fun CreateMediaProviderDialog(
                     OutlinedTextField(
                         value = url,
                         onValueChange = { url = it },
-                        label = { Text(stringResource(R.string.Label_Server_URL)) },
+                        label = { Text(stringResource(R.string.add_media_provider_server_url)) },
                         placeholder = { Text("http://domain.tld:<port>") },
                         singleLine = true,
                         isError = isError
@@ -312,7 +312,7 @@ fun CreateMediaProviderDialog(
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
-                        label = { Text(stringResource(R.string.Label_Server_Username)) },
+                        label = { Text(stringResource(R.string.add_media_provider_server_username)) },
                         singleLine = true,
                         isError = isError // TODO("Check credentials error")
                     )
@@ -321,7 +321,7 @@ fun CreateMediaProviderDialog(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text(stringResource(R.string.Label_Server_Password)) },
+                        label = { Text(stringResource(R.string.add_media_provider_server_password)) },
                         singleLine = true,
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -350,7 +350,7 @@ fun CreateMediaProviderDialog(
                         modifier = Modifier
                     ) {
                         Text(
-                            text = stringResource(R.string.Label_Allow_Self_Signed_Certs),
+                            text = stringResource(R.string.add_media_provider_server_allow_self_signed_certs),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Normal,
                             color = MaterialTheme.colorScheme.onBackground,
@@ -423,7 +423,7 @@ fun CreateMediaProviderDialog(
                                 enabled = true//navidromeStatus.value == "ok" TODO("Enable only when it's ok I presume?")
                             ) {
                                 Text(
-                                    stringResource(R.string.Action_Add)
+                                    stringResource(R.string.action_add)
                                 )
                             }
                         } else {
@@ -449,7 +449,7 @@ fun CreateMediaProviderDialog(
                                     .bounceClick()
                             ) {
                                 Text(
-                                    stringResource(R.string.Action_Login)
+                                    stringResource(R.string.add_media_provider_login)
                                 )
                             }
                         }
@@ -474,13 +474,13 @@ fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavH
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = stringResource(R.string.Settings_Header_Media),
+                text = stringResource(R.string.settings_media_providers),
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleLarge
             )
 
             Text(
-                text = stringResource(R.string.No_Providers_Splash),
+                text = stringResource(R.string.onboarding_no_provider_splash),
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -496,7 +496,7 @@ fun NoMediaProvidersDialog(setShowDialog: (Boolean) -> Unit, navController: NavH
                     .bounceClick()
             ) {
                 Text(
-                    stringResource(R.string.Action_Go)
+                    stringResource(R.string.onboarding_lets_go)
                 )
             }
         }

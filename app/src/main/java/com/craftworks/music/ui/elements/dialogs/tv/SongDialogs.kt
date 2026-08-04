@@ -61,7 +61,6 @@ import androidx.tv.material3.WideCardContainer
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.ui.screens.tv.settings.SettingsSwitchItem
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 import kotlinx.coroutines.launch
 
@@ -152,7 +151,7 @@ fun SongDialog(
                         ListItem(
                             selected = false,
                             headlineContent = {
-                                Text(stringResource(R.string.Dialog_Set_Rating))
+                                Text(stringResource(R.string.action_set_rating))
                             },
                             onClick = {
                                 dialogMenu = DialogMenu.SET_RATING
@@ -161,7 +160,7 @@ fun SongDialog(
 
                         ListItem(
                             selected = false,
-                            headlineContent = { Text(stringResource(R.string.Action_Download)) },
+                            headlineContent = { Text(stringResource(R.string.action_download)) },
                             onClick = {
                                 coroutineScope.launch {
                                     TODO("Download song")
@@ -176,7 +175,7 @@ fun SongDialog(
                             selected = false,
                             headlineContent = {
                                 Text(
-                                    stringResource(R.string.Dialog_Add_To_Playlist)
+                                    stringResource(R.string.add_to_playlist_title)
                                         .replace("/", song.mediaMetadata.title.toString())
                                 )
                             },
@@ -296,7 +295,7 @@ private fun AddSongToPlaylist(
             },
             title = {
                 Text(
-                    text = stringResource(R.string.Dialog_New_Playlist),
+                    text = stringResource(R.string.button_new_playlist),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(start = 16.dp)
@@ -336,7 +335,7 @@ private fun NewPlaylist(
             onValueChange = { playlistName = it },
             label = {
                 Text(
-                    text = stringResource(R.string.Label_Playlist_Name),
+                    text = stringResource(R.string.new_playlist_playlist_name),
                     color = MaterialTheme.colorScheme.onSurface
                 )
             },
@@ -357,7 +356,7 @@ private fun NewPlaylist(
 
         ListItem(
             selected = false,
-            headlineContent = { Text(stringResource(R.string.Action_Add)) },
+            headlineContent = { Text(stringResource(R.string.action_add)) },
             onClick = {
                 viewModel.createPlaylist(playlistName, listOf(song.mediaMetadata.extras?.getString("id") ?: ""), context)
                 setDialogMenu(DialogMenu.MAIN)
@@ -433,7 +432,7 @@ private fun SetRating(
 
         ListItem(
             selected = false,
-            headlineContent = { Text(stringResource(R.string.Action_Done)) },
+            headlineContent = { Text(stringResource(R.string.action_done)) },
             onClick = {
                     onSetRating(selectedRating)
                 }

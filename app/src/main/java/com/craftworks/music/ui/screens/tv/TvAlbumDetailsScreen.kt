@@ -233,7 +233,7 @@ fun TvAlbumDetails(
                             modifier = Modifier.size(ButtonDefaults.IconSize),
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(stringResource(R.string.Action_Play))
+                        Text(stringResource(R.string.action_play))
                     }
 
                     OutlinedButton(
@@ -260,7 +260,7 @@ fun TvAlbumDetails(
                             modifier = Modifier.size(ButtonDefaults.IconSize),
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(stringResource(R.string.Action_Shuffle))
+                        Text(stringResource(R.string.action_shuffle))
                     }
                 }
             }
@@ -281,8 +281,7 @@ fun TvAlbumDetails(
                         item {
                             Column {
                                 Text(
-                                    text = stringResource(R.string.Album_Disc_Number) +
-                                            discNumber.toString(),
+                                    text = stringResource(R.string.album_details_disc, discNumber.toString()),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface.copy(0.5f),
                                     modifier = Modifier

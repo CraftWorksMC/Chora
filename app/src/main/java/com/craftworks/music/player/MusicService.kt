@@ -796,7 +796,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                         album.apply {
                             this.mediaMetadata.extras?.putString(
                                 MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE,
-                                this@ChoraMediaLibraryService.getString(R.string.recently_played)
+                                this@ChoraMediaLibraryService.getString(R.string.home_recently_played)
                             )
                         }
                     )
@@ -807,7 +807,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                         album.apply {
                             this.mediaMetadata.extras?.putString(
                                 MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE,
-                                this@ChoraMediaLibraryService.getString(R.string.most_played)
+                                this@ChoraMediaLibraryService.getString(R.string.home_most_played)
                             )
                         }
                     )

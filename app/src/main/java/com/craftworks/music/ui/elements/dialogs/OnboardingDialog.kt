@@ -204,7 +204,7 @@ private fun OverviewStep(
         )
 
         Text(
-            text = stringResource(R.string.No_Providers_Splash),
+            text = stringResource(R.string.onboarding_no_provider_splash),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onBackground,
@@ -235,7 +235,7 @@ private fun OverviewStep(
                     .padding(end = 4.dp)
             )
             Text(
-                text = stringResource(R.string.Action_Add),
+                text = stringResource(R.string.action_add),
                 style = MaterialTheme.typography.labelLarge
             )
         }
@@ -254,7 +254,7 @@ private fun OverviewStep(
                     shape = MaterialTheme.shapes.large
                 ) {
                     Text(
-                        text = stringResource(R.string.Action_Next),
+                        text = stringResource(R.string.action_next),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -295,7 +295,7 @@ private fun DoneStep(onFinish: () -> Unit) {
         )
 
         Text(
-            text = stringResource(R.string.No_Providers_Done),
+            text = stringResource(R.string.onboarding_all_done),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onBackground,
@@ -310,7 +310,7 @@ private fun DoneStep(onFinish: () -> Unit) {
             shape = MaterialTheme.shapes.large
         ) {
             Text(
-                text = stringResource(R.string.Action_Go),
+                text = stringResource(R.string.onboarding_lets_go),
                 style = MaterialTheme.typography.labelLarge
             )
         }

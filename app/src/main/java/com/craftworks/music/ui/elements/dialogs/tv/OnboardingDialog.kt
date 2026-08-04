@@ -107,7 +107,7 @@ fun OnboardingDialog(
                             )
 
                             Text(
-                                text = stringResource(R.string.No_Providers_Splash),
+                                text = stringResource(R.string.onboarding_no_provider_splash),
                                 modifier = Modifier.width(320.dp),
                                 color = MaterialTheme.colorScheme.onBackground,
                             )
@@ -119,7 +119,7 @@ fun OnboardingDialog(
                                 }
                             ) {
                                 Text(
-                                    text = stringResource(R.string.Action_Next),
+                                    text = stringResource(R.string.action_next),
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -167,7 +167,7 @@ private fun OnboardingSetupProviders(
     //val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
 
     Text(
-        text = stringResource(R.string.Dialog_Media_Source),
+        text = stringResource(R.string.media_providers_media_source),
         modifier = Modifier.width(320.dp),
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onBackground,
@@ -180,7 +180,7 @@ private fun OnboardingSetupProviders(
     ) {
         item {
             Text(
-                text = stringResource(R.string.Source_Local),
+                text = stringResource(R.string.source_local_folder),
                 color = MaterialTheme.colorScheme.onBackground,
             )
         }
@@ -191,11 +191,11 @@ private fun OnboardingSetupProviders(
         item {
             ListItem(
                 selected = false,
-                headlineContent = { Text(stringResource(R.string.Action_Add)) },
+                headlineContent = { Text(stringResource(R.string.action_add)) },
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Rounded.Add,
-                        contentDescription = stringResource(R.string.Action_Login),
+                        contentDescription = stringResource(R.string.add_media_provider_login),
                     )
                 },
                 onClick = showLocalFolderDialog
@@ -208,7 +208,7 @@ private fun OnboardingSetupProviders(
 
         item {
             Text(
-                text = stringResource(R.string.Source_Navidrome),
+                text = stringResource(R.string.source_navidrome),
                 color = MaterialTheme.colorScheme.onBackground,
             )
         }
@@ -219,11 +219,11 @@ private fun OnboardingSetupProviders(
         item {
             ListItem(
                 selected = false,
-                headlineContent = { Text(stringResource(R.string.Action_Add)) },
+                headlineContent = { Text(stringResource(R.string.action_add)) },
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Rounded.Add,
-                        contentDescription = stringResource(R.string.Action_Login),
+                        contentDescription = stringResource(R.string.add_media_provider_login),
                     )
                 },
                 onClick = showNavidromeServerDialog
@@ -238,7 +238,7 @@ private fun OnboardingSetupProviders(
         }
     ) {
         Text(
-            text = stringResource(R.string.Action_Next),
+            text = stringResource(R.string.action_next),
             textAlign = TextAlign.Center
         )
     }
@@ -255,7 +255,7 @@ private fun OnboardingDoneScreen(
     )
 
     Text(
-        text = stringResource(R.string.No_Providers_Done),
+        text = stringResource(R.string.onboarding_all_done),
         modifier = Modifier.width(320.dp),
         textAlign = TextAlign.Center,
         color = MaterialTheme.colorScheme.onBackground,
@@ -266,7 +266,7 @@ private fun OnboardingDoneScreen(
         onClick = setFinished
     ) {
         Text(
-            text = stringResource(R.string.Action_Go),
+            text = stringResource(R.string.onboarding_lets_go),
             textAlign = TextAlign.Center
         )
     }

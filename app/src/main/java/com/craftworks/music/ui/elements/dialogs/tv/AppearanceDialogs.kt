@@ -96,7 +96,7 @@ fun NameDialog(
                         ) {
                             Icon(
                                 painterResource(id = R.drawable.s_a_username),
-                                contentDescription = stringResource(R.string.Setting_Username),
+                                contentDescription = stringResource(R.string.appearance_username),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(end = 12.dp),
                             )
@@ -115,7 +115,7 @@ fun NameDialog(
                     }
                 }
             ) {
-                Text(stringResource(R.string.Action_Done))
+                Text(stringResource(R.string.action_done))
             }
         }
     )
@@ -138,7 +138,7 @@ fun ThemeDialog(
 
     GenericListDialog(
         setShowDialog = setShowDialog,
-        titleRes = R.string.Dialog_Theme,
+        titleRes = R.string.appearance_theme,
         options = themes,
         selectedOption = currentTheme,
         onOptionSelected = { theme ->
@@ -186,9 +186,9 @@ fun ThemeDialog(
         label = { theme ->
             stringResource(
             when (theme) {
-                    AppTheme.DARK -> R.string.Theme_Dark
-                    AppTheme.LIGHT -> R.string.Theme_Light
-                    AppTheme.SYSTEM -> R.string.Theme_System
+                    AppTheme.DARK -> R.string.theme_dark
+                    AppTheme.LIGHT -> R.string.theme_light
+                    AppTheme.SYSTEM -> R.string.theme_system
                 }
             )
         }
@@ -207,7 +207,7 @@ fun BackgroundDialog(
 
     GenericListDialog(
         setShowDialog = setShowDialog,
-        titleRes = R.string.Setting_Background,
+        titleRes = R.string.appearance_background_style,
         options = NowPlayingBackground.entries,
         selectedOption = backgroundType,
         onOptionSelected = { option ->
@@ -216,9 +216,9 @@ fun BackgroundDialog(
         label = { option ->
             stringResource(
             when (option) {
-                    NowPlayingBackground.PLAIN -> R.string.Background_Plain
-                    NowPlayingBackground.STATIC_BLUR -> R.string.Background_Blur
-                    NowPlayingBackground.ANIMATED_BLUR -> R.string.Background_Anim
+                    NowPlayingBackground.PLAIN -> R.string.background_style_plain
+                    NowPlayingBackground.STATIC_BLUR -> R.string.background_style_blur
+                    NowPlayingBackground.ANIMATED_BLUR -> R.string.background_style_anim
                 }
             )
         },
@@ -243,7 +243,7 @@ fun NowPlayingAlignmentDialog(
 
     GenericListDialog(
         setShowDialog = setShowDialog,
-        titleRes = R.string.Setting_NowPlayingTitleAlignment,
+        titleRes = R.string.appearance_now_playing_title_alignment,
         options = NowPlayingAlignment.entries,
         selectedOption = nowPlayingTitleAlignment,
         onOptionSelected = { option ->
@@ -252,9 +252,9 @@ fun NowPlayingAlignmentDialog(
         label = { option ->
             stringResource(
             when (option) {
-                    NowPlayingAlignment.LEFT -> R.string.NowPlayingTitleAlignment_Left
-                    NowPlayingAlignment.CENTER -> R.string.NowPlayingTitleAlignment_Center
-                    NowPlayingAlignment.RIGHT -> R.string.NowPlayingTitleAlignment_Right
+                    NowPlayingAlignment.LEFT -> R.string.alignment_setting_left
+                    NowPlayingAlignment.CENTER -> R.string.alignment_setting_center
+                    NowPlayingAlignment.RIGHT -> R.string.alignment_setting_right
                 }
             )
         }
@@ -273,7 +273,7 @@ fun OledProtectionModeDialog(
 
     GenericListDialog(
         setShowDialog = setShowDialog,
-        titleRes = R.string.Dialog_Oled_Mode,
+        titleRes = R.string.appearance_oled_protection_mode,
         options = OLEDProtectionMode.entries,
         selectedOption = protectionMode,
         onOptionSelected = { option ->
@@ -282,9 +282,9 @@ fun OledProtectionModeDialog(
         label = { option ->
             stringResource(
                 when (option) {
-                    OLEDProtectionMode.OFF -> R.string.Oled_Off
-                    OLEDProtectionMode.LYRICS_ONLY -> R.string.Oled_Lyrics_Only
-                    OLEDProtectionMode.MINIMAL -> R.string.Oled_Minimal
+                    OLEDProtectionMode.OFF -> R.string.oled_protection_mode_off
+                    OLEDProtectionMode.LYRICS_ONLY -> R.string.oled_protection_mode_lyrics_only
+                    OLEDProtectionMode.MINIMAL -> R.string.oled_protection_mode_minimal
                 }
             )
         }
@@ -300,7 +300,7 @@ fun NavbarItemsDialog(setShowDialog: (Boolean) -> Unit) {
 
     GenericCheckDialog(
         setShowDialog = setShowDialog,
-        titleRes = R.string.Setting_Navbar_Items,
+        titleRes = R.string.appearance_navbar_items,
         items = navItems,
         label = { it.title },
         isEnabled = { it.enabled },
@@ -343,18 +343,18 @@ fun HomeItemsDialog(setShowDialog: (Boolean) -> Unit) {
 
     val titleMap = remember {
         mapOf(
-            "recently_played" to R.string.recently_played,
-            "recently_added" to R.string.recently_added,
-            "most_played" to R.string.most_played,
-            "random_songs" to R.string.random_songs
+            "recently_played" to R.string.home_recently_played,
+            "recently_added" to R.string.home_recently_added,
+            "most_played" to R.string.home_most_played,
+            "random_songs" to R.string.home_explore_library
         )
     }
 
     GenericCheckDialog(
         setShowDialog = setShowDialog,
-        titleRes = R.string.Setting_Home_Items,
+        titleRes = R.string.appearance_home_items,
         items = homeItems,
-        label = { stringResource(titleMap[it.key] ?: R.string.recently_played) },
+        label = { stringResource(titleMap[it.key] ?: R.string.home_recently_played) },
         isEnabled = { it.enabled },
         onCheckedChange = { index, checked ->
             coroutineScope.launch {

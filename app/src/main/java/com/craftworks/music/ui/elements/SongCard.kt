@@ -214,7 +214,7 @@ fun HorizontalSongCard(
                 ) {
                     DropdownMenuItem(
                         text = {
-                            Text(stringResource(R.string.Dialog_Set_Rating))
+                            Text(stringResource(R.string.action_set_rating))
                         },
                         onClick = {
                             onSetRating()
@@ -229,7 +229,7 @@ fun HorizontalSongCard(
                     )
                     DropdownMenuItem(
                         text = {
-                            Text(stringResource(R.string.Action_Add_To_Queue))
+                            Text(stringResource(R.string.action_add_to_queue))
                         },
                         onClick = {
                             onAddToQueue()
@@ -244,12 +244,7 @@ fun HorizontalSongCard(
                     )
                     DropdownMenuItem(
                         text = {
-                            Text(
-                                stringResource(R.string.Dialog_Add_To_Playlist).replace(
-                                    "/ ",
-                                    ""
-                                )
-                            )
+                            Text(stringResource(R.string.action_add_to_playlist))
                         },
                         onClick = {
                             println("Add Song To Playlist")
@@ -268,7 +263,7 @@ fun HorizontalSongCard(
                         enabled = !(MediaProviderManager.getProvider(song.mediaMetadata.providerId?:"")?.featureFlags?.has(
                             ProviderFeatures.DOWNLOADS)?:false),
                         text = {
-                            Text(stringResource(R.string.Action_Download))
+                            Text(stringResource(R.string.action_download))
                         },
                         onClick = {
                             coroutineScope.launch {
