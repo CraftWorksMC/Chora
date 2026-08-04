@@ -1,6 +1,5 @@
-package com.craftworks.music.providers.navidrome
+package com.craftworks.music.data.providers.navidrome
 
-import androidx.compose.runtime.snapshots.toInt
 import com.craftworks.music.data.model.GainInfo
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.ProviderType

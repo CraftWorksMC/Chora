@@ -1,4 +1,4 @@
-package com.craftworks.music.providers.local
+package com.craftworks.music.data.providers.local
 
 import android.content.ContentUris
 import android.content.Context
@@ -33,7 +33,7 @@ import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
-import com.craftworks.music.providers.MediaProvider
+import com.craftworks.music.data.providers.MediaProvider
 import com.craftworks.music.utils.PagingUtils
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

@@ -45,10 +45,10 @@ import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
-import com.craftworks.music.providers.MediaProvider
-import com.craftworks.music.providers.local.LocalMediaProvider
-import com.craftworks.music.providers.local.LocalProviderData
-import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
+import com.craftworks.music.data.providers.MediaProvider
+import com.craftworks.music.data.providers.local.LocalMediaProvider
+import com.craftworks.music.data.providers.local.LocalProviderData
+import com.craftworks.music.data.providers.subsonic.SubsonicMediaProvider
 import com.craftworks.music.ui.elements.dialogs.EditLrcLibUrlDialog
 import kotlinx.coroutines.runBlocking
 

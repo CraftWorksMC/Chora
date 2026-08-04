@@ -1,4 +1,4 @@
-package com.craftworks.music.providers.local
+package com.craftworks.music.data.providers.local
 
 import kotlinx.serialization.Serializable
 

@@ -1,7 +1,7 @@
 package com.craftworks.music.utils
 
 import androidx.datastore.core.Serializer
-import com.craftworks.music.providers.MediaProvider
+import com.craftworks.music.data.providers.MediaProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable

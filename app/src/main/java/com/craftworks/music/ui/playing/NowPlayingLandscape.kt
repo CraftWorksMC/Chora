@@ -61,7 +61,6 @@ import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
-import com.craftworks.music.providers.MediaProvider
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
 
 @Preview(device = "id:tv_1080p", showBackground = true, showSystemUi = true)

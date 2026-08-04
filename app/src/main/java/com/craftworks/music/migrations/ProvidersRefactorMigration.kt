@@ -4,11 +4,11 @@ import android.content.Context
 import com.craftworks.music.data.model.MediaProviderData
 import com.craftworks.music.data.model.MusicFolder
 import com.craftworks.music.managers.MediaProviderManager
-import com.craftworks.music.providers.MediaProvider
-import com.craftworks.music.providers.local.LocalMediaProvider
-import com.craftworks.music.providers.local.LocalProviderData
-import com.craftworks.music.providers.subsonic.SubsonicMediaProvider
-import com.craftworks.music.providers.subsonic.SubsonicProviderData
+import com.craftworks.music.data.providers.MediaProvider
+import com.craftworks.music.data.providers.local.LocalMediaProvider
+import com.craftworks.music.data.providers.local.LocalProviderData
+import com.craftworks.music.data.providers.subsonic.SubsonicMediaProvider
+import com.craftworks.music.data.providers.subsonic.SubsonicProviderData
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
