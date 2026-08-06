@@ -17,6 +17,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,15 +37,29 @@ class SongsScreenViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _sortOrder = MutableStateFlow(SortOrder.ASC)
+    val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
+
+    private val _sort = MutableStateFlow(SongListSort.NAME)
+    val sort: StateFlow<SongListSort> = _sort.asStateFlow()
+
     private val _showFavoritesOnly = MutableStateFlow(false)
     val showFavoritesOnly: StateFlow<Boolean> = _showFavoritesOnly.asStateFlow()
 
     init {
         viewModelScope.launch {
-            localDataSettingsManager.showFavoriteOnly.collect { showFavorites ->
-                _showFavoritesOnly.value = showFavorites
-                getSongs()
-            }
+            combine(
+                localDataSettingsManager.sortSong,
+                localDataSettingsManager.sortSongOrder,
+                localDataSettingsManager.showFavoriteSong
+            ) { sort, sortOrder, showFavorites -> Triple(sort, sortOrder, showFavorites) }
+                .distinctUntilChanged()
+                .collect { (sort, sortOrder, showFavorites) ->
+                    _sort.value = sort
+                    _sortOrder.value = sortOrder
+                    _showFavoritesOnly.value = showFavorites
+                    getSongs()
+                }
             DataRefreshManager.dataSourceChangedEvent.collect {
                 getSongs()
             }
@@ -59,8 +75,8 @@ class SongsScreenViewModel @Inject constructor(
                 _isLoading.value = true
                 _allSongs.value = songRepository.getSongs(
                     MediaQuery.SongListQuery(
-                        sortBy = SongListSort.RECENTLY_ADDED,
-                        sortOrder = SortOrder.ASC,
+                        sortBy = _sort.value,
+                        sortOrder = _sortOrder.value,
                         startIndex = 0,
                         favorite = _showFavoritesOnly.value
                     )
@@ -77,7 +93,7 @@ class SongsScreenViewModel @Inject constructor(
             _isLoading.value = true
             coroutineScope {
                 val songOffset = _allSongs.value.size
-                _allSongs.value += songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RECENTLY_ADDED, sortOrder = SortOrder.ASC, limit = size, startIndex = songOffset, favorite = _showFavoritesOnly.value))
+                _allSongs.value += songRepository.getSongs(MediaQuery.SongListQuery(sortBy = _sort.value, sortOrder = _sortOrder.value, limit = size, startIndex = songOffset, favorite = _showFavoritesOnly.value))
             }
             _isLoading.value = false
         }
@@ -91,14 +107,24 @@ class SongsScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             coroutineScope {
-                _searchResults.value = songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RECENTLY_ADDED, sortOrder = SortOrder.ASC, searchTerm = query, startIndex = 0))
+                _searchResults.value = songRepository.getSongs(MediaQuery.SongListQuery(sortBy = _sort.value, sortOrder = _sortOrder.value, searchTerm = query, startIndex = 0))
             }
             _isLoading.value = false
         }
     }
+    fun setSorting(newSort: SongListSort) {
+        viewModelScope.launch {
+            localDataSettingsManager.saveSortSong(newSort)
+        }
+    }
+    fun setOrder(newSortOrder: SortOrder) {
+        viewModelScope.launch {
+            localDataSettingsManager.saveSortSongOrder(newSortOrder)
+        }
+    }
     fun setShowFavoritesOnly(showFavorites: Boolean) {
         viewModelScope.launch {
-            localDataSettingsManager.saveShowFavoriteOnly(showFavorites)
+            localDataSettingsManager.saveShowFavoriteSong(showFavorites)
         }
     }
 

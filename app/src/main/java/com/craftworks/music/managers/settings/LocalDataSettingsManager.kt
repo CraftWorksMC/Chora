@@ -9,9 +9,11 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
+import com.craftworks.music.data.model.AlbumArtistListSort
 import com.craftworks.music.data.model.AlbumListSort
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.ProviderType
+import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.dataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -37,7 +39,13 @@ class LocalDataSettingsManager @Inject constructor(
 
         private val SORT_ALBUM = stringPreferencesKey("sort_album")
         private val SORT_ALBUM_ORDER = stringPreferencesKey("sort_album_order")
-        private val SHOW_FAVORITES_ONLY = booleanPreferencesKey("show_favorites_only")
+        private val SHOW_FAVORITES_ALBUM = booleanPreferencesKey("show_favorites_album")
+        private val SORT_ARTIST = stringPreferencesKey("sort_artist")
+        private val SORT_ARTIST_ORDER = stringPreferencesKey("sort_artist_order")
+        private val SHOW_FAVORITES_ARTIST = booleanPreferencesKey("show_favorites_artist")
+        private val SORT_SONG = stringPreferencesKey("sort_song")
+        private val SORT_SONG_ORDER = stringPreferencesKey("sort_song_order")
+        private val SHOW_FAVORITES_SONG = booleanPreferencesKey("show_favorites_song")
     }
 /*
     val localRadios: Flow<MutableList<com.craftworks.music.data.model.MediaModel.Radio>> =
@@ -121,9 +129,39 @@ class LocalDataSettingsManager @Inject constructor(
             SortOrder.entries.find { it.name == preferences[SORT_ALBUM_ORDER] } ?: SortOrder.ASC
         }
 
-    val showFavoriteOnly: Flow<Boolean> =
+    val showFavoriteAlbum: Flow<Boolean> =
         context.dataStore.data.map { preferences ->
-            preferences[SHOW_FAVORITES_ONLY] ?: false
+            preferences[SHOW_FAVORITES_ALBUM] ?: false
+        }
+
+    val sortArtist: Flow<AlbumArtistListSort> =
+        context.dataStore.data.map { preferences ->
+            AlbumArtistListSort.entries.find { it.name == preferences[SORT_ARTIST] } ?: AlbumArtistListSort.NAME
+        }
+
+    val sortArtistOrder: Flow<SortOrder> =
+        context.dataStore.data.map { preferences ->
+            SortOrder.entries.find { it.name == preferences[SORT_ARTIST_ORDER] } ?: SortOrder.ASC
+        }
+
+    val showFavoriteArtist: Flow<Boolean> =
+        context.dataStore.data.map { preferences ->
+            preferences[SHOW_FAVORITES_ARTIST] ?: false
+        }
+
+    val sortSong: Flow<SongListSort> =
+        context.dataStore.data.map { preferences ->
+            SongListSort.entries.find { it.name == preferences[SORT_SONG] } ?: SongListSort.NAME
+        }
+
+    val sortSongOrder: Flow<SortOrder> =
+        context.dataStore.data.map { preferences ->
+            SortOrder.entries.find { it.name == preferences[SORT_SONG_ORDER] } ?: SortOrder.ASC
+        }
+
+    val showFavoriteSong: Flow<Boolean> =
+        context.dataStore.data.map { preferences ->
+            preferences[SHOW_FAVORITES_SONG] ?: false
         }
 
     suspend fun saveSortAlbum(sort: AlbumListSort) {
@@ -141,10 +179,56 @@ class LocalDataSettingsManager @Inject constructor(
         }
     }
 
-    suspend fun saveShowFavoriteOnly(showFavorites: Boolean) {
+    suspend fun saveShowFavoriteAlbum(showFavorites: Boolean) {
         withContext(NonCancellable) {
             context.dataStore.edit { preferences ->
-                preferences[SHOW_FAVORITES_ONLY] = showFavorites;
+                preferences[SHOW_FAVORITES_ALBUM] = showFavorites;
+            }
+        }
+    }
+
+    suspend fun saveSortArtist(sort: AlbumArtistListSort) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[SORT_ARTIST] = sort.name
+            }
+        }
+    }
+    suspend fun saveSortArtistOrder(sortOrder: SortOrder) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[SORT_ARTIST_ORDER] = sortOrder.name
+            }
+        }
+    }
+
+    suspend fun saveShowFavoriteArtist(showFavorites: Boolean) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[SHOW_FAVORITES_ARTIST] = showFavorites;
+            }
+        }
+    }
+
+    suspend fun saveSortSong(sort: SongListSort) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[SORT_SONG] = sort.name
+            }
+        }
+    }
+    suspend fun saveSortSongOrder(sortOrder: SortOrder) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[SORT_SONG_ORDER] = sortOrder.name
+            }
+        }
+    }
+
+    suspend fun saveShowFavoriteSong(showFavorites: Boolean) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[SHOW_FAVORITES_SONG] = showFavorites;
             }
         }
     }

@@ -47,7 +47,7 @@ class AlbumScreenViewModel @Inject constructor(
             combine(
                 localDataSettingsManager.sortAlbum,
                 localDataSettingsManager.sortAlbumOrder,
-                localDataSettingsManager.showFavoriteOnly
+                localDataSettingsManager.showFavoriteAlbum
             ) { sort, sortOrder, showFavorites -> Triple(sort, sortOrder, showFavorites) }
                 .distinctUntilChanged()
                 .collect { (sort, sortOrder, showFavorites) ->
@@ -146,7 +146,7 @@ class AlbumScreenViewModel @Inject constructor(
     }
     fun setShowFavoritesOnly(showFavorites: Boolean) {
         viewModelScope.launch {
-            localDataSettingsManager.saveShowFavoriteOnly(showFavorites)
+            localDataSettingsManager.saveShowFavoriteAlbum(showFavorites)
         }
     }
 }

@@ -43,7 +43,7 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
         private val ALBUM_ARTIST_SORT_BINDING =
             mapOf(
                 AlbumArtistListSort.ALBUM_COUNT to "albumCount",
-                AlbumArtistListSort.FAVORITED to "starred_at",
+                AlbumArtistListSort.FAVORITE to "starred_at",
                 AlbumArtistListSort.NAME to "name",
                 AlbumArtistListSort.PLAY_COUNT to "playCount",
                 AlbumArtistListSort.RATING to "rating",
@@ -70,7 +70,7 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
         private val ARTIST_SORT_BINDING =
             mapOf(
                 ArtistListSort.ALBUM_COUNT to "albumCount",
-                ArtistListSort.FAVORITED to "starred_at",
+                ArtistListSort.FAVORITE to "starred_at",
                 ArtistListSort.NAME to "name",
                 ArtistListSort.PLAY_COUNT to "playCount",
                 ArtistListSort.RATING to "rating",
@@ -86,7 +86,7 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
                 SongListSort.COMMENT to "comment",
                 SongListSort.DURATION to "duration",
                 SongListSort.EXPLICIT_STATUS to "explicitStatus",
-                SongListSort.FAVORITED to "starred_at",
+                SongListSort.FAVORITE to "starred_at",
                 SongListSort.GENRE to "genre",
                 SongListSort.ID to "id",
                 SongListSort.NAME to "title",

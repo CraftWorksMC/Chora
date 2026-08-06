@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -47,15 +48,29 @@ class ArtistsScreenViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _sortOrder = MutableStateFlow(SortOrder.ASC)
+    val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
+
+    private val _sort = MutableStateFlow(AlbumArtistListSort.NAME)
+    val sort: StateFlow<AlbumArtistListSort> = _sort.asStateFlow()
+
     private val _showFavoritesOnly = MutableStateFlow(false)
     val showFavoritesOnly: StateFlow<Boolean> = _showFavoritesOnly.asStateFlow()
 
     init {
         viewModelScope.launch {
-            localDataSettingsManager.showFavoriteOnly.collect { showFavorites ->
-                _showFavoritesOnly.value = showFavorites
-                getArtists()
-            }
+            combine(
+                localDataSettingsManager.sortArtist,
+                localDataSettingsManager.sortArtistOrder,
+                localDataSettingsManager.showFavoriteArtist
+            ) { sort, sortOrder, showFavorites -> Triple(sort, sortOrder, showFavorites) }
+                .distinctUntilChanged()
+                .collect { (sort, sortOrder, showFavorites) ->
+                    _sort.value = sort
+                    _sortOrder.value = sortOrder
+                    _showFavoritesOnly.value = showFavorites
+                    getArtists()
+                }
             DataRefreshManager.dataSourceChangedEvent.collect {
                 getArtists()
             }
@@ -71,8 +86,8 @@ class ArtistsScreenViewModel @Inject constructor(
                 _isLoading.value = true
                 _allArtists.value = artistRepository.getArtists(
                     MediaQuery.AlbumArtistListQuery(
-                        AlbumArtistListSort.NAME,
-                        SortOrder.ASC,
+                        _sort.value,
+                        _sortOrder.value,
                         startIndex = 0,
                         favorite = _showFavoritesOnly.value
                     )
@@ -148,9 +163,19 @@ class ArtistsScreenViewModel @Inject constructor(
             }
         }
     }
+    fun setSorting(newSort: AlbumArtistListSort) {
+        viewModelScope.launch {
+            localDataSettingsManager.saveSortArtist(newSort)
+        }
+    }
+    fun setOrder(newSortOrder: SortOrder) {
+        viewModelScope.launch {
+            localDataSettingsManager.saveSortArtistOrder(newSortOrder)
+        }
+    }
     fun setShowFavoritesOnly(showFavorites: Boolean) {
         viewModelScope.launch {
-            localDataSettingsManager.saveShowFavoriteOnly(showFavorites)
+            localDataSettingsManager.saveShowFavoriteArtist(showFavorites)
         }
     }
 }

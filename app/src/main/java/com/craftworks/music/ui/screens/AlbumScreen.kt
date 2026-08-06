@@ -138,67 +138,48 @@ fun AlbumScreen(
                                         }
                                     }
                                 }
-                                Box {
-                                    IconButton(
-                                        onClick = { viewModel.setOrder(sortOrder.invert()) }
-                                    ) {
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(if (sortOrder == SortOrder.ASC) R.drawable.arrow_upward_24px else R.drawable.arrow_downward_24px ),
-                                            contentDescription = stringResource(R.string.button_toggle_sort_order),
-                                        )
-                                    }
-                                }
-                                Box {
-                                    IconButton(
-                                        onClick = { showSortMenu = true }
-                                    ) {
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.rounded_sort_24),
-                                            contentDescription = stringResource(R.string.button_sort_by),
-                                        )
-                                    }
-                                    DropdownMenu(
-                                        expanded = showSortMenu,
-                                        onDismissRequest = { showSortMenu = false }
-                                    ) {
-                                        currentProvider?.supportedAlbumSort.orEmpty().map {
-                                            return@map DropdownMenuItem(
-                                                text = { Text(sortTranslationBindings[it]?.let { id -> stringResource(id) } ?: it.name) },
-                                                onClick = {
-                                                    viewModel.setSorting(it)
-                                                    showSortMenu = false
-                                                }
+                                if (currentProvider?.supportedAlbumSort?.isNotEmpty() ?: false) {
+                                    Box {
+                                        IconButton(
+                                            onClick = { viewModel.setOrder(sortOrder.invert()) }
+                                        ) {
+                                            Icon(
+                                                imageVector = ImageVector.vectorResource(if (sortOrder == SortOrder.ASC) R.drawable.arrow_upward_24px else R.drawable.arrow_downward_24px),
+                                                contentDescription = stringResource(R.string.button_toggle_sort_order),
                                             )
                                         }
-
-                                        /*DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.Label_Sort_Alphabetical)) },
-                                        onClick = {
-                                            viewModel.setSorting(SortOrder.ALPHABETICAL)
-                                            showSortMenu = false
+                                    }
+                                }
+                                if (currentProvider?.supportedAlbumSort.orEmpty().size > 1) {
+                                    Box {
+                                        IconButton(
+                                            onClick = { showSortMenu = true }
+                                        ) {
+                                            Icon(
+                                                imageVector = ImageVector.vectorResource(R.drawable.rounded_sort_24),
+                                                contentDescription = stringResource(R.string.button_sort_by),
+                                            )
                                         }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.recently_added)) },
-                                        onClick = {
-                                            viewModel.setSorting(SortOrder.NEWEST)
-                                            showSortMenu = false
+                                        DropdownMenu(
+                                            expanded = showSortMenu,
+                                            onDismissRequest = { showSortMenu = false }
+                                        ) {
+                                            currentProvider?.supportedAlbumSort.orEmpty().map {
+                                                return@map DropdownMenuItem(
+                                                    text = {
+                                                        Text(sortTranslationBindings[it]?.let { id ->
+                                                            stringResource(
+                                                                id
+                                                            )
+                                                        } ?: it.name)
+                                                    },
+                                                    onClick = {
+                                                        viewModel.setSorting(it)
+                                                        showSortMenu = false
+                                                    }
+                                                )
+                                            }
                                         }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.recently_played)) },
-                                        onClick = {
-                                            viewModel.setSorting(SortOrder.RECENT)
-                                            showSortMenu = false
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.most_played)) },
-                                        onClick = {
-                                            viewModel.setSorting(SortOrder.FREQUENT)
-                                            showSortMenu = false
-                                        }
-                                    )*/
                                     }
                                 }
                             }

@@ -62,7 +62,7 @@ open class SubsonicMediaProvider : MediaProvider() {
     companion object {
         private val ALBUM_ARTIST_SORT_BINDING = mapOf<AlbumArtistListSort, (MediaModel.Artist) -> Comparable<*>?>(
             AlbumArtistListSort.ALBUM_COUNT to { it.albumCount },
-            AlbumArtistListSort.FAVORITED to { it.userFavorite },
+            AlbumArtistListSort.FAVORITE to { it.userFavorite },
             AlbumArtistListSort.NAME to { it.name },
             AlbumArtistListSort.RATING to { it.userRating },
         )
@@ -103,14 +103,14 @@ open class SubsonicMediaProvider : MediaProvider() {
     @Transient
     override val supportedAlbumArtistSort: List<AlbumArtistListSort> = listOf(
         AlbumArtistListSort.ALBUM_COUNT,
-        AlbumArtistListSort.FAVORITED,
+        AlbumArtistListSort.FAVORITE,
         AlbumArtistListSort.NAME,
         AlbumArtistListSort.RATING,
     )
     @Transient
     override val supportedArtistSort: List<ArtistListSort> = listOf(
         ArtistListSort.ALBUM_COUNT,
-        ArtistListSort.FAVORITED,
+        ArtistListSort.FAVORITE,
         ArtistListSort.NAME,
         ArtistListSort.RATING,
     )
