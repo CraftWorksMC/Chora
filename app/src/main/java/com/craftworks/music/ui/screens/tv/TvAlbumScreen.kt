@@ -52,7 +52,7 @@ fun TvAlbumScreen(
         stringResource(R.string.home_recently_added),
         stringResource(R.string.home_recently_played),
         stringResource(R.string.home_most_played),
-        stringResource(R.string.sort_by_starred),
+        stringResource(R.string.sort_by_favorite),
     )
     val sortOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()

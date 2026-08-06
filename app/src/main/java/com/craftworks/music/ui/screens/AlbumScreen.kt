@@ -78,11 +78,19 @@ fun AlbumScreen(
 
     val sortTranslationBindings = mapOf(
         AlbumListSort.ALBUM_ARTIST to R.string.sort_by_album_artist,
-        AlbumListSort.PLAY_COUNT to R.string.sort_by_play_count,
+        AlbumListSort.ARTIST to R.string.sort_by_artist,
+        AlbumListSort.DURATION to R.string.sort_by_duration,
+        AlbumListSort.EXPLICIT_STATUS to R.string.sort_by_explicit_status,
+        AlbumListSort.FAVORITED to R.string.sort_by_favorite,
         AlbumListSort.NAME to R.string.sort_by_name,
+        AlbumListSort.PLAY_COUNT to R.string.sort_by_play_count,
         AlbumListSort.RANDOM to R.string.sort_by_random,
+        AlbumListSort.RATING to R.string.sort_by_rating,
         AlbumListSort.RECENTLY_ADDED to R.string.sort_by_recently_added,
         AlbumListSort.RECENTLY_PLAYED to R.string.sort_by_recently_played,
+        AlbumListSort.RELEASE_DATE to R.string.sort_by_release_date,
+        AlbumListSort.SONG_COUNT to R.string.sort_by_song_count,
+        AlbumListSort.YEAR to R.string.sort_by_year,
     )
 
     PullToRefreshBox(

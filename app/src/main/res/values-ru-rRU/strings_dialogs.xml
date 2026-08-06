@@ -41,7 +41,7 @@
     <!-- Artists -->
     <!-- Sorting -->
     <string name="button_sort_by">Сортировка</string>
-    <string name="sort_by_starred">По Оценке</string>
+    <string name="sort_by_favorite">По Оценке</string>
     <!-- Connection Errors -->
     <!-- Downloading -->
     <string name="notification_download_name">Уведомления О Скачивании</string>

@@ -41,7 +41,7 @@
     <!-- Artists -->
     <!-- Sorting -->
     <string name="button_sort_by">排序方式</string>
-    <string name="sort_by_starred">收藏</string>
+    <string name="sort_by_favorite">收藏</string>
     <!-- Connection Errors -->
     <!-- Downloading -->
     <string name="notification_download_name">Download Notifications</string>

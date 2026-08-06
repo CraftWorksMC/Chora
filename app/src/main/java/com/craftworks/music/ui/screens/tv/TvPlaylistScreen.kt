@@ -43,7 +43,7 @@ fun TvPlaylistScreen(
 
     val tabs = listOf(
         stringResource(R.string.nav_playlists),
-        stringResource(R.string.sort_by_starred),
+        stringResource(R.string.sort_by_favorite),
     )
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 

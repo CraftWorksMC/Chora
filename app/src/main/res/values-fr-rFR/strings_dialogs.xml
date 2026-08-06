@@ -41,7 +41,7 @@
     <!-- Artists -->
     <!-- Sorting -->
     <string name="button_sort_by">Trier par</string>
-    <string name="sort_by_starred">Favoris</string>
+    <string name="sort_by_favorite">Favoris</string>
     <!-- Connection Errors -->
     <!-- Downloading -->
     <string name="notification_download_name">Notification de téléchargement</string>

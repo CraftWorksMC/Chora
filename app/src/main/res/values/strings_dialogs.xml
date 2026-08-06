@@ -25,6 +25,7 @@
     <string name="sort_by_artist">Artist</string>
     <string name="sort_by_duration">Duration</string>
     <string name="sort_by_explicit_status">Explicit</string>
+    <string name="sort_by_favorite">Favorite</string>
     <string name="sort_by_name">Name</string>
     <string name="sort_by_play_count">Play Count</string>
     <string name="sort_by_random">Random</string>
@@ -33,7 +34,6 @@
     <string name="sort_by_recently_played">Recently Played</string>
     <string name="sort_by_release_date">Release Date</string>
     <string name="sort_by_song_count">Song Count</string>
-    <string name="sort_by_starred">Starred</string>
     <string name="sort_by_year">Year</string>
 
 
