@@ -327,7 +327,7 @@ fun ProviderLogo(provider: MediaProvider){
             .clickable {
                 clickAction.value.invoke()
             }
-            .background(Color.White)
+            .background(if (provider is SubsonicMediaProvider && provider !is NavidromeMediaProvider) Color.White else Color.Unspecified)
             .graphicsLayer {
                 rotationZ = animatedRotation
                 translationY = bounceAnimatable.value
