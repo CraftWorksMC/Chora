@@ -6,7 +6,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.dataStore
 import com.craftworks.music.data.model.MediaProviderData
 import com.craftworks.music.data.model.MusicFolder
-import com.craftworks.music.data.providers.MediaProvider
+import com.craftworks.music.data.providers.media.MediaProvider
 import com.craftworks.music.utils.EncryptedMediaProviderSerializer
 import com.craftworks.music.utils.MediaProviderConfig
 import kotlinx.coroutines.flow.MutableStateFlow

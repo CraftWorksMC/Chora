@@ -7,7 +7,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
 import com.craftworks.music.R
 import com.craftworks.music.managers.MediaProviderManager
-import com.craftworks.music.data.providers.MediaProvider
+import com.craftworks.music.data.providers.media.MediaProvider
 import kotlinx.serialization.Serializable
 
 abstract class MediaModel()

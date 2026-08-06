@@ -5,8 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.media3.common.MediaMetadata
-import com.craftworks.music.data.datasource.lrclib.LrclibDataSource
-import com.craftworks.music.data.datasource.netease.NeteaseDataSource
+import com.craftworks.music.data.providers.lyrics.lrclib.LrclibDataSource
+import com.craftworks.music.data.providers.lyrics.netease.NeteaseDataSource
 import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.model.id

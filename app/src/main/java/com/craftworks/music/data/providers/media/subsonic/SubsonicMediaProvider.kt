@@ -1,4 +1,4 @@
-package com.craftworks.music.data.providers.subsonic
+package com.craftworks.music.data.providers.media.subsonic
 
 import android.content.Context
 import com.craftworks.music.BuildConfig
@@ -30,7 +30,7 @@ import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
-import com.craftworks.music.data.providers.MediaProvider
+import com.craftworks.music.data.providers.media.MediaProvider
 import com.craftworks.music.utils.PagingUtils
 import com.craftworks.music.utils.StringUtils
 import de.jensklingenberg.ktorfit.Ktorfit

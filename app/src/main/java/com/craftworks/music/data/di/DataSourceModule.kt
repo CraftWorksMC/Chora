@@ -1,8 +1,8 @@
 package com.craftworks.music.data.di
 
 import android.content.Context
-import com.craftworks.music.data.datasource.lrclib.LrclibDataSource
-import com.craftworks.music.data.datasource.netease.NeteaseDataSource
+import com.craftworks.music.data.providers.lyrics.lrclib.LrclibDataSource
+import com.craftworks.music.data.providers.lyrics.netease.NeteaseDataSource
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
 import dagger.Module
 import dagger.Provides

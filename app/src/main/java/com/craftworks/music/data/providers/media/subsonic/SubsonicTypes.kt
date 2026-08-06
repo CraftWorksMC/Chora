@@ -1,4 +1,4 @@
-package com.craftworks.music.data.providers.subsonic
+package com.craftworks.music.data.providers.media.subsonic
 
 import androidx.compose.runtime.Immutable
 import com.craftworks.music.data.model.AlbumArtistInfo

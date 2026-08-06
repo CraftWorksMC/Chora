@@ -1,4 +1,4 @@
-package com.craftworks.music.data.datasource.netease
+package com.craftworks.music.data.providers.lyrics.netease
 
 import android.content.Context
 import android.util.Log

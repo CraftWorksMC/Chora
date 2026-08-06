@@ -1,4 +1,4 @@
-package com.craftworks.music.data.providers
+package com.craftworks.music.data.providers.media
 
 import android.content.Context
 import com.craftworks.music.data.model.AlbumArtistDetailResponse
@@ -28,9 +28,9 @@ import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.data.model.TagListResponse
 import com.craftworks.music.data.model.User
 import com.craftworks.music.data.model.UserInfoResponse
-import com.craftworks.music.data.providers.local.LocalMediaProvider
-import com.craftworks.music.data.providers.navidrome.NavidromeMediaProvider
-import com.craftworks.music.data.providers.subsonic.SubsonicMediaProvider
+import com.craftworks.music.data.providers.media.local.LocalMediaProvider
+import com.craftworks.music.data.providers.media.navidrome.NavidromeMediaProvider
+import com.craftworks.music.data.providers.media.subsonic.SubsonicMediaProvider
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.modules.SerializersModule

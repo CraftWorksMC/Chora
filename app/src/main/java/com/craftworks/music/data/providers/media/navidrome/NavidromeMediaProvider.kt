@@ -1,4 +1,4 @@
-package com.craftworks.music.data.providers.navidrome
+package com.craftworks.music.data.providers.media.navidrome
 
 import com.craftworks.music.R
 import com.craftworks.music.data.model.AlbumArtistListSort
@@ -7,7 +7,7 @@ import com.craftworks.music.data.model.ArtistListSort
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.SongListSort
-import com.craftworks.music.data.providers.subsonic.SubsonicMediaProvider
+import com.craftworks.music.data.providers.media.subsonic.SubsonicMediaProvider
 import de.jensklingenberg.ktorfit.Ktorfit
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp

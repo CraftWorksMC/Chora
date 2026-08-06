@@ -1,4 +1,4 @@
-package com.craftworks.music.data.providers.local
+package com.craftworks.music.data.providers.media.local
 
 import android.content.Context
 import android.database.Cursor

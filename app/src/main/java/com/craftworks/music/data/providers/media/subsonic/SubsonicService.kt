@@ -1,4 +1,4 @@
-package com.craftworks.music.data.providers.subsonic
+package com.craftworks.music.data.providers.media.subsonic
 
 import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.Query

@@ -1,4 +1,4 @@
-package com.craftworks.music.data.datasource.lrclib
+package com.craftworks.music.data.providers.lyrics.lrclib
 
 import android.content.Context
 import android.util.Log

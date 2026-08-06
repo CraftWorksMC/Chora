@@ -1,4 +1,4 @@
-package com.craftworks.music.data.providers.navidrome
+package com.craftworks.music.data.providers.media.navidrome
 
 import com.craftworks.music.data.model.GainInfo
 import com.craftworks.music.data.model.MediaModel

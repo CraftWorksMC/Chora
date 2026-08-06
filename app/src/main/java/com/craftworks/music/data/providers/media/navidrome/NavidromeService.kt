@@ -1,4 +1,4 @@
-package com.craftworks.music.data.providers.navidrome
+package com.craftworks.music.data.providers.media.navidrome
 
 import de.jensklingenberg.ktorfit.http.Body
 import de.jensklingenberg.ktorfit.http.GET

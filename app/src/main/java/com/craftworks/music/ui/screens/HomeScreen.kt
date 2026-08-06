@@ -72,10 +72,10 @@ import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
-import com.craftworks.music.data.providers.MediaProvider
-import com.craftworks.music.data.providers.local.LocalMediaProvider
-import com.craftworks.music.data.providers.navidrome.NavidromeMediaProvider
-import com.craftworks.music.data.providers.subsonic.SubsonicMediaProvider
+import com.craftworks.music.data.providers.media.MediaProvider
+import com.craftworks.music.data.providers.media.local.LocalMediaProvider
+import com.craftworks.music.data.providers.media.navidrome.NavidromeMediaProvider
+import com.craftworks.music.data.providers.media.subsonic.SubsonicMediaProvider
 import com.craftworks.music.ui.elements.AlbumRow
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.playing.dpToPx
