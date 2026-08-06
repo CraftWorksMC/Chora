@@ -2,7 +2,9 @@ package com.craftworks.music.data.model
 
 enum class SortOrder {
     ASC,
-    DESC
+    DESC;
+
+    fun invert(): SortOrder = if (this == ASC) DESC else ASC
 }
 enum class AlbumListSort {
     ALBUM_ARTIST,
@@ -11,7 +13,7 @@ enum class AlbumListSort {
     CRITIC_RATING,
     DURATION,
     EXPLICIT_STATUS,
-    FAVORITED,
+    FAVORITE,
     ID,
     NAME,
     PLAY_COUNT,

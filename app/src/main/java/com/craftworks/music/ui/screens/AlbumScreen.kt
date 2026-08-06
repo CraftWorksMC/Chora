@@ -38,6 +38,7 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.AlbumListSort
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.RippleEffect
@@ -72,6 +73,8 @@ fun AlbumScreen(
 
     var showSortMenu by remember { mutableStateOf(false) }
 
+    val sortOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
+
     val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()
 
     val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
@@ -81,7 +84,7 @@ fun AlbumScreen(
         AlbumListSort.ARTIST to R.string.sort_by_artist,
         AlbumListSort.DURATION to R.string.sort_by_duration,
         AlbumListSort.EXPLICIT_STATUS to R.string.sort_by_explicit_status,
-        AlbumListSort.FAVORITED to R.string.sort_by_favorite,
+        AlbumListSort.FAVORITE to R.string.sort_by_favorite,
         AlbumListSort.NAME to R.string.sort_by_name,
         AlbumListSort.PLAY_COUNT to R.string.sort_by_play_count,
         AlbumListSort.RANDOM to R.string.sort_by_random,
@@ -129,6 +132,16 @@ fun AlbumScreen(
                                         Icon(
                                             imageVector = ImageVector.vectorResource(if (showFavoritesOnly) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
                                             contentDescription = stringResource(R.string.button_toggle_favorites),
+                                        )
+                                    }
+                                }
+                                Box {
+                                    IconButton(
+                                        onClick = { viewModel.setOrder(sortOrder.invert()) }
+                                    ) {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(if (sortOrder == SortOrder.ASC) R.drawable.arrow_upward_24px else R.drawable.arrow_downward_24px ),
+                                            contentDescription = stringResource(R.string.button_toggle_sort_order),
                                         )
                                     }
                                 }

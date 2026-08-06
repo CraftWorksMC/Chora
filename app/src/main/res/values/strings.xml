@@ -15,4 +15,7 @@
 
     // Favorites
     <string name="button_toggle_favorites">Toggle Favorites</string>
+
+    // Sort order
+    <string name="button_toggle_sort_order">Toggle Sort Order</string>
 </resources>
