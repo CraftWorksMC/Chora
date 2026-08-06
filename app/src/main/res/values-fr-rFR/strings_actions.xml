@@ -11,10 +11,14 @@
     <string name="action_shuffle">Mélanger</string>
 
     <string name="action_add">Ajouter</string>
+    <string name="action_add_to_queue">Ajouter à la queue</string>
+    <string name="action_add_to_playlist">Ajouter à la playlist</string>
+    <string name="action_set_rating">Définir la note</string>
     <string name="action_next">Suivant</string>
 
     // Playlists
     <string name="action_create_playlist">Créer une playlist</string>
+    <string name="action_remove_from_playlist">Retirer de la playlist</string>
 
     <string name="action_download">Téléchargement</string>
 </resources>

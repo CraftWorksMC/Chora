@@ -2,21 +2,55 @@
 <resources>
     <string name="settings_appearance">Apparence</string>
         <string name="appearance_username">Nom</string>
-        <string name="appearance_oled_mode">OLED Protection</string>
+        <string name="appearance_theme">Thème</string>
+            <string name="theme_dark">Sombre</string>
+            <string name="theme_light">Clair</string>
+            <string name="theme_system">Système</string>
+        <string name="appearance_background_style">Style d\'arrière-plan</string>
+            <string name="background_style_plain">Couleur unie</string>
+            <string name="background_style_blur">Flou</string>
+            <string name="background_style_anim">Animé</string>
+        <string name="appearance_screen_standby">Désactiver la mise en veille de l\'écran</string>
+        <string name="appearance_oled_mode">Protection OLED</string>
+            <string name="appearance_oled_protection_mode">Mode de protection OLED</string>
+                <string name="oled_protection_mode_off">Désactivé</string>
+                <string name="oled_protection_mode_lyrics_only">Afficher uniquement les paroles</string>
+                <string name="oled_protection_mode_minimal">Minimal</string>
         <string name="appearance_navbar_items">Éléments de la barre de navigation</string>
         <string name="appearance_home_items">Éléments de l\'écran d\'accueil</string>
+        <string name="appearance_now_playing_title_alignment">Alignment du titre de la piste en cours de lecture</string>
+        <string name="appearance_now_playing_lyrics_alignment">Alignment des paroles de la piste en cours de lecture</string>
+        <string name="alignment_setting_left">Gauche</string>
+        <string name="alignment_setting_center">Centre</string>
+        <string name="alignment_setting_right">Droite</string>
         <string name="appearance_now_playing_lyrics_blur">Flou du texte</string>
+        <string name="appearance_lyrics_auto_scroll">Scroll automatique des paroles simples</string>
+        <string name="appearance_lyrics_recenter">Recenter automatiquement après avoir scroll</string>
         <string name="appearance_lyrics_animation_speed">Vitesse d\'animation du texte</string>
         <string name="appearance_more_info">Afficher plus d\'informations</string>
-        <string name="appearance_provider_logo">Afficher le logo de Navidrome</string>
+        <string name="appearance_provider_logo">Afficher le logo du fournisseur de médias</string>
         <string name="appearance_provider_dividers">Afficher les séparateurs de fournisseurs</string>
         <string name="appearance_refresh_animation">Afficher l\'animation d\'actualisation</string>
         <string name="appearance_track_numbers_in_album_view">Afficher les numéros de piste de l\'album</string>
     <string name="settings_media_providers">Fournisseurs de médias</string>
+        <string name="media_providers_lrclib_url">URL LRCLIB</string>
+        <string name="media_providers_media_source">Source de médias</string>
             // Local
+            <string name="add_media_provider_local_directory">Emplacement du dossier</string>
             // Server
+            <string name="add_media_provider_server_url">Url du serveur</string>
+            <string name="add_media_provider_server_username">Nom d\'utilisateur</string>
+            <string name="add_media_provider_server_password">Mot de passe</string>
+            <string name="add_media_provider_server_allow_self_signed_certs">Autoriser les certificats auto-signés</string>
+            <string name="add_media_provider_login">Se connecter</string>
+    <string name="settings_playback">Lecture</string>
         // Transcoding
+        <string name="playback_max_bitrate">Bande passante maximum</string>
+        <string name="playback_max_bitrate_wifi">Bande passante maximum (en Wi-Fi)</string>
+        <string name="playback_max_bitrate_mobile_data">Bande passante maximum (en données mobiles)</string>
         <string name="playback_transcoding_format">Format de transcodage</string>
+        <string name="playback_no_transcoding">Pas de transcodage</string>
 
         // Scrobble
+        <string name="playback_min_scrobble_percentage">Pourcentage minimum pour scrobbler</string>
 </resources>

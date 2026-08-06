@@ -670,7 +670,7 @@ fun AnimatedBottomNavBar(
     val orderedNavItems = AppearanceSettingsManager(context).bottomNavItemsFlow.collectAsState(
         initial = listOf(
             BottomNavItem(
-                "Home", R.drawable.rounded_home_24, "home_screen"
+                stringResource(R.string.nav_home), R.drawable.rounded_home_24, "home_screen"
             ), BottomNavItem(
                 stringResource(R.string.nav_albums), R.drawable.rounded_library_music_24, "album_screen"
             ), BottomNavItem(

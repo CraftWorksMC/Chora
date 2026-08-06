@@ -20,7 +20,27 @@
 
     // Sorting
     <string name="button_sort_by">Trier par</string>
+    <string name="sort_by_album">Album</string>
+    <string name="sort_by_album_artist">Artist d\'album</string>
+    <string name="sort_by_album_count">Nombre d\'album</string>
+    <string name="sort_by_artist">Artiste</string>
+    <string name="sort_by_bpm">BPM</string>
+    <string name="sort_by_channels">Cannaux</string>
+    <string name="sort_by_comment">Commentaire</string>
+    <string name="sort_by_duration">Durée</string>
+    <string name="sort_by_explicit_status">Explicite</string>
     <string name="sort_by_favorite">Favoris</string>
+    <string name="sort_by_genre">Genre</string>
+    <string name="sort_by_id">ID</string>
+    <string name="sort_by_name">Nom</string>
+    <string name="sort_by_play_count">Nombre de lectures</string>
+    <string name="sort_by_random">Aléatoire</string>
+    <string name="sort_by_rating">Note</string>
+    <string name="sort_by_recently_added">Recemment ajouté</string>
+    <string name="sort_by_recently_played">Recemment joué</string>
+    <string name="sort_by_release_date">Date de sortie</string>
+    <string name="sort_by_song_count">Nombre de pistes</string>
+    <string name="sort_by_year">Année</string>
 
 
     // Downloading
@@ -28,4 +48,5 @@
     <string name="notification_download_desc">Notifications pour l\'état du téléchargement</string>
 
     // Set Sleep Timer
+    <string name="now_playing_set_sleep_timer">Régler la minuterie de mise en veille</string>
 </resources>

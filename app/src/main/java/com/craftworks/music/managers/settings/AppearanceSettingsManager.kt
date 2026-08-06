@@ -154,12 +154,12 @@ class AppearanceSettingsManager @Inject constructor(
     val bottomNavItemsFlow: Flow<List<BottomNavItem>> = context.dataStore.data.map { preferences ->
         val jsonString = preferences[BOTTOM_NAV_ITEMS_KEY]
         val defaultValue = listOf(
-            BottomNavItem("Home", R.drawable.rounded_home_24, "home_screen"),
-            BottomNavItem("Albums", R.drawable.rounded_library_music_24, "album_screen"),
-            BottomNavItem("Songs", R.drawable.round_music_note_24, "songs_screen"),
-            BottomNavItem("Artists", R.drawable.rounded_artist_24, "artists_screen"),
-            BottomNavItem("Radios", R.drawable.rounded_radio, "radio_screen"),
-            BottomNavItem("Playlists", R.drawable.placeholder, "playlist_screen")
+            BottomNavItem(context.getString(R.string.nav_home), R.drawable.rounded_home_24, "home_screen"),
+            BottomNavItem(context.getString(R.string.nav_albums), R.drawable.rounded_library_music_24, "album_screen"),
+            BottomNavItem(context.getString(R.string.nav_songs), R.drawable.round_music_note_24, "songs_screen"),
+            BottomNavItem(context.getString(R.string.nav_artists), R.drawable.rounded_artist_24, "artists_screen"),
+            BottomNavItem(context.getString(R.string.nav_radios), R.drawable.rounded_radio, "radio_screen"),
+            BottomNavItem(context.getString(R.string.nav_playlists), R.drawable.placeholder, "playlist_screen")
         )
         try {
             jsonString?.let { Json.decodeFromString<List<BottomNavItem>>(it) } ?: defaultValue
