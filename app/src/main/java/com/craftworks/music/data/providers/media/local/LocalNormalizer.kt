@@ -28,7 +28,7 @@ object LocalNormalizer {
                 providerType = ProviderType.LOCAL_FOLDER,
                 name = artistName
             )),
-            imageUrl = albumId.toString(),
+            imageId = albumId.toString(),
             name = albumName,
             releaseYear = year,
             originalYear = year
