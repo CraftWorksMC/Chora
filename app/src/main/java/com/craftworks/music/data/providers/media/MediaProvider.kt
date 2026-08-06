@@ -56,11 +56,17 @@ abstract class MediaProvider {
     abstract val providerName: Int
     abstract val featureFlags: ProviderFeatures
     abstract val supportedAlbumSort: List<AlbumListSort>
+    abstract val supportAlbumSortOrder: Boolean
     abstract val supportedAlbumArtistSort: List<AlbumArtistListSort>
+    abstract val supportAlbumArtistSortOrder: Boolean
     abstract val supportedArtistSort: List<ArtistListSort>
+    abstract val supportArtistSortOrder: Boolean
     abstract val supportedGenreSort: List<GenreListSort>
+    abstract val supportGenreSortOrder: Boolean
     abstract val supportedPlaylistSort: List<PlaylistListSort>
+    abstract val supportPlaylistSortOrder: Boolean
     abstract val supportedSongSort: List<SongListSort>
+    abstract val supportSongSortOrder: Boolean
     @Transient
     lateinit var id: String
 

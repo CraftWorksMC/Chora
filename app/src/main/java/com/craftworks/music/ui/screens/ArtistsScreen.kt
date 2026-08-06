@@ -126,7 +126,7 @@ fun ArtistsScreen(
                                     }
                                 }
                             }
-                            if (currentProvider?.supportedAlbumArtistSort?.isNotEmpty() ?: false) {
+                            if (currentProvider?.supportAlbumArtistSortOrder ?: false) {
                                 Box {
                                     IconButton(
                                         onClick = { viewModel.setOrder(sortOrder.invert()) }

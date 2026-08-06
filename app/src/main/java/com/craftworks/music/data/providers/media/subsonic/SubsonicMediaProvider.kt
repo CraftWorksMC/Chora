@@ -62,7 +62,6 @@ open class SubsonicMediaProvider : MediaProvider() {
     companion object {
         private val ALBUM_ARTIST_SORT_BINDING = mapOf<AlbumArtistListSort, (MediaModel.Artist) -> Comparable<*>?>(
             AlbumArtistListSort.ALBUM_COUNT to { it.albumCount },
-            AlbumArtistListSort.FAVORITE to { it.userFavorite },
             AlbumArtistListSort.NAME to { it.name },
             AlbumArtistListSort.RATING to { it.userRating },
         )
@@ -101,21 +100,31 @@ open class SubsonicMediaProvider : MediaProvider() {
         AlbumListSort.RECENTLY_PLAYED,
     )
     @Transient
+    override val supportAlbumSortOrder: Boolean = false
+
+    @Transient
     override val supportedAlbumArtistSort: List<AlbumArtistListSort> = listOf(
         AlbumArtistListSort.ALBUM_COUNT,
-        AlbumArtistListSort.FAVORITE,
         AlbumArtistListSort.NAME,
         AlbumArtistListSort.RATING,
     )
     @Transient
+    override val supportAlbumArtistSortOrder: Boolean = true
+
+    @Transient
     override val supportedArtistSort: List<ArtistListSort> = listOf(
         ArtistListSort.ALBUM_COUNT,
-        ArtistListSort.FAVORITE,
         ArtistListSort.NAME,
         ArtistListSort.RATING,
     )
     @Transient
+    override val supportArtistSortOrder: Boolean = true
+
+    @Transient
     override val supportedGenreSort: List<GenreListSort> = listOf(GenreListSort.NAME)
+    @Transient
+    override val supportGenreSortOrder: Boolean = false
+
     @Transient
     override val supportedPlaylistSort: List<PlaylistListSort> = listOf(
         PlaylistListSort.DURATION,
@@ -124,7 +133,12 @@ open class SubsonicMediaProvider : MediaProvider() {
         PlaylistListSort.UPDATED_AT,
     )
     @Transient
+    override val supportPlaylistSortOrder: Boolean = true
+
+    @Transient
     override val supportedSongSort: List<SongListSort> = listOf(SongListSort.NAME)
+    @Transient
+    override val supportSongSortOrder: Boolean = false
 
     @Transient
     protected val choraVersion: String = BuildConfig.VERSION_NAME

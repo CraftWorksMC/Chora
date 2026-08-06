@@ -138,7 +138,7 @@ fun AlbumScreen(
                                         }
                                     }
                                 }
-                                if (currentProvider?.supportedAlbumSort?.isNotEmpty() ?: false) {
+                                if (currentProvider?.supportAlbumSortOrder ?: false) {
                                     Box {
                                         IconButton(
                                             onClick = { viewModel.setOrder(sortOrder.invert()) }

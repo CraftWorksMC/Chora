@@ -150,7 +150,7 @@ fun SongsScreen(
                                     }
                                 }
                             }
-                            if (currentProvider?.supportedSongSort?.isNotEmpty() ?: false) {
+                            if (currentProvider?.supportSongSortOrder ?: false) {
                                 Box {
                                     IconButton(
                                         onClick = { viewModel.setOrder(sortOrder.invert()) }

@@ -123,6 +123,46 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
         AlbumListSort.YEAR,
     )
 
+    @Transient
+    override val supportAlbumSortOrder: Boolean = true
+
+    @Transient
+    override val supportedAlbumArtistSort: List<AlbumArtistListSort> = listOf(
+        AlbumArtistListSort.ALBUM_COUNT,
+        AlbumArtistListSort.FAVORITE,
+        AlbumArtistListSort.NAME,
+        AlbumArtistListSort.PLAY_COUNT,
+        AlbumArtistListSort.RATING,
+        AlbumArtistListSort.SONG_COUNT,
+    )
+    @Transient
+    override val supportAlbumArtistSortOrder: Boolean = true
+
+    @Transient
+    override val supportedSongSort: List<SongListSort> = listOf(
+        SongListSort.ALBUM,
+        SongListSort.ALBUM_ARTIST,
+        SongListSort.ARTIST,
+        SongListSort.BPM,
+        SongListSort.CHANNELS,
+        SongListSort.COMMENT,
+        SongListSort.DURATION,
+        SongListSort.EXPLICIT_STATUS,
+        SongListSort.FAVORITE,
+        SongListSort.GENRE,
+        SongListSort.ID,
+        SongListSort.NAME,
+        SongListSort.PLAY_COUNT,
+        SongListSort.RANDOM,
+        SongListSort.RATING,
+        SongListSort.RECENTLY_ADDED,
+        SongListSort.RECENTLY_PLAYED,
+        SongListSort.SORT_NAME,
+        SongListSort.YEAR,
+    )
+    @Transient
+    override val supportSongSortOrder: Boolean = true
+
     @Contextual
     private val isPublicKey = AttributeKey<Boolean>("isPublic")
 

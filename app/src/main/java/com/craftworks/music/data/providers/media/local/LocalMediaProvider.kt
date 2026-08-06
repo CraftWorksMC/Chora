@@ -46,12 +46,19 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
         const val TAG = "LOCAL_PROVIDER"
         const val ALBUM_ART_PATH = "content://media/external/audio/albumart"
         private val ALBUM_SORT_BINDING = mapOf(
+            AlbumListSort.ARTIST to "${MediaStore.Audio.Albums.ARTIST} %s",
             AlbumListSort.NAME to "${MediaStore.Audio.Albums.ALBUM} %s",
-            AlbumListSort.RANDOM to "RANDOM()"
+            AlbumListSort.RANDOM to "RANDOM()",
+            AlbumListSort.SONG_COUNT to "${MediaStore.Audio.Albums.NUMBER_OF_SONGS} %s",
+            AlbumListSort.YEAR to "${MediaStore.Audio.Albums.LAST_YEAR} %s",
         )
         private val SONG_SORT_BINDING = mapOf(
+            SongListSort.ARTIST to "${MediaStore.Audio.Media.ARTIST} %s",
+            SongListSort.DURATION to "${MediaStore.Audio.Media.DURATION} %s",
             SongListSort.NAME to "${MediaStore.Audio.Media.TITLE} %s",
-            SongListSort.RANDOM to "RANDOM()"
+            SongListSort.RANDOM to "RANDOM()",
+            SongListSort.RECENTLY_ADDED to "${MediaStore.Audio.Media.DATE_ADDED} %s",
+            SongListSort.YEAR to "${MediaStore.Audio.Media.YEAR} %s",
         )
     }
 
@@ -70,22 +77,50 @@ class LocalMediaProvider(var providerData: LocalProviderData) : MediaProvider() 
 
     @Transient
     override val supportedAlbumSort: List<AlbumListSort> = listOf(
+        AlbumListSort.ARTIST,
         AlbumListSort.NAME,
+        AlbumListSort.RANDOM,
+        AlbumListSort.SONG_COUNT,
+        AlbumListSort.YEAR,
     )
+    @Transient
+    override val supportAlbumSortOrder: Boolean = true
+
     @Transient
     override val supportedAlbumArtistSort: List<AlbumArtistListSort> = listOf(
         AlbumArtistListSort.NAME,
     )
     @Transient
+    override val supportAlbumArtistSortOrder: Boolean = false
+
+    @Transient
     override val supportedArtistSort: List<ArtistListSort> = listOf(
         ArtistListSort.NAME,
     )
     @Transient
+    override val supportArtistSortOrder: Boolean = false
+
+    @Transient
     override val supportedGenreSort: List<GenreListSort> = listOf(GenreListSort.NAME)
+    @Transient
+    override val supportGenreSortOrder: Boolean = true
+
     @Transient
     override val supportedPlaylistSort: List<PlaylistListSort> = listOf(PlaylistListSort.NAME)
     @Transient
-    override val supportedSongSort: List<SongListSort> = listOf(SongListSort.NAME)
+    override val supportPlaylistSortOrder: Boolean = true
+
+    @Transient
+    override val supportedSongSort: List<SongListSort> = listOf(
+        SongListSort.ARTIST,
+        SongListSort.DURATION,
+        SongListSort.NAME,
+        SongListSort.RANDOM,
+        SongListSort.RECENTLY_ADDED,
+        SongListSort.YEAR,
+    )
+    @Transient
+    override val supportSongSortOrder: Boolean = true
 
     @Transient
     private lateinit var appContext: Context
