@@ -81,6 +81,7 @@ fun ArtistsScreen(
 
 
     val sortTranslationBindings = mapOf(
+        AlbumArtistListSort.ALBUM_COUNT to R.string.sort_by_album_count,
         AlbumArtistListSort.DURATION to R.string.sort_by_duration,
         AlbumArtistListSort.FAVORITE to R.string.sort_by_favorite,
         AlbumArtistListSort.NAME to R.string.sort_by_name,

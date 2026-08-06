@@ -157,7 +157,6 @@ class NavidromeMediaProvider : SubsonicMediaProvider() {
         SongListSort.RATING,
         SongListSort.RECENTLY_ADDED,
         SongListSort.RECENTLY_PLAYED,
-        SongListSort.SORT_NAME,
         SongListSort.YEAR,
     )
     @Transient

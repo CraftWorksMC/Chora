@@ -91,11 +91,17 @@ fun SongsScreen(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val sortTranslationBindings = mapOf(
+        SongListSort.ALBUM to R.string.sort_by_album,
         SongListSort.ALBUM_ARTIST to R.string.sort_by_album_artist,
         SongListSort.ARTIST to R.string.sort_by_artist,
+        SongListSort.BPM to R.string.sort_by_bpm,
+        SongListSort.CHANNELS to R.string.sort_by_channels,
+        SongListSort.COMMENT to R.string.sort_by_comment,
         SongListSort.DURATION to R.string.sort_by_duration,
         SongListSort.EXPLICIT_STATUS to R.string.sort_by_explicit_status,
         SongListSort.FAVORITE to R.string.sort_by_favorite,
+        SongListSort.GENRE to R.string.sort_by_genre,
+        SongListSort.ID to R.string.sort_by_id,
         SongListSort.NAME to R.string.sort_by_name,
         SongListSort.PLAY_COUNT to R.string.sort_by_play_count,
         SongListSort.RANDOM to R.string.sort_by_random,

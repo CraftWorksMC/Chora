@@ -21,11 +21,18 @@
 
     // Sorting
     <string name="button_sort_by">Sort By</string>
+    <string name="sort_by_album">Album</string>
     <string name="sort_by_album_artist">Album Artist</string>
+    <string name="sort_by_album_count">Album Count</string>
     <string name="sort_by_artist">Artist</string>
+    <string name="sort_by_bpm">BPM</string>
+    <string name="sort_by_channels">Channels</string>
+    <string name="sort_by_comment">Comment</string>
     <string name="sort_by_duration">Duration</string>
     <string name="sort_by_explicit_status">Explicit</string>
     <string name="sort_by_favorite">Favorite</string>
+    <string name="sort_by_genre">Genre</string>
+    <string name="sort_by_id">ID</string>
     <string name="sort_by_name">Name</string>
     <string name="sort_by_play_count">Play Count</string>
     <string name="sort_by_random">Random</string>
