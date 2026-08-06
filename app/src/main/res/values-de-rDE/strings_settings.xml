@@ -1,24 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_appearance">Erscheinungsbild</string>
-    <string name="appearance_username">Benutzername</string>
-    <string name="appearance_oled_mode">OLED Protection</string>
-    <string name="appearance_navbar_items">Navigationsleisten-Elemente</string>
-    <string name="appearance_home_items">Startbildschirm-Elemente</string>
-    <string name="appearance_more_info">Weitere Infos anzeigen</string>
-    <string name="appearance_now_playing_lyrics_blur">Songtext-Unschärfe-Effekt</string>
-    <string name="appearance_provider_logo">Navidrome-Logo anzeigen</string>
-    <string name="appearance_provider_dividers">Provider-Trennzeichen anzeigen</string>
-    <string name="appearance_refresh_animation">Aktualisierungsanimation anzeigen</string>
-    <string name="appearance_lyrics_animation_speed">Songtext-Animationsgeschwindigkeit</string>
-    <string name="appearance_lyrics_auto_scroll">Autoscroll Plain Lyrics</string>
-    <string name="appearance_lyrics_recenter">Recenter After Scroll</string>
-    <string name="appearance_track_numbers_in_album_view">Titelnummern in der Albumansicht anzeigen</string>
+        <string name="appearance_username">Benutzername</string>
+        <string name="appearance_oled_mode">OLED Protection</string>
+        <string name="appearance_navbar_items">Navigationsleisten-Elemente</string>
+        <string name="appearance_home_items">Startbildschirm-Elemente</string>
+        <string name="appearance_now_playing_lyrics_blur">Songtext-Unschärfe-Effekt</string>
+        <string name="appearance_lyrics_animation_speed">Songtext-Animationsgeschwindigkeit</string>
+        <string name="appearance_more_info">Weitere Infos anzeigen</string>
+        <string name="appearance_provider_logo">Navidrome-Logo anzeigen</string>
+        <string name="appearance_provider_dividers">Provider-Trennzeichen anzeigen</string>
+        <string name="appearance_refresh_animation">Aktualisierungsanimation anzeigen</string>
+        <string name="appearance_track_numbers_in_album_view">Titelnummern in der Albumansicht anzeigen</string>
     <string name="settings_media_providers">Medienanbieter</string>
+            // Local
+            // Server
     <string name="settings_playback">Wiedergabe</string>
-    <string name="playback_max_bitrate">Maximale Bitrate</string>
-    <string name="playback_max_bitrate_wifi">Maximale Bitrate (WiFi)</string>
-    <string name="playback_max_bitrate_mobile_data">Maximale Bitrate (Mobile Daten)</string>
-    <string name="playback_transcoding_format">Transkodierungsformat</string>
-    <string name="playback_min_scrobble_percentage">Min. Prozentsatz Scrobble</string>
+        // Transcoding
+        <string name="playback_max_bitrate">Maximale Bitrate</string>
+        <string name="playback_max_bitrate_wifi">Maximale Bitrate (WiFi)</string>
+        <string name="playback_max_bitrate_mobile_data">Maximale Bitrate (Mobile Daten)</string>
+        <string name="playback_transcoding_format">Transkodierungsformat</string>
+
+        // Scrobble
+        <string name="playback_min_scrobble_percentage">Min. Prozentsatz Scrobble</string>
 </resources>

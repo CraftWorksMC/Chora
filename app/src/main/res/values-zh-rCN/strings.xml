@@ -1,11 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Navigation -->
+
+    // Navigation
     <string name="nav_songs">歌曲</string>
     <string name="nav_albums">专辑</string>
     <string name="nav_artists">艺术家</string>
     <string name="nav_radios">网络电台</string>
     <string name="nav_playlists">歌单</string>
 
+    // Media Providers
     <string name="source_local_folder">本地目录</string>
+
+    // Favorites
+
+    // Sort order
 </resources>

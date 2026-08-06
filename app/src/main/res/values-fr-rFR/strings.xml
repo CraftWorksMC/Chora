@@ -1,11 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Navigation -->
+
+    // Navigation
     <string name="nav_songs">Titres</string>
     <string name="nav_albums">Albums</string>
     <string name="nav_artists">Artistes</string>
     <string name="nav_radios">Radio Internet</string>
     <string name="nav_playlists">Playlists</string>
 
+    // Media Providers
     <string name="source_local_folder">Fichiers locaux</string>
+
+    // Favorites
+
+    // Sort order
 </resources>

@@ -1,57 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Now-Playing Background Dialog -->
-    <string name="appearance_background_style">Задний Фон</string>
-        <string name="background_style_plain">Стандартный</string>
-        <string name="background_style_blur">Размытый</string>
-        <string name="background_style_anim">Анимированный</string>
-    <!-- App Theme Dialog -->
-    <string name="appearance_theme">Тема</string>
-    <string name="theme_dark">Темная</string>
-    <string name="theme_light">Светлая</string>
-    <string name="theme_system">Как На Устройстве</string>
-    <!-- Provider Dialog -->
-    <string name="media_providers_media_source">Источник Медиа</string>
+    // Onboarding
     <string name="onboarding_no_provider_splash">Вы все еще не добавили провайдера медиа. Добавьте его в настройках, чтобы слушать музыку!</string>
     <string name="onboarding_all_done">Все готово! Вы можете теперь слушать ваши плейлисты! :)</string>
-    <!-- Local -->
-    <string name="add_media_provider_local_directory">Директория</string>
-    <!-- Server -->
-    <string name="add_media_provider_server_url">URL-адрес сервера</string>
-    <string name="add_media_provider_server_username">Имя пользователя</string>
-    <string name="add_media_provider_server_password">Пароль</string>
-    <string name="add_media_provider_server_allow_self_signed_certs">Разрешить самоподписанные SSL-сертификаты</string>
-    <!-- LRCLIB Dialog -->
-    <string name="media_providers_lrclib_url">Веб-Адрес LRCLIB</string>
-    <!-- Transcoding -->
-    <string name="playback_no_transcoding">Без Транскодирования</string>
-    <!-- Radios -->
+
+    // Radios
     <string name="radio_add_internet_radio">Добавить Онлайн Радио</string>
     <string name="radio_modify_internet_radio">Изменить %s</string>
-    <string name="label_radio_name">Название Радио</string>
-    <string name="label_radio_url">Веб-Адрес Радио</string>
-    <string name="label_radio_homepage">Адрес Домашней Веб-Странички Радио</string>
-    <!-- Playlists -->
+        <string name="label_radio_name">Название Радио</string>
+        <string name="label_radio_url">Веб-Адрес Радио</string>
+        <string name="label_radio_homepage">Адрес Домашней Веб-Странички Радио</string>
+
+    // Playlists
     <string name="button_new_playlist">Новый Плейлист</string>
     <string name="playlist_delete_playlist">Удалить Плейлист</string>
-    <string name="delete_playlist_are_you_sure">Вы уверены, что хотите удалить этот плейлист?</string>
+        <string name="delete_playlist_are_you_sure">Вы уверены, что хотите удалить этот плейлист?</string>
     <string name="add_to_playlist_title">Добавить &lt;i&gt;%s&lt;/i&gt; В Плейлист</string>
-    <string name="new_playlist_playlist_name">Название Плейлиста</string>
-    <!-- Albums -->
-    <!-- Artists -->
-    <!-- Sorting -->
+        <string name="new_playlist_playlist_name">Название Плейлиста</string>
+
+    // Sorting
     <string name="button_sort_by">Сортировка</string>
     <string name="sort_by_favorite">По Оценке</string>
-    <!-- Connection Errors -->
-    <!-- Downloading -->
+
+
+    // Downloading
     <string name="notification_download_name">Уведомления О Скачивании</string>
     <string name="notification_download_desc">Уведомления о статусе загрузки</string>
-    <!-- Now Playing Title Alignment -->
-    <string name="appearance_now_playing_title_alignment">Расположение Окна С Названием Текущего Трека</string>
-    <string name="appearance_now_playing_lyrics_alignment">Расположение Окна С Субтитрами Текущего Трека</string>
-    <string name="alignment_setting_left">На Левой Стороне</string>
-    <string name="alignment_setting_center">В Центре</string>
-    <string name="alignment_setting_right">На Правой Стороне</string>
-    <!-- Now Playing Title Alignment -->
+
+    // Set Sleep Timer
     <string name="now_playing_set_sleep_timer">Поставить Таймер Сна</string>
 </resources>

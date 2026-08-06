@@ -1,57 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Now-Playing Background Dialog -->
-    <string name="appearance_background_style">Stile Sfondo</string>
-        <string name="background_style_plain">Semplice</string>
-        <string name="background_style_blur">Sfocato</string>
-        <string name="background_style_anim">Animato</string>
-    <!-- App Theme Dialog -->
-    <string name="appearance_theme">Tema</string>
-    <string name="theme_dark">Scuro</string>
-    <string name="theme_light">Chiaro</string>
-    <string name="theme_system">Sistema</string>
-    <!-- Provider Dialog -->
-    <string name="media_providers_media_source">Fonte Media</string>
+    // Onboarding
     <string name="onboarding_no_provider_splash">Non hai aggiunto nessun media provider. Aggiungine uno ora per iniziare ad ascoltare!</string>
     <string name="onboarding_all_done">Tutto fatto! Ora puoi iniziare ad ascoltare a della buona musica!</string>
-    <!-- Local -->
-    <string name="add_media_provider_local_directory">Percorso</string>
-    <!-- Server -->
-    <string name="add_media_provider_server_url">URL del server</string>
-    <string name="add_media_provider_server_username">Username</string>
-    <string name="add_media_provider_server_password">Password</string>
-    <string name="add_media_provider_server_allow_self_signed_certs">Consenti certificati autofirmati</string>
-    <!-- LRCLIB Dialog -->
-    <string name="media_providers_lrclib_url">Url LRCLIB</string>
-    <!-- Transcoding -->
-    <string name="playback_no_transcoding">Nessuna transcodifica</string>
-    <!-- Radios -->
+
+    // Radios
     <string name="radio_add_internet_radio">Aggiungi Radio Internet</string>
     <string name="radio_modify_internet_radio">Modifica %s</string>
-    <string name="label_radio_name">Nome Radio</string>
-    <string name="label_radio_url">URL Radio</string>
-    <string name="label_radio_homepage">Sito della Radio</string>
-    <!-- Playlists -->
+        <string name="label_radio_name">Nome Radio</string>
+        <string name="label_radio_url">URL Radio</string>
+        <string name="label_radio_homepage">Sito della Radio</string>
+
+    // Playlists
     <string name="button_new_playlist">Nuova Playlist</string>
     <string name="playlist_delete_playlist">Cancella Playlist</string>
-    <string name="delete_playlist_are_you_sure">Sei sicuro/a di voler cancellare questa playlist?</string>
+        <string name="delete_playlist_are_you_sure">Sei sicuro/a di voler cancellare questa playlist?</string>
     <string name="add_to_playlist_title">Aggiungi &lt;i&gt;%s&lt;/i&gt; Alla Playlist</string>
-    <string name="new_playlist_playlist_name">Nome Playlist</string>
-    <!-- Albums -->
-    <!-- Artists -->
-    <!-- Sorting -->
+        <string name="new_playlist_playlist_name">Nome Playlist</string>
+
+    // Sorting
     <string name="button_sort_by">Ordina Per</string>
     <string name="sort_by_favorite">Preferiti</string>
-    <!-- Connection Errors -->
-    <!-- Downloading -->
+
+
+    // Downloading
     <string name="notification_download_name">Notifiche di download</string>
     <string name="notification_download_desc">Notifiche per lo stato di download</string>
-    <!-- Now Playing Title Alignment -->
-    <string name="appearance_now_playing_title_alignment">Allineamento Titolo In Riproduzione</string>
-    <string name="appearance_now_playing_lyrics_alignment">Allineamento Testi</string>
-    <string name="alignment_setting_left">Sinistra</string>
-    <string name="alignment_setting_center">Centro</string>
-    <string name="alignment_setting_right">Destra</string>
-    <!-- Now Playing Title Alignment -->
+
+    // Set Sleep Timer
     <string name="now_playing_set_sleep_timer">Imposta Timer</string>
 </resources>

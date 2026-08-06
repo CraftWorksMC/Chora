@@ -4,16 +4,18 @@
     <string name="action_done">完成</string>
     <string name="action_remove">Remove</string>
     <string name="action_reset">Reset</string>
+
     <string name="action_search">搜索</string>
+
     <string name="action_play">Play</string>
     <string name="action_shuffle">Shuffle</string>
-    <!-- Navidrome Provider -->
+
     <string name="action_add">Add</string>
     <string name="action_add_to_queue">Add To Queue</string>
     <string name="action_next">Next</string>
-    <string name="add_media_provider_login">登录</string>
-    <string name="onboarding_lets_go">让我们开始吧！</string>
-    <!-- Playlists -->
+
+    // Playlists
     <string name="action_create_playlist">Create Playlist</string>
+
     <string name="action_download">下载</string>
 </resources>

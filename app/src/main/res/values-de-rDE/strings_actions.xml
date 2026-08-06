@@ -4,16 +4,17 @@
     <string name="action_done">Fertig</string>
     <string name="action_remove">Entfernen</string>
     <string name="action_reset">Zurücksetzen</string>
+
     <string name="action_search">Suchen</string>
+
     <string name="action_play">Wiedergabe</string>
     <string name="action_shuffle">Zufallswiedergabe</string>
-    <!-- Navidrome Provider -->
+
     <string name="action_add">Hinzufügen</string>
-    <string name="action_add_to_queue">Add To Queue</string>
     <string name="action_next">Weiter</string>
-    <string name="add_media_provider_login">Anmelden</string>
-    <string name="onboarding_lets_go">Los geht\'s!</string>
-    <!-- Playlists -->
+
+    // Playlists
     <string name="action_create_playlist">Wiedergabeliste erstellen</string>
+
     <string name="action_download">Herunterladen</string>
 </resources>

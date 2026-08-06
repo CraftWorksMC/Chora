@@ -1,24 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_appearance">Aspetto</string>
-    <string name="appearance_username">Nome</string>
-    <string name="appearance_oled_mode">Protezione OLED</string>
-    <string name="appearance_navbar_items">Schede Della Barra Di Navigazione</string>
-    <string name="appearance_home_items">Elementi Schermata Home</string>
-    <string name="appearance_more_info">Mostra Altre Info</string>
-    <string name="appearance_now_playing_lyrics_blur">Sfocatura Testi</string>
-    <string name="appearance_provider_logo">Mostra Logo Navidrome</string>
-    <string name="appearance_provider_dividers">Mostra Divisori Provider</string>
-    <string name="appearance_refresh_animation">Mostra Animazione Refresh</string>
-    <string name="appearance_lyrics_animation_speed">Velocità Animazione Testo</string>
-    <string name="appearance_lyrics_auto_scroll">Scorri i Testi Non Sincronizzati</string>
-    <string name="appearance_lyrics_recenter">Ricentra dopo lo scorrimento</string>
-    <string name="appearance_track_numbers_in_album_view">Mostra Numero di Traccia negli Album</string>
+        <string name="appearance_username">Nome</string>
+        <string name="appearance_oled_mode">Protezione OLED</string>
+        <string name="appearance_navbar_items">Schede Della Barra Di Navigazione</string>
+        <string name="appearance_home_items">Elementi Schermata Home</string>
+        <string name="appearance_now_playing_lyrics_blur">Sfocatura Testi</string>
+        <string name="appearance_lyrics_auto_scroll">Scorri i Testi Non Sincronizzati</string>
+        <string name="appearance_lyrics_recenter">Ricentra dopo lo scorrimento</string>
+        <string name="appearance_lyrics_animation_speed">Velocità Animazione Testo</string>
+        <string name="appearance_more_info">Mostra Altre Info</string>
+        <string name="appearance_provider_logo">Mostra Logo Navidrome</string>
+        <string name="appearance_provider_dividers">Mostra Divisori Provider</string>
+        <string name="appearance_refresh_animation">Mostra Animazione Refresh</string>
+        <string name="appearance_track_numbers_in_album_view">Mostra Numero di Traccia negli Album</string>
     <string name="settings_media_providers">Fonti Media</string>
+            // Local
+            // Server
     <string name="settings_playback">Riproduzione</string>
-    <string name="playback_max_bitrate">Bitrate Massimo</string>
-    <string name="playback_max_bitrate_wifi">Bitrate Massimo (WiFi)</string>
-    <string name="playback_max_bitrate_mobile_data">Bitrate Massimo (Dati mobili)</string>
-    <string name="playback_transcoding_format">Formato Codifica</string>
-    <string name="playback_min_scrobble_percentage">Min. Percentuale Scrobble</string>
+        // Transcoding
+        <string name="playback_max_bitrate">Bitrate Massimo</string>
+        <string name="playback_max_bitrate_wifi">Bitrate Massimo (WiFi)</string>
+        <string name="playback_max_bitrate_mobile_data">Bitrate Massimo (Dati mobili)</string>
+        <string name="playback_transcoding_format">Formato Codifica</string>
+
+        // Scrobble
+        <string name="playback_min_scrobble_percentage">Min. Percentuale Scrobble</string>
 </resources>

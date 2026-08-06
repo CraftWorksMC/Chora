@@ -1,57 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Now-Playing Background Dialog -->
-    <string name="appearance_background_style">背景样式</string>
-        <string name="background_style_plain">纯色</string>
-        <string name="background_style_blur">模糊</string>
-        <string name="background_style_anim">动画</string>
-    <!-- App Theme Dialog -->
-    <string name="appearance_theme">主题</string>
-        <string name="theme_dark">深色</string>
-        <string name="theme_light">浅色</string>
-        <string name="theme_system">系统设置</string>
-    <!-- Provider Dialog -->
-    <string name="media_providers_media_source">媒体源</string>
+    // Onboarding
     <string name="onboarding_no_provider_splash">您还没有添加媒体源。现在添加一个来开始收听吧！</string>
     <string name="onboarding_all_done">一切就绪！现在您可以开始收听了！</string>
-    <!-- Local -->
-    <string name="add_media_provider_local_directory">目录</string>
-    <!-- Server -->
-    <string name="add_media_provider_server_url">服务器网址</string>
-    <string name="add_media_provider_server_username">用户名</string>
-    <string name="add_media_provider_server_password">密码</string>
-    <string name="add_media_provider_server_allow_self_signed_certs">允许自签名证书</string>
-    <!-- LRCLIB Dialog -->
-    <string name="media_providers_lrclib_url">LRCLIB 地址</string>
-    <!-- Transcoding -->
-    <string name="playback_no_transcoding">不转码</string>
-    <!-- Radios -->
+
+    // Radios
     <string name="radio_add_internet_radio">添加网络电台</string>
     <string name="radio_modify_internet_radio">修改 %s</string>
-    <string name="label_radio_name">电台名称</string>
-    <string name="label_radio_url">电台地址</string>
-    <string name="label_radio_homepage">将 &lt;i&gt;%s&lt;/i&gt; 添加到播放列表中</string>
-    <!-- Playlists -->
+        <string name="label_radio_name">电台名称</string>
+        <string name="label_radio_url">电台地址</string>
+        <string name="label_radio_homepage">将 &lt;i&gt;%s&lt;/i&gt; 添加到播放列表中</string>
+
+    // Playlists
     <string name="button_new_playlist">新歌单</string>
     <string name="playlist_delete_playlist">删除歌单</string>
-    <string name="delete_playlist_are_you_sure">您确定要删除该歌单吗？</string>
+        <string name="delete_playlist_are_you_sure">您确定要删除该歌单吗？</string>
     <string name="add_to_playlist_title">添加至歌单</string>
-    <string name="new_playlist_playlist_name">歌单名称</string>
-    <!-- Albums -->
-    <!-- Artists -->
-    <!-- Sorting -->
+        <string name="new_playlist_playlist_name">歌单名称</string>
+
+    // Sorting
     <string name="button_sort_by">排序方式</string>
     <string name="sort_by_favorite">收藏</string>
-    <!-- Connection Errors -->
-    <!-- Downloading -->
-    <string name="notification_download_name">Download Notifications</string>
-    <string name="notification_download_desc">Notifications for download status</string>
-    <!-- Now Playing Title Alignment -->
-    <string name="appearance_now_playing_title_alignment">正在播放标题的位置</string>
-    <string name="appearance_now_playing_lyrics_alignment">Now Playing Lyrics Alignment</string>
-    <string name="alignment_setting_left">左对齐</string>
-    <string name="alignment_setting_center">居中对齐</string>
-    <string name="alignment_setting_right">右对齐</string>
-    <!-- Now Playing Title Alignment -->
-    <string name="now_playing_set_sleep_timer">Set Sleep Timer</string>
+
+
+    // Downloading
+
+    // Set Sleep Timer
 </resources>

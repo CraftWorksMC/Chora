@@ -4,16 +4,18 @@
     <string name="action_done">Fatto</string>
     <string name="action_remove">Rimuovi</string>
     <string name="action_reset">Reimposta</string>
+
     <string name="action_search">Cerca</string>
+
     <string name="action_play">Riproduci</string>
     <string name="action_shuffle">Shuffle</string>
-    <!-- Navidrome Provider -->
+
     <string name="action_add">Aggiungi</string>
     <string name="action_add_to_queue">Aggiungi Alla Coda</string>
     <string name="action_next">Avanti</string>
-    <string name="add_media_provider_login">Accedi</string>
-    <string name="onboarding_lets_go">Andiamo!</string>
-    <!-- Playlists -->
+
+    // Playlists
     <string name="action_create_playlist">Crea Playlist</string>
+
     <string name="action_download">Scarica</string>
 </resources>

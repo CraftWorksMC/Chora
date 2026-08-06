@@ -4,16 +4,17 @@
     <string name="action_done">Готово!</string>
     <string name="action_remove">Удалить</string>
     <string name="action_reset">Сбросить</string>
+
     <string name="action_search">Поиск</string>
+
     <string name="action_play">Воспроизвести</string>
     <string name="action_shuffle">Перемешать</string>
-    <!-- Navidrome Provider -->
+
     <string name="action_add">Добавить</string>
-    <string name="action_add_to_queue">Add To Queue</string>
     <string name="action_next">Следующий</string>
-    <string name="add_media_provider_login">Войти</string>
-    <string name="onboarding_lets_go">Поехали!</string>
-    <!-- Playlists -->
+
+    // Playlists
     <string name="action_create_playlist">Создать Плейлист</string>
+
     <string name="action_download">Скачать</string>
 </resources>
