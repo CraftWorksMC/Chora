@@ -30,7 +30,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
+import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.ArtistsGrid
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.TopBarWithSearch
@@ -62,6 +64,8 @@ fun ArtistsScreen(
 
     val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()
 
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
+
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     PullToRefreshBox(
@@ -85,14 +89,16 @@ fun ArtistsScreen(
                         })
                     },
                     extraAction = {
-                        Box {
-                            IconButton(
-                                onClick = { viewModel.setShowFavoritesOnly(!showFavoritesOnly) }
-                            ) {
-                                Icon(
-                                    imageVector = ImageVector.vectorResource(if (showFavoritesOnly) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
-                                    contentDescription = stringResource(R.string.button_toggle_favorites),
-                                )
+                        if (currentProvider?.featureFlags?.has(ProviderFeatures.FAVORITES) ?: false) {
+                            Box {
+                                IconButton(
+                                    onClick = { viewModel.setShowFavoritesOnly(!showFavoritesOnly) }
+                                ) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(if (showFavoritesOnly) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
+                                        contentDescription = stringResource(R.string.button_toggle_favorites),
+                                    )
+                                }
                             }
                         }
                     }
