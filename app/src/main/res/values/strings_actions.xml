@@ -12,6 +12,7 @@
 
     <string name="action_add">Add</string>
     <string name="action_add_to_queue">Add To Queue</string>
+    <string name="action_play_next">Play Next</string>
     <string name="action_add_to_playlist">Add To Playlist</string>
     <string name="action_set_rating">Set Rating</string>
     <string name="action_next">Next</string>

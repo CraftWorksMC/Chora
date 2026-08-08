@@ -20,21 +20,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
@@ -73,11 +75,10 @@ import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.favorite
+import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.model.id
-import com.craftworks.music.data.model.providerId
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.formatSeconds
-import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.GenrePill
@@ -91,7 +92,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @Composable
 fun AlbumDetails(
@@ -102,6 +103,10 @@ fun AlbumDetails(
     viewModel: AlbumDetailsViewModel = hiltViewModel()
 ) {
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red.copy(0.75f), Color.Transparent))
+
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     var showLoading by remember { mutableStateOf(false) }
     val currentAlbum = viewModel.songsInAlbum.collectAsStateWithLifecycle().value
@@ -161,9 +166,6 @@ fun AlbumDetails(
 
         LazyColumn(modifier = Modifier
             .fillMaxWidth()
-            .padding(
-                horizontal = 12.dp
-            )
             .dialogFocusable(),
             contentPadding = PaddingValues(bottom = 16.dp, top = WindowInsets.statusBars
                 .asPaddingValues()
@@ -172,7 +174,7 @@ fun AlbumDetails(
             // Header
             item {
                 Box (modifier = Modifier
-                    .height(224.dp)
+                    .height(260.dp)
                     .fillMaxWidth()) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
@@ -187,7 +189,6 @@ fun AlbumDetails(
                         modifier = Modifier
                             .fillMaxWidth()
                             .fadingEdge(imageFadingEdge)
-                            .clip(RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp))
                             .blur(8.dp)
                     )
                     Button(
@@ -208,39 +209,147 @@ fun AlbumDetails(
                                 .size(32.dp)
                         )
                     }
-                    // Album Name and Artist
-                    Column(modifier = Modifier.align(Alignment.BottomCenter)){
-                        Text(
-                            text = currentAlbum[0].mediaMetadata.title.toString(),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            style = MaterialTheme.typography.headlineMedium,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth(),
-                            lineHeight = 32.sp,
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = currentAlbum[0].mediaMetadata.artist.toString() + " • " + formatSeconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    Row(modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(start = 12.dp, end = 12.dp, bottom = 36.dp)) {
+                        // Album Name and Artist
+                        Column(modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 10.dp)
+                        ){
+                            Text(
+                                text = currentAlbum[0].mediaMetadata.title.toString(),
+                                color = MaterialTheme.colorScheme.onBackground,
+                                style = MaterialTheme.typography.headlineMedium,
+                                textAlign = TextAlign.Left,
+                                lineHeight = 32.sp,
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = currentAlbum[0].mediaMetadata.artist.toString() + " • " + formatSeconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0),
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
+                                fontWeight = FontWeight.Normal,
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                textAlign = TextAlign.Left
+                            )
 
-                        // Genres
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            if (!currentAlbum[0].mediaMetadata.genre.isNullOrEmpty()) {
-                                currentAlbum[0].mediaMetadata.genre?.split(",")?.forEach {
-                                    GenrePill(it.toString())
+                            // Genres
+                            Row(horizontalArrangement = Arrangement.Start) {
+                                if (!currentAlbum[0].mediaMetadata.genre.isNullOrEmpty()) {
+                                    currentAlbum[0].mediaMetadata.genre?.split(",")?.forEach {
+                                        GenrePill(it)
+                                    }
                                 }
+                            }
+                        }
+
+                        // Play, shuffle and more buttons
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            OutlinedButton(
+                                onClick = {
+                                    showBottomSheet = true
+                                },
+                                modifier = Modifier.size(46.dp),
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Icon(Icons.Rounded.MoreVert, "More") // TODO : translate?
+                            }
+                            if (showBottomSheet) {
+                                ModalBottomSheet(
+                                    onDismissRequest = { showBottomSheet = false },
+                                    sheetState = sheetState
+                                ) {
+                                    // Content inside the bottom sheet
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(24.dp)
+                                    ) {
+                                        Button(
+                                            onClick = {
+                                                showBottomSheet = false
+                                                coroutineScope.launch {
+                                                    mediaController?.addMediaItems(
+                                                        currentAlbum.subList(1, currentAlbum.size)
+                                                    )
+                                                }
+                                            },
+                                            modifier = Modifier.focusRequester(requester)
+                                        ) {
+                                            Row (verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.height(24.dp)
+                                            ) {
+                                                Icon(ImageVector.vectorResource(R.drawable.outline_queue_add_24), stringResource(R.string.action_add_to_queue))
+                                                Text(stringResource(R.string.action_add_to_queue), maxLines = 1)
+                                            }
+                                        }
+                                        Button(
+                                            onClick = {
+                                                showBottomSheet = false
+                                                coroutineScope.launch {
+                                                    mediaController?.addMediaItems(
+                                                        mediaController.currentMediaItemIndex+1,
+                                                        currentAlbum.subList(1, currentAlbum.size)
+
+                                                    )
+                                                }
+                                            },
+                                            modifier = Modifier.focusRequester(requester)
+                                        ) {
+                                            Row (verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.height(24.dp)
+                                            ) {
+                                                Icon(ImageVector.vectorResource(R.drawable.play_next_24px), stringResource(R.string.action_play_next))
+                                                Text(stringResource(R.string.action_play_next), maxLines = 1)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        val random = currentAlbum.subList(
+                                            1,
+                                            currentAlbum.size
+                                        ).indices.random()
+                                        SongHelper.play(
+                                            currentAlbum.subList(1, currentAlbum.size),
+                                            random,
+                                            mediaController
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.size(46.dp),
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Icon(
+                                    ImageVector.vectorResource(R.drawable.round_shuffle_28),
+                                    stringResource(R.string.action_shuffle)
+                                )
+                            }
+                            Button(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        SongHelper.play(
+                                            currentAlbum.subList(1, currentAlbum.size),
+                                            0,
+                                            mediaController
+                                        )
+                                    }
+                                },
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .focusRequester(requester),
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Icon(Icons.Rounded.PlayArrow, stringResource(R.string.action_play), modifier = Modifier.size(42.dp))
                             }
                         }
                     }
 
-                    // Star/unstar button and download album, NAVIDROME ONLY
-                    if (MediaProviderManager.getProvider(currentAlbum[0].mediaMetadata.providerId?:"")
-                            ?.featureFlags?.has(ProviderFeatures.FAVORITES)?:false) {
+                    // Star/unstar button and download album
+                    if (currentAlbum[0].mediaMetadata.getProvider()?.featureFlags?.has(ProviderFeatures.FAVORITES)?:false) {
                         Button(
                             onClick = {
                                 coroutineScope.launch {
@@ -270,6 +379,7 @@ fun AlbumDetails(
                                 if (it) Icon(
                                     imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
                                     contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
                                         .height(28.dp)
                                         .size(28.dp)
@@ -285,7 +395,9 @@ fun AlbumDetails(
                                     )
                             }
                         }
+                    }
 
+                    if (currentAlbum[0].mediaMetadata.getProvider()?.featureFlags?.has(ProviderFeatures.DOWNLOADS)?:false) {
                         Button(
                             onClick = {
                                 coroutineScope.launch {
@@ -311,15 +423,17 @@ fun AlbumDetails(
                             )
                         }
                     }
-
                 }
             }
 
             // Play and shuffle buttons
-            item {
+            /*item {
                 Row (modifier = Modifier
                     .fillMaxWidth()
-                    .height(64.dp),
+                    .height(64.dp)
+                    .padding(
+                        horizontal = 12.dp
+                    ),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically) {
                     Button(
@@ -363,7 +477,7 @@ fun AlbumDetails(
                         }
                     }
                 }
-            }
+            }*/
 
             // Album Songs
             val groupedAlbums = currentAlbum.subList(1, currentAlbum.size).groupBy { song ->
@@ -373,7 +487,10 @@ fun AlbumDetails(
             if (groupedAlbums.size > 1) {
                 groupedAlbums.forEach { (discNumber, albumsInGroup) ->
                     item() {
-                        Column {
+                        Column(modifier = Modifier
+                            .padding(
+                                horizontal = 12.dp
+                            )) {
                             Text(
                                 text = stringResource(R.string.album_details_disc, discNumber.toString()),
                                 style = MaterialTheme.typography.bodyMedium,
