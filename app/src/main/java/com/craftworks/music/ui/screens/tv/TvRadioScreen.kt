@@ -118,7 +118,7 @@ fun TvRadioScreen(
                 },
                 title = {
                     Text(
-                        text = stringResource(R.string.Dialog_Add_Radio),
+                        text = stringResource(R.string.radio_add_internet_radio),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 8.dp)
@@ -131,8 +131,8 @@ fun TvRadioScreen(
     if (showRadioAddDialog)
         AddRadioDialog(
             setShowDialog = { showRadioAddDialog = it },
-            onAdded = { name, url, homePageUrl, addToNavidrome ->
-                viewModel.addRadioStation(name, url, homePageUrl, addToNavidrome)
+            onAdded = { name, url, homePageUrl ->
+                viewModel.addRadioStation(name, url, homePageUrl)
             }
         )
 
@@ -141,11 +141,11 @@ fun TvRadioScreen(
         ModifyRadioDialog(
             setShowDialog = { showRadioModifyDialog = it },
             radio = selectedRadio,
-            onModified = { id, name, url, homepage ->
-                viewModel.modifyRadioStation(id, name, url, homepage)
+            onModified = { providerId, id, name, url, homepage ->
+                viewModel.modifyRadioStation(providerId, id, name, url, homepage)
             },
-            onDeleted = {
-                viewModel.deleteRadioStation(it)
+            onDeleted = { providerId, id ->
+                viewModel.deleteRadioStation(providerId, id)
             }
         )
     }

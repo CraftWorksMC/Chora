@@ -73,7 +73,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.data.model.toAlbum
+import com.craftworks.music.data.model.id
 import com.craftworks.music.fadingEdge
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.AlbumCard
@@ -157,10 +157,8 @@ fun ArtistDetails(
                         //Image and Name
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(artist?.artistImageUrl)
-                                .diskCacheKey(
-                                    artist?.navidromeID
-                                )
+                                .data(artist?.imageUrl)  // TODO("Call provider's getImageUrl")
+                                .diskCacheKey(artist?.id)
                                 .crossfade(true)
                                 .build(),
                             placeholder = painterResource(R.drawable.s_a_username),
@@ -171,7 +169,7 @@ fun ArtistDetails(
                                 .fillMaxWidth()
                                 .fadingEdge(imageFadingEdge)
                                 .clip(
-                                    if (artist?.description != "") RoundedCornerShape(
+                                    if (artist?.biography != "") RoundedCornerShape(
                                         12.dp,
                                         12.dp,
                                         0.dp,
@@ -221,7 +219,7 @@ fun ArtistDetails(
                     }
 
                     // Description
-                    artist?.description?.let { description ->
+                    artist?.biography?.let { description ->
                         var expanded by remember { mutableStateOf(false) }
 
                         val regex = Regex("""<a\s+(?:[^>]*?\s+)?href="([^"]*)"""")
@@ -285,8 +283,8 @@ fun ArtistDetails(
                         onClick = {
                             coroutineScope.launch {
                                 val allArtistSongsList = artistAlbums.map {
-                                    it.mediaMetadata.extras?.getString("navidromeID").let {
-                                        val album = viewModel.getAlbum(it ?: "")
+                                    it.mediaMetadata.id.let { id ->
+                                        val album = viewModel.getAlbum(id ?: "")
                                         if (album.isNotEmpty())
                                             album.subList(1, album.size)
                                         else
@@ -308,15 +306,15 @@ fun ArtistDetails(
                             modifier = Modifier.height(24.dp)
                         ) {
                             Icon(Icons.Rounded.PlayArrow, "Play Album")
-                            Text(stringResource(R.string.Action_Play))
+                            Text(stringResource(R.string.action_play))
                         }
                     }
                     OutlinedButton (
                         onClick = {
                             coroutineScope.launch {
                                 val allArtistSongsList = artistAlbums.map {
-                                    it.mediaMetadata.extras?.getString("navidromeID").let {
-                                        val album = viewModel.getAlbum(it ?: "")
+                                    it.mediaMetadata.id.let { id ->
+                                        val album = viewModel.getAlbum(id ?: "")
                                         if (album.isNotEmpty())
                                             album.subList(1, album.size)
                                         else
@@ -343,7 +341,7 @@ fun ArtistDetails(
                                 ImageVector.vectorResource(R.drawable.round_shuffle_28),
                                 "Shuffle Album"
                             )
-                            Text(stringResource(R.string.Action_Shuffle))
+                            Text(stringResource(R.string.action_shuffle))
                         }
                     }
                 }
@@ -352,7 +350,7 @@ fun ArtistDetails(
             /* Discography header */
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Text(
-                    text = stringResource(R.string.Screen_Discography),
+                    text = stringResource(R.string.artist_details_discography),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.headlineSmall,
@@ -375,15 +373,14 @@ fun ArtistDetails(
                     AlbumCard(
                         album = album,
                         onClick = {
-                            val album = album.toAlbum()
-                            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                            val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.id}/$encodedImage") {
                                 launchSingleTop = true
                             }
                         },
                         onPlay = {
                             coroutineScope.launch {
-                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                                val mediaItems = viewModel.getAlbum(album.mediaMetadata.id ?: "")
                                 if (mediaItems.isNotEmpty())
                                     SongHelper.play(
                                         mediaItems = mediaItems.subList(1, mediaItems.size),

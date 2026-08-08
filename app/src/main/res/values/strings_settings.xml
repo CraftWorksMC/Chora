@@ -1,27 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Settings_Header_Appearance">Appearance</string>
-        <string name="Setting_Username">Name</string>
-        <string name="Setting_Background">Background Style</string>
-        <string name="Setting_Oled_Mode">OLED Protection</string>
-        <string name="Setting_Screen_Standby">Disable Screen Standby</string>
-        <string name="Setting_Navbar_Items">Navigation Bar Items</string>
-        <string name="Setting_Home_Items">Home Screen Items</string>
-        <string name="Setting_MoreInfo">Show More Info</string>
-        <string name="Setting_NowPlayingLyricsBlur">Lyrics Blur Effect</string>
-        <string name="Setting_NavidromeLogo">Show Navidrome Logo</string>
-        <string name="Setting_ProviderDividers">Show Provider Dividers</string>
-        <string name="Setting_RefreshAnimation">Show Refresh Animation</string>
-        <string name="Setting_LyricsAnimationSpeed">Lyrics Animation Speed</string>
-        <string name="Setting_LyricsAutoscroll">Autoscroll Plain Lyrics</string>
-        <string name="Setting_LyricsRecenter">Recenter After Scroll</string>
-        <string name="Setting_TrackNumbersAlbum">Show Track Numbers in Album View</string>
-    <string name="Settings_Header_Media">Media Providers</string>
-    <string name="Settings_Header_Playback">Playback</string>
-        <string name="Setting_Transcoding">Max Bitrate</string>
-        <string name="Setting_Transcoding_Wifi">Max Bitrate (WiFi)</string>
-        <string name="Setting_Transcoding_Data">Max Bitrate (Mobile data)</string>
-        <string name="Setting_Transcoding_Format">Transcoding Format</string>
-        <string name="Setting_Scrobble_Percent">Min. Scrobble Percentage</string>
-        <string name="Setting_Scrobble_Description">Navidrome Only.</string>
+    <string name="settings_appearance">Appearance</string>
+        <string name="appearance_username">Name</string>
+        <string name="appearance_theme">Theme</string>
+            <string name="theme_dark">Dark</string>
+            <string name="theme_light">Light</string>
+            <string name="theme_system">System</string>
+        <string name="appearance_background_style">Background Style</string>
+            <string name="background_style_plain">Plain</string>
+            <string name="background_style_blur">Blurred</string>
+            <string name="background_style_anim">Animated</string>
+        <string name="appearance_screen_standby">Disable Screen Standby</string>
+        <string name="appearance_oled_mode">OLED Protection</string>
+            <string name="appearance_oled_protection_mode">OLED Protection Mode</string>
+                <string name="oled_protection_mode_off">Off</string>
+                <string name="oled_protection_mode_lyrics_only">Lyrics Only</string>
+                <string name="oled_protection_mode_minimal">Minimal</string>
+        <string name="appearance_navbar_items">Navigation Bar Items</string>
+        <string name="appearance_home_items">Home Screen Items</string>
+        <string name="appearance_now_playing_title_alignment">Now Playing Title Alignment</string>
+        <string name="appearance_now_playing_lyrics_alignment">Now Playing Lyrics Alignment</string>
+            <string name="alignment_setting_left">Left</string>
+            <string name="alignment_setting_center">Center</string>
+            <string name="alignment_setting_right">Right</string>
+        <string name="appearance_now_playing_lyrics_blur">Lyrics Blur Effect</string>
+        <string name="appearance_lyrics_auto_scroll">Autoscroll Plain Lyrics</string>
+        <string name="appearance_lyrics_recenter">Recenter After Scroll</string>
+        <string name="appearance_lyrics_animation_speed">Lyrics Animation Speed</string>
+        <string name="appearance_more_info">Show More Info</string>
+        <string name="appearance_provider_logo">Show Provider Logo</string>
+        <string name="appearance_provider_dividers">Show Provider Dividers</string>
+        <string name="appearance_refresh_animation">Show Refresh Animation</string>
+        <string name="appearance_track_numbers_in_album_view">Show Track Numbers in Album View</string>
+    <string name="settings_media_providers">Media Providers</string>
+        <string name="media_providers_lrclib_url">LRCLIB Url</string>
+        <string name="media_providers_media_source">Media Source</string>
+            // Local
+            <string name="add_media_provider_local_directory">Directory</string>
+            // Server
+            <string name="add_media_provider_server_url">Server URL</string>
+            <string name="add_media_provider_server_username">Username</string>
+            <string name="add_media_provider_server_password">Password</string>
+            <string name="add_media_provider_server_allow_self_signed_certs">Allow self-signed certs</string>
+            <string name="add_media_provider_login">Login</string>
+    <string name="settings_playback">Playback</string>
+        // Transcoding
+        <string name="playback_max_bitrate">Max Bitrate</string>
+        <string name="playback_max_bitrate_wifi">Max Bitrate (Wi-Fi)</string>
+        <string name="playback_max_bitrate_mobile_data">Max Bitrate (Mobile data)</string>
+        <string name="playback_transcoding_format">Transcoding Format</string>
+        <string name="playback_no_transcoding">No Transcoding</string>
+
+        // Scrobble
+        <string name="playback_min_scrobble_percentage">Min. Scrobble Percentage</string>
 </resources>

@@ -1,0 +1,57 @@
+package com.craftworks.music.data.model
+
+data class AuthenticationResponse(
+    val isAdmin: Boolean? = null,
+    val providerType: ProviderType
+)
+data class ImageRequest(
+    val cacheKey: String,
+    val credentials: String? = null,
+    val headers: Map<String, String>? = null,
+    val url: String
+)
+data class GetQueueResponse(
+    val changed: String,
+    val changedBy: String,
+    val currentIndex: Int,
+    val entry: List<MediaModel.Song>,
+    val positionMs: Long,
+    val username: String
+)
+data class ProviderInfo(
+    val features: ProviderFeatures,
+    val id: String? = null,
+    val version: String
+)
+data class TagListResponse(
+    val excluded: Excluded,
+    val tags: List<Tag>? = null
+) {
+    data class Excluded(
+        val album: List<String>,
+        val song: List<String>
+    )
+}
+data class UserInfoResponse(
+    val id: String,
+    val isAdmin: Boolean,
+    val name: String
+)
+data class User(
+    val createdAt: String?,
+    val email: String?,
+    val id: String,
+    val isAdmin: Boolean?,
+    val lastLoginAt: String?,
+    val name: String,
+    val updatedAt: String?
+)
+data class SearchResponse(
+    val albumArtists: List<MediaModel.Artist>,
+    val albums: List<MediaModel.Album>,
+    val songs: List<MediaModel.Song>
+)
+data class AlbumArtistDetailResponse(
+    val artist: MediaModel.Artist?,
+    val albums: List<MediaModel.Album>?
+)

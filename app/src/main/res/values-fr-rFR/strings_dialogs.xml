@@ -1,69 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Now-Playing Background Dialog -->
-    <string name="Dialog_Background_Type">Style de l\'arrière-plan</string>
-    <string name="Background_Plain">Plein</string>
-    <string name="Background_Blur">Flouté</string>
-    <string name="Background_Anim">Animé</string>
-    <string name="Background_Anim_Simple">Animé Simple</string>
-    <!-- App Theme Dialog -->
-    <string name="Dialog_Theme">Thème</string>
-    <string name="Theme_Dark">Sombre</string>
-    <string name="Theme_Light">Clair</string>
-    <string name="Theme_System">Système</string>
-    <!-- Provider Dialog -->
-    <string name="Dialog_Media_Source">Source de médias</string>
-    <string name="No_Providers_Splash">Aucune source de médias pour le moment. Pour commencer la lecture, ajoutez-en une !</string>
-    <string name="No_Providers_Done">Terminé! Vous pouvez maintenant commencer à écouter des musiques!</string>
-    <string name="Source_Local">Fichiers locaux</string>
-    <!-- Local -->
-    <string name="Label_Local_Directory">Dossier:</string>
-    <!-- Navidrome -->
-    <string name="Label_Navidrome_URL">URL de Navidrome:</string>
-    <string name="Label_Navidrome_Username">Nom d\'utilisateur:</string>
-    <string name="Label_Navidrome_Password">Mot de passe:</string>
-    <string name="Label_Allow_Self_Signed_Certs">Autoriser les certificats auto-signés</string>
-    <!-- LRCLIB Dialog -->
-    <string name="Dialog_LRCLIB_Url">Url LRCLIB</string>
-    <!-- Transcoding -->
-    <string name="Dialog_Transcoding">Transcodage</string>
-    <string name="Option_No_Transcoding">Pas de transcodage</string>
-    <!-- Radios -->
-    <string name="Dialog_Add_Radio">Ajouter une radio internet</string>
-    <string name="Dialog_Modify_Radio">Modifier </string>
-    <string name="Label_Radio_Name">Nom de la radio:</string>
-    <string name="Label_Radio_URL">URL de la radio:</string>
-    <string name="Label_Radio_Homepage">URL de la page d\'accueil de la radio:</string>
-    <string name="Label_Radio_Add_To_Navidrome">Ajouter au Navidrome</string>
-    <!-- Playlists -->
-    <string name="Dialog_New_Playlist">Nouvelle playlist</string>
-    <string name="Dialog_Delete_Playlist">Supprimer playlist</string>
-    <string name="Label_Confirm_Delete_Playlist">Êtes-vous sûr de vouloir supprimer cette playlist?</string>
-    <string name="Dialog_Add_To_Playlist">Ajouter / à la playlist</string>
-    <string name="Label_Playlist_Name">Nom de la playlist:</string>
-    <!-- Albums -->
-    <string name="Label_MoreSongsFrom">Plus de titres de</string>
-    <!-- Artists -->
-    <string name="Label_NoDescription">Aucune description disponible.</string>
-    <!-- Sorting -->
-    <string name="Label_Sorting">Trier par</string>
-    <string name="Label_Sort_Alphabetical">Alphabétique</string>
-    <string name="Label_Sort_Starred">Favoris</string>
-    <!-- Connection Errors -->
-    <string name="Navidrome_Error">Serveur Navidrome indisponible.</string>
-    <string name="Navidrome_Sync">Chargement…</string>
-    <!-- Downloading -->
-    <string name="Notification_Download_Name">Notification de téléchargement</string>
-    <string name="Notification_Download_Desc">Notifications pour l\'état du téléchargement</string>
-    <string name="Notification_Download_Progress">Téléchargement</string>
-    <string name="Notification_Download_Success">téléchargée avec succès !</string>
-    <string name="Notification_Download_Failure">Oh oh, quelque chose s\'est mal passé lors du téléchargement de</string>
-    <!-- Now Playing Title Alignment -->
-    <string name="Setting_NowPlayingTitleAlignment">Titre en cours de lecture Alignement</string>
-    <string name="Setting_NowPlayingLyricsAlignment">Now Playing Lyrics Alignment</string>
-    <string name="NowPlayingTitleAlignment_Left">Gauche</string>
-    <string name="NowPlayingTitleAlignment_Center">Centre</string>
-    <string name="NowPlayingTitleAlignment_Right">Droit</string>
-    <!-- Now Playing Title Alignment -->
-    <string name="Dialog_SetSleepTimer">Set Sleep Timer</string>
+    // Onboarding
+    <string name="onboarding_no_provider_splash">Aucune source de médias pour le moment. Pour commencer la lecture, ajoutez-en une !</string>
+    <string name="onboarding_all_done">Terminé! Vous pouvez maintenant commencer à écouter des musiques!</string>
+
+    // Radios
+    <string name="radio_add_internet_radio">Ajouter une radio internet</string>
+    <string name="radio_modify_internet_radio">Modifier %s</string>
+        <string name="label_radio_name">Nom de la radio</string>
+        <string name="label_radio_url">URL de la radio</string>
+        <string name="label_radio_homepage">URL de la page d\'accueil de la radio</string>
+
+    // Playlists
+    <string name="button_new_playlist">Nouvelle playlist</string>
+    <string name="playlist_delete_playlist">Supprimer playlist</string>
+        <string name="delete_playlist_are_you_sure">Êtes-vous sûr de vouloir supprimer cette playlist?</string>
+    <string name="add_to_playlist_title">Ajouter &lt;i&gt;%s&lt;/i&gt; à la playlist</string>
+        <string name="new_playlist_playlist_name">Nom de la playlist</string>
+
+    // Sorting
+    <string name="button_sort_by">Trier par</string>
+    <string name="sort_by_album">Album</string>
+    <string name="sort_by_album_artist">Artist d\'album</string>
+    <string name="sort_by_album_count">Nombre d\'album</string>
+    <string name="sort_by_artist">Artiste</string>
+    <string name="sort_by_bpm">BPM</string>
+    <string name="sort_by_channels">Cannaux</string>
+    <string name="sort_by_comment">Commentaire</string>
+    <string name="sort_by_duration">Durée</string>
+    <string name="sort_by_explicit_status">Explicite</string>
+    <string name="sort_by_favorite">Favoris</string>
+    <string name="sort_by_genre">Genre</string>
+    <string name="sort_by_id">ID</string>
+    <string name="sort_by_name">Nom</string>
+    <string name="sort_by_play_count">Nombre de lectures</string>
+    <string name="sort_by_random">Aléatoire</string>
+    <string name="sort_by_rating">Note</string>
+    <string name="sort_by_recently_added">Recemment ajouté</string>
+    <string name="sort_by_recently_played">Recemment joué</string>
+    <string name="sort_by_release_date">Date de sortie</string>
+    <string name="sort_by_song_count">Nombre de pistes</string>
+    <string name="sort_by_year">Année</string>
+
+
+    // Downloading
+    <string name="notification_download_name">Notification de téléchargement</string>
+    <string name="notification_download_desc">Notifications pour l\'état du téléchargement</string>
+
+    // Set Sleep Timer
+    <string name="now_playing_set_sleep_timer">Régler la minuterie de mise en veille</string>
 </resources>

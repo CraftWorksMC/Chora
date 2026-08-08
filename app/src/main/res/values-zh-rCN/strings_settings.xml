@@ -1,26 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Settings_Header_Appearance">外观</string>
-    <string name="Setting_Username">名称</string>
-    <string name="Setting_Background">背景样式</string>
-    <string name="Setting_Oled_Mode">OLED Protection</string>
-    <string name="Setting_Navbar_Items">导航栏项目</string>
-    <string name="Setting_Home_Items">主页项目</string>
-    <string name="Setting_MoreInfo">显示更多信息</string>
-    <string name="Setting_NowPlayingLyricsBlur">歌词模糊效果</string>
-    <string name="Setting_NavidromeLogo">显示 Navidrome 图标</string>
-    <string name="Setting_ProviderDividers">显示媒体源分隔</string>
-    <string name="Setting_RefreshAnimation">显示刷新动画</string>
-    <string name="Setting_LyricsAnimationSpeed">歌词动画速度</string>
-    <string name="Setting_LyricsAutoscroll">Autoscroll Plain Lyrics</string>
-    <string name="Setting_LyricsRecenter">Recenter After Scroll</string>
-    <string name="Setting_TrackNumbersAlbum">专辑页显示曲目编号</string>
-    <string name="Settings_Header_Media">媒体源</string>
-    <string name="Settings_Header_Playback">播放</string>
-    <string name="Setting_Transcoding">最高比特率</string>
-    <string name="Setting_Transcoding_Wifi">最高比特率（WiFi）</string>
-    <string name="Setting_Transcoding_Data">最高比特率（移动数据）</string>
-    <string name="Setting_Transcoding_Format">转码格式</string>
-    <string name="Setting_Scrobble_Percent">最低收听记录百分比</string>
-    <string name="Setting_Scrobble_Description">Navidrome Only.</string>
+    <string name="settings_appearance">外观</string>
+        <string name="appearance_username">名称</string>
+        <string name="appearance_oled_mode">OLED Protection</string>
+        <string name="appearance_navbar_items">导航栏项目</string>
+        <string name="appearance_home_items">主页项目</string>
+        <string name="appearance_now_playing_lyrics_blur">歌词模糊效果</string>
+        <string name="appearance_lyrics_animation_speed">歌词动画速度</string>
+        <string name="appearance_more_info">显示更多信息</string>
+        <string name="appearance_provider_logo">显示 Navidrome 图标</string>
+        <string name="appearance_provider_dividers">显示媒体源分隔</string>
+        <string name="appearance_refresh_animation">显示刷新动画</string>
+        <string name="appearance_track_numbers_in_album_view">专辑页显示曲目编号</string>
+    <string name="settings_media_providers">媒体源</string>
+            // Local
+            // Server
+    <string name="settings_playback">播放</string>
+        // Transcoding
+        <string name="playback_max_bitrate">最高比特率</string>
+        <string name="playback_max_bitrate_wifi">最高比特率（WiFi）</string>
+        <string name="playback_max_bitrate_mobile_data">最高比特率（移动数据）</string>
+        <string name="playback_transcoding_format">转码格式</string>
+
+        // Scrobble
+        <string name="playback_min_scrobble_percentage">最低收听记录百分比</string>
 </resources>

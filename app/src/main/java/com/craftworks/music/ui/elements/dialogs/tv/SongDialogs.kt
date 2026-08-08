@@ -61,9 +61,6 @@ import androidx.tv.material3.WideCardContainer
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.providers.navidrome.downloadNavidromeSong
-import com.craftworks.music.ui.screens.tv.settings.SettingsSwitchItem
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 import kotlinx.coroutines.launch
 
@@ -118,7 +115,7 @@ fun SongDialog(
                                         .crossfade(true)
                                         .size(64)
                                         .diskCacheKey(
-                                            song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
+                                            song.mediaMetadata.extras?.getString("id") ?: song.mediaId
                                         )
                                         .build(),
                                     contentDescription = null,
@@ -154,7 +151,7 @@ fun SongDialog(
                         ListItem(
                             selected = false,
                             headlineContent = {
-                                Text(stringResource(R.string.Dialog_Set_Rating))
+                                Text(stringResource(R.string.action_set_rating))
                             },
                             onClick = {
                                 dialogMenu = DialogMenu.SET_RATING
@@ -163,10 +160,11 @@ fun SongDialog(
 
                         ListItem(
                             selected = false,
-                            headlineContent = { Text(stringResource(R.string.Action_Download)) },
+                            headlineContent = { Text(stringResource(R.string.action_download)) },
                             onClick = {
                                 coroutineScope.launch {
-                                    downloadNavidromeSong(context, song.mediaMetadata)
+                                    TODO("Download song")
+                                    //downloadNavidromeSong(context, song.mediaMetadata)
 
                                     setShowDialog(false)
                                 }
@@ -177,7 +175,7 @@ fun SongDialog(
                             selected = false,
                             headlineContent = {
                                 Text(
-                                    stringResource(R.string.Dialog_Add_To_Playlist)
+                                    stringResource(R.string.add_to_playlist_title)
                                         .replace("/", song.mediaMetadata.title.toString())
                                 )
                             },
@@ -238,9 +236,9 @@ private fun AddSongToPlaylist(
                 imageCard = {
                     Card(
                         onClick = {
-                            viewModel.addSongToPlaylist(
-                                playlist.mediaMetadata.extras?.getString("navidromeID") ?: "",
-                                song.mediaMetadata.extras?.getString("navidromeID") ?: ""
+                            viewModel.addSongsToPlaylist(
+                                playlist.mediaMetadata.extras?.getString("id") ?: "",
+                                listOf(song.mediaMetadata.extras?.getString("id") ?: "")
                             )
                             setShowDialog(false)
                         },
@@ -252,7 +250,7 @@ private fun AddSongToPlaylist(
                                     .crossfade(true)
                                     .size(64)
                                     .diskCacheKey(
-                                        playlist.mediaMetadata.extras?.getString("navidromeID") ?: playlist.mediaId
+                                        playlist.mediaMetadata.extras?.getString("id") ?: playlist.mediaId
                                     )
                                     .build(),
                                 contentDescription = null,
@@ -297,7 +295,7 @@ private fun AddSongToPlaylist(
             },
             title = {
                 Text(
-                    text = stringResource(R.string.Dialog_New_Playlist),
+                    text = stringResource(R.string.button_new_playlist),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(start = 16.dp)
@@ -315,10 +313,6 @@ private fun NewPlaylist(
 ) {
     val context = LocalContext.current
     var playlistName by remember { mutableStateOf("") }
-
-    var addToNavidrome by remember { mutableStateOf(
-        NavidromeManager.checkActiveServers()
-    ) }
 
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -341,7 +335,7 @@ private fun NewPlaylist(
             onValueChange = { playlistName = it },
             label = {
                 Text(
-                    text = stringResource(R.string.Label_Playlist_Name),
+                    text = stringResource(R.string.new_playlist_playlist_name),
                     color = MaterialTheme.colorScheme.onSurface
                 )
             },
@@ -353,26 +347,18 @@ private fun NewPlaylist(
             ),
             keyboardActions = KeyboardActions(
                 onDone = {
-                    viewModel.createPlaylist(playlistName, song.mediaMetadata.extras?.getString("navidromeID") ?: "", addToNavidrome, context)
+                    viewModel.createPlaylist(playlistName, listOf(song.mediaMetadata.extras?.getString("id") ?: ""), context)
                     setDialogMenu(DialogMenu.MAIN)
                 }
             ),
             colors = textFieldColors,
         )
 
-        SettingsSwitchItem(
-            title = stringResource(R.string.Label_Radio_Add_To_Navidrome),
-            checked = addToNavidrome,
-            onCheckedChange = {
-                addToNavidrome = it
-            }
-        )
-
         ListItem(
             selected = false,
-            headlineContent = { Text(stringResource(R.string.Action_Add)) },
+            headlineContent = { Text(stringResource(R.string.action_add)) },
             onClick = {
-                viewModel.createPlaylist(playlistName, song.mediaMetadata.extras?.getString("navidromeID") ?: "", addToNavidrome, context)
+                viewModel.createPlaylist(playlistName, listOf(song.mediaMetadata.extras?.getString("id") ?: ""), context)
                 setDialogMenu(DialogMenu.MAIN)
             }
         )
@@ -446,7 +432,7 @@ private fun SetRating(
 
         ListItem(
             selected = false,
-            headlineContent = { Text(stringResource(R.string.Action_Done)) },
+            headlineContent = { Text(stringResource(R.string.action_done)) },
             onClick = {
                     onSetRating(selectedRating)
                 }

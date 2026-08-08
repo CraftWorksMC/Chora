@@ -1,10 +1,22 @@
 <resources>
     <string name="app_name" translatable="false">Chora</string>
-    <!-- Navigation -->
-    <string name="songs">Songs</string>
-    <string name="Albums">Albums</string>
-    <string name="Artists">Artists</string>
-    <string name="settings">Settings</string>
-    <string name="radios">Internet Radio</string>
-    <string name="playlists">Playlists</string>
+
+    // Navigation
+    <string name="nav_home">Home</string>
+    <string name="nav_songs">Songs</string>
+    <string name="nav_albums">Albums</string>
+    <string name="nav_artists">Artists</string>
+    <string name="nav_radios">Radios</string>
+    <string name="nav_playlists">Playlists</string>
+
+    // Media Providers
+    <string name="source_navidrome" translatable="false">Navidrome</string>
+    <string name="source_open_subsonic" translatable="false">OpenSubsonic</string>
+    <string name="source_local_folder">Local Folder</string>
+
+    // Favorites
+    <string name="button_toggle_favorites">Toggle Favorites</string>
+
+    // Sort order
+    <string name="button_toggle_sort_order">Toggle Sort Order</string>
 </resources>

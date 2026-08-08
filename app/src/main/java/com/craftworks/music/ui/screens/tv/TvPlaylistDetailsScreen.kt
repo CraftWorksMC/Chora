@@ -59,7 +59,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.data.model.id
+import com.craftworks.music.formatSeconds
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
@@ -119,7 +120,7 @@ fun TvPlaylistDetails(
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(playlistMetadata?.artworkUri)
-                        .diskCacheKey(playlistMetadata?.extras?.getString("navidromeID"))
+                        .diskCacheKey(playlistMetadata?.id)
                         .crossfade(true)
                         .build(),
                     placeholder = painterResource(R.drawable.placeholder),
@@ -148,7 +149,7 @@ fun TvPlaylistDetails(
 
                     // duration
                     Text(
-                        text = formatMilliseconds((playlistDuration / 1000).toInt()),
+                        text = formatSeconds((playlistDuration / 1000).toInt()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center,
@@ -183,7 +184,7 @@ fun TvPlaylistDetails(
                             modifier = Modifier.size(ButtonDefaults.IconSize),
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(stringResource(R.string.Action_Play))
+                        Text(stringResource(R.string.action_play))
                     }
 
                     OutlinedButton(
@@ -210,7 +211,7 @@ fun TvPlaylistDetails(
                             modifier = Modifier.size(ButtonDefaults.IconSize),
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(stringResource(R.string.Action_Shuffle))
+                        Text(stringResource(R.string.action_shuffle))
                     }
                 }
             }
@@ -251,7 +252,7 @@ fun TvPlaylistDetails(
             song = selectedSong,
             onSetRating = { rating ->
                 viewModel.setSongRating(
-                    songId = selectedSong.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                    songId = selectedSong.mediaMetadata.id ?: "",
                     rating = rating
                 )
             },

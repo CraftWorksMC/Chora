@@ -35,8 +35,6 @@ import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.SortOrder
-import com.craftworks.music.data.model.toAlbum
-import com.craftworks.music.managers.NavidromeManager
 import com.craftworks.music.ui.elements.tv.TvAlbumCard
 import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import kotlinx.coroutines.flow.filter
@@ -50,11 +48,11 @@ fun TvAlbumScreen(
 ) {
     val albums by viewModel.allAlbums.collectAsStateWithLifecycle()
     val tabs = listOf(
-        stringResource(R.string.Label_Sort_Alphabetical),
-        stringResource(R.string.recently_added),
-        stringResource(R.string.recently_played),
-        stringResource(R.string.most_played),
-        stringResource(R.string.Label_Sort_Starred),
+        stringResource(R.string.sort_by_name),
+        stringResource(R.string.home_recently_added),
+        stringResource(R.string.home_recently_played),
+        stringResource(R.string.home_most_played),
+        stringResource(R.string.sort_by_favorite),
     )
     val sortOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()
@@ -65,10 +63,8 @@ fun TvAlbumScreen(
                 4
             else
                 when (sortOrder) {
-                    SortOrder.ALPHABETICAL -> 0
-                    SortOrder.NEWEST -> 1
-                    SortOrder.RECENT -> 2
-                    SortOrder.FREQUENT -> 3
+                SortOrder.ASC -> 0
+                SortOrder.DESC -> 1
                 }
         }
     }
@@ -81,7 +77,6 @@ fun TvAlbumScreen(
 
     val gridState = rememberLazyGridState()
 
-    if (NavidromeManager.checkActiveServers()) {
         LaunchedEffect(albums.size) {
             if (albums.size % 50 != 0) return@LaunchedEffect
             if (albums.size < 50) return@LaunchedEffect
@@ -96,7 +91,6 @@ fun TvAlbumScreen(
                 viewModel.getMoreAlbums(50)
             }
         }
-    }
 
     LazyVerticalGrid(
         state = gridState,
@@ -128,12 +122,10 @@ fun TvAlbumScreen(
                                 }
                                 else {
                                     viewModel.setShowFavoritesOnly(false)
-                                    viewModel.setSorting(
+                                    viewModel.setOrder(
                                         when (index) {
-                                            0 -> SortOrder.ALPHABETICAL
-                                            1 -> SortOrder.NEWEST
-                                            2 -> SortOrder.RECENT
-                                            else -> SortOrder.FREQUENT
+                                        0 -> SortOrder.ASC
+                                        else -> SortOrder.DESC
                                         }
                                     )
                                 }
@@ -159,10 +151,8 @@ fun TvAlbumScreen(
                     focusRequester.saveFocusedChild()
                 },
                 onClick = {
-                    //focusRequester.saveFocusedChild()
-                    val albumEncoded = album.toAlbum()
-                    val encodedImage = URLEncoder.encode(albumEncoded.coverArt, "UTF-8")
-                    navHostController.navigate(Screen.AlbumDetails.route + "/${albumEncoded.navidromeID}/$encodedImage") {
+                    val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                         launchSingleTop = true
                     }
                 }

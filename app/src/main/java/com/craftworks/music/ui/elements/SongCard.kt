@@ -50,8 +50,12 @@ import androidx.media3.common.StarRating
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.formatMilliseconds
-import com.craftworks.music.providers.navidrome.downloadNavidromeSong
+import com.craftworks.music.data.model.ProviderFeatures
+import com.craftworks.music.data.model.getProvider
+import com.craftworks.music.data.model.id
+import com.craftworks.music.data.model.providerId
+import com.craftworks.music.formatSeconds
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
 import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
 import kotlinx.coroutines.launch
@@ -88,8 +92,8 @@ fun HorizontalSongCard(
                     modifier = Modifier
                         .size(32.dp)
                         .padding(8.dp, 0.dp, 0.dp, 0.dp),
-                        //.clip(CircleShape)
-                        //.background(MaterialTheme.colorScheme.primaryContainer),
+                    //.clip(CircleShape)
+                    //.background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -107,7 +111,7 @@ fun HorizontalSongCard(
                         .crossfade(true)
                         .size(64)
                         .diskCacheKey(
-                            song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
+                            song.mediaMetadata.id ?: song.mediaId
                         )
                         .build(),
                     contentDescription = "Album Image",
@@ -170,7 +174,7 @@ fun HorizontalSongCard(
             }
             val formattedDuration by remember(song.mediaMetadata.durationMs) {
                 derivedStateOf {
-                    formatMilliseconds((song.mediaMetadata.durationMs?.div(1000))?.toInt() ?: 0)
+                    formatSeconds((song.mediaMetadata.durationMs?.div(1000))?.toInt() ?: 0)
                 }
             }
             Text(
@@ -211,7 +215,7 @@ fun HorizontalSongCard(
                 ) {
                     DropdownMenuItem(
                         text = {
-                            Text(stringResource(R.string.Dialog_Set_Rating))
+                            Text(stringResource(R.string.action_set_rating))
                         },
                         onClick = {
                             onSetRating()
@@ -226,7 +230,7 @@ fun HorizontalSongCard(
                     )
                     DropdownMenuItem(
                         text = {
-                            Text(stringResource(R.string.Action_Add_To_Queue))
+                            Text(stringResource(R.string.action_add_to_queue))
                         },
                         onClick = {
                             onAddToQueue()
@@ -241,12 +245,7 @@ fun HorizontalSongCard(
                     )
                     DropdownMenuItem(
                         text = {
-                            Text(
-                                stringResource(R.string.Dialog_Add_To_Playlist).replace(
-                                    "/ ",
-                                    ""
-                                )
-                            )
+                            Text(stringResource(R.string.action_add_to_playlist))
                         },
                         onClick = {
                             println("Add Song To Playlist")
@@ -262,13 +261,15 @@ fun HorizontalSongCard(
                         }
                     )
                     DropdownMenuItem(
-                        enabled = !song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_"),
+                        enabled = !(song.mediaMetadata.getProvider()?.featureFlags?.has(
+                            ProviderFeatures.DOWNLOADS)?:false),
                         text = {
-                            Text(stringResource(R.string.Action_Download))
+                            Text(stringResource(R.string.action_download))
                         },
                         onClick = {
                             coroutineScope.launch {
-                                downloadNavidromeSong(context, song.mediaMetadata)
+                                TODO("Download song")
+                                //downloadNavidromeSong(context, song.mediaMetadata)
                             }
                             expanded = false
                         },

@@ -158,7 +158,7 @@ fun preview() {
         Modifier.background(MaterialTheme.colorScheme.surfaceContainer).fillMaxSize()
     ) {
         SettingsDialogButton(
-            settingsName = stringResource(R.string.Setting_Transcoding_Format),
+            settingsName = stringResource(R.string.playback_transcoding_format),
             settingsSubtitle = "transcodingFormat",
             settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
             enabled = true,
@@ -166,7 +166,7 @@ fun preview() {
         )
 
         SettingsDialogButton(
-            settingsName = stringResource(R.string.Setting_Transcoding_Format),
+            settingsName = stringResource(R.string.playback_transcoding_format),
             settingsSubtitle = "transcodingFormat",
             settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
             enabled = false,

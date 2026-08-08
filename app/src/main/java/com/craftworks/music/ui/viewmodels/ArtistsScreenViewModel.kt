@@ -3,15 +3,18 @@ package com.craftworks.music.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.model.MediaData
+import com.craftworks.music.data.model.AlbumArtistListSort
+import com.craftworks.music.data.model.MediaModel
+import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.data.repository.ArtistRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,11 +33,11 @@ class ArtistsScreenViewModel @Inject constructor(
     private val albumRepository: AlbumRepository,
     private val localDataSettingsManager: LocalDataSettingsManager
 ) : ViewModel() {
-    private val _allArtists = MutableStateFlow<List<MediaData.Artist>>(emptyList())
-    val allArtists: StateFlow<List<MediaData.Artist>> = _allArtists.asStateFlow()
+    private val _allArtists = MutableStateFlow<List<MediaModel.Artist>>(emptyList())
+    val allArtists: StateFlow<List<MediaModel.Artist>> = _allArtists.asStateFlow()
 
-    private val _selectedArtist = MutableStateFlow<MediaData.Artist?>(null)
-    val selectedArtist: StateFlow<MediaData.Artist?> = _selectedArtist
+    private val _selectedArtist = MutableStateFlow<MediaModel.Artist?>(null)
+    val selectedArtist: StateFlow<MediaModel.Artist?> = _selectedArtist
 
     private val _artistAlbums = MutableStateFlow<List<MediaItem>>(emptyList())
     val artistAlbums: StateFlow<List<MediaItem>> = _artistAlbums.asStateFlow()
@@ -44,27 +48,54 @@ class ArtistsScreenViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _sortOrder = MutableStateFlow(SortOrder.ASC)
+    val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
+
+    private val _sort = MutableStateFlow(AlbumArtistListSort.NAME)
+    val sort: StateFlow<AlbumArtistListSort> = _sort.asStateFlow()
+
     private val _showFavoritesOnly = MutableStateFlow(false)
     val showFavoritesOnly: StateFlow<Boolean> = _showFavoritesOnly.asStateFlow()
 
     init {
-        getArtists()
         viewModelScope.launch {
-            localDataSettingsManager.showFavoriteOnly.collect { showFavorites ->
-                _showFavoritesOnly.value = showFavorites
-                getArtists()
-            }
+            combine(
+                localDataSettingsManager.sortArtist,
+                localDataSettingsManager.sortArtistOrder,
+                localDataSettingsManager.showFavoriteArtist
+            ) { sort, sortOrder, showFavorites -> Triple(sort, sortOrder, showFavorites) }
+                .distinctUntilChanged()
+                .collect { (sort, sortOrder, showFavorites) ->
+                    _sort.value = sort
+                    _sortOrder.value = sortOrder
+                    _showFavoritesOnly.value = showFavorites
+                    getArtists()
+                }
             DataRefreshManager.dataSourceChangedEvent.collect {
                 getArtists()
             }
         }
     }
 
+    private var getArtistsJob: Job? = null
     fun getArtists() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _allArtists.value = artistRepository.getArtists(ignoreCachedResponse = true, favoritesOnly = _showFavoritesOnly.value)
-            _isLoading.value = false
+        getArtistsJob?.cancel()
+
+        getArtistsJob = viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _allArtists.value = artistRepository.getArtists(
+                    MediaQuery.AlbumArtistListQuery(
+                        _sort.value,
+                        _sortOrder.value,
+                        startIndex = 0,
+                        favorite = _showFavoritesOnly.value
+                    )
+                )
+            }
+            finally {
+                _isLoading.value = false
+            }
         }
     }
 
@@ -72,15 +103,12 @@ class ArtistsScreenViewModel @Inject constructor(
         return albumRepository.getAlbum(id) ?: emptyList()
     }
 
-//    suspend fun search(query: String) {
-//        _allArtists.value = artistRepository.searchArtists(query)
-//    }
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
     }
 
     @OptIn(FlowPreview::class)
-    val searchResults: StateFlow<List<MediaData.Artist>> = searchQuery
+    val searchResults: StateFlow<List<MediaModel.Artist>> = searchQuery
         .debounce(300L) // Adds a small delay to avoid searching on every keystroke.
         .combine(allArtists) { query, artists ->
             if (query.isBlank()) {
@@ -98,8 +126,10 @@ class ArtistsScreenViewModel @Inject constructor(
         )
 
 
-    fun setSelectedArtist(artist: MediaData.Artist) {
+    fun setSelectedArtist(artist: MediaModel.Artist) {
         _selectedArtist.value = artist
+        _artistAlbums.value = emptyList()
+
         viewModelScope.launch {
             val loadingJob = launch {
                 delay(1000)
@@ -108,25 +138,44 @@ class ArtistsScreenViewModel @Inject constructor(
                 }
             }
             loadingJob.start()
-            coroutineScope {
-                val artistAlbumsAsync = async { artistRepository.getArtistAlbums(artist.navidromeID) }
-                _artistAlbums.value = artistAlbumsAsync.await()
+            try {
+                val infoDeferred = async { artistRepository.getArtistInfo(artist.id) }
 
-                val artistDetails = async { artistRepository.getArtistInfo(artist.navidromeID) }.await()
+                val artistDetail = artistRepository.getArtistDetail(artist.id)
+
+                _selectedArtist.value = artistDetail?.artist
+                if (artistDetail?.albums.isNullOrEmpty()) {
+                    val artistAlbumsAsync = async { artistRepository.getArtistAlbums(artist.id) }
+                    _artistAlbums.value = artistAlbumsAsync.await()
+                } else {
+                    _artistAlbums.value = artistDetail.albums.map { it.toMediaItem() }
+                }
+
+                val artistInfo = infoDeferred.await()
                 _selectedArtist.value = _selectedArtist.value?.copy(
-                    description = artistDetails?.biography ?: "",
-                    musicBrainzId = artistDetails?.musicBrainzId,
-                    similarArtist = artistDetails?.similarArtist
+                    biography = artistInfo?.biography,
+                    similarArtists = artistInfo?.similarArtists ?: emptyList()
                 )
             }
-
-            loadingJob.cancel()
-            _isLoading.value = false
+            finally {
+                loadingJob.cancel()
+                _isLoading.value = false
+            }
+        }
+    }
+    fun setSorting(newSort: AlbumArtistListSort) {
+        viewModelScope.launch {
+            localDataSettingsManager.saveSortArtist(newSort)
+        }
+    }
+    fun setOrder(newSortOrder: SortOrder) {
+        viewModelScope.launch {
+            localDataSettingsManager.saveSortArtistOrder(newSortOrder)
         }
     }
     fun setShowFavoritesOnly(showFavorites: Boolean) {
         viewModelScope.launch {
-            localDataSettingsManager.saveShowFavoriteOnly(showFavorites)
+            localDataSettingsManager.saveShowFavoriteArtist(showFavorites)
         }
     }
 }

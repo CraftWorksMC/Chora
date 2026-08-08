@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Home -->
-    <string name="welcome_text">Willkommen</string>
-    <string name="recently_added">Kürzlich hinzugefügt</string>
-    <string name="most_played">Meistgespielt</string>
-    <string name="recently_played">Kürzlich Gespielt</string>
-    <string name="random_songs">Von Ihrer Bibliothek entdecken</string>
-    <!-- Artist Details -->
-    <string name="Screen_Discography">Diskografie</string>
-    <string name="Screen_Top_Songs">Beliebteste Songs</string>
-    <!-- Album Details -->
-    <string name="Album_Disc_Number">CD </string>
+    // Home
+    <string name="home_welcome">Willkommen,\n%s!</string>
+    <string name="home_recently_added">Kürzlich hinzugefügt</string>
+    <string name="home_most_played">Meistgespielt</string>
+    <string name="home_recently_played">Kürzlich Gespielt</string>
+    <string name="home_explore_library">Von Ihrer Bibliothek entdecken</string>
+    <string name="home_settings">Einstellungen</string>
+
+    // Artist Details
+    <string name="artist_details_discography">Diskografie</string>
+
+    // Album Details
+    <string name="album_details_disc">CD %s</string>
 </resources>

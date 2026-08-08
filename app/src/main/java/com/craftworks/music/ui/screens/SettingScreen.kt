@@ -50,7 +50,7 @@ fun SettingScreen(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(R.string.settings)) },
+                title = { Text(text = stringResource(R.string.home_settings)) },
                 actions = {
                     IconButton(
                         onClick = {
@@ -88,21 +88,21 @@ fun SettingScreen(
                 SettingsButton(
                     Screen.S_Appearance.route,
                     R.drawable.s_a_palette,
-                    R.string.Settings_Header_Appearance,
+                    R.string.settings_appearance,
                     navHostController
                 )
 
                 SettingsButton(
                     Screen.S_Providers.route,
                     R.drawable.s_m_media_providers,
-                    R.string.Settings_Header_Media,
+                    R.string.settings_media_providers,
                     navHostController
                 )
 
                 SettingsButton(
                     Screen.S_Playback.route,
                     R.drawable.s_m_playback,
-                    R.string.Settings_Header_Playback,
+                    R.string.settings_playback,
                     navHostController
                 )
             }

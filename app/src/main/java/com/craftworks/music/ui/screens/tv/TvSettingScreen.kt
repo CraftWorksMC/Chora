@@ -54,7 +54,7 @@ fun TvSettingScreen(
         SettingsButton(
             Screen.S_Appearance.route,
             R.drawable.s_a_palette,
-            R.string.Settings_Header_Appearance,
+            R.string.settings_appearance,
             navHostController,
             Modifier.onFocusChanged {
                 focusRequester.saveFocusedChild()
@@ -64,7 +64,7 @@ fun TvSettingScreen(
         SettingsButton(
             Screen.S_Providers.route,
             R.drawable.s_m_media_providers,
-            R.string.Settings_Header_Media,
+            R.string.settings_media_providers,
             navHostController,
             Modifier.onFocusChanged {
                 focusRequester.saveFocusedChild()
@@ -74,7 +74,7 @@ fun TvSettingScreen(
         SettingsButton(
             Screen.S_Playback.route,
             R.drawable.s_m_playback,
-            R.string.Settings_Header_Playback,
+            R.string.settings_playback,
             navHostController,
             Modifier.onFocusChanged {
                 focusRequester.saveFocusedChild()

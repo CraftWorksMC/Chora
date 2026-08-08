@@ -56,11 +56,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.craftworks.music.R
-import com.craftworks.music.data.NavidromeProvider
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.ui.elements.LocalProviderCard
-import com.craftworks.music.ui.elements.NavidromeProviderCard
+import com.craftworks.music.managers.MediaProviderManager
+import com.craftworks.music.data.providers.media.MediaProvider
+import com.craftworks.music.ui.elements.ProviderCard
 
 enum class OnboardingStep { OVERVIEW, PROVIDER_SELECTION, DONE }
 
@@ -71,11 +69,7 @@ fun OnboardingDialog(
 ) {
     var step by remember { mutableStateOf(OnboardingStep.OVERVIEW) }
     var showAddProviderDialog by remember { mutableStateOf(false) }
-
-    val localProviders by LocalProviderManager.allFolders.collectAsStateWithLifecycle()
-    val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
-
-    val hasProviders = localProviders.isNotEmpty() || navidromeServers.isNotEmpty()
+    val providers by MediaProviderManager.allProviders.collectAsStateWithLifecycle()
 
     Dialog(
         onDismissRequest = {},
@@ -99,7 +93,6 @@ fun OnboardingDialog(
                         .fillMaxWidth()
                         .padding(top = 20.dp, bottom = 4.dp)
                 )
-
                 AnimatedContent(
                     targetState = step,
                     modifier = Modifier.weight(1f),
@@ -124,9 +117,7 @@ fun OnboardingDialog(
                 ) { currentStep ->
                     when (currentStep) {
                         OnboardingStep.OVERVIEW -> OverviewStep(
-                            localProviders = localProviders,
-                            navidromeServers = navidromeServers,
-                            hasProviders = hasProviders,
+                            providers = providers,
                             onAddProvider = { showAddProviderDialog = true },
                             onNext = { step = OnboardingStep.DONE },
                             onSkip = { setShowDialog(false) }
@@ -190,9 +181,7 @@ private fun StepIndicator(
 
 @Composable
 private fun OverviewStep(
-    localProviders: List<String>,
-    navidromeServers: List<NavidromeProvider>,
-    hasProviders: Boolean,
+    providers: List<MediaProvider>,
     onAddProvider: () -> Unit,
     onNext: () -> Unit,
     onSkip: () -> Unit,
@@ -215,7 +204,7 @@ private fun OverviewStep(
         )
 
         Text(
-            text = stringResource(R.string.No_Providers_Splash),
+            text = stringResource(R.string.onboarding_no_provider_splash),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onBackground,
@@ -226,11 +215,8 @@ private fun OverviewStep(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(localProviders) { local ->
-                LocalProviderCard(local)
-            }
-            items(navidromeServers, key = { it.id }) { server ->
-                NavidromeProviderCard(server)
+            items(providers) { provider ->
+                ProviderCard(provider)
             }
         }
 
@@ -249,7 +235,7 @@ private fun OverviewStep(
                     .padding(end = 4.dp)
             )
             Text(
-                text = stringResource(R.string.Action_Add),
+                text = stringResource(R.string.action_add),
                 style = MaterialTheme.typography.labelLarge
             )
         }
@@ -257,7 +243,7 @@ private fun OverviewStep(
         Spacer(Modifier.weight(1f))
 
         Crossfade(
-            targetState = hasProviders
+            targetState = providers.isNotEmpty()
         ) {
             if (it) {
                 Button(
@@ -268,7 +254,7 @@ private fun OverviewStep(
                     shape = MaterialTheme.shapes.large
                 ) {
                     Text(
-                        text = stringResource(R.string.Action_Next),
+                        text = stringResource(R.string.action_next),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -309,7 +295,7 @@ private fun DoneStep(onFinish: () -> Unit) {
         )
 
         Text(
-            text = stringResource(R.string.No_Providers_Done),
+            text = stringResource(R.string.onboarding_all_done),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onBackground,
@@ -324,7 +310,7 @@ private fun DoneStep(onFinish: () -> Unit) {
             shape = MaterialTheme.shapes.large
         ) {
             Text(
-                text = stringResource(R.string.Action_Go),
+                text = stringResource(R.string.onboarding_lets_go),
                 style = MaterialTheme.typography.labelLarge
             )
         }

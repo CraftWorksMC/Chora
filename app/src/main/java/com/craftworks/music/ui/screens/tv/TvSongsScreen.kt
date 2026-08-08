@@ -37,7 +37,7 @@ import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.data.model.id
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
 import com.craftworks.music.ui.elements.tv.TvHorizontalSongCard
@@ -54,8 +54,8 @@ fun TvSongsScreen(
 ) {
     val songs by viewModel.allSongs.collectAsStateWithLifecycle()
     val tabs = listOf(
-        stringResource(R.string.songs),
-        stringResource(R.string.Label_Sort_Starred),
+        stringResource(R.string.nav_songs),
+        stringResource(R.string.sort_by_favorite),
     )
     val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()
 
@@ -78,7 +78,6 @@ fun TvSongsScreen(
         focusRequester.requestFocus()
     }
 
-    if (NavidromeManager.checkActiveServers()) {
         LaunchedEffect(songs.size) {
             if (songs.size % 50 != 0) return@LaunchedEffect
             if (songs.size < 50) return@LaunchedEffect
@@ -93,7 +92,6 @@ fun TvSongsScreen(
                 viewModel.getMoreSongs(50)
             }
         }
-    }
 
     LazyVerticalGrid(
         state = gridState,
@@ -167,7 +165,7 @@ fun TvSongsScreen(
             song = selectedSong,
             onSetRating = { rating ->
                 viewModel.setSongRating(
-                    songId = selectedSong.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                    songId = selectedSong.mediaMetadata.id ?: "",
                     rating = rating
                 )
             },

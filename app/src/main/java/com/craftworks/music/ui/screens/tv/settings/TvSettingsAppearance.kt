@@ -78,7 +78,7 @@ fun TvS_AppearanceScreen() {
                 val username by AppearanceSettingsManager(context).usernameFlow.collectAsState("Username")
 
                 SettingsButtonItem(
-                    title = stringResource(R.string.Setting_Username),
+                    title = stringResource(R.string.appearance_username),
                     subtitle = username,
                     icon = ImageVector.vectorResource(R.drawable.s_a_username),
                     onClick = { showNameDialog = true }
@@ -94,14 +94,14 @@ fun TvS_AppearanceScreen() {
                     AppTheme.SYSTEM.name
                 )
                 val themeStrings = mapOf(
-                    AppTheme.DARK.name to R.string.Theme_Dark,
-                    AppTheme.LIGHT.name to R.string.Theme_Light,
-                    AppTheme.SYSTEM.name to R.string.Theme_System
+                    AppTheme.DARK.name to R.string.theme_dark,
+                    AppTheme.LIGHT.name to R.string.theme_light,
+                    AppTheme.SYSTEM.name to R.string.theme_system
                 )
 
                 SettingsButtonItem(
-                    title = stringResource(R.string.Dialog_Theme),
-                    subtitle = stringResource(themeStrings[selectedTheme] ?: R.string.Theme_System),
+                    title = stringResource(R.string.appearance_theme),
+                    subtitle = stringResource(themeStrings[selectedTheme] ?: R.string.theme_system),
                     icon = ImageVector.vectorResource(R.drawable.s_a_palette),
                     onClick = { showThemesDialog = true }
                 )
@@ -111,15 +111,15 @@ fun TvS_AppearanceScreen() {
                     NowPlayingBackground.STATIC_BLUR
                 )
                 val backgroundLabels = mapOf(
-                    NowPlayingBackground.PLAIN to R.string.Background_Plain,
-                    NowPlayingBackground.STATIC_BLUR to R.string.Background_Blur,
-                    NowPlayingBackground.ANIMATED_BLUR to R.string.Background_Anim,
+                    NowPlayingBackground.PLAIN to R.string.background_style_plain,
+                    NowPlayingBackground.STATIC_BLUR to R.string.background_style_blur,
+                    NowPlayingBackground.ANIMATED_BLUR to R.string.background_style_anim,
                 )
 
                 SettingsButtonItem(
-                    title = stringResource(R.string.Setting_Background),
+                    title = stringResource(R.string.appearance_background_style),
                     subtitle = stringResource(
-                        backgroundLabels[backgroundType] ?: R.string.Background_Plain
+                        backgroundLabels[backgroundType] ?: R.string.background_style_plain
                     ),
                     icon = ImageVector.vectorResource(R.drawable.s_a_background),
                     onClick = { showBackgroundDialog = true }
@@ -130,15 +130,15 @@ fun TvS_AppearanceScreen() {
                     OLEDProtectionMode.OFF
                 )
                 val oledLabels = mapOf(
-                    OLEDProtectionMode.OFF to R.string.Oled_Off,
-                    OLEDProtectionMode.LYRICS_ONLY to R.string.Oled_Lyrics_Only,
-                    OLEDProtectionMode.MINIMAL to R.string.Oled_Minimal,
+                    OLEDProtectionMode.OFF to R.string.oled_protection_mode_off,
+                    OLEDProtectionMode.LYRICS_ONLY to R.string.oled_protection_mode_lyrics_only,
+                    OLEDProtectionMode.MINIMAL to R.string.oled_protection_mode_minimal,
                 )
 
                 SettingsButtonItem(
-                    title = stringResource(R.string.Setting_Oled_Mode),
+                    title = stringResource(R.string.appearance_oled_mode),
                     subtitle = stringResource(
-                        oledLabels[oledProtection] ?: R.string.Oled_Off
+                        oledLabels[oledProtection] ?: R.string.oled_protection_mode_off
                     ),
                     icon = ImageVector.vectorResource(R.drawable.rounded_tv_24),
                     onClick = { showOledDialog = true }
@@ -149,7 +149,7 @@ fun TvS_AppearanceScreen() {
                     true
                 )
                 SettingsSwitchItem(
-                    title = stringResource(R.string.Setting_Screen_Standby),
+                    title = stringResource(R.string.appearance_screen_standby),
                     icon = ImageVector.vectorResource(R.drawable.rounded_tv_24),
                     checked = screenStandby,
                     onCheckedChange = {
@@ -165,7 +165,7 @@ fun TvS_AppearanceScreen() {
                 )
 
                 SettingsButtonItem(
-                    title = stringResource(R.string.Setting_Navbar_Items),
+                    title = stringResource(R.string.appearance_navbar_items),
                     subtitle = enabledNavbarItems.filter { it.enabled }
                         .joinToString(", ") { it.title },
                     icon = ImageVector.vectorResource(R.drawable.s_a_navbar_items),
@@ -174,18 +174,18 @@ fun TvS_AppearanceScreen() {
 
                 // Home Items
                 val titleMap = mapOf(
-                    "recently_played" to R.string.recently_played,
-                    "recently_added" to R.string.recently_added,
-                    "most_played" to R.string.most_played
+                    "recently_played" to R.string.home_recently_played,
+                    "recently_added" to R.string.home_recently_added,
+                    "most_played" to R.string.home_most_played
                 )
                 val enabledHomeItems by AppearanceSettingsManager(context).homeItemsItemsFlow.collectAsState(
                     emptyList()
                 )
 
                 SettingsButtonItem(
-                    title = stringResource(R.string.Setting_Home_Items),
+                    title = stringResource(R.string.appearance_home_items),
                     subtitle = enabledHomeItems.filter { it.enabled }
-                        .map { stringResource(titleMap[it.key] ?: R.string.recently_played) }
+                        .map { stringResource(titleMap[it.key] ?: R.string.home_recently_played) }
                         .joinToString(","),
                     icon = ImageVector.vectorResource(R.drawable.s_a_home_items),
                     onClick = { showHomeItemsDialog = true }
@@ -193,16 +193,16 @@ fun TvS_AppearanceScreen() {
 
                 // Now Playing Lyrics Alignment
                 val alignmentLabels = mapOf(
-                    NowPlayingAlignment.LEFT to R.string.NowPlayingTitleAlignment_Left,
-                    NowPlayingAlignment.CENTER to R.string.NowPlayingTitleAlignment_Center,
-                    NowPlayingAlignment.RIGHT to R.string.NowPlayingTitleAlignment_Right
+                    NowPlayingAlignment.LEFT to R.string.alignment_setting_left,
+                    NowPlayingAlignment.CENTER to R.string.alignment_setting_center,
+                    NowPlayingAlignment.RIGHT to R.string.alignment_setting_right
                 )
 
                 SettingsButtonItem(
-                    title = stringResource(R.string.Setting_NowPlayingLyricsAlignment),
+                    title = stringResource(R.string.appearance_now_playing_lyrics_alignment),
                     subtitle = stringResource(
                         alignmentLabels[nowPlayingTitleAlignment]
-                            ?: R.string.NowPlayingTitleAlignment_Left
+                            ?: R.string.alignment_setting_left
                     ),
                     icon = ImageVector.vectorResource(R.drawable.rounded_sort_24),
                     onClick = { showNowPlayingLyricsAlignmentDialog = true }
@@ -218,7 +218,7 @@ fun TvS_AppearanceScreen() {
                     true
                 )
                 SettingsSwitchItem(
-                    title = stringResource(R.string.Setting_NowPlayingLyricsBlur),
+                    title = stringResource(R.string.appearance_now_playing_lyrics_blur),
                     icon = ImageVector.vectorResource(R.drawable.outline_line_weight_24),
                     checked = nowPlayingLyricsBlur,
                     onCheckedChange = {
@@ -230,7 +230,7 @@ fun TvS_AppearanceScreen() {
                 )
                 val lyricsAutoScroll by AppearanceSettingsManager(context).lyricsAutoScroll.collectAsStateWithLifecycle(true)
                 SettingsSwitchItem(
-                    title = stringResource(R.string.Setting_LyricsAutoscroll),
+                    title = stringResource(R.string.appearance_lyrics_auto_scroll),
                     icon = ImageVector.vectorResource(R.drawable.rounded_text_select_move_down_24),
                     checked = lyricsAutoScroll,
                     onCheckedChange = {
@@ -242,7 +242,7 @@ fun TvS_AppearanceScreen() {
 
                 val lyricsRecenterAfterScroll by AppearanceSettingsManager(context).lyricsRecenterAfterScroll.collectAsStateWithLifecycle(true)
                 SettingsSwitchItem(
-                    title = stringResource(R.string.Setting_LyricsRecenter),
+                    title = stringResource(R.string.appearance_lyrics_recenter),
                     icon = ImageVector.vectorResource(R.drawable.rounded_vertical_align_center_24),
                     checked = lyricsRecenterAfterScroll,
                     onCheckedChange = {
@@ -257,7 +257,7 @@ fun TvS_AppearanceScreen() {
                     true
                 )
                 SettingsSwitchItem(
-                    title = stringResource(R.string.Setting_MoreInfo),
+                    title = stringResource(R.string.appearance_more_info),
                     icon = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
                     checked = showMoreInfo,
                     onCheckedChange = {
@@ -272,7 +272,7 @@ fun TvS_AppearanceScreen() {
                     true
                 )
                 SettingsSwitchItem(
-                    title = stringResource(R.string.Setting_NavidromeLogo),
+                    title = stringResource(R.string.appearance_provider_logo),
                     icon = ImageVector.vectorResource(R.drawable.s_m_navidrome_bw),
                     checked = showNavidromeLogo,
                     onCheckedChange = {
@@ -287,7 +287,7 @@ fun TvS_AppearanceScreen() {
                     true
                 )
                 SettingsSwitchItem(
-                    title = stringResource(R.string.Setting_ProviderDividers),
+                    title = stringResource(R.string.appearance_provider_dividers),
                     icon = ImageVector.vectorResource(R.drawable.s_a_moreinfo),
                     checked = showProviderDividers,
                     onCheckedChange = {
@@ -320,7 +320,7 @@ fun TvS_AppearanceScreen() {
                     true
                 )
                 SettingsSwitchItem(
-                    title = stringResource(R.string.Setting_TrackNumbersAlbum),
+                    title = stringResource(R.string.appearance_track_numbers_in_album_view),
                     icon = ImageVector.vectorResource(R.drawable.rounded_format_list_numbered_24),
                     checked = showTrackNumbers,
                     onCheckedChange = {
@@ -347,7 +347,7 @@ fun TvS_AppearanceScreen() {
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.Setting_LyricsAnimationSpeed),
+                        text = stringResource(R.string.appearance_lyrics_animation_speed),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface,

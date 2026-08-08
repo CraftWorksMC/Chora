@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.StarRating
+import com.craftworks.music.data.model.LibraryType
+import com.craftworks.music.data.model.id
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.data.repository.StarredRepository
@@ -43,12 +45,12 @@ class AlbumDetailsViewModel @Inject constructor(
 
     fun starAlbum(id: String) {
         viewModelScope.launch {
-            starredRepository.starItem(albumId = id, ignoreCachedResponse = true)
+            starredRepository.starItem(listOf(id), LibraryType.ALBUM)
         }
     }
     fun unstarAlbum(id: String) {
         viewModelScope.launch {
-            starredRepository.unStarItem(albumId = id, ignoreCachedResponse = true)
+            starredRepository.unStarItem(listOf(id), LibraryType.ALBUM)
         }
     }
 
@@ -57,7 +59,7 @@ class AlbumDetailsViewModel @Inject constructor(
         rating: Int,
     ) {
         val song =_songsInAlbum.value.first {
-            it.mediaMetadata.extras?.getString("navidromeID") == songId
+            it.mediaMetadata.id == songId
         }
         val maxStars = (song.mediaMetadata.userRating as? StarRating)?.maxStars ?: 5
 

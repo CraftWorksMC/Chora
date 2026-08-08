@@ -111,9 +111,9 @@ import androidx.tv.material3.NavigationDrawer
 import androidx.tv.material3.NavigationDrawerItem
 import androidx.tv.material3.rememberDrawerState
 import com.craftworks.music.data.BottomNavItem
+import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppTheme
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
@@ -334,17 +334,14 @@ class MainActivity : ComponentActivity() {
                 var showNoProvidersDialog by rememberSaveable { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
-                    val folders = LocalProviderManager.getAllFolders()
-                    val servers = NavidromeManager.getAllServers()
-
-                    showNoProvidersDialog = !(folders.isEmpty() && servers.isEmpty())
+                    showNoProvidersDialog = MediaProviderManager.allProviders.value.isEmpty()
                 }
 
-                if (!showNoProvidersDialog) {
+                if (showNoProvidersDialog) {
                     if (isTv) {
-                        OnboardingDialog { showNoProvidersDialog = true }
+                        OnboardingDialog { showNoProvidersDialog = it }
                     } else {
-                        com.craftworks.music.ui.elements.dialogs.OnboardingDialog() { showNoProvidersDialog = true }
+                        com.craftworks.music.ui.elements.dialogs.OnboardingDialog() { showNoProvidersDialog = it }
 //                        NoMediaProvidersDialog(
 //                            setShowDialog = { showNoProvidersDialog = true },
 //                            navController
@@ -391,8 +388,8 @@ class MainActivity : ComponentActivity() {
         createNotificationChannel(
             this,
             "download_channel",
-            R.string.Notification_Download_Name,
-            R.string.Notification_Download_Desc,
+            R.string.notification_download_name,
+            R.string.notification_download_desc,
             IMPORTANCE_LOW
         )
 
@@ -439,19 +436,19 @@ fun TvSideNavigation(
                 "Home", R.drawable.rounded_home_24, "home_screen"
             ),
             BottomNavItem(
-                stringResource((R.string.Albums)), R.drawable.rounded_library_music_24, "album_screen"
+                stringResource((R.string.nav_albums)), R.drawable.rounded_library_music_24, "album_screen"
             ),
             BottomNavItem(
-                stringResource((R.string.songs)), R.drawable.round_music_note_24, "songs_screen", false
+                stringResource((R.string.nav_songs)), R.drawable.round_music_note_24, "songs_screen", false
             ),
             BottomNavItem(
-                stringResource((R.string.Artists)), R.drawable.rounded_artist_24, "artists_screen"
+                stringResource((R.string.nav_artists)), R.drawable.rounded_artist_24, "artists_screen"
             ),
             BottomNavItem(
-                stringResource((R.string.radios)), R.drawable.rounded_radio, "radio_screen"
+                stringResource((R.string.nav_radios)), R.drawable.rounded_radio, "radio_screen"
             ),
             BottomNavItem(
-                stringResource((R.string.playlists)), R.drawable.placeholder, "playlist_screen"
+                stringResource((R.string.nav_playlists)), R.drawable.placeholder, "playlist_screen"
             ),
         )
     ).value
@@ -620,7 +617,7 @@ fun TvSideNavigation(
                             )
                         }
                     ) {
-                        androidx.tv.material3.Text(text = stringResource(R.string.settings))
+                        androidx.tv.material3.Text(text = stringResource(R.string.home_settings))
                     }
                     /*
                     NavigationDrawerItem(
@@ -668,24 +665,30 @@ fun AnimatedBottomNavBar(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
 
     val orderedNavItems = AppearanceSettingsManager(context).bottomNavItemsFlow.collectAsState(
         initial = listOf(
             BottomNavItem(
-                "Home", R.drawable.rounded_home_24, "home_screen"
+                stringResource(R.string.nav_home), R.drawable.rounded_home_24, "home_screen"
             ), BottomNavItem(
-                stringResource(R.string.Albums), R.drawable.rounded_library_music_24, "album_screen"
+                stringResource(R.string.nav_albums), R.drawable.rounded_library_music_24, "album_screen"
             ), BottomNavItem(
-                stringResource(R.string.songs), R.drawable.round_music_note_24, "songs_screen"
+                stringResource(R.string.nav_songs), R.drawable.round_music_note_24, "songs_screen"
             ), BottomNavItem(
-                stringResource(R.string.Artists), R.drawable.rounded_artist_24, "artists_screen"
+                stringResource(R.string.nav_artists), R.drawable.rounded_artist_24, "artists_screen"
             ), BottomNavItem(
-                stringResource(R.string.radios), R.drawable.rounded_radio, "radio_screen"
+                stringResource(R.string.nav_radios), R.drawable.rounded_radio, "radio_screen"
             ), BottomNavItem(
-                stringResource(R.string.playlists), R.drawable.placeholder, "playlist_screen"
+                stringResource(R.string.nav_playlists), R.drawable.placeholder, "playlist_screen"
             )
         )
     ).value
+
+    orderedNavItems.first {it.screenRoute == "radio_screen"}.enabled =
+        currentProvider?.featureFlags?.has(ProviderFeatures.INTERNET_RADIO) ?: false
+    orderedNavItems.first {it.screenRoute == "playlist_screen"}.enabled =
+        currentProvider?.featureFlags?.has(ProviderFeatures.PLAYLIST) ?: false
 
     if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
         val expanded by remember { derivedStateOf { scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded } }
@@ -820,7 +823,8 @@ fun AnimatedBottomNavBar(
     }
 }
 
-fun formatMilliseconds(seconds: Int): String {
+// TODO("Move these utils funtions to a separated utils package")
+fun formatSeconds(seconds: Int): String {
     return String.format(Locale.getDefault(), "%02d:%02d", seconds / 60, seconds % 60)
 }
 

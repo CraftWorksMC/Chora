@@ -46,8 +46,8 @@ fun TvArtistScreen(
     val allArtistList by viewModel.allArtists.collectAsStateWithLifecycle()
 
     val tabs = listOf(
-        stringResource(R.string.Label_Sort_Alphabetical),
-        stringResource(R.string.Label_Sort_Starred),
+        stringResource(R.string.sort_by_name),
+        stringResource(R.string.sort_by_favorite),
     )
     val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()
 

@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.screens.settings
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,13 +41,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.providers.navidrome.navidromeStatus
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.LRCLIBProviderCard
-import com.craftworks.music.ui.elements.LocalProviderCard
-import com.craftworks.music.ui.elements.NavidromeProviderCard
 import com.craftworks.music.ui.elements.NetEaseProviderCard
+import com.craftworks.music.ui.elements.ProviderCard
 import com.craftworks.music.ui.elements.dialogs.CreateMediaProviderDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
 
@@ -64,7 +62,7 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(R.string.Settings_Header_Media)) },
+                title = { Text(text = stringResource(R.string.settings_media_providers)) },
                 actions = {
                     IconButton(
                         onClick = {
@@ -106,24 +104,23 @@ fun S_ProviderScreen(navHostController: NavHostController = rememberNavControlle
 
                 NetEaseProviderCard(context)
 
-                val localProviders by LocalProviderManager.allFolders.collectAsStateWithLifecycle()
-                val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
+                val providers by MediaProviderManager.allProviders.collectAsStateWithLifecycle()
 
-                // Local Providers First
-                for (local in localProviders) {
-                    LocalProviderCard(local, context)
+                Log.d("ProviderScreen", "Provider amount: ${providers.size}")
+
+                for (provider in providers) {
+                    ProviderCard(provider)
                 }
 
                 // Then Navidrome Providers
-                for (server in navidromeServers) {
+                /*for (server in navidromeServers) {
                     NavidromeProviderCard(server)
-                }
+                }*/
             }
 
             FloatingActionButton(
                 onClick = {
                     showNavidromeServerDialog = true
-                    navidromeStatus.value = ""
                 },
                 modifier = Modifier.padding(12.dp).align(Alignment.BottomEnd),
                 shape = FloatingActionButtonDefaults.extendedFabShape,

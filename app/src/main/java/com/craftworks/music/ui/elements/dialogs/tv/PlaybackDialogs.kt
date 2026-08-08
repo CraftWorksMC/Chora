@@ -24,7 +24,7 @@ fun TranscodingBitrateDialog(setShowDialog: (Boolean) -> Unit, isWifiDialog: Boo
 
     GenericListDialog(
         setShowDialog = setShowDialog,
-        titleRes = R.string.Setting_Transcoding,
+        titleRes = R.string.playback_max_bitrate,
         options = list,
         selectedOption = currentBitrate,
         label = {
@@ -48,7 +48,7 @@ fun TranscodingFormatDialog(setShowDialog: (Boolean) -> Unit) {
 
     GenericListDialog(
         setShowDialog = setShowDialog,
-        titleRes = R.string.Setting_Transcoding_Format,
+        titleRes = R.string.playback_transcoding_format,
         options = listOf("mp3", "aac", "opus"),
         selectedOption = currentFormat,
         label = { it },

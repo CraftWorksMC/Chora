@@ -35,11 +35,11 @@ fun HomeListsScreen(
     mediaController: MediaController? = null
 ) {
     val titleRes = when (categoryKey) {
-        "recently_played" -> R.string.recently_played
-        "recently_added" -> R.string.recently_added
-        "most_played" -> R.string.most_played
-        "random_songs" -> R.string.random_songs
-        else -> R.string.recently_played
+        "recently_played" -> R.string.home_recently_played
+        "recently_added" -> R.string.home_recently_added
+        "most_played" -> R.string.home_most_played
+        "random_songs" -> R.string.home_explore_library
+        else -> R.string.home_recently_played
     }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -62,8 +62,8 @@ fun HomeListsScreen(
                 albums,
                 mediaController,
                 onAlbumSelected = { album ->
-                    val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                    val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                         launchSingleTop = true
                     }
                 },

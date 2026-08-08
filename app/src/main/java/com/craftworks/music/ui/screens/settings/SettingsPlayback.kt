@@ -42,7 +42,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.PlaybackSettingsManager
 import com.craftworks.music.ui.elements.dialogs.TranscodingBitrateDialog
 import com.craftworks.music.ui.elements.dialogs.TranscodingFormatDialog
@@ -63,7 +63,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
 
     var showTranscodingFormatDialog by remember { mutableStateOf(false) }
 
-    val currentNavidromeServer by NavidromeManager.currentServerId.collectAsStateWithLifecycle()
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -71,7 +71,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(R.string.Settings_Header_Playback)) },
+                title = { Text(text = stringResource(R.string.settings_playback)) },
                 actions = {
                     IconButton(
                         onClick = {
@@ -116,11 +116,11 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         PlaybackSettingsManager(context).wifiTranscodingBitrateFlow.collectAsState("").value
 
                     SettingsDialogButton(
-                        settingsName = stringResource(R.string.Setting_Transcoding_Wifi),
+                        settingsName = stringResource(R.string.playback_max_bitrate_wifi),
                         settingsSubtitle = if (transcodingBitrateWifi != "No Transcoding") "$transcodingBitrateWifi Kbps" else transcodingBitrateWifi,
                         settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
                         toggleEvent = { showWifiTranscodingDialog = true },
-                        enabled = currentNavidromeServer != null
+                        enabled = currentProvider != null
                     )
 
 
@@ -130,21 +130,21 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         ).value
 
                     SettingsDialogButton(
-                        settingsName = stringResource(R.string.Setting_Transcoding_Data),
+                        settingsName = stringResource(R.string.playback_max_bitrate_mobile_data),
                         settingsSubtitle = if (transcodingBitrateData != "No Transcoding") "$transcodingBitrateData Kbps" else transcodingBitrateData,
                         settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
                         toggleEvent = { showDataTranscodingDialog = true },
-                        enabled = currentNavidromeServer != null
+                        enabled = currentProvider != null
                     )
 
                     val transcodingFormat =
                         PlaybackSettingsManager(context).transcodingFormatFlow.collectAsState("opus").value
 
                     val transcodingFormatEnabled =
-                        (transcodingBitrateData != "No Transcoding" || transcodingBitrateWifi != "No Transcoding") && currentNavidromeServer != null
+                        (transcodingBitrateData != "No Transcoding" || transcodingBitrateWifi != "No Transcoding") && currentProvider != null
 
                     SettingsDialogButton(
-                        settingsName = stringResource(R.string.Setting_Transcoding_Format),
+                        settingsName = stringResource(R.string.playback_transcoding_format),
                         settingsSubtitle = transcodingFormat,
                         settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
                         enabled = transcodingFormatEnabled,
@@ -180,7 +180,7 @@ fun S_PlaybackScreen(navHostController: NavHostController = rememberNavControlle
                         PlaybackSettingsManager(context).scrobblePercentFlow.collectAsState(7)
 
                     SettingsSlider(
-                        settingsName = stringResource(R.string.Setting_Scrobble_Percent),
+                        settingsName = stringResource(R.string.playback_min_scrobble_percentage),
                         value = sliderValue.value.toFloat(),
                         steps = 8,
                         minValue = 1f, maxValue = 10f,

@@ -36,8 +36,11 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
+import com.craftworks.music.data.model.AlbumListSort
+import com.craftworks.music.data.model.ProviderFeatures
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.SortOrder
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.TopBarWithSearch
@@ -71,7 +74,28 @@ fun AlbumScreen(
 
     var showSortMenu by remember { mutableStateOf(false) }
 
+    val sortOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
+
     val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()
+
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
+
+    val sortTranslationBindings = mapOf(
+        AlbumListSort.ALBUM_ARTIST to R.string.sort_by_album_artist,
+        AlbumListSort.ARTIST to R.string.sort_by_artist,
+        AlbumListSort.DURATION to R.string.sort_by_duration,
+        AlbumListSort.EXPLICIT_STATUS to R.string.sort_by_explicit_status,
+        AlbumListSort.FAVORITE to R.string.sort_by_favorite,
+        AlbumListSort.NAME to R.string.sort_by_name,
+        AlbumListSort.PLAY_COUNT to R.string.sort_by_play_count,
+        AlbumListSort.RANDOM to R.string.sort_by_random,
+        AlbumListSort.RATING to R.string.sort_by_rating,
+        AlbumListSort.RECENTLY_ADDED to R.string.sort_by_recently_added,
+        AlbumListSort.RECENTLY_PLAYED to R.string.sort_by_recently_played,
+        AlbumListSort.RELEASE_DATE to R.string.sort_by_release_date,
+        AlbumListSort.SONG_COUNT to R.string.sort_by_song_count,
+        AlbumListSort.YEAR to R.string.sort_by_year,
+    )
 
     PullToRefreshBox(
         state = state,
@@ -83,7 +107,7 @@ fun AlbumScreen(
             topBar = {
                 Column {
                     TopBarWithSearch(
-                        headerText = stringResource(R.string.Albums),
+                        headerText = stringResource(R.string.nav_albums),
                         scrollBehavior = scrollBehavior,
                         onSearch = { query -> viewModel.search(query) },
                         searchResults = {
@@ -91,8 +115,8 @@ fun AlbumScreen(
                                 searchResults,
                                 mediaController,
                                 onAlbumSelected = { album ->
-                                    val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                                    val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                                         launchSingleTop = true
                                     }
                                 },
@@ -102,58 +126,60 @@ fun AlbumScreen(
                         },
                         extraAction = {
                             Row {
-                                Box {
-                                    IconButton(
-                                        onClick = { viewModel.setShowFavoritesOnly(!showFavoritesOnly) }
-                                    ) {
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(if (showFavoritesOnly) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
-                                            contentDescription = stringResource(R.string.Label_Toggle_Favorites),
-                                        )
+                                if (currentProvider?.featureFlags?.has(ProviderFeatures.FAVORITES) ?: false) {
+                                    Box {
+                                        IconButton(
+                                            onClick = { viewModel.setShowFavoritesOnly(!showFavoritesOnly) }
+                                        ) {
+                                            Icon(
+                                                imageVector = ImageVector.vectorResource(if (showFavoritesOnly) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
+                                                contentDescription = stringResource(R.string.button_toggle_favorites),
+                                            )
+                                        }
                                     }
                                 }
-
-                                Box {
-                                    IconButton(
-                                        onClick = { showSortMenu = true }
-                                    ) {
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.rounded_sort_24),
-                                            contentDescription = stringResource(R.string.Label_Sorting),
-                                        )
+                                if (currentProvider?.supportAlbumSortOrder ?: false) {
+                                    Box {
+                                        IconButton(
+                                            onClick = { viewModel.setOrder(sortOrder.invert()) }
+                                        ) {
+                                            Icon(
+                                                imageVector = ImageVector.vectorResource(if (sortOrder == SortOrder.ASC) R.drawable.arrow_upward_24px else R.drawable.arrow_downward_24px),
+                                                contentDescription = stringResource(R.string.button_toggle_sort_order),
+                                            )
+                                        }
                                     }
-                                    DropdownMenu(
-                                        expanded = showSortMenu,
-                                        onDismissRequest = { showSortMenu = false }
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.Label_Sort_Alphabetical)) },
-                                            onClick = {
-                                                viewModel.setSorting(SortOrder.ALPHABETICAL)
-                                                showSortMenu = false
+                                }
+                                if (currentProvider?.supportedAlbumSort.orEmpty().size > 1) {
+                                    Box {
+                                        IconButton(
+                                            onClick = { showSortMenu = true }
+                                        ) {
+                                            Icon(
+                                                imageVector = ImageVector.vectorResource(R.drawable.rounded_sort_24),
+                                                contentDescription = stringResource(R.string.button_sort_by),
+                                            )
+                                        }
+                                        DropdownMenu(
+                                            expanded = showSortMenu,
+                                            onDismissRequest = { showSortMenu = false }
+                                        ) {
+                                            currentProvider?.supportedAlbumSort.orEmpty().map {
+                                                return@map DropdownMenuItem(
+                                                    text = {
+                                                        Text(sortTranslationBindings[it]?.let { id ->
+                                                            stringResource(
+                                                                id
+                                                            )
+                                                        } ?: it.name)
+                                                    },
+                                                    onClick = {
+                                                        viewModel.setSorting(it)
+                                                        showSortMenu = false
+                                                    }
+                                                )
                                             }
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.recently_added)) },
-                                            onClick = {
-                                                viewModel.setSorting(SortOrder.NEWEST)
-                                                showSortMenu = false
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.recently_played)) },
-                                            onClick = {
-                                                viewModel.setSorting(SortOrder.RECENT)
-                                                showSortMenu = false
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.most_played)) },
-                                            onClick = {
-                                                viewModel.setSorting(SortOrder.FREQUENT)
-                                                showSortMenu = false
-                                            }
-                                        )
+                                        }
                                     }
                                 }
                             }
@@ -171,8 +197,8 @@ fun AlbumScreen(
                     albums,
                     mediaController,
                     onAlbumSelected = { album ->
-                        val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                        navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                        val encodedImage = URLEncoder.encode(album.mediaMetadata.artworkUri.toString(), "UTF-8")
+                        navHostController.navigate(Screen.AlbumDetails.route + "/${album.mediaMetadata.extras?.getString("id")}/$encodedImage") {
                             launchSingleTop = true
                         }
                     },

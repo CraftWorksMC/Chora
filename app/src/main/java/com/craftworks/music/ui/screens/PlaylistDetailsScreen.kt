@@ -67,11 +67,15 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.model.ProviderFeatures
+import com.craftworks.music.data.model.ProviderType
+import com.craftworks.music.data.model.id
+import com.craftworks.music.data.model.providerType
 import com.craftworks.music.fadingEdge
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.formatSeconds
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
-import com.craftworks.music.providers.navidrome.downloadNavidromeAlbum
 import com.craftworks.music.ui.elements.HorizontalSongCard
 import com.craftworks.music.ui.elements.dialogs.AddSongToPlaylist
 import com.craftworks.music.ui.elements.dialogs.RatingDialog
@@ -89,8 +93,6 @@ fun PlaylistDetails(
     mediaController: MediaController? = rememberManagedMediaController().value,
     viewModel: PlaylistScreenViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-
     val imageFadingEdge = Brush.verticalGradient(listOf(Color.Red, Color.Transparent))
 
     val requester = remember { FocusRequester() }
@@ -159,15 +161,13 @@ fun PlaylistDetails(
                     SubcomposeAsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(
-                                if (playlistMetadata?.extras?.getString("navidromeID")
-                                        ?.startsWith("Local") == true
-                                )
+                                if (playlistMetadata?.providerType == ProviderType.LOCAL_FOLDER.ordinal)
                                     playlistMetadata.artworkData else
                                     playlistMetadata?.artworkUri
                             )
                             .crossfade(true)
                             .diskCacheKey(
-                                playlistMetadata?.extras?.getString("navidromeID")
+                                playlistMetadata?.id
                                     ?: playlistMetadata?.title.toString()
                             )
                             .build(),
@@ -201,10 +201,14 @@ fun PlaylistDetails(
                         )
                     }
 
+                    if (MediaProviderManager.getProvider(
+                            playlistMetadata?.extras?.getString("providerId")?:""
+                    )?.featureFlags?.has(ProviderFeatures.DOWNLOADS) ?: false)
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                downloadNavidromeAlbum(context, playlistMetadata?.title.toString(), playlistSongs)
+                                TODO("Download playlist")
+                                //downloadNavidromeAlbum(context, playlistMetadata?.title.toString(), playlistSongs)
                             }
                         },
                         shape = RoundedCornerShape(12.dp),
@@ -237,7 +241,7 @@ fun PlaylistDetails(
                             lineHeight = 32.sp,
                         )
                         Text(
-                            text = formatMilliseconds((playlistDuration / 1000).toInt()),
+                            text = formatSeconds((playlistDuration / 1000).toInt()),
                             color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Normal,
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
@@ -272,7 +276,7 @@ fun PlaylistDetails(
                             modifier = Modifier.height(24.dp)
                         ) {
                             Icon(Icons.Rounded.PlayArrow, "Play Album")
-                            Text(stringResource(R.string.Action_Play), maxLines = 1)
+                            Text(stringResource(R.string.action_play), maxLines = 1)
                         }
                     }
                     OutlinedButton (
@@ -293,7 +297,7 @@ fun PlaylistDetails(
                                 ImageVector.vectorResource(R.drawable.round_shuffle_28),
                                 "Shuffle Album"
                             )
-                            Text(stringResource(R.string.Action_Shuffle), maxLines = 1)
+                            Text(stringResource(R.string.action_shuffle), maxLines = 1)
                         }
                     }
                 }
@@ -319,12 +323,12 @@ fun PlaylistDetails(
                     extraMenuItems = { onDismiss ->
                         DropdownMenuItem(
                             text = {
-                                Text(stringResource(R.string.Action_RemoveFromPlaylist))
+                                Text(stringResource(R.string.action_remove_from_playlist))
                             },
                             onClick = {
                                 viewModel.removeSongFromPlaylist(
-                                    playlistId = playlistMetadata?.extras?.getString("navidromeID") ?: "",
-                                    songId = song.mediaMetadata.extras?.getString("navidromeID") ?: ""
+                                    playlistId = playlistMetadata?.id ?: "",
+                                    songId = song.mediaMetadata.id ?: ""
                                 )
                                 onDismiss()
                             },
@@ -349,7 +353,7 @@ fun PlaylistDetails(
             currentRating = (song.mediaMetadata.userRating as? StarRating)?.starRating?.toInt() ?: 0,
             onDismiss = { songToRate = null },
             onSetRating = { rating ->
-                viewModel.setSongRating(song.mediaMetadata.extras?.getString("navidromeID") ?: "", rating)
+                viewModel.setSongRating(song.mediaMetadata.id ?: "", rating)
                 songToRate = null
             }
         )

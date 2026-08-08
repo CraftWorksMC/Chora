@@ -35,22 +35,16 @@ import androidx.tv.material3.ListItem
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.craftworks.music.R
-import com.craftworks.music.managers.NavidromeManager
-import com.craftworks.music.ui.screens.tv.settings.SettingsSwitchItem
 import kotlinx.coroutines.launch
 
 @Composable
 fun AddRadioDialog(
     setShowDialog: (Boolean) -> Unit = { },
-    onAdded: (name: String, url: String, homePageUrl: String, addToNavidrome: Boolean) -> Unit
+    onAdded: (name: String, url: String, homePageUrl: String) -> Unit
 ) {
     var radioName by remember { mutableStateOf("") }
     var radioUrl by remember { mutableStateOf("") }
     var radioPage by remember { mutableStateOf("") }
-
-    var addToNavidrome by remember { mutableStateOf(
-        NavidromeManager.checkActiveServers()
-    ) }
 
     val (nameFocus, urlFocus, pageFocus) = remember { FocusRequester.createRefs() }
 
@@ -92,7 +86,7 @@ fun AddRadioDialog(
                     onValueChange = { radioName = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_Name),
+                            text = stringResource(R.string.label_radio_name),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -116,7 +110,7 @@ fun AddRadioDialog(
                     onValueChange = { radioUrl = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_URL),
+                            text = stringResource(R.string.label_radio_url),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -140,7 +134,7 @@ fun AddRadioDialog(
                     onValueChange = { radioPage = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_URL),
+                            text = stringResource(R.string.label_radio_url),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -156,8 +150,7 @@ fun AddRadioDialog(
                                 onAdded(
                                     radioName,
                                     radioUrl,
-                                    radioPage,
-                                    addToNavidrome
+                                    radioPage
                                 )
 
                                 setShowDialog(false)
@@ -168,24 +161,15 @@ fun AddRadioDialog(
                     modifier = Modifier.focusRequester(pageFocus)
                 )
 
-                SettingsSwitchItem(
-                    title = stringResource(R.string.Label_Radio_Add_To_Navidrome),
-                    checked = addToNavidrome,
-                    onCheckedChange = {
-                        addToNavidrome = it
-                    }
-                )
-
                 ListItem(
                     selected = false,
-                    headlineContent = { Text(stringResource(R.string.Action_Done)) },
+                    headlineContent = { Text(stringResource(R.string.action_done)) },
                     onClick = {
                         coroutineScope.launch {
                             onAdded(
                                 radioName,
                                 radioUrl,
-                                radioPage,
-                                addToNavidrome
+                                radioPage
                             )
 
                             setShowDialog(false)
@@ -201,8 +185,8 @@ fun AddRadioDialog(
 fun ModifyRadioDialog(
     setShowDialog: (Boolean) -> Unit,
     radio: MediaItem?,
-    onModified: (id: String, name: String, url: String, homepage: String) -> Unit,
-    onDeleted: (id: String) -> Unit = {}
+    onModified: (providerId: String, id: String, name: String, url: String, homepage: String) -> Unit,
+    onDeleted: (providerId: String, id: String) -> Unit = {_,_->}
 ) {
     var radioName by remember { mutableStateOf(radio?.mediaMetadata?.station) }
     var radioUrl by remember { mutableStateOf(radio?.mediaId) }
@@ -248,7 +232,7 @@ fun ModifyRadioDialog(
                     onValueChange = { radioName = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_Name),
+                            text = stringResource(R.string.label_radio_name),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -272,7 +256,7 @@ fun ModifyRadioDialog(
                     onValueChange = { radioUrl = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_URL),
+                            text = stringResource(R.string.label_radio_url),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -296,7 +280,7 @@ fun ModifyRadioDialog(
                     onValueChange = { radioPage = it },
                     label = {
                         Text(
-                            text = stringResource(R.string.Label_Radio_URL),
+                            text = stringResource(R.string.label_radio_url),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
@@ -310,7 +294,8 @@ fun ModifyRadioDialog(
                         onDone = {
                             coroutineScope.launch {
                                 onModified(
-                                    radio?.mediaMetadata?.extras?.getString("navidromeID") ?: "Local",
+                                    radio?.mediaMetadata?.extras?.getString("providerId") ?: "",
+                                    radio?.mediaMetadata?.extras?.getString("id") ?: "",
                                     radioName.toString(),
                                     radioUrl.toString(),
                                     radioPage
@@ -326,11 +311,12 @@ fun ModifyRadioDialog(
 
                 ListItem(
                     selected = false,
-                    headlineContent = { Text(stringResource(R.string.Action_Done)) },
+                    headlineContent = { Text(stringResource(R.string.action_done)) },
                     onClick = {
                         coroutineScope.launch {
                             onModified(
-                                radio?.mediaMetadata?.extras?.getString("navidromeID") ?: "Local",
+                                radio?.mediaMetadata?.extras?.getString("providerId") ?: "",
+                                radio?.mediaMetadata?.extras?.getString("id") ?: "",
                                 radioName.toString(),
                                 radioUrl.toString(),
                                 radioPage
@@ -341,10 +327,13 @@ fun ModifyRadioDialog(
                 )
                 ListItem(
                     selected = false,
-                    headlineContent = { Text(stringResource(R.string.Action_Remove)) },
+                    headlineContent = { Text(stringResource(R.string.action_remove)) },
                     onClick = {
                         coroutineScope.launch {
-                            onDeleted(radio?.mediaMetadata?.extras?.getString("navidromeID") ?: "null")
+                            onDeleted(
+                                radio?.mediaMetadata?.extras?.getString("providerId") ?: "",
+                                radio?.mediaMetadata?.extras?.getString("id") ?: ""
+                            )
                             setShowDialog(false)
                         }
                     }

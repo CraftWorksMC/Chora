@@ -1,14 +1,19 @@
 plugins {
     id("com.android.application")
     id("com.google.devtools.ksp")
-    kotlin("plugin.serialization") version "2.4.0"
+    kotlin("plugin.serialization") version "2.3.21"
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.ktorfit)
 }
 
 android {
     namespace = "com.craftworks.music"
     compileSdk = 37
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     androidResources {
         generateLocaleConfig = true
@@ -78,8 +83,6 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
 
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-
     implementation(libs.reorderable)
     implementation(libs.androidx.media)
 
@@ -97,9 +100,12 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.mediarouter)
     implementation(libs.androidx.material3.android)
+    implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.composefadingedges)
+    implementation(libs.ktorfit)
+    ksp(libs.kotlin.metadata.jvm)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

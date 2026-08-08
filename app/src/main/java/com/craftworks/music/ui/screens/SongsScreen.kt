@@ -1,13 +1,17 @@
 package com.craftworks.music.ui.screens
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -33,6 +37,11 @@ import androidx.media3.common.StarRating
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
+import com.craftworks.music.data.model.ProviderFeatures
+import com.craftworks.music.data.model.SongListSort
+import com.craftworks.music.data.model.SortOrder
+import com.craftworks.music.data.model.id
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.SongsHorizontalColumn
@@ -71,10 +80,37 @@ fun SongsScreen(
 
     var songToRate by remember { mutableStateOf<MediaItem?>(null) }
 
+    var showSortMenu by remember { mutableStateOf(false) }
+
+    val sortOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
 
     val showFavoritesOnly by viewModel.showFavoritesOnly.collectAsStateWithLifecycle()
 
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
+
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    val sortTranslationBindings = mapOf(
+        SongListSort.ALBUM to R.string.sort_by_album,
+        SongListSort.ALBUM_ARTIST to R.string.sort_by_album_artist,
+        SongListSort.ARTIST to R.string.sort_by_artist,
+        SongListSort.BPM to R.string.sort_by_bpm,
+        SongListSort.CHANNELS to R.string.sort_by_channels,
+        SongListSort.COMMENT to R.string.sort_by_comment,
+        SongListSort.DURATION to R.string.sort_by_duration,
+        SongListSort.EXPLICIT_STATUS to R.string.sort_by_explicit_status,
+        SongListSort.FAVORITE to R.string.sort_by_favorite,
+        SongListSort.GENRE to R.string.sort_by_genre,
+        SongListSort.ID to R.string.sort_by_id,
+        SongListSort.NAME to R.string.sort_by_name,
+        SongListSort.PLAY_COUNT to R.string.sort_by_play_count,
+        SongListSort.RANDOM to R.string.sort_by_random,
+        SongListSort.RATING to R.string.sort_by_rating,
+        SongListSort.RECENTLY_ADDED to R.string.sort_by_recently_added,
+        SongListSort.RECENTLY_PLAYED to R.string.sort_by_recently_played,
+        SongListSort.RELEASE_DATE to R.string.sort_by_release_date,
+        SongListSort.YEAR to R.string.sort_by_year,
+    )
 
     PullToRefreshBox(
         state = state,
@@ -85,7 +121,7 @@ fun SongsScreen(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 TopBarWithSearch(
-                    headerText = stringResource(R.string.songs),
+                    headerText = stringResource(R.string.nav_songs),
                     scrollBehavior = scrollBehavior,
                     onSearch = { query -> viewModel.search(query) },
                     searchResults = {
@@ -107,14 +143,62 @@ fun SongsScreen(
                         )
                     },
                     extraAction = {
-                        Box {
-                            IconButton (
-                                onClick = { viewModel.setShowFavoritesOnly(!showFavoritesOnly) }
-                            ) {
-                                Icon (
-                                    imageVector = ImageVector.vectorResource(if (showFavoritesOnly) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
-                                    contentDescription = stringResource(R.string.Label_Toggle_Favorites),
-                                )
+                        Row {
+                            if (currentProvider?.featureFlags?.has(ProviderFeatures.FAVORITES) ?: false) {
+                                Box {
+                                    IconButton(
+                                        onClick = { viewModel.setShowFavoritesOnly(!showFavoritesOnly) }
+                                    ) {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(if (showFavoritesOnly) androidx.media3.session.R.drawable.media3_icon_heart_filled else androidx.media3.session.R.drawable.media3_icon_heart_unfilled),
+                                            contentDescription = stringResource(R.string.button_toggle_favorites),
+                                        )
+                                    }
+                                }
+                            }
+                            if (currentProvider?.supportSongSortOrder ?: false) {
+                                Box {
+                                    IconButton(
+                                        onClick = { viewModel.setOrder(sortOrder.invert()) }
+                                    ) {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(if (sortOrder == SortOrder.ASC) R.drawable.arrow_upward_24px else R.drawable.arrow_downward_24px ),
+                                            contentDescription = stringResource(R.string.button_toggle_sort_order),
+                                        )
+                                    }
+                                }
+                            }
+                            if (currentProvider?.supportedSongSort.orEmpty().size > 1) {
+                                Box {
+                                    IconButton(
+                                        onClick = { showSortMenu = true }
+                                    ) {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(R.drawable.rounded_sort_24),
+                                            contentDescription = stringResource(R.string.button_sort_by),
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = showSortMenu,
+                                        onDismissRequest = { showSortMenu = false }
+                                    ) {
+                                        currentProvider?.supportedSongSort.orEmpty().map {
+                                            return@map DropdownMenuItem(
+                                                text = {
+                                                    Text(sortTranslationBindings[it]?.let { id ->
+                                                        stringResource(
+                                                            id
+                                                        )
+                                                    } ?: it.name)
+                                                },
+                                                onClick = {
+                                                    viewModel.setSorting(it)
+                                                    showSortMenu = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -154,7 +238,7 @@ fun SongsScreen(
             currentRating = (song.mediaMetadata.userRating as? StarRating)?.starRating?.toInt() ?: 0,
             onDismiss = { songToRate = null },
             onSetRating = { rating ->
-                viewModel.setSongRating(song.mediaMetadata.extras?.getString("navidromeID") ?: "", rating)
+                viewModel.setSongRating(song.mediaMetadata.id ?: "", rating)
                 songToRate = null
             }
         )

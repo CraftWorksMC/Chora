@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Common -->
-    <string name="Action_Done">Fait</string>
-    <string name="Action_Remove">Supprimer</string>
-    <string name="Action_Reset">Réinitialiser</string>
-    <string name="Action_Search">Rechercher</string>
-    <string name="Action_Play">Jouer</string>
-    <string name="Action_Shuffle">Mélanger</string>
-    <!-- Navidrome Provider -->
-    <string name="Action_Add">Ajouter</string>
-    <string name="Action_Add_To_Queue">Add To Queue</string>
-    <string name="Action_Next">Suivant</string>
-    <string name="Action_Success">Succès</string>
-    <string name="Action_Login">Se connecter</string>
-    <string name="Action_Go">C\'est parti !</string>
-    <string name="Action_Exit">Fermer</string>
-    <!-- Playlists -->
-    <string name="Action_CreatePlaylist">Créer une playlist</string>
-    <string name="Action_Download">Téléchargement</string>
+    <string name="action_done">Fait</string>
+    <string name="action_remove">Supprimer</string>
+    <string name="action_reset">Réinitialiser</string>
+
+    <string name="action_search">Rechercher</string>
+
+    <string name="action_play">Jouer</string>
+    <string name="action_shuffle">Mélanger</string>
+
+    <string name="action_add">Ajouter</string>
+    <string name="action_add_to_queue">Ajouter à la queue</string>
+    <string name="action_add_to_playlist">Ajouter à la playlist</string>
+    <string name="action_set_rating">Définir la note</string>
+    <string name="action_next">Suivant</string>
+
+    // Playlists
+    <string name="action_create_playlist">Créer une playlist</string>
+    <string name="action_remove_from_playlist">Retirer de la playlist</string>
+
+    <string name="action_download">Téléchargement</string>
 </resources>

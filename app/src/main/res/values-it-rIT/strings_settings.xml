@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Settings_Header_Appearance">Aspetto</string>
-    <string name="Setting_Username">Nome</string>
-    <string name="Setting_Background">Stile Sfondo</string>
-    <string name="Setting_Oled_Mode">Protezione OLED</string>
-    <string name="Setting_Navbar_Items">Schede Della Barra Di Navigazione</string>
-    <string name="Setting_Home_Items">Elementi Schermata Home</string>
-    <string name="Setting_MoreInfo">Mostra Altre Info</string>
-    <string name="Setting_NowPlayingLyricsBlur">Sfocatura Testi</string>
-    <string name="Setting_NavidromeLogo">Mostra Logo Navidrome</string>
-    <string name="Setting_ProviderDividers">Mostra Divisori Provider</string>
-    <string name="Setting_RefreshAnimation">Mostra Animazione Refresh</string>
-    <string name="Setting_LyricsAnimationSpeed">Velocità Animazione Testo</string>
-    <string name="Setting_LyricsAutoscroll">Scorri i Testi Non Sincronizzati</string>
-    <string name="Setting_LyricsRecenter">Ricentra dopo lo scorrimento</string>
-    <string name="Setting_TrackNumbersAlbum">Mostra Numero di Traccia negli Album</string>
-    <string name="Settings_Header_Media">Fonti Media</string>
-    <string name="Settings_Header_Playback">Riproduzione</string>
-    <string name="Setting_Transcoding">Bitrate Massimo</string>
-    <string name="Setting_Transcoding_Wifi">Bitrate Massimo (WiFi)</string>
-    <string name="Setting_Transcoding_Data">Bitrate Massimo (Dati mobili)</string>
-    <string name="Setting_Transcoding_Format">Formato Codifica</string>
-    <string name="Setting_Scrobble_Percent">Min. Percentuale Scrobble</string>
-    <string name="Setting_Scrobble_Description">Solo Navidrome.</string>
+    <string name="settings_appearance">Aspetto</string>
+        <string name="appearance_username">Nome</string>
+        <string name="appearance_oled_mode">Protezione OLED</string>
+        <string name="appearance_navbar_items">Schede Della Barra Di Navigazione</string>
+        <string name="appearance_home_items">Elementi Schermata Home</string>
+        <string name="appearance_now_playing_lyrics_blur">Sfocatura Testi</string>
+        <string name="appearance_lyrics_auto_scroll">Scorri i Testi Non Sincronizzati</string>
+        <string name="appearance_lyrics_recenter">Ricentra dopo lo scorrimento</string>
+        <string name="appearance_lyrics_animation_speed">Velocità Animazione Testo</string>
+        <string name="appearance_more_info">Mostra Altre Info</string>
+        <string name="appearance_provider_logo">Mostra Logo Navidrome</string>
+        <string name="appearance_provider_dividers">Mostra Divisori Provider</string>
+        <string name="appearance_refresh_animation">Mostra Animazione Refresh</string>
+        <string name="appearance_track_numbers_in_album_view">Mostra Numero di Traccia negli Album</string>
+    <string name="settings_media_providers">Fonti Media</string>
+            // Local
+            // Server
+    <string name="settings_playback">Riproduzione</string>
+        // Transcoding
+        <string name="playback_max_bitrate">Bitrate Massimo</string>
+        <string name="playback_max_bitrate_wifi">Bitrate Massimo (WiFi)</string>
+        <string name="playback_max_bitrate_mobile_data">Bitrate Massimo (Dati mobili)</string>
+        <string name="playback_transcoding_format">Formato Codifica</string>
+
+        // Scrobble
+        <string name="playback_min_scrobble_percentage">Min. Percentuale Scrobble</string>
 </resources>
