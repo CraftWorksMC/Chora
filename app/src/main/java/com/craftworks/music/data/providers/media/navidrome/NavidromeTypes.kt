@@ -225,6 +225,7 @@ data class NavidromeSong(
             ?: if (this.year > 0) this.year.toString() else null
 
         val trackSubtitle = this.tags?.get("subtitle")?.joinToString(" · ")
+        val trackIsrc = this.tags?.get("isrc")
 
         return MediaModel.Song(
             id = this.id,
@@ -264,6 +265,7 @@ data class NavidromeSong(
             lyrics = this.lyrics,
             mbzRecordingId = this.mbzReleaseTrackId,
             mbzTrackId = this.mbzReleaseTrackId,
+            isrc = trackIsrc,
             path = this.path,
             participants = this.participants?.mapValues { roleParticipants ->
                 roleParticipants.value.map { MediaModel.Artist(

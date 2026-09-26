@@ -126,10 +126,16 @@ data class UnisonLyricsResponse(
     val success: Boolean,
     val data: UnisonLyricsData? = null
 )
+@Serializable
+data class UnisonSearchResponse(
+    val success: Boolean,
+    val data: List<UnisonLyricsData>? = null
+)
 
 @Serializable
 data class UnisonLyricsData(
-    val lyrics: String,
+    val id: Int,
+    val lyrics: String? = null,
     val format: String
 )
 
