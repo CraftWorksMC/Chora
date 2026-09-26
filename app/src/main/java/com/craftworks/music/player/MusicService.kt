@@ -68,15 +68,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 import kotlin.math.pow
+import kotlin.time.Duration.Companion.seconds
 
 /*
     Thanks to Yurowitz on StackOverflow for this! Used it as a template.
@@ -578,22 +579,22 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         ): ListenableFuture<MediaItemsWithStartPosition> {
             val settable = SettableFuture.create<MediaItemsWithStartPosition>()
             serviceMainScope.launch {
-                Log.d("RESUMPTION", "Getting onPlaybackResumption")
-                LocalDataSettingsManager(applicationContext).playbackResumptionPlaylistWithStartPosition.collectLatest { playbackResumptionList ->
-                    settable.set(playbackResumptionList)
-                    Log.d("RESUMPTION", "Got mediaitems")
+                try {
+                    val playbackResumptionList = withTimeout(2.seconds) {
+                        LocalDataSettingsManager(applicationContext)
+                            .playbackResumptionPlaylistWithStartPosition
+                            .first()
+                    }
                     withContext(Dispatchers.Main) {
                         player.setMediaItems(playbackResumptionList.mediaItems)
                         player.prepare()
                         player.playWhenReady = true
-
                         player.seekTo(playbackResumptionList.startIndex, playbackResumptionList.startPositionMs)
-
-                        Log.d(
-                            "RESUMPTION",
-                            "Set playlist: ${playbackResumptionList.mediaItems.map { it.mediaMetadata.title }} at index ${playbackResumptionList.startIndex} with position ${playbackResumptionList.startPositionMs}"
-                        )
                     }
+                    settable.set(playbackResumptionList)
+                } catch (e: Exception) {
+                    Log.e("RESUMPTION", "Failed/timed out getting resumption state", e)
+                    settable.setException(e)
                 }
             }
             return settable
