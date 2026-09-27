@@ -1,12 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    // Navigation
+    <string name="nav_home">Home</string>
     <string name="nav_songs">Brani</string>
     <string name="nav_albums">Album</string>
     <string name="nav_artists">Artisti</string>
-    <string name="nav_radios">Radio Internet</string>
+    <string name="nav_radios">Radio</string>
     <string name="nav_playlists">Playlist</string>
-
-    // Media Providers
+    <string name="nav_playing">In Riproduzione</string>
+    <string name="nav_search">Cerca</string>
     <string name="source_local_folder">Cartella Locale</string>
+    <string name="label_separator">Separatore</string>
 </resources>
