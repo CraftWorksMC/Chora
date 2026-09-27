@@ -1,11 +1,12 @@
 package com.craftworks.music.ui.screens
 
 import android.content.res.Configuration
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
@@ -49,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
@@ -67,7 +70,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.data.model.id
+import com.craftworks.music.data.providers.media.MediaProvider
+import com.craftworks.music.data.providers.media.local.LocalMediaProvider
+import com.craftworks.music.data.providers.media.navidrome.NavidromeMediaProvider
+import com.craftworks.music.data.providers.media.subsonic.SubsonicMediaProvider
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.AlbumRow
@@ -76,7 +84,6 @@ import com.craftworks.music.ui.playing.dpToPx
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import java.net.URLEncoder
 import kotlin.math.roundToInt
 
 @Stable
@@ -94,6 +101,8 @@ fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+
+    val settingsManager = remember(context) { AppearanceSettingsManager(context) }
 
     val recentlyPlayedAlbums by viewModel.recentlyPlayedAlbums.collectAsStateWithLifecycle()
     val recentAlbums by viewModel.recentAlbums.collectAsStateWithLifecycle()
@@ -113,7 +122,8 @@ fun HomeScreen(
         showRipple++
     }
 
-    val libraries by NavidromeManager.libraries.collectAsStateWithLifecycle()
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
+    val libraries = currentProvider?.data?.libraries
 
     PullToRefreshBox(
         modifier = Modifier,
@@ -127,30 +137,31 @@ fun HomeScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(
-                        top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(
+                        top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
                     )
             ) {
                 Row (Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                    val username = AppearanceSettingsManager(context).usernameFlow.collectAsState("Username")
-                    val showNavidromeLogo =
-                        AppearanceSettingsManager(context).showNavidromeLogoFlow.collectAsState(true).value && NavidromeManager.checkActiveServers()
+                    val username = settingsManager.usernameFlow.collectAsState("Username")
+                    val showProviderLogo = currentProvider != null
 
-                    if (showNavidromeLogo) NavidromeLogo()
+                    if (showProviderLogo) ProviderLogo(currentProvider!!)
 
                     Text(
-                        text = "${stringResource(R.string.welcome_text)},\n${username.value}!",
+                        text = stringResource(R.string.home_welcome,username.value),
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .padding(start = 12.dp)
-                            .offset(x = if (showNavidromeLogo) (-36).dp else 0.dp),
+                            //.offset(x = if (showProviderLogo) (-84).dp else 0.dp),
                     )
                 }
                 IconButton(
                     onClick = {
-                        navHostController.navigate(Screen.Setting.route) {
+                        navHostController.navigate(Screen.Settings) {
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -174,17 +185,20 @@ fun HomeScreen(
                     .padding(horizontal = 12.dp)
                     .horizontalScroll(rememberScrollState())
             ) {
-                if (libraries.size > 1) {
-                    libraries.forEach { (library, isSelected) ->
+                if ((libraries?.size ?: 0) > 1) {
+                    libraries?.forEach { (library, isSelected) ->
                         FilterChip(
                             onClick = {
-                                NavidromeManager.currentServerId.value?.let { serverId ->
-                                    NavidromeManager.toggleServerLibraryEnabled(
-                                        serverId,
-                                        library.id,
-                                        !isSelected
-                                    )
-                                }
+                                MediaProviderManager.setProviderLibraries(
+                                    currentProvider!!.id,
+                                    libraries = libraries.map { (currentLibrary, currentEnabled) ->
+                                        if (currentLibrary.id == library.id) {
+                                            Pair(library, !isSelected)
+                                        } else {
+                                            Pair(currentLibrary, currentEnabled)
+                                        }
+                                    }
+                                )
                                 showRipple++
                             },
                             label = {
@@ -209,26 +223,26 @@ fun HomeScreen(
             }
 
 
-            val orderedHomeItems = AppearanceSettingsManager(context).homeItemsItemsFlow.collectAsState(
+            val orderedHomeItems by settingsManager.homeItemsItemsFlow.collectAsState(
                 initial = listOf(
                     HomeItem(
                         "recently_played",
-                        true
+                        false
                     ),
                     HomeItem(
                         "recently_added",
-                        true
+                        false
                     ),
                     HomeItem(
                         "most_played",
-                        true
+                        false
                     ),
                     HomeItem(
                         "random_songs",
-                        true
+                        false
                     )
                 )
-            ).value
+            )
 
             orderedHomeItems.forEach { item ->
                 if (item.enabled) {
@@ -242,10 +256,10 @@ fun HomeScreen(
 
                     val titleMap = remember {
                         mapOf(
-                            "recently_played" to R.string.recently_played,
-                            "recently_added" to R.string.recently_added,
-                            "most_played" to R.string.most_played,
-                            "random_songs" to R.string.random_songs
+                            "recently_played" to R.string.home_recently_played,
+                            "recently_added" to R.string.home_recently_added,
+                            "most_played" to R.string.home_most_played,
+                            "random_songs" to R.string.home_explore_library
                         )
                     }
 
@@ -269,37 +283,58 @@ fun HomeScreen(
     )
 }
 
-@Composable fun NavidromeLogo(){
-    var rotation by remember { mutableFloatStateOf(-10f) }
+@Composable
+fun ProviderLogo(provider: MediaProvider){
+    if (provider is LocalMediaProvider)
+        return
+
+    var rotation by remember { mutableFloatStateOf(0f) }
     val animatedRotation by animateFloatAsState(
         targetValue = rotation,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessVeryLow
         ),
-        label = "Navidrome Logo Rotate"
+        label = "Provider Logo Rotate"
     )
+
+    val impulseVelocity = dpToPx(200)
+    val bounceAnimatable = remember { Animatable(0f) }
+    val coroutineScope = rememberCoroutineScope()
     val clickAction = rememberUpdatedState {
-        rotation += 180f
+        when (provider) {
+            is NavidromeMediaProvider -> rotation += 180f
+            is SubsonicMediaProvider -> {
+                coroutineScope.launch {
+                    bounceAnimatable.animateTo(
+                        targetValue = 0f,
+                        initialVelocity = -impulseVelocity.toFloat(),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    )
+                }
+            }
+        }
     }
 
-    val isClickable =
-        if (LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION)
-            Modifier.clickable { clickAction.value.invoke() }
-        else
-            Modifier
-
-    Image(
-        painter = painterResource(R.drawable.s_m_navidrome),
-        contentDescription = "Navidrome Icon",
+    Icon(
+        painter = painterResource(provider.providerIcon),
+        contentDescription = "Provider Icon",
+        tint = if (provider.providerMonochromeIcon) MaterialTheme.colorScheme.primary else Color.Unspecified,
         modifier = Modifier
             .size(76.dp)
-            .offset(x = (-36).dp)
+            .offset(x = (8).dp)
             .shadow(24.dp, CircleShape)
+            .clickable {
+                clickAction.value.invoke()
+            }
+            .background(if (provider is SubsonicMediaProvider && provider !is NavidromeMediaProvider) Color.White else Color.Unspecified)
             .graphicsLayer {
                 rotationZ = animatedRotation
+                translationY = bounceAnimatable.value
             }
-            .then(isClickable)
     )
 }
 
@@ -329,7 +364,7 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 12.dp)
                     .clickable {
-                        navHostController.navigate(Screen.HomeLists.route + "/$key") {
+                        navHostController.navigate(Screen.HomeLists(key)) {
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -356,14 +391,13 @@ fun HomeScreen(
         AlbumRow(
             albums,
             onAlbumSelected = { album ->
-                val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                navHostController.navigate(Screen.AlbumDetails(album.mediaMetadata.id?:"", album.mediaMetadata.artworkUri.toString())) {
                     launchSingleTop = true
                 }
             },
             onPlay = { album ->
                 coroutineScope.launch {
-                    val mediaItems = viewModel.getAlbumSongs(album.mediaMetadata.extras?.getString("navidromeID") ?: "")
+                    val mediaItems = viewModel.getAlbumSongs(album.mediaMetadata.extras?.getString("id") ?: "")
                     if (mediaItems.isNotEmpty())
                         SongHelper.play(
                             mediaItems = mediaItems.subList(1, mediaItems.size),

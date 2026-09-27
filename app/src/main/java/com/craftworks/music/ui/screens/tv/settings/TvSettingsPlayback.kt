@@ -63,7 +63,7 @@ fun TvS_PlaybackScreen() {
     ) {
         item {
             SettingsButtonItem(
-                title = stringResource(R.string.Setting_Transcoding_Wifi),
+                title = stringResource(R.string.playback_max_bitrate_wifi),
                 subtitle = if (transcodingBitrateWifi != "No Transcoding") "$transcodingBitrateWifi Kbps" else transcodingBitrateWifi,
                 icon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
                 onClick = { showWifiTranscodingDialog = true }
@@ -72,7 +72,7 @@ fun TvS_PlaybackScreen() {
 
         item {
             SettingsButtonItem(
-                title = stringResource(R.string.Setting_Transcoding_Wifi),
+                title = stringResource(R.string.playback_max_bitrate_wifi),
                 subtitle = if (transcodingBitrateData != "No Transcoding") "$transcodingBitrateData Kbps" else transcodingBitrateData,
                 icon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
                 onClick = { showWifiTranscodingDialog = true }
@@ -81,7 +81,7 @@ fun TvS_PlaybackScreen() {
 
         item {
             SettingsButtonItem(
-                title = stringResource(R.string.Setting_Transcoding_Format),
+                title = stringResource(R.string.playback_transcoding_format),
                 subtitle = transcodingFormat,
                 icon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
                 enabled = transcodingFormatEnabled,
@@ -101,7 +101,7 @@ fun TvS_PlaybackScreen() {
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.Setting_Scrobble_Percent),
+                        text = stringResource(R.string.playback_min_scrobble_percentage),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface,

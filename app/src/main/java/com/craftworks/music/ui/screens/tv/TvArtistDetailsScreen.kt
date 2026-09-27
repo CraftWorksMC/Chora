@@ -58,20 +58,25 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.data.model.toAlbum
+import com.craftworks.music.data.model.id
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.tv.TvAlbumCard
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
 
 @Composable
 @Preview
 fun TvArtistDetailsScreen(
+    selectedArtistId: String? = null,
+    selectedArtistImage: String? = null,
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = null,
     viewModel: ArtistsScreenViewModel = hiltViewModel()
 ) {
+    LaunchedEffect(selectedArtistId) {
+        if (selectedArtistId != null) viewModel.loadArtistDetails(selectedArtistId)
+    }
+
     val showLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val artist = viewModel.selectedArtist.collectAsStateWithLifecycle().value
     val artistAlbums = viewModel.artistAlbums.collectAsStateWithLifecycle().value
@@ -120,8 +125,8 @@ fun TvArtistDetailsScreen(
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(artist?.artistImageUrl)
-                            .diskCacheKey(artist?.navidromeID)
+                            .data(selectedArtistImage ?: "android.resource://com.craftworks.music/${R.drawable.placeholder}")
+                            .diskCacheKey(selectedArtistId)
                             .crossfade(true)
                             .build(),
                         fallback = painterResource(R.drawable.rounded_artist_24),
@@ -149,7 +154,7 @@ fun TvArtistDetailsScreen(
 
                         // Biography
                         Text(
-                            text = artist?.description?.split("<a target")?.first() ?: "",
+                            text = artist?.biography?.split("<a target")?.first() ?: "",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         )
@@ -161,8 +166,8 @@ fun TvArtistDetailsScreen(
                                 onClick = {
                                     coroutineScope.launch {
                                         val allArtistSongsList = artistAlbums.map {
-                                            it.mediaMetadata.extras?.getString("navidromeID").let {
-                                                val album = viewModel.getAlbum(it ?: "")
+                                            it.mediaMetadata.id.let { id ->
+                                                val album = viewModel.getAlbum(id ?: "")
                                                 if (album.isNotEmpty())
                                                     album.subList(1, album.size)
                                                 else
@@ -175,7 +180,7 @@ fun TvArtistDetailsScreen(
                                             0,
                                             mediaController
                                         )
-                                        navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                                        navHostController.navigate(Screen.NowPlayingLandscape) {
                                             launchSingleTop = true
                                         }
                                     }
@@ -191,7 +196,7 @@ fun TvArtistDetailsScreen(
                                     modifier = Modifier.size(ButtonDefaults.IconSize),
                                 )
                                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                Text(stringResource(R.string.Action_Play))
+                                Text(stringResource(R.string.action_play))
                             }
 
                             OutlinedButton(
@@ -199,8 +204,8 @@ fun TvArtistDetailsScreen(
                                     mediaController?.shuffleModeEnabled = true
                                     coroutineScope.launch {
                                         val allArtistSongsList = artistAlbums.map {
-                                            it.mediaMetadata.extras?.getString("navidromeID").let {
-                                                val album = viewModel.getAlbum(it ?: "")
+                                            it.mediaMetadata.id.let { id ->
+                                                val album = viewModel.getAlbum(id ?: "")
                                                 if (album.isNotEmpty())
                                                     album.subList(1, album.size)
                                                 else
@@ -215,7 +220,7 @@ fun TvArtistDetailsScreen(
                                             random,
                                             mediaController
                                         )
-                                        navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                                        navHostController.navigate(Screen.NowPlayingLandscape) {
                                             launchSingleTop = true
                                         }
                                     }
@@ -230,7 +235,7 @@ fun TvArtistDetailsScreen(
                                     modifier = Modifier.size(ButtonDefaults.IconSize),
                                 )
                                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                Text(stringResource(R.string.Action_Shuffle))
+                                Text(stringResource(R.string.action_shuffle))
                             }
                         }
                     }
@@ -251,9 +256,7 @@ fun TvArtistDetailsScreen(
                     TvAlbumCard(
                         album = album,
                         onClick = {
-                            val album = album.toAlbum()
-                            val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                            navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                            navHostController.navigate(Screen.AlbumDetails(album.mediaMetadata.id?:"", album.mediaMetadata.artworkUri.toString())) {
                                 launchSingleTop = true
                             }
                         },

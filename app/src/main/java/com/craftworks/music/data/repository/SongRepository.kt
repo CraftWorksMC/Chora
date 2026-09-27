@@ -1,81 +1,80 @@
 package com.craftworks.music.data.repository
 
+import android.app.DownloadManager
+import android.content.Context
+import android.os.Environment
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
-import com.craftworks.music.data.datasource.local.LocalDataSource
-import com.craftworks.music.data.datasource.navidrome.NavidromeDataSource
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import androidx.media3.common.MediaMetadata
+import com.craftworks.music.R
+import com.craftworks.music.data.model.LibraryType
+import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.ScrobbleEvent
+import com.craftworks.music.data.model.getProvider
+import com.craftworks.music.data.model.id
+import com.craftworks.music.managers.MediaProviderManager
+import com.craftworks.music.utils.StringUtils
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SongRepository @Inject constructor(
-    private val localDataSource: LocalDataSource,
-    private val navidromeDataSource: NavidromeDataSource
+    @ApplicationContext private val context: Context
 ) {
 
-    suspend fun getSongs(
-        query: String? = "",
-        songCount: Int = 100, 
-        songOffset: Int = 0,
-        ignoreCachedResponse: Boolean = false,
-        favoritesOnly: Boolean = false,
-    ): List<MediaItem> = coroutineScope {
-        val deferredSongs = mutableListOf<Deferred<List<MediaItem>>>()
-
-        if (LocalProviderManager.checkActiveFolders())
-            if (query.isNullOrEmpty() && songOffset == 0)
-                deferredSongs.add(async { localDataSource.getLocalSongs() })
-
-        if (NavidromeManager.checkActiveServers())
-            deferredSongs.add(async {
-                navidromeDataSource.getNavidromeSongs(query, songCount, songOffset, ignoreCachedResponse, favoritesOnly = favoritesOnly)
-            })
-
-        deferredSongs.awaitAll().flatten()
+    suspend fun getSongs(query: MediaQuery.SongListQuery): List<MediaItem> = coroutineScope {
+        MediaProviderManager.currentProvider.value?.getSongList(query)?.map { it.toMediaItem() } ?: listOf()
     }
 
+    suspend fun getSong(songId: String): MediaItem? = coroutineScope {
+        MediaProviderManager.currentProvider.value?.getSongDetail(songId)?.toMediaItem()
+    }
+    
     suspend fun setSongRating(
         songId: String, rating: Int = 0
     ) {
-        if (!songId.startsWith("Local_"))
-            navidromeDataSource.setNavidromeRating(songId, rating)
-    }
-
-    suspend fun getSong(songId: String, ignoreCachedResponse: Boolean = false): MediaItem? = coroutineScope {
-        if (songId.startsWith("Local_"))
-            localDataSource.getLocalSong(songId)
-        else
-            navidromeDataSource.getNavidromeSong(songId, ignoreCachedResponse)
+        MediaProviderManager.currentProvider.value?.setRating(listOf(songId), rating, LibraryType.SONG)
     }
 
     suspend fun getSimilarSongs(songId: String, count: Int) : List<MediaItem> = coroutineScope {
-        if (songId.startsWith("Local_"))
-            emptyList()
-        else
-            navidromeDataSource.getNavidromeSimilarSong(songId, count)
+        MediaProviderManager.currentProvider.value?.getSimilarSongs(songId, count)?.map { it.toMediaItem() } ?: listOf()
     }
 
-    suspend fun searchSongs(query: String, ignoreCachedResponse: Boolean = false): List<MediaItem> = coroutineScope {
-        val deferredSongs = mutableListOf<Deferred<List<MediaItem>>>()
-
-        if (LocalProviderManager.checkActiveFolders())
-            deferredSongs.add(async { localDataSource.searchLocalSongs(query) })
-
-        if (NavidromeManager.checkActiveServers())
-            deferredSongs.add(async { navidromeDataSource.getNavidromeSongs(query, ignoreCachedResponse = ignoreCachedResponse) })
-
-        deferredSongs.awaitAll().flatten()
+    suspend fun scrobbleSong(songId: String, position: Int, playbackRate: Float, event: ScrobbleEvent?, submission: Boolean) {
+        MediaProviderManager.currentProvider.value?.scrobble(
+            id=songId,
+            position = position,
+            playbackRate = playbackRate,
+            event = event,
+            submission = submission
+        )
     }
 
-    suspend fun scrobbleSong(songId: String, submission: Boolean) {
-        if (songId.startsWith("Local_"))
-            return
+    fun downloadSong(song: MediaMetadata, template: String, playlistName: String = "{playlist}", playlistIndex: String = "{playlist_index}") {
+        val values = mapOf(
+            "title" to StringUtils.makeValidFilename(song.title.toString()),
+            "album" to StringUtils.makeValidFilename(song.albumTitle.toString()),
+            "artist" to StringUtils.makeValidFilename(song.artist.toString()),
+            "album_artist" to StringUtils.makeValidFilename(song.albumArtist.toString()),
+            "ext" to (song.extras?.getString("format") ?: "mp3"),
+            "track" to song.trackNumber.toString(),
+            "disc" to song.discNumber.toString(),
+            "playlist" to StringUtils.makeValidFilename(playlistName),
+            "playlist_index" to playlistIndex
+        )
+        val fileName = StringUtils.makeValidFilepath(Regex("\\{(\\w+)\\}").replace(template) { match ->
+            val key = match.groupValues[1]
+            values[key] ?: match.value
+        })
+        val request = DownloadManager.Request(song.getProvider()?.getStreamUrl(song.id?:"", false)?.toUri())
+            .setTitle("${context.getString(R.string.notification_download_name)} ${song.title}")
+            .setDescription(context.getString(R.string.notification_download_desc))
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_MUSIC, fileName)
 
-        navidromeDataSource.scrobbleSong(songId, submission)
+        val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        manager.enqueue(request)
     }
 }

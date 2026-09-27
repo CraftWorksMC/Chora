@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,13 +51,11 @@ fun SettingScreen(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(R.string.settings)) },
-                actions = {
+                title = { Text(text = stringResource(R.string.home_settings)) },
+                navigationIcon = {
                     IconButton(
                         onClick = {
-                            navHostController.navigate(Screen.Home.route) {
-                                launchSingleTop = true
-                            }
+                            navHostController.popBackStack()
                         },
                         modifier = Modifier.size(56.dp, 70.dp),
                     ) {
@@ -86,23 +85,37 @@ fun SettingScreen(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 SettingsButton(
-                    Screen.S_Appearance.route,
+                    Screen.S_Appearance,
                     R.drawable.s_a_palette,
-                    R.string.Settings_Header_Appearance,
+                    R.string.settings_appearance,
                     navHostController
                 )
 
                 SettingsButton(
-                    Screen.S_Providers.route,
+                    Screen.S_Media_Providers,
                     R.drawable.s_m_media_providers,
-                    R.string.Settings_Header_Media,
+                    R.string.settings_media_providers,
                     navHostController
                 )
 
                 SettingsButton(
-                    Screen.S_Playback.route,
+                    Screen.S_Lyrics_Providers,
+                    R.drawable.s_m_media_providers,
+                    R.string.settings_lyrics_providers,
+                    navHostController
+                )
+
+                SettingsButton(
+                    Screen.S_Playback,
                     R.drawable.s_m_playback,
-                    R.string.Settings_Header_Playback,
+                    R.string.settings_playback,
+                    navHostController
+                )
+
+                SettingsButton(
+                    Screen.S_Misc,
+                    Icons.Rounded.Menu,
+                    R.string.settings_misc,
                     navHostController
                 )
             }
@@ -111,7 +124,11 @@ fun SettingScreen(
 }
 
 @Composable
-private fun SettingsButton(route: String, icon: Int, text: Int, navHostController: NavHostController){
+private fun SettingsButton(route: Screen, icon: Int, text: Int, navHostController: NavHostController){
+    SettingsButton(route, ImageVector.vectorResource(icon), text, navHostController)
+}
+@Composable
+private fun SettingsButton(route: Screen, icon: ImageVector, text: Int, navHostController: NavHostController) {
     Button(
         onClick = { navHostController.navigate(route) {
             launchSingleTop = true
@@ -127,7 +144,7 @@ private fun SettingsButton(route: String, icon: Int, text: Int, navHostControlle
             verticalAlignment = Alignment.CenterVertically
         ){
             Icon(
-                imageVector = ImageVector.vectorResource(icon),
+                imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier

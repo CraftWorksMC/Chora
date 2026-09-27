@@ -2,13 +2,17 @@ package com.craftworks.music.managers.settings
 
 import android.content.Context
 import android.os.Build
+import android.provider.Settings
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.craftworks.music.R
 import com.craftworks.music.data.BottomNavItem
+import com.craftworks.music.data.model.Screen
 import com.craftworks.music.dataStore
+import com.craftworks.music.ui.elements.ActionButton
+import com.craftworks.music.ui.elements.ActionButtonType
 import com.craftworks.music.ui.playing.NowPlayingAlignment
 import com.craftworks.music.ui.playing.NowPlayingBackground
 import com.craftworks.music.ui.screens.HomeItem
@@ -44,15 +48,18 @@ class AppearanceSettingsManager @Inject constructor(
         private val HOME_ITEMS_KEY = stringPreferencesKey("home_items_order")
         private val APP_THEME = stringPreferencesKey("theme")
 
-        private val SHOW_PROVIDER_DIVIDERS = booleanPreferencesKey("provider_dividers")
         private val LYRICS_ANIMATION_SPEED = intPreferencesKey("lyrics_animation_speed")
         private val LYRICS_AUTOSCROLL = booleanPreferencesKey("lyrics_auto_scroll")
         private val LYRICS_RECENTER_AFTER_SCROLL = booleanPreferencesKey("lyrics_recenter_after_Scroll")
+        private val LYRICS_WORD_BOUNCE = booleanPreferencesKey("lyrics_word_bounce")
         private val USE_REFRESH_ANIMATION = booleanPreferencesKey("use_refresh_animation")
         private val SHOW_TRACK_NUMBERS = booleanPreferencesKey("show_track_numbers")
 
         private val OLED_PROTECTION_MODE = stringPreferencesKey("oled_protection")
         private val DISABLE_SCREEN_STANDBY = booleanPreferencesKey("disable_screen_standby")
+        private val ALBUM_DETAILS_BUTTONS = stringPreferencesKey("album_details_buttons")
+        private val ARTIST_DETAILS_BUTTONS = stringPreferencesKey("artist_details_buttons")
+        private val PLAYLIST_DETAILS_BUTTONS = stringPreferencesKey("playlist_details_buttons")
     }
 
     val usernameFlow: Flow<String> = context.dataStore.data.map { preferences ->
@@ -154,12 +161,12 @@ class AppearanceSettingsManager @Inject constructor(
     val bottomNavItemsFlow: Flow<List<BottomNavItem>> = context.dataStore.data.map { preferences ->
         val jsonString = preferences[BOTTOM_NAV_ITEMS_KEY]
         val defaultValue = listOf(
-            BottomNavItem("Home", R.drawable.rounded_home_24, "home_screen"),
-            BottomNavItem("Albums", R.drawable.rounded_library_music_24, "album_screen"),
-            BottomNavItem("Songs", R.drawable.round_music_note_24, "songs_screen"),
-            BottomNavItem("Artists", R.drawable.rounded_artist_24, "artists_screen"),
-            BottomNavItem("Radios", R.drawable.rounded_radio, "radio_screen"),
-            BottomNavItem("Playlists", R.drawable.placeholder, "playlist_screen")
+            BottomNavItem(context.getString(R.string.nav_home), R.drawable.rounded_home_24, Screen.Home),
+            BottomNavItem(context.getString(R.string.nav_albums), R.drawable.rounded_library_music_24, Screen.Albums),
+            BottomNavItem(context.getString(R.string.nav_songs), R.drawable.round_music_note_24, Screen.Songs),
+            BottomNavItem(context.getString(R.string.nav_artists), R.drawable.rounded_artist_24, Screen.Artists),
+            BottomNavItem(context.getString(R.string.nav_radios), R.drawable.rounded_radio, Screen.Radios),
+            BottomNavItem(context.getString(R.string.nav_playlists), R.drawable.placeholder, Screen.Playlists)
         )
         try {
             jsonString?.let { Json.decodeFromString<List<BottomNavItem>>(it) } ?: defaultValue
@@ -189,20 +196,8 @@ class AppearanceSettingsManager @Inject constructor(
         }
     }
 
-    val showProviderDividersFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[SHOW_PROVIDER_DIVIDERS] ?: true
-    }
-
-    suspend fun setShowProviderDividers(showDividers: Boolean) {
-        withContext(NonCancellable) {
-            context.dataStore.edit { preferences ->
-                preferences[SHOW_PROVIDER_DIVIDERS] = showDividers
-            }
-        }
-    }
-
     val lyricsAnimationSpeedFlow: Flow<Int> = context.dataStore.data.map { preferences ->
-        preferences[LYRICS_ANIMATION_SPEED] ?: 1200
+        preferences[LYRICS_ANIMATION_SPEED] ?: 660
     }
 
     suspend fun setLyricsAnimationSpeed(speed: Int) {
@@ -295,6 +290,23 @@ class AppearanceSettingsManager @Inject constructor(
         }
     }
 
+    val lyricsBounce: Flow<Boolean> =
+        context.dataStore.data.map { preferences ->
+            preferences[LYRICS_WORD_BOUNCE] ?: try {
+                Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE) == 0f
+            } catch (e: Exception) {
+                true
+            }
+        }
+
+    suspend fun setLyricsBounce(bounce: Boolean) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[LYRICS_WORD_BOUNCE] = bounce
+            }
+        }
+    }
+
     val oledProtectionMode: Flow<OLEDProtectionMode> = context.dataStore.data.map { preferences ->
         try {
             OLEDProtectionMode.valueOf(preferences[OLED_PROTECTION_MODE] ?: "OFF")
@@ -320,6 +332,67 @@ class AppearanceSettingsManager @Inject constructor(
         withContext(NonCancellable) {
             context.dataStore.edit { preferences ->
                 preferences[DISABLE_SCREEN_STANDBY] = enabled
+            }
+        }
+    }
+
+    val albumDetailsButtons: Flow<List<ActionButton>> = context.dataStore.data.map { preferences ->
+        preferences[ALBUM_DETAILS_BUTTONS]?.let { Json.decodeFromString(it) } ?: listOf(
+            ActionButton(ActionButtonType.FAVORITE,false),
+            ActionButton(ActionButtonType.SHUFFLE,false),
+            ActionButton(ActionButtonType.ADD_TO_QUEUE,true),
+            ActionButton(ActionButtonType.PLAY_NEXT,true),
+            ActionButton(ActionButtonType.SEPARATOR,true),
+            ActionButton(ActionButtonType.FAVORITE,true),
+            ActionButton(ActionButtonType.ADD_TO_PLAYLIST,true),
+            ActionButton(ActionButtonType.DOWNLOAD,true)
+        )
+    }
+
+    suspend fun setAlbumDetailsButtons(buttons: List<ActionButton>) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[ALBUM_DETAILS_BUTTONS] = Json.encodeToString(buttons)
+            }
+        }
+    }
+
+    val artistDetailsButtons: Flow<List<ActionButton>> = context.dataStore.data.map { preferences ->
+        preferences[ARTIST_DETAILS_BUTTONS]?.let { Json.decodeFromString(it) } ?: listOf(
+            ActionButton(ActionButtonType.FAVORITE,false),
+            ActionButton(ActionButtonType.SHUFFLE,false),
+            ActionButton(ActionButtonType.ADD_TO_QUEUE,true),
+            ActionButton(ActionButtonType.PLAY_NEXT,true),
+            ActionButton(ActionButtonType.SEPARATOR,true),
+            ActionButton(ActionButtonType.FAVORITE,true),
+            ActionButton(ActionButtonType.ADD_TO_PLAYLIST,true),
+            ActionButton(ActionButtonType.DOWNLOAD,true)
+        )
+    }
+
+    suspend fun setArtistDetailsButtons(buttons: List<ActionButton>) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[ARTIST_DETAILS_BUTTONS] = Json.encodeToString(buttons)
+            }
+        }
+    }
+
+    val playlistDetailsButtons: Flow<List<ActionButton>> = context.dataStore.data.map { preferences ->
+        preferences[PLAYLIST_DETAILS_BUTTONS]?.let { Json.decodeFromString(it) } ?: listOf(
+            ActionButton(ActionButtonType.ADD_TO_QUEUE,false),
+            ActionButton(ActionButtonType.SHUFFLE,false),
+            ActionButton(ActionButtonType.ADD_TO_QUEUE,true),
+            ActionButton(ActionButtonType.PLAY_NEXT,true),
+            ActionButton(ActionButtonType.SEPARATOR,true),
+            ActionButton(ActionButtonType.DOWNLOAD,true)
+        )
+    }
+
+    suspend fun setPlaylistDetailsButtons(buttons: List<ActionButton>) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[PLAYLIST_DETAILS_BUTTONS] = Json.encodeToString(buttons)
             }
         }
     }

@@ -48,6 +48,12 @@ import androidx.media3.session.MediaController
 import com.craftworks.music.R
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import java.util.UUID
+
+private data class QueueItem(
+    val queueItemId: String = UUID.randomUUID().toString(),
+    val mediaItem: MediaItem
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,37 +63,45 @@ fun PlayQueueContent(
 ) {
     if (mediaController == null)
         return
-    val currentList = remember { mutableStateListOf<MediaItem>() }
+    val currentList = remember { mutableStateListOf<QueueItem>() }
 
     var dragStartIndex by remember { mutableIntStateOf(-1) }
     var dragCurrentIndex by remember { mutableIntStateOf(-1) }
 
-    var currentMediaItem by remember { mutableStateOf(mediaController.currentMediaItem) }
+    var currentMediaItem: QueueItem? by remember { mutableStateOf(null) }
 
     val haptic = LocalHapticFeedback.current
 
     DisposableEffect(mediaController) {
         fun syncList() {
+            val incomingMediaItems = List(mediaController.mediaItemCount) { mediaController.getMediaItemAt(it) }
+
+            val syncedList = incomingMediaItems.map { mediaItem ->
+                val matchIndex = currentList.indexOfFirst { it.mediaItem == mediaItem }
+                if (matchIndex != -1)
+                    currentList.removeAt(matchIndex)
+                else
+                    QueueItem(mediaItem = mediaItem)
+            }
+
             currentList.clear()
-            currentList.addAll(
-                List(mediaController.mediaItemCount) { i -> mediaController.getMediaItemAt(i) }
-            )
+            currentList.addAll(syncedList)
         }
 
         val listener = object : Player.Listener {
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
                 syncList()
-                currentMediaItem = mediaController.currentMediaItem
+                currentMediaItem = currentList[mediaController.currentMediaItemIndex]
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                currentMediaItem = mediaController.currentMediaItem
+                currentMediaItem = currentList[mediaController.currentMediaItemIndex]
             }
         }
 
         // Initial load
         syncList()
-        currentMediaItem = mediaController.currentMediaItem
+        currentMediaItem = currentList[mediaController.currentMediaItemIndex]
         mediaController.addListener(listener)
 
         onDispose { mediaController.removeListener(listener) }
@@ -96,8 +110,8 @@ fun PlayQueueContent(
     val lazyListState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
-        if (currentMediaItem in currentList) {
-            lazyListState.scrollToItem(currentList.indexOf(currentMediaItem))
+        if (currentList.any { it.queueItemId == currentMediaItem?.queueItemId } ) {
+            lazyListState.scrollToItem(mediaController.currentMediaItemIndex)
         }
     }
 
@@ -113,10 +127,10 @@ fun PlayQueueContent(
         contentPadding = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        itemsIndexed(currentList, key = { _, item -> item.mediaId }) { index, item ->
+        itemsIndexed(currentList, key = { _, item -> item.queueItemId }) { index, item ->
             ReorderableItem(
                 state = reorderableState,
-                key = item.mediaId,
+                key = item.queueItemId,
                 animateItemModifier = Modifier.animateItem(
                     placementSpec = spring(Spring.DampingRatioLowBouncy, Spring.StiffnessLow)
                 )
@@ -125,7 +139,7 @@ fun PlayQueueContent(
                     targetValue = if (draggingThis) 6.dp else 0.dp,
                     label = "queue_item_elevation"
                 )
-                val isCurrentItem = item == currentMediaItem
+                val isCurrentItem = item.queueItemId == currentMediaItem?.queueItemId
 
                 Surface(
                     tonalElevation = elevation,
@@ -136,9 +150,11 @@ fun PlayQueueContent(
                         else -> BottomSheetDefaults.ContainerColor
                     },
                     shape = MaterialTheme.shapes.small,
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        mediaController.seekTo(index, 0)
-                    }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            mediaController.seekTo(index, 0)
+                        }
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
@@ -171,14 +187,14 @@ fun PlayQueueContent(
                             verticalArrangement = Arrangement.spacedBy(1.dp)
                         ) {
                             Text(
-                                text = item.mediaMetadata.title?.toString() ?: "Unknown",
+                                text = item.mediaItem.mediaMetadata.title?.toString() ?: "Unknown",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (isCurrentItem) MaterialTheme.colorScheme.onSecondaryContainer
                                 else MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
-                            item.mediaMetadata.artist?.toString()?.let { artist ->
+                            item.mediaItem.mediaMetadata.artist?.toString()?.let { artist ->
                                 Text(
                                     text = artist,
                                     style = MaterialTheme.typography.labelSmall,
@@ -208,7 +224,10 @@ fun PlayQueueContent(
                                         if (dragStartIndex != -1 && dragCurrentIndex != -1 &&
                                             dragStartIndex != dragCurrentIndex
                                         ) {
-                                            mediaController.moveMediaItem(dragStartIndex, dragCurrentIndex)
+                                            mediaController.moveMediaItem(
+                                                dragStartIndex,
+                                                dragCurrentIndex
+                                            )
                                         }
                                         dragStartIndex = -1
                                         dragCurrentIndex = -1

@@ -1,39 +1,19 @@
 package com.craftworks.music.ui.playing
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -57,27 +37,21 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
-import com.craftworks.music.data.model.Lyric
+import com.craftworks.music.data.model.LyricsAgentType
+import com.craftworks.music.data.model.LyricsLine
 import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.ui.playing.lyrics.SyncedLyricItem
+import com.craftworks.music.ui.playing.lyrics.WordSyncedLyricItem
 import com.gigamole.composefadingedges.FadingEdgesGravity
 import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
@@ -89,7 +63,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
-import kotlin.math.sin
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -101,7 +74,8 @@ fun LyricsView(
     paddingValues: PaddingValues = PaddingValues(),
     onRefreshLyrics: () -> Unit = {},
 ) {
-    val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
+    val lyrics = LyricsState.lyrics.collectAsStateWithLifecycle().value ?: return
+
     val loading by LyricsState.loading.collectAsStateWithLifecycle()
     var isRefreshing by remember { mutableStateOf(false) }
 
@@ -122,12 +96,20 @@ fun LyricsView(
     val lyricsRecenter by appearanceSettingsManager.lyricsRecenterAfterScroll.collectAsStateWithLifecycle(
         true
     )
+    val lyricsWordBounce by appearanceSettingsManager.lyricsBounce.collectAsStateWithLifecycle(
+        true
+    )
 
     // State holding the current position
-    var currentPosition by remember {
+    var currentPositionLyrics by remember {
         mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0)
     }
+    var currentPositionScroll by remember {
+        mutableIntStateOf(mediaController?.currentPosition?.toInt() ?: 0)
+    }
+
     val currentLyricIndex = remember { mutableIntStateOf(-1) }
+    var lastScrolledIndex by remember { mutableIntStateOf(-2) }
 
     val state = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -147,18 +129,30 @@ fun LyricsView(
 
     // Update current position only each lyrics change.
     LaunchedEffect(mediaController, lyrics) {
-        var trackingJob: Job = Job()
+        var lyricsTrackingJon: Job = Job()
+        var scrollTrackingJob: Job = Job()
         val scope = CoroutineScope(Dispatchers.Main)
 
         if (mediaController?.isPlaying == true) {
-            trackingJob = scope.launch {
+            lyricsTrackingJon = scope.launch {
                 var position = mediaController.currentPosition.toInt()
-                currentPosition = position
+                currentPositionLyrics = position
 
                 while (isActive) {
                     position = mediaController.currentPosition.toInt()
-                    currentPosition = position
-                    delay(getNextUpdateDelay(position, lyrics).milliseconds)
+                    currentPositionLyrics = position
+                    delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
+                }
+            }
+
+            scrollTrackingJob = scope.launch {
+                var position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed
+                currentPositionScroll = position
+
+                while (isActive) {
+                    position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed
+                    currentPositionScroll = position
+                    delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
                 }
             }
         }
@@ -167,34 +161,61 @@ fun LyricsView(
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
                 if (isPlaying) {
-                    if (trackingJob.isActive) return
+                    if (lyricsTrackingJon.isActive) return
+                    if (scrollTrackingJob.isActive) return
 
-                    trackingJob = scope.launch {
+                    lyricsTrackingJon = scope.launch {
                         var position = mediaController.currentPosition.toInt()
-                        currentPosition = position
+                        currentPositionLyrics = position
 
                         while (isActive) {
                             position = mediaController.currentPosition.toInt()
-                            currentPosition = position
-                            delay(getNextUpdateDelay(position, lyrics).milliseconds)
+                            currentPositionLyrics = position
+                            delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
                         }
                     }
-                } else trackingJob.cancel()
+
+                    scrollTrackingJob = scope.launch {
+                        var position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed / 2
+                        currentPositionScroll = position
+
+                        while (isActive) {
+                            position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed / 2
+                            currentPositionScroll = position
+                            delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
+                        }
+                    }
+                } else {
+                    lyricsTrackingJon.cancel()
+                    scrollTrackingJob.cancel()
+                }
             }
         })
     }
 
-    // Lyric index updates and scrolling
-    LaunchedEffect(currentPosition, lyrics) {
-        //if (mediaController?.isPlaying == true) {
+    // Lyrics index update
+    LaunchedEffect(currentPositionLyrics, lyrics) {
         val newCurrentLyricIndex =
-            lyrics.indexOfFirst { it.startMs > (currentPosition) }
-                .takeIf { it >= 0 } ?: lyrics.size
+            lyrics.lines.indexOfFirst { it.startMs > currentPositionLyrics }
+                .takeIf { it >= 0 } ?: lyrics.lines.size
 
         val targetIndex = (newCurrentLyricIndex - 1).coerceAtLeast(-1)
 
         if (targetIndex != currentLyricIndex.intValue) {
             currentLyricIndex.intValue = targetIndex
+        }
+    }
+
+    // Lyrics scrolling
+    LaunchedEffect(currentPositionScroll, lyrics) {
+        val newCurrentLyricIndex =
+            lyrics.lines.indexOfFirst { it.startMs > currentPositionScroll }
+                .takeIf { it >= 0 } ?: lyrics.lines.size
+
+        val targetIndex = (newCurrentLyricIndex - 1).coerceAtLeast(-1)
+
+        if (targetIndex != lastScrolledIndex) {
+            lastScrolledIndex = targetIndex
 
             if (lyricsRecenter || !(!lyricsRecenter && userScrolled)) {
                 coroutineScope.launch {
@@ -204,12 +225,14 @@ fun LyricsView(
                     if (targetItemAfter != null) {
                         var finalScrollDelta = targetItemAfter.offset - scrollOffset
 
-                        if (lyrics[(targetIndex - 1).coerceAtLeast(0)].text[0] == "")
+                        if (lyrics.lines[(targetIndex - 1).coerceAtLeast(0)].lines[0].text == "")
                             finalScrollDelta -= interludeHeight
 
                         state.animateScrollBy(
                             value = finalScrollDelta.toFloat(),
-                            animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
+                            animationSpec = tween(lyricsAnimationSpeed, 0,
+                                CubicBezierEasing(0.5f, 0.5f, 0.2f, 1f)
+                            )
                         )
                     } else
                         state.animateScrollToItem(
@@ -219,7 +242,6 @@ fun LyricsView(
                 }
             }
         }
-        //}
     }
 
     // Plain lyrics scrolling
@@ -227,7 +249,7 @@ fun LyricsView(
     var plainLyricsItemHeightPx by remember { mutableFloatStateOf(0f) }
 
     LaunchedEffect(mediaController, lyrics, plainLyricsItemHeightPx, plainLyricsViewportHeightPx) {
-        if (lyrics.size == 1 && lyricsAutoscroll) {
+        if (lyrics.lines.size == 1 && lyricsAutoscroll) {
             val updateIntervalMs = 500L
 
             while (isActive) {
@@ -258,6 +280,32 @@ fun LyricsView(
                 }
                 delay(updateIntervalMs.milliseconds)
             }
+        }
+    }
+
+    val agentAlignment = remember(lyrics.agents, lyricsAlignment) {
+        val opposite = when (lyricsAlignment) {
+            NowPlayingAlignment.LEFT -> NowPlayingAlignment.RIGHT
+            NowPlayingAlignment.RIGHT -> NowPlayingAlignment.LEFT
+            NowPlayingAlignment.CENTER -> NowPlayingAlignment.RIGHT
+        }
+
+        var preferredTaken = false
+        var oppositeTaken = false
+
+        lyrics.agents.associate { agent ->
+            val alignment = when (agent.type) {
+                LyricsAgentType.GROUP -> NowPlayingAlignment.CENTER
+                else -> when {
+                    !preferredTaken -> { preferredTaken = true; lyricsAlignment }
+                    !oppositeTaken -> { oppositeTaken = true; opposite }
+                    else -> if (lyricsAlignment == NowPlayingAlignment.CENTER)
+                                NowPlayingAlignment.LEFT
+                            else
+                                NowPlayingAlignment.CENTER
+                }
+            }
+            agent.id to alignment
         }
     }
 
@@ -319,25 +367,29 @@ fun LyricsView(
                     contentPadding = PaddingValues(vertical = 32.dp),
                     state = state,
                 ) {
-                    if (lyrics.size > 1) {
+                    if (lyrics.lines.size > 1) {
                         itemsIndexed(
-                            lyrics,
-                            key = { index, lyric -> "${index}:${lyric.text}" }
+                            lyrics.lines,
+                            key = { index, lyric -> "${index}:${lyric.lines[0].text}" }
                         ) { index, lyric ->
-                            if (!lyric.words.isNullOrEmpty()) {
+                            val alignment = agentAlignment[lyric.agentId] ?: lyricsAlignment
+
+                            if (!lyric.lines.any { it.words.isNullOrEmpty() }) {
                                 WordSyncedLyricItem(
                                     lyric = lyric,
                                     index = index,
                                     currentLyricIndex = currentLyricIndex.intValue,
-                                    currentPosition = currentPosition,
+                                    currentPosition = currentPositionLyrics,
                                     useBlur = useBlur,
+                                    useWordBounce = lyricsWordBounce,
                                     visibleItemsInfo = visibleItemsInfo,
                                     color = color,
                                     lyricsAnimationSpeed = lyricsAnimationSpeed,
-                                    lyricsAlignment = lyricsAlignment,
+                                    lyricsAlignment = alignment,
                                     onClick = {
                                         mediaController?.seekTo(lyric.startMs.toLong())
-                                        currentPosition = lyric.startMs
+                                        currentPositionLyrics = lyric.startMs
+                                        currentPositionScroll = lyric.startMs
                                         userScrolled = false
                                     }
                                 )
@@ -350,24 +402,25 @@ fun LyricsView(
                                     visibleItemsInfo = visibleItemsInfo,
                                     color = color,
                                     lyricsAnimationSpeed = lyricsAnimationSpeed,
-                                    lyricsAlignment = lyricsAlignment,
+                                    lyricsAlignment = alignment,
                                     onClick = {
                                         mediaController?.seekTo(lyric.startMs.toLong())
-                                        currentPosition = lyric.startMs
+                                        currentPositionLyrics = lyric.startMs
+                                        currentPositionScroll = lyric.startMs
                                         userScrolled = false
                                     }
                                 )
                             }
                         }
-                    } else if (lyrics.isNotEmpty()) {
+                    } else if (lyrics.lines.isNotEmpty()) {
                         item {
                             Text(
-                                text = lyrics[0].text[0],
+                                text = lyrics.lines[0].lines[0].text,
                                 style = MaterialTheme.typography.headlineMedium,
+                                lineHeight = MaterialTheme.typography.displayMedium.lineHeight,
                                 color = color,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp)
                                     .onSizeChanged { size ->
                                         plainLyricsItemHeightPx = size.height.toFloat()
                                     },
@@ -385,324 +438,8 @@ fun LyricsView(
     }
 }
 
-@Composable
-fun WordSyncedLyricItem(
-    lyric: Lyric,
-    index: Int,
-    currentLyricIndex: Int,
-    currentPosition: Int,
-    useBlur: Boolean,
-    visibleItemsInfo: List<LazyListItemInfo>,
-    color: Color,
-    lyricsAnimationSpeed: Int = 1200,
-    lyricsAlignment: NowPlayingAlignment,
-    onClick: () -> Unit = {},
-) {
-    val lyricBlur: Dp by animateDpAsState(
-        targetValue = if (useBlur) calculateLyricBlur(
-            index, currentLyricIndex, visibleItemsInfo
-        ) else 0.dp,
-        label = "Lyric Blur",
-        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
-    )
-
-    val scale by animateFloatAsState(
-        targetValue = if (currentLyricIndex == index) 1f else 0.9f,
-        label = "Lyric Scale Animation",
-        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
-    )
-
-    if (lyric.text[0].isEmpty()) {
-        AnimatedContent(
-            targetState = currentLyricIndex == index
-        ) {
-            if (it) {
-                Box(
-                    modifier = Modifier
-                        .focusable(false)
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                        },
-                    contentAlignment = when (lyricsAlignment) {
-                        NowPlayingAlignment.LEFT -> Alignment.TopStart
-                        NowPlayingAlignment.CENTER -> Alignment.TopCenter
-                        NowPlayingAlignment.RIGHT -> Alignment.TopEnd
-                    }
-                ) {
-                    InterludeIndicator(color)
-                }
-            }
-        }
-    } else {
-        Column(
-            modifier = Modifier
-                .padding(vertical = 12.dp)
-                .heightIn(min = 48.dp)
-                .focusable(false)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }
-                .blur(lyricBlur)
-                .clickable {
-                    onClick()
-                },
-            verticalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            FlowRow (
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = when (lyricsAlignment) {
-                    NowPlayingAlignment.LEFT -> Arrangement.Start
-                    NowPlayingAlignment.CENTER -> Arrangement.Center
-                    NowPlayingAlignment.RIGHT -> Arrangement.End
-                }
-            ) {
-                lyric.words?.forEachIndexed { i, word ->
-                    val nextWordStart = lyric.words.getOrNull(i + 1)?.startMs ?: lyric.endMs!!
-                    val duration = word.endMs?.let { it - word.startMs } ?: (nextWordStart - word.startMs)
-                    val isThisWordActive = currentPosition >= word.startMs && currentPosition < lyric.endMs!!
-
-                    AnimatedWord(
-                        wordText = word.text,
-                        isActive = isThisWordActive,
-                        durationMillis = duration,
-                        color = color
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-fun AnimatedWord(
-    wordText: String,
-    isActive: Boolean,
-    durationMillis: Int,
-    color: Color
-) {
-    val inactiveColor = color.copy(alpha = 0.4f)
-    val wipeProgress = remember { Animatable(0f) }
-    val textAlpha = remember { Animatable(1f) }
-
-    val dipAmount = dpToPx(1).toFloat()
-
-    LaunchedEffect(isActive) {
-        if (isActive) {
-            textAlpha.snapTo(1f)
-            wipeProgress.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(
-                    durationMillis = durationMillis,
-                    easing = LinearEasing
-                )
-            )
-        } else {
-            wipeProgress.snapTo(0f)
-            textAlpha.animateTo(
-                targetValue = 0.4f,
-                animationSpec = tween(durationMillis = 400, easing = LinearEasing)
-            )
-        }
-    }
-
-    val brush = if (isActive && wipeProgress.isRunning) {
-        val currentOffset = wipeProgress.value * (1f + 0.3f)
-        val activeEnd = (currentOffset - 0.3f).coerceIn(0f, 1f)
-        val inactiveStart = currentOffset.coerceIn(0f, 1f)
-        Brush.horizontalGradient(
-            0f to color,
-            activeEnd to color,
-            inactiveStart to inactiveColor,
-            1f to inactiveColor
-        )
-    } else {
-        SolidColor(color)
-    }
-
-    val yOffset = remember { Animatable(0f) }
-    LaunchedEffect(isActive) {
-        if (isActive) {
-            yOffset.animateTo(-dipAmount, tween(120, easing = FastOutSlowInEasing))
-            yOffset.animateTo(0f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow))
-        } else {
-            yOffset.animateTo(0f, tween(durationMillis, 0, FastOutSlowInEasing))
-        }
-    }
-
-    Text(
-        text = wordText,
-        style = MaterialTheme.typography.titleLarge.copy(
-            fontWeight = FontWeight.SemiBold,
-            textMotion = TextMotion.Animated
-        ),
-        modifier = Modifier
-            .graphicsLayer {
-                translationY = yOffset.value
-                alpha = textAlpha.value
-                compositingStrategy = CompositingStrategy.Offscreen
-            }
-            .drawWithCache {
-                onDrawWithContent {
-                    drawContent()
-                    drawRect(
-                        brush = brush,
-                        blendMode = BlendMode.SrcIn
-                    )
-                }
-            },
-    )
-}
-
-@Composable
-fun SyncedLyricItem(
-    lyric: Lyric,
-    index: Int,
-    currentLyricIndex: Int,
-    useBlur: Boolean,
-    visibleItemsInfo: List<LazyListItemInfo>,
-    color: Color,
-    lyricsAnimationSpeed: Int = 1200,
-    lyricsAlignment: NowPlayingAlignment,
-    onClick: () -> Unit = {},
-) {
-    val lyricAlpha: Float by animateFloatAsState(
-        targetValue = if (currentLyricIndex == index) 1f else 0.5f,
-        label = "Current Lyric Alpha",
-        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
-    )
-
-    val lyricBlur: Dp by animateDpAsState(
-        targetValue = if (useBlur) calculateLyricBlur(
-            index, currentLyricIndex, visibleItemsInfo
-        ) else 0.dp,
-        label = "Lyric Blur",
-        animationSpec = tween(lyricsAnimationSpeed / 2, 0, FastOutSlowInEasing)
-    )
-
-    val scale by animateFloatAsState(
-        targetValue = if (currentLyricIndex == index) 1f else 0.9f,
-        label = "Lyric Scale Animation",
-        animationSpec = tween(lyricsAnimationSpeed, 0, FastOutSlowInEasing)
-    )
-
-    if (lyric.text[0].isEmpty()) {
-        AnimatedContent(
-            targetState = currentLyricIndex == index
-        ) {
-            if (it) {
-                Box(
-                    modifier = Modifier
-                        .focusable(false)
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                        },
-                    contentAlignment = when (lyricsAlignment) {
-                        NowPlayingAlignment.LEFT -> Alignment.TopStart
-                        NowPlayingAlignment.CENTER -> Alignment.TopCenter
-                        NowPlayingAlignment.RIGHT -> Alignment.TopEnd
-                    }
-                ) {
-                    InterludeIndicator(color)
-                }
-            }
-        }
-    } else {
-        Column(
-            modifier = Modifier
-                .padding(vertical = 12.dp)
-                .heightIn(min = 48.dp)
-                .focusable(false)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }
-                .blur(lyricBlur)
-                .clickable {
-                    onClick()
-                },
-            verticalArrangement = Arrangement.SpaceEvenly
-        ) {
-//            Text(
-//                text = lyric.content,
-//                style = MaterialTheme.typography.titleLarge,
-//                //fontWeight = FontWeight.Bold,
-//                color = color.copy(lyricAlpha),
-//                modifier = Modifier.fillMaxWidth(),
-//                textAlign = TextAlign.Center,
-//                //lineHeight = 32.sp
-//            )
-            lyric.text.forEachIndexed { i, line ->
-                Text(
-                    text = line,
-                    style = if (i == 0) MaterialTheme.typography.titleLarge
-                    else MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = color.copy(alpha = if (i == 0) lyricAlpha else lyricAlpha * 0.65f),
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = when (lyricsAlignment) {
-                        NowPlayingAlignment.LEFT -> TextAlign.Start
-                        NowPlayingAlignment.CENTER -> TextAlign.Center
-                        NowPlayingAlignment.RIGHT -> TextAlign.End
-                    }
-                )
-            }
-        }
-    }
-}
-
-// Bouncing dots for interlude.
-@Composable
-fun InterludeIndicator(
-    color: Color,
-    modifier: Modifier = Modifier
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "wave_master")
-    val phase by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2f * Math.PI.toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "phase"
-    )
-
-    Row(
-        modifier = modifier
-            .height(48.dp)
-            .wrapContentWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Dot(color, phase, 0)
-        Dot(color, phase, 1)
-        Dot(color, phase, 2)
-    }
-}
-
-@Composable
-fun Dot(color: Color, phase: Float, index: Int) {
-    Canvas(modifier = Modifier.size(8.dp)) {
-        val offset = index * 0.8f
-        val sineValue = sin(phase - offset)
-        val yOffset = sineValue * 6f
-        val alpha = 0.4f + ((sineValue + 1) / 2) * 0.6f
-
-        drawCircle(
-            color = color.copy(alpha = alpha),
-            radius = size.minDimension / 2,
-            center = center.copy(y = center.y + yOffset)
-        )
-    }
-}
-
-// Calculate the amount of blur for each lyrics item depending on it's distance to the current lyric.
 @Stable
-private fun calculateLyricBlur(
+fun calculateLyricBlur(
     index: Int,
     currentLyricIndex: Int,
     visibleItemsInfo: List<LazyListItemInfo>
@@ -713,26 +450,22 @@ private fun calculateLyricBlur(
     }
 }
 
-// Calculate next update delay based on lyrics timestamps
-private fun getNextUpdateDelay(currentTime: Int, lyrics: List<Lyric>): Long {
-    // 1. Gather all future timestamps (both starts and ends) into a single sequence
+private fun getNextUpdateDelay(currentTime: Int, lyrics: List<LyricsLine>): Long {
     val nextTimestamp = lyrics.asSequence()
         .flatMap { lyric ->
-            // Build a list of valid timestamps for each lyric item
             val timestamps = mutableListOf(lyric.startMs)
             lyric.endMs?.let { timestamps.add(it) }
-            lyric.words?.forEach { word ->
-                timestamps.add(word.startMs)
-                word.endMs?.let { timestamps.add(it) }
+            lyric.lines.forEach { line ->
+                line.words?.forEach { word ->
+                    timestamps.add(word.startMs)
+                    word.endMs?.let { timestamps.add(it) }
+                }
             }
             timestamps
         }
-        // 2. Filter for events that happen strictly in the future
         .filter { it > currentTime }
-        // 3. Find the nearest upcoming event
         .minOrNull()
-        ?: return 1000L // Fallback if we reached the very end of the song
+        ?: return 1000L
 
-    // 4. Return the precise time remaining until that next event
     return (nextTimestamp - currentTime).toLong()
 }

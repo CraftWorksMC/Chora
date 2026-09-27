@@ -53,7 +53,7 @@ import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.data.model.toAlbum
+import com.craftworks.music.data.model.id
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
 import com.craftworks.music.ui.elements.tv.TvAlbumCard
@@ -63,7 +63,6 @@ import com.craftworks.music.ui.viewmodels.AlbumScreenViewModel
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
 import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
 
 @Preview
 @Composable
@@ -86,9 +85,9 @@ fun TvSearchScreen(
     var showSongDialog by remember { mutableStateOf(false) }
 
     val tabs = listOf(
-        stringResource(R.string.Albums),
-        stringResource(R.string.songs),
-        stringResource(R.string.Artists)
+        stringResource(R.string.nav_albums),
+        stringResource(R.string.nav_songs),
+        stringResource(R.string.nav_artists)
     )
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
 
@@ -138,12 +137,12 @@ fun TvSearchScreen(
                     onSearch = {
                         albumsViewModel.search(searchQuery)
                         songsViewModel.search(searchQuery)
-                        artistsViewModel.onSearchQueryChange(searchQuery)
+                        artistsViewModel.search(searchQuery)
                     }
                 ),
                 placeholder = {
                     Text(
-                        text = stringResource(R.string.Action_Search),
+                        text = stringResource(R.string.action_search),
                         color = androidx.compose.material3.LocalContentColor.current
                     )
                 },
@@ -186,7 +185,7 @@ fun TvSearchScreen(
             0 -> {
                 items(
                     items = albums,
-                    key = { album -> album.mediaMetadata.extras?.getString("navidromeID") ?: album.mediaId },
+                    key = { album -> album.mediaMetadata.id ?: album.mediaId },
                 ) {
                     TvAlbumCard(
                         album = it,
@@ -194,9 +193,7 @@ fun TvSearchScreen(
                             focusRequester.saveFocusedChild()
                         },
                         onClick = {
-                            val albumEncoded = it.toAlbum()
-                            val encodedImage = URLEncoder.encode(albumEncoded.coverArt, "UTF-8")
-                            navHostController.navigate(Screen.AlbumDetails.route + "/${albumEncoded.navidromeID}/$encodedImage") {
+                            navHostController.navigate(Screen.AlbumDetails(it.mediaMetadata.id?:"", it.mediaMetadata.artworkUri.toString())) {
                                 launchSingleTop = true
                             }
                         }
@@ -206,7 +203,7 @@ fun TvSearchScreen(
             1 -> {
                 itemsIndexed(
                     items = songs,
-                    key = { _, song -> song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId },
+                    key = { _, song -> song.mediaMetadata.id ?: song.mediaId },
                     span = { _, _ -> GridItemSpan(5) }
                 ) { index, song ->
                     TvHorizontalSongCard(
@@ -217,7 +214,7 @@ fun TvSearchScreen(
                         onClick = {
                             coroutineScope.launch {
                                 SongHelper.play(songs, index, mediaController)
-                                navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                                navHostController.navigate(Screen.NowPlayingLandscape) {
                                     launchSingleTop = true
                                 }
                             }
@@ -232,7 +229,7 @@ fun TvSearchScreen(
             2 -> {
                 items(
                     items = artists,
-                    key = { artist -> artist.navidromeID }
+                    key = { artist -> artist.id }
                 ) {
                     TvArtistCard(
                         artist = it,
@@ -241,8 +238,7 @@ fun TvSearchScreen(
                         },
                         onClick = {
                             focusRequester.saveFocusedChild()
-                            artistsViewModel.setSelectedArtist(it)
-                            navHostController.navigate(Screen.ArtistDetails.route) {
+                            navHostController.navigate(Screen.ArtistDetails) {
                                 launchSingleTop = true
                             }
                         }
@@ -257,9 +253,12 @@ fun TvSearchScreen(
             song = selectedSong,
             onSetRating = { rating ->
                 songsViewModel.setSongRating(
-                    songId = selectedSong.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                    songId = selectedSong.mediaMetadata.id ?: "",
                     rating = rating
                 )
+            },
+            onDownload = {
+                songsViewModel.downloadSong(it)
             },
             setShowDialog = { showSongDialog = it }
         )

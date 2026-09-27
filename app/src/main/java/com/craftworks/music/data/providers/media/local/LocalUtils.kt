@@ -1,0 +1,188 @@
+package com.craftworks.music.data.providers.media.local
+
+import android.content.Context
+import android.os.Build
+import android.provider.MediaStore
+import com.craftworks.music.data.model.MediaModel
+
+object LocalUtils {
+    fun getAlbumIdsInFolders(context: Context, folders: List<String>): Set<Long> {
+        val albumIds = mutableSetOf<Long>()
+        val contentResolver = context.contentResolver
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+
+        val pathColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Audio.Media.RELATIVE_PATH
+        } else {
+            MediaStore.Audio.Media.DATA
+        }
+
+        val selectionBuilder = StringBuilder("${MediaStore.Audio.Media.IS_MUSIC} != 0 AND (")
+        folders.forEachIndexed { index, _ ->
+            if (index > 0) selectionBuilder.append(" OR ")
+            selectionBuilder.append("$pathColumn LIKE ?")
+        }
+        selectionBuilder.append(")")
+
+        val selectionArgs = folders.map { "%$it%" }.toTypedArray()
+
+        contentResolver.query(
+            uri,
+            arrayOf(MediaStore.Audio.Media.ALBUM_ID),
+            selectionBuilder.toString(),
+            selectionArgs,
+            null
+        )?.use { cursor ->
+            val albumIdIdx = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+            while (cursor.moveToNext()) {
+                albumIds.add(cursor.getLong(albumIdIdx))
+            }
+        }
+
+        return albumIds
+    }
+
+    fun getLocalAlbums(context: Context, providerId: String, sort: String, folders: List<String>): List<MediaModel.Album> {
+
+        val contentResolver = context.contentResolver
+        val uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI
+
+        val projection = arrayOf(
+            MediaStore.Audio.Albums._ID,
+            MediaStore.Audio.Albums.ALBUM,
+            MediaStore.Audio.Albums.ARTIST,
+            MediaStore.Audio.Albums.LAST_YEAR
+        )
+
+        val albumIdsInFolders = if (folders.isNotEmpty()) {
+            getAlbumIdsInFolders(context, folders)
+        } else {
+            emptySet()
+        }
+
+        val selection = if (albumIdsInFolders.isNotEmpty()) {
+            "${MediaStore.Audio.Albums._ID} IN (${albumIdsInFolders.joinToString(",")})"
+        } else {
+            null
+        }
+
+        val cursor = contentResolver.query(
+            uri,
+            projection,
+            selection,
+            null,
+            sort
+        )
+        if (cursor == null) return emptyList()
+
+        return LocalNormalizer.cursorToAlbums(context, providerId, cursor)
+    }
+
+    fun getLocalAlbumSongs(context: Context, albumId: String, providerId: String): List<MediaModel.Song> {
+        val songs = mutableListOf<MediaModel.Song>()
+        val contentResolver = context.contentResolver
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+
+        val projection = mutableListOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.DATA,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.DATE_ADDED,
+            MediaStore.Audio.Media.TRACK,
+            MediaStore.Audio.Media.YEAR,
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.MIME_TYPE
+        ).apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                add(MediaStore.Audio.Media.BITRATE)
+                add(MediaStore.Audio.Media.GENRE)
+            }
+        }.toTypedArray()
+
+        contentResolver.query(
+            uri,
+            projection,
+            "${MediaStore.Audio.Media.ALBUM_ID} = ? AND ${MediaStore.Audio.Media.IS_MUSIC} != 0",
+            arrayOf(albumId),
+            "${MediaStore.Audio.Media.TRACK} ASC, ${MediaStore.Audio.Media.TITLE} ASC"
+        )?.use {
+            return LocalNormalizer.cursorToSongs(context, providerId, it)
+        }
+        return emptyList()
+    }
+    fun getLocalSongs(context: Context, providerId: String, sort: String, folders: List<String>): List<MediaModel.Song> {
+        val contentResolver = context.contentResolver
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+
+        val projection = mutableListOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.DATA,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.DATE_ADDED,
+            MediaStore.Audio.Media.TRACK,
+            MediaStore.Audio.Media.YEAR,
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.MIME_TYPE
+        ).apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                add(MediaStore.Audio.Media.BITRATE)
+                add(MediaStore.Audio.Media.GENRE)
+            }
+        }.toTypedArray()
+
+        if (folders.isEmpty()) return emptyList()
+
+        val selectionBuilder = StringBuilder("${MediaStore.Audio.Media.IS_MUSIC} != 0 AND (")
+        folders.forEachIndexed { index, folder ->
+            if (index > 0) selectionBuilder.append(" OR ")
+            selectionBuilder.append("${MediaStore.Audio.Media.DATA} LIKE ?")
+        }
+        selectionBuilder.append(")")
+
+        val selectionArgs = folders.map { "%$it%" }.toTypedArray()
+
+        contentResolver.query(
+            uri,
+            projection,
+            selectionBuilder.toString(),
+            selectionArgs,
+            sort
+        )?.use {
+            return LocalNormalizer.cursorToSongs(context, providerId, it)
+        }
+
+        return emptyList()
+    }
+    fun getLocalAlbumArtists(context: Context, providerId: String, folders: List<String>): List<MediaModel.Artist> {
+        val artists = mutableMapOf<Int, MediaModel.Artist>()
+        val albums = getLocalAlbums(context, providerId, "${MediaStore.Audio.Albums.ALBUM} ASC", folders)
+
+        albums.forEach { album ->
+            album.artists.forEach { artist ->
+                val artistId = artist.id.toInt()
+                artists[artistId] = artist
+            }
+        }
+
+        return artists.values.sortedBy { it.name }
+    }
+    fun getLocalArtists(context: Context, providerId: String, folders: List<String>): List<MediaModel.Artist> {
+        val artists = mutableMapOf<Int, MediaModel.Artist>()
+        val songs = getLocalSongs(context, providerId, "${MediaStore.Audio.Media.TITLE} ASC", folders)
+
+        songs.forEach { song ->
+            song.artists.forEach { artist ->
+                val artistId = artist.id.toInt()
+                artists[artistId] = artist
+            }
+        }
+
+        return artists.values.sortedBy { it.name }
+    }
+}

@@ -24,7 +24,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import coil.compose.SubcomposeAsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.craftworks.music.data.model.ProviderType
+import com.craftworks.music.data.model.id
+import com.craftworks.music.data.model.providerType
 import com.craftworks.music.ui.elements.dialogs.playlistToDelete
 import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
 
@@ -41,7 +45,7 @@ fun PlaylistCard(playlist: MediaItem, onClick: () -> Unit) {
                 onClick = { onClick() },
                 onLongClick = {
                     playlistToDelete.value =
-                        playlist.mediaMetadata.extras?.getString("navidromeID") ?: ""
+                        playlist.mediaMetadata.id ?: ""
                     showDeletePlaylistDialog.value = true
                 },
                 onLongClickLabel = "Delete Playlist"
@@ -52,14 +56,14 @@ fun PlaylistCard(playlist: MediaItem, onClick: () -> Unit) {
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(context)
                 .data(
-                    if (metadata.extras?.getString("navidromeID")?.startsWith("Local") == true)
+                    if (metadata.providerType == ProviderType.LOCAL_FOLDER)
                         metadata.artworkData else
                         metadata.artworkUri
                 )
                 .crossfade(true)
-                .diskCacheKey(
-                    metadata.extras?.getString("navidromeID") ?: playlist.mediaId
-                )
+                .diskCacheKey(metadata.id)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .placeholderMemoryCacheKey(metadata.id)
                 .build(),
             contentScale = ContentScale.FillWidth,
             contentDescription = "Album Image",

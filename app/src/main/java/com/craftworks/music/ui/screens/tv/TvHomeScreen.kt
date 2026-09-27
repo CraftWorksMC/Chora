@@ -75,16 +75,17 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.craftworks.music.R
+import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.data.model.toAlbum
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.data.model.getProvider
+import com.craftworks.music.data.model.id
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.tv.TvAlbumCard
 import com.craftworks.music.ui.screens.HomeItem
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
+import com.craftworks.music.utils.StringUtils
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -112,9 +113,9 @@ fun TvHomeScreen(
 
     val titleMap = remember {
         mapOf(
-            "recently_played" to R.string.recently_played,
-            "recently_added" to R.string.recently_added,
-            "most_played" to R.string.most_played
+            "recently_played" to R.string.home_recently_played,
+            "recently_added" to R.string.home_recently_added,
+            "most_played" to R.string.home_most_played
         )
     }
 
@@ -205,7 +206,7 @@ fun TvHomeScreen(
                     onPlay = {
                         coroutineScope.launch {
                             val mediaItems = viewModel.getAlbumSongs(
-                                album.mediaMetadata.extras?.getString("navidromeID") ?: ""
+                                album.mediaMetadata.id ?: ""
                             )
                             if (mediaItems.size > 1)
                                 SongHelper.play(
@@ -213,7 +214,7 @@ fun TvHomeScreen(
                                     index = 0,
                                     mediaController = mediaController
                                 )
-                            navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                            navHostController.navigate(Screen.NowPlayingLandscape) {
                                 launchSingleTop = true
                             }
                         }
@@ -238,7 +239,7 @@ fun TvHomeScreen(
                 Modifier.focusGroup()
             ) {
                 Text(
-                    text = stringResource(titleMap[item.key] ?: R.string.recently_played),
+                    text = stringResource(titleMap[item.key] ?: R.string.home_recently_played),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold,
@@ -255,9 +256,7 @@ fun TvHomeScreen(
                         TvAlbumCard(
                             album = album,
                             onClick = {
-                                val albumEncoded = album.toAlbum()
-                                val encodedImage = URLEncoder.encode(albumEncoded.coverArt, "UTF-8")
-                                navHostController.navigate(Screen.AlbumDetails.route + "/${albumEncoded.navidromeID}/$encodedImage") {
+                                navHostController.navigate(Screen.AlbumDetails(album.mediaMetadata.id?:"", album.mediaMetadata.artworkUri.toString())) {
                                     launchSingleTop = true
                                 }
                             }
@@ -281,7 +280,7 @@ private fun CarouselItem(
     val title = album.mediaMetadata.title?.toString() ?: ""
     val artist = album.mediaMetadata.artist?.toString() ?: ""
     val genre = album.mediaMetadata.genre?.toString() ?: ""
-    val duration = formatMilliseconds(
+    val duration = StringUtils.formatSeconds(
         album.mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0
     )
     val subtitle = listOf(genre, artist, duration)
@@ -299,9 +298,12 @@ private fun CarouselItem(
     var dominantColor by remember { mutableStateOf(Color.Black) }
     LaunchedEffect(album.mediaMetadata.artworkUri) {
         val colorRequest = ImageRequest.Builder(context)
-            .data(album.mediaMetadata.artworkUri.toString()
-                .replace("&size=128", "&size=32"))
-            .diskCacheKey(album.mediaMetadata.extras?.getString("navidromeID"))
+            .data(album.mediaMetadata.getProvider()?.getImageUrl(
+                album.mediaMetadata.extras?.getString("imageId")?:"",
+                LibraryType.ALBUM,
+                32
+            ))
+            .diskCacheKey(album.mediaMetadata.id ?: album.mediaId)
             .diskCachePolicy(CachePolicy.READ_ONLY)
             .allowHardware(false)
             .build()
@@ -326,11 +328,12 @@ private fun CarouselItem(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(context)
-                .data(
-                    album.mediaMetadata.artworkUri.toString()
-                        .replace("&size=128", "&size=1024")
-                )
-                .diskCacheKey(album.mediaMetadata.extras?.getString("navidromeID"))
+                .data(album.mediaMetadata.getProvider()?.getImageUrl(
+                    album.mediaMetadata.extras?.getString("imageId")?:"",
+                    LibraryType.ALBUM,
+                    1024
+                ))
+                .diskCacheKey(album.mediaMetadata.id ?: album.mediaId)
                 .diskCachePolicy(CachePolicy.DISABLED)
                 .crossfade(true)
                 .build(),
@@ -405,7 +408,7 @@ private fun CarouselItem(
                     contentDescription = null
                 )
                 Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.Action_Play))
+                Text(stringResource(R.string.action_play))
             }
         }
     }

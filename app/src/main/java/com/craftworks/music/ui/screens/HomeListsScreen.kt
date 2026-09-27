@@ -19,10 +19,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.id
 import com.craftworks.music.ui.elements.AlbumGrid
 import com.craftworks.music.ui.viewmodels.HomeScreenViewModel
 import kotlinx.coroutines.runBlocking
-import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
@@ -35,11 +35,11 @@ fun HomeListsScreen(
     mediaController: MediaController? = null
 ) {
     val titleRes = when (categoryKey) {
-        "recently_played" -> R.string.recently_played
-        "recently_added" -> R.string.recently_added
-        "most_played" -> R.string.most_played
-        "random_songs" -> R.string.random_songs
-        else -> R.string.recently_played
+        "recently_played" -> R.string.home_recently_played
+        "recently_added" -> R.string.home_recently_added
+        "most_played" -> R.string.home_most_played
+        "random_songs" -> R.string.home_explore_library
+        else -> R.string.home_recently_played
     }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -62,8 +62,7 @@ fun HomeListsScreen(
                 albums,
                 mediaController,
                 onAlbumSelected = { album ->
-                    val encodedImage = URLEncoder.encode(album.coverArt, "UTF-8")
-                    navHostController.navigate(Screen.AlbumDetails.route + "/${album.navidromeID}/$encodedImage") {
+                    navHostController.navigate(Screen.AlbumDetails(album.mediaMetadata.id?:"", album.mediaMetadata.artworkUri.toString())) {
                         launchSingleTop = true
                     }
                 },

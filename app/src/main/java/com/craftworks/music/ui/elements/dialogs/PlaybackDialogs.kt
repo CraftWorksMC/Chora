@@ -77,7 +77,7 @@ fun TranscodingBitrateDialog(
                 .selectableGroup()
         ) {
             Text(
-                text = stringResource(R.string.Setting_Transcoding),
+                text = stringResource(R.string.playback_max_bitrate),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -122,7 +122,7 @@ fun TranscodingBitrateDialog(
                         modifier = Modifier.bounceClick()
                     )
                     Text(
-                        text = if (bitrate != "No Transcoding") "$bitrate Kbps" else stringResource(R.string.Option_No_Transcoding),
+                        text = if (bitrate != "No Transcoding") "$bitrate Kbps" else stringResource(R.string.playback_no_transcoding),
                         fontWeight = FontWeight.Normal,
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -160,7 +160,7 @@ fun TranscodingFormatDialog(
                 .selectableGroup()
         ) {
             Text(
-                text = stringResource(R.string.Setting_Transcoding_Format),
+                text = stringResource(R.string.playback_transcoding_format),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                 color = MaterialTheme.colorScheme.onBackground,

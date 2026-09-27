@@ -29,11 +29,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreVert
@@ -56,9 +55,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.IntOffset
@@ -71,8 +76,13 @@ import androidx.media3.session.MediaController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.craftworks.music.R
+import com.craftworks.music.data.model.MediaModel
+import com.craftworks.music.data.model.ProviderFeature
+import com.craftworks.music.data.model.artists
+import com.craftworks.music.data.model.id
+import com.craftworks.music.data.model.providerId
 import com.craftworks.music.data.repository.LyricsState
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
@@ -98,7 +108,9 @@ fun NowPlayingPortrait(
     onToggleQueue: () -> Unit = {},
     onToggleDetails: () -> Unit = {},
     onOpenSleepTimer: () -> Unit = {},
-    onRefreshLyrics: () -> Unit = {}
+    onRefreshLyrics: () -> Unit = {},
+    onArtistNav: (MediaModel.Artist) -> Unit = {},
+    onDownload: () -> Unit = {},
 ) {
     val iconTextColor by animateColorAsState(
         targetValue = iconColor,
@@ -118,13 +130,13 @@ fun NowPlayingPortrait(
     val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
     val loadingLyrics by LyricsState.loading.collectAsStateWithLifecycle()
 
-    val isLyricsActive = lyricsOpen && (lyrics.isNotEmpty() || loadingLyrics)
+    val isLyricsActive = lyricsOpen && (lyrics != null || loadingLyrics)
     val isRadio = metadata?.mediaType == MediaMetadata.MEDIA_TYPE_RADIO_STATION
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .navigationBarsPadding(),
+            .safeDrawingPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Column(
@@ -179,8 +191,7 @@ fun NowPlayingPortrait(
                     if (showLyrics) {
                         Column(
                             Modifier
-                                .statusBarsPadding()
-                                .padding(horizontal = 12.dp),
+                                .padding(horizontal = 24.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Text(
@@ -227,12 +238,10 @@ fun NowPlayingPortrait(
                         }
                     } else {
                         Column(
-                            Modifier.statusBarsPadding(),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Crossfade(
-                                targetState = metadata?.artworkUri.toString()
-                                    .replace("size=128", "size=500"),
+                                targetState = metadata?.artworkUri.toString(),
                                 animationSpec = tween(
                                     durationMillis = 400,
                                     easing = FastOutSlowInEasing
@@ -242,7 +251,7 @@ fun NowPlayingPortrait(
                                 SubcomposeAsyncImage(
                                     model = ImageRequest.Builder(context)
                                         .data(artworkUri)
-                                        .placeholderMemoryCacheKey(metadata?.artworkUri.toString())
+                                        .placeholderMemoryCacheKey(metadata?.id)
                                         .diskCachePolicy(CachePolicy.DISABLED)
                                         .build(),
                                     contentDescription = "Album Cover Art",
@@ -268,35 +277,6 @@ fun NowPlayingPortrait(
                                 Modifier.padding(horizontal = 24.dp),
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-//                                Crossfade(
-//                                    targetState = metadata?.title.toString(),
-//                                    animationSpec = tween(
-//                                        durationMillis = 400,
-//                                        easing = FastOutSlowInEasing
-//                                    ),
-//                                    label = "Animated Song Title",
-//                                    modifier = Modifier
-//                                ) { title ->
-//                                    Text(
-//                                        text = title,
-//                                        style = MaterialTheme.typography.headlineMediumEmphasized,
-//                                        fontWeight = FontWeight.Bold,
-//                                        color = iconTextColor,
-//                                        maxLines = 1,
-//                                        overflow = TextOverflow.Visible,
-//                                        softWrap = false,
-//                                        textAlign = when (titleAlignment) {
-//                                            NowPlayingAlignment.LEFT -> TextAlign.Start
-//                                            NowPlayingAlignment.CENTER -> TextAlign.Center
-//                                            NowPlayingAlignment.RIGHT -> TextAlign.End
-//                                        },
-//                                        modifier = Modifier
-//                                            .fillMaxWidth()
-//                                            .marqueeHorizontalFadingEdges(
-//                                                marqueeProvider = { Modifier.basicMarquee() })
-//                                    )
-//                                }
-
                                 CompositionLocalProvider(
                                     LocalLayoutDirection provides
                                             if (titleAlignment == NowPlayingAlignment.RIGHT)
@@ -350,9 +330,9 @@ fun NowPlayingPortrait(
                                     }
                                 }
 
-                                // Artist + year
+                                // Artist
                                 Crossfade(
-                                    targetState = metadata?.artist.toString(),
+                                    targetState = metadata?.artists,
                                     animationSpec = tween(
                                         durationMillis = 400,
                                         easing = FastOutSlowInEasing
@@ -360,7 +340,27 @@ fun NowPlayingPortrait(
                                     label = "Animated Artist"
                                 ) { artistInfo ->
                                     Text(
-                                        text = artistInfo,
+                                        text = buildAnnotatedString {
+                                            artistInfo?.forEachIndexed { index, artist ->
+                                                withLink(
+                                                    LinkAnnotation.Clickable(
+                                                        tag = "ARTIST",
+                                                        styles = TextLinkStyles(
+                                                            style = SpanStyle(
+                                                                color = iconTextColor.copy(alpha = 0.7f),
+                                                                textDecoration = TextDecoration.None
+                                                            )
+                                                        ),
+                                                        linkInteractionListener = {
+                                                            onArtistNav(artist)
+                                                        }
+                                                    )
+                                                ) {
+                                                    append(artist.name)
+                                                }
+                                                if (index != artistInfo.size - 1) append(" • ")
+                                            }
+                                        },
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Normal,
                                         color = iconTextColor.copy(alpha = 0.7f),
@@ -388,12 +388,7 @@ fun NowPlayingPortrait(
                                             append(" · ")
                                             append(metadata?.extras?.getLong("bitrate") ?: "")
                                             append(" · ")
-                                            append(
-                                                if (metadata?.extras?.getString("navidromeID")
-                                                        ?.startsWith("Local_") == true
-                                                ) stringResource(R.string.Source_Local)
-                                                else stringResource(R.string.Source_Navidrome)
-                                            )
+                                            append(MediaProviderManager.getProvider(metadata?.providerId?:"")?.providerName?.let { stringResource(it) } ?:"")
                                         },
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Medium,
@@ -447,7 +442,13 @@ fun NowPlayingPortrait(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            DownloadButton(iconTextColor, 32.dp, metadata, !(metadata?.extras?.getString("navidromeID")?.startsWith("Local_") ?: true))
+            DownloadButton(
+                iconTextColor,
+                32.dp,
+                metadata,
+                MediaProviderManager.getProvider(metadata?.providerId?:"")
+                ?.featureFlags?.contains(ProviderFeature.DOWNLOADS)?:false,
+                onDownload)
             SleepTimerButton(iconTextColor, 32.dp, sleepTimerMinutes,onOpenSleepTimer)
             LyricsButton(iconTextColor, 32.dp, lyricsOpen, onToggleLyrics)
             PlayQueueButton(iconTextColor, 32.dp, onToggleQueue)

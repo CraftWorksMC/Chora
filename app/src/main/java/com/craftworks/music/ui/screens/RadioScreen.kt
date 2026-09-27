@@ -45,6 +45,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import com.craftworks.music.R
+import com.craftworks.music.data.model.ProviderType
+import com.craftworks.music.data.model.providerType
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.RadioCard
 import com.craftworks.music.ui.elements.RippleEffect
@@ -93,7 +95,7 @@ fun RadioScreen(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 TopAppBar(
-                    title = { Text(text = stringResource(R.string.radios)) },
+                    title = { Text(text = stringResource(R.string.nav_radios)) },
                     actions = {
                         Button(
                             onClick = { showRadioAddDialog = true },
@@ -160,8 +162,8 @@ fun RadioScreen(
     if (showRadioAddDialog)
         AddRadioDialog(
             setShowDialog = { showRadioAddDialog = it },
-            onAdded = { name, url, homePageUrl, addToNavidrome ->
-                viewModel.addRadioStation(name, url, homePageUrl, addToNavidrome)
+            onAdded = { name, url, homePageUrl ->
+                viewModel.addRadioStation(name, url, homePageUrl)
                 onRefresh.invoke()
             }
         )
@@ -170,12 +172,19 @@ fun RadioScreen(
         ModifyRadioDialog(
             setShowDialog = { showRadioModifyDialog = it },
             radio = selectedRadio,
-            onModified = { id, name, url, homepage ->
-                viewModel.modifyRadioStation(id, name, url, homepage)
+            onModified = { providerId, id, name, url, homepage ->
+                viewModel.modifyRadioStation(
+                    providerId,
+                    selectedRadio?.mediaMetadata?.providerType?: ProviderType.LOCAL_FOLDER,
+                    id,
+                    name,
+                    url,
+                    homepage
+                )
                 onRefresh.invoke()
             },
-            onDeleted = {
-                viewModel.deleteRadioStation(it)
+            onDeleted = { providerId, id ->
+                viewModel.deleteRadioStation(providerId, id)
                 onRefresh.invoke()
             }
         )

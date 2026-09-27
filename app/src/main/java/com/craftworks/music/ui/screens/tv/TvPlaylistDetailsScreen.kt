@@ -59,22 +59,29 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.data.model.id
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
 import com.craftworks.music.ui.elements.tv.TvHorizontalSongCard
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
+import com.craftworks.music.utils.StringUtils
 import kotlinx.coroutines.launch
 
 
 @Preview(showBackground = true, showSystemUi = false)
 @Composable
 fun TvPlaylistDetails(
+    selectedPlaylistId: String? = null,
+    selectedPlaylistImage: String? = null,
     navHostController: NavHostController = rememberNavController(),
     mediaController: MediaController? = rememberManagedMediaController().value,
-    viewModel: PlaylistScreenViewModel = hiltViewModel()
+    viewModel: PlaylistScreenViewModel = hiltViewModel(),
 ) {
+    LaunchedEffect(selectedPlaylistId) {
+        if (selectedPlaylistId != null) viewModel.loadPlaylistDetails(selectedPlaylistId)
+    }
+
     val playlistMetadata =
         viewModel.selectedPlaylist.collectAsStateWithLifecycle().value?.mediaMetadata
 
@@ -118,8 +125,8 @@ fun TvPlaylistDetails(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(playlistMetadata?.artworkUri)
-                        .diskCacheKey(playlistMetadata?.extras?.getString("navidromeID"))
+                        .data(selectedPlaylistImage)
+                        .diskCacheKey(selectedPlaylistId)
                         .crossfade(true)
                         .build(),
                     placeholder = painterResource(R.drawable.placeholder),
@@ -148,7 +155,7 @@ fun TvPlaylistDetails(
 
                     // duration
                     Text(
-                        text = formatMilliseconds((playlistDuration / 1000).toInt()),
+                        text = StringUtils.formatSeconds((playlistDuration / 1000).toInt()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center,
@@ -167,7 +174,7 @@ fun TvPlaylistDetails(
                                     0,
                                     mediaController
                                 )
-                                navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                                navHostController.navigate(Screen.NowPlayingLandscape) {
                                     launchSingleTop = true
                                 }
                             }
@@ -183,7 +190,7 @@ fun TvPlaylistDetails(
                             modifier = Modifier.size(ButtonDefaults.IconSize),
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(stringResource(R.string.Action_Play))
+                        Text(stringResource(R.string.action_play))
                     }
 
                     OutlinedButton(
@@ -196,7 +203,7 @@ fun TvPlaylistDetails(
                                     random,
                                     mediaController
                                 )
-                                navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                                navHostController.navigate(Screen.NowPlayingLandscape) {
                                     launchSingleTop = true
                                 }
                             }
@@ -210,7 +217,7 @@ fun TvPlaylistDetails(
                             modifier = Modifier.size(ButtonDefaults.IconSize),
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(stringResource(R.string.Action_Shuffle))
+                        Text(stringResource(R.string.action_shuffle))
                     }
                 }
             }
@@ -231,7 +238,7 @@ fun TvPlaylistDetails(
                         onClick = {
                             coroutineScope.launch {
                                 SongHelper.play(playlistSongs, playlistSongs.indexOf(song), mediaController)
-                                navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                                navHostController.navigate(Screen.NowPlayingLandscape) {
                                     launchSingleTop = true
                                 }
                             }
@@ -251,9 +258,12 @@ fun TvPlaylistDetails(
             song = selectedSong,
             onSetRating = { rating ->
                 viewModel.setSongRating(
-                    songId = selectedSong.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                    songId = selectedSong.mediaMetadata.id ?: "",
                     rating = rating
                 )
+            },
+            onDownload = {
+                viewModel.downloadSong(it)
             },
             setShowDialog = { showSongDialog = it }
         )

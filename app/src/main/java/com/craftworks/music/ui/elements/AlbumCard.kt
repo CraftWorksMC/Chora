@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.elements
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -34,7 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import coil.compose.SubcomposeAsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.craftworks.music.data.model.id
 
 @Stable
 @Composable
@@ -64,8 +67,13 @@ fun AlbumCard(
                 model = ImageRequest.Builder(context)
                     .data(album.mediaMetadata.artworkUri)
                     .crossfade(true)
-                    .diskCacheKey(
-                        album.mediaMetadata.extras?.getString("navidromeID") ?: album.mediaId
+                    .diskCacheKey(album.mediaMetadata.id)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .placeholderMemoryCacheKey(album.mediaMetadata.id)
+                    .listener(
+                        onError = { request, result ->
+                            Log.e("AlbumCard", "Failed for ${request.data}", result.throwable)
+                        }
                     )
                     .build(),
                 contentDescription = "Album Image",

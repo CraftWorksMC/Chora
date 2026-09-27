@@ -1,10 +1,10 @@
 package com.craftworks.music.ui.screens.settings
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -41,16 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -67,21 +58,25 @@ import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.managers.settings.AppTheme
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
-import com.craftworks.music.ui.elements.dialogs.BackgroundDialog
-import com.craftworks.music.ui.elements.dialogs.HomeItemsDialog
-import com.craftworks.music.ui.elements.dialogs.NameDialog
-import com.craftworks.music.ui.elements.dialogs.NavbarItemsDialog
-import com.craftworks.music.ui.elements.dialogs.NowPlayingTitleAlignmentDialog
-import com.craftworks.music.ui.elements.dialogs.ThemeDialog
+import com.craftworks.music.ui.elements.ActionButtonType
+import com.craftworks.music.ui.elements.dialogs.appearance.BackgroundDialog
+import com.craftworks.music.ui.elements.dialogs.appearance.HomeItemsDialog
+import com.craftworks.music.ui.elements.dialogs.appearance.NameDialog
+import com.craftworks.music.ui.elements.dialogs.appearance.NavbarItemsDialog
+import com.craftworks.music.ui.elements.dialogs.appearance.NowPlayingTitleAlignmentDialog
+import com.craftworks.music.ui.elements.dialogs.appearance.SongListActionButtonsDialog
+import com.craftworks.music.ui.elements.dialogs.appearance.ThemeDialog
 import com.craftworks.music.ui.elements.dialogs.dialogFocusable
-import com.craftworks.music.ui.playing.NowPlayingBackground
 import com.craftworks.music.ui.playing.NowPlayingAlignment
+import com.craftworks.music.ui.playing.NowPlayingBackground
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.math.roundToInt
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-@Preview(showSystemUi = false, showBackground = true)
+@Preview(showBackground = true)
 fun S_AppearanceScreen(navHostController: NavHostController = rememberNavController()) {
     var showNameDialog by remember { mutableStateOf(false) }
     var showBackgroundDialog by remember { mutableStateOf(false) }
@@ -90,37 +85,42 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
     var showHomeItemsDialog by remember { mutableStateOf(false) }
     var showNowPlayingTitleAlignmentDialog by remember { mutableStateOf(false) }
     var showNowPlayingLyricsAlignmentDialog by remember { mutableStateOf(false) }
+    var showAlbumDetailsActionButtonsDialog by remember { mutableStateOf(false) }
+    var showArtistDetailsActionButtonsDialog by remember { mutableStateOf(false) }
+    var showPlaylistDetailsActionButtonsDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val focusRequester = remember { FocusRequester() }
+    val appearanceSettingsManager = AppearanceSettingsManager(context)
 
     // Now Playing Title Alignment
-    val nowPlayingTitleAlignment by AppearanceSettingsManager(context).nowPlayingTitleAlignment.collectAsState(
+    val nowPlayingTitleAlignment by appearanceSettingsManager.nowPlayingTitleAlignment.collectAsState(
         NowPlayingAlignment.LEFT
     )
     // Now Playing Lyrics Alignment
-    val nowPlayingLyricsAlignment by AppearanceSettingsManager(context).nowPlayingLyricsAlignment.collectAsState(
+    val nowPlayingLyricsAlignment by appearanceSettingsManager.nowPlayingLyricsAlignment.collectAsState(
         NowPlayingAlignment.CENTER
     )
     val alignmentLabels = mapOf(
-        NowPlayingAlignment.LEFT to R.string.NowPlayingTitleAlignment_Left,
-        NowPlayingAlignment.CENTER to R.string.NowPlayingTitleAlignment_Center,
-        NowPlayingAlignment.RIGHT to R.string.NowPlayingTitleAlignment_Right
+        NowPlayingAlignment.LEFT to R.string.alignment_setting_left,
+        NowPlayingAlignment.CENTER to R.string.alignment_setting_center,
+        NowPlayingAlignment.RIGHT to R.string.alignment_setting_right
     )
+
+    val albumDetailsActionButtons by appearanceSettingsManager.albumDetailsButtons.collectAsState(emptyList())
+    val artistDetailsActionButtons by appearanceSettingsManager.artistDetailsButtons.collectAsState(emptyList())
+    val playlistDetailsActionButtons by appearanceSettingsManager.playlistDetailsButtons.collectAsState(emptyList())
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(R.string.Settings_Header_Appearance)) },
-                actions = {
+                title = { Text(text = stringResource(R.string.settings_appearance)) },
+                navigationIcon = {
                     IconButton(
                         onClick = {
-                            navHostController.navigate(Screen.Setting.route) {
-                                launchSingleTop = true
-                            }
+                            navHostController.popBackStack()
                         },
                         modifier = Modifier.size(56.dp, 70.dp),
                     ) {
@@ -159,7 +159,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    text = stringResource(R.string.Settings_Header_Appearance),
+                    text = stringResource(R.string.settings_appearance),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
@@ -168,14 +168,13 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 Box {
                     IconButton(
                         onClick = {
-                            navHostController.navigate(Screen.Setting.route) {
+                            navHostController.navigate(Screen.Settings) {
                                 launchSingleTop = true
                             }
                         },
                         modifier = Modifier
                             .size(56.dp, 70.dp)
-                            .focusRequester(focusRequester)
-                            .focusProperties { left = FocusRequester.Cancel }) {
+                    ) {
                         Icon(
                             Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back To Settings",
@@ -194,10 +193,10 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     modifier = Modifier.clip(RoundedCornerShape(16.dp))
                 ) {
                     //Username
-                    val username by AppearanceSettingsManager(context).usernameFlow.collectAsState("Username")
+                    val username by appearanceSettingsManager.usernameFlow.collectAsState("Username")
 
                     SettingsDialogButton(
-                        stringResource(R.string.Setting_Username),
+                        stringResource(R.string.appearance_username),
                         username,
                         ImageVector.vectorResource(R.drawable.s_a_username),
                         toggleEvent = {
@@ -211,7 +210,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     //Theme
-                    val selectedTheme by AppearanceSettingsManager(context).appTheme.collectAsState(
+                    val selectedTheme by appearanceSettingsManager.appTheme.collectAsState(
                         AppTheme.SYSTEM.name
                     )
                     val themes = listOf(
@@ -220,10 +219,10 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         AppTheme.SYSTEM.name
                     )
                     val themeStrings = listOf(
-                        R.string.Theme_Dark, R.string.Theme_Light, R.string.Theme_System
+                        R.string.theme_dark, R.string.theme_light, R.string.theme_system
                     )
                     SettingsDialogButton(
-                        stringResource(R.string.Dialog_Theme),
+                        stringResource(R.string.appearance_theme),
                         stringResource(
                             id = themeStrings[themes.indexOf(selectedTheme)]
                         ),
@@ -234,17 +233,17 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     )
 
                     //Background Style
-                    val backgroundType by AppearanceSettingsManager(context).npBackgroundFlow.collectAsState(
+                    val backgroundType by appearanceSettingsManager.npBackgroundFlow.collectAsState(
                         NowPlayingBackground.STATIC_BLUR
                     )
 
                     val backgroundTypeLabels = mapOf(
-                        NowPlayingBackground.PLAIN to R.string.Background_Plain,
-                        NowPlayingBackground.STATIC_BLUR to R.string.Background_Blur,
-                        NowPlayingBackground.ANIMATED_BLUR to R.string.Background_Anim,
+                        NowPlayingBackground.PLAIN to R.string.background_style_plain,
+                        NowPlayingBackground.STATIC_BLUR to R.string.background_style_blur,
+                        NowPlayingBackground.ANIMATED_BLUR to R.string.background_style_anim,
                     )
                     SettingsDialogButton(
-                        stringResource(R.string.Setting_Background),
+                        stringResource(R.string.appearance_background_style),
                         stringResource(
                             backgroundTypeLabels[backgroundType]
                                 ?: androidx.media3.session.R.string.error_message_invalid_state
@@ -256,15 +255,14 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     )
 
                     //Disable Screen Standby
-                    val disableScreenStandby =
-                        AppearanceSettingsManager(context).disableScreenStandby.collectAsState(true)
+                    val disableScreenStandby = appearanceSettingsManager.disableScreenStandby.collectAsState(true)
                     SettingsSwitch(
                         disableScreenStandby.value,
-                        stringResource(R.string.Setting_Screen_Standby),
+                        stringResource(R.string.appearance_screen_standby),
                         ImageVector.vectorResource(R.drawable.rounded_tv_24),
                         toggleEvent = {
                             coroutineScope.launch {
-                                AppearanceSettingsManager(context).setDisableScreenStandby(!disableScreenStandby.value)
+                                appearanceSettingsManager.setDisableScreenStandby(!disableScreenStandby.value)
                             }
                         }
                     )
@@ -272,14 +270,11 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     //Navbar Items
                     val navBarItemsEnabled =
                         LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK != Configuration.UI_MODE_TYPE_TELEVISION
-                    val enabledNavbarItems =
-                        AppearanceSettingsManager(context).bottomNavItemsFlow.collectAsState(
-                            emptyList()
-                        ).value
+                    val enabledNavbarItems = appearanceSettingsManager.bottomNavItemsFlow.collectAsState(emptyList()).value
                             .filter { it.enabled }
                             .joinToString(", ") { it.title }
                     SettingsDialogButton(
-                        stringResource(R.string.Setting_Navbar_Items),
+                        stringResource(R.string.appearance_navbar_items),
                         enabledNavbarItems,
                         ImageVector.vectorResource(R.drawable.s_a_navbar_items),
                         toggleEvent = {
@@ -291,16 +286,13 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     //Home Items
                     val titleMap = remember {
                         mapOf(
-                            "recently_played" to R.string.recently_played,
-                            "recently_added" to R.string.recently_added,
-                            "most_played" to R.string.most_played,
-                            "random_songs" to R.string.random_songs
+                            "recently_played" to R.string.home_recently_played,
+                            "recently_added" to R.string.home_recently_added,
+                            "most_played" to R.string.home_most_played,
+                            "random_songs" to R.string.home_explore_library
                         )
                     }
-                    val enabledHomeItems =
-                        AppearanceSettingsManager(context).homeItemsItemsFlow.collectAsState(
-                            emptyList()
-                        ).value
+                    val enabledHomeItems = appearanceSettingsManager.homeItemsItemsFlow.collectAsState(emptyList()).value
                             .filter { it.enabled }
                             .joinToString(", ") {
                                 context.getString(
@@ -310,7 +302,7 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                             }
 
                     SettingsDialogButton(
-                        stringResource(R.string.Setting_Home_Items),
+                        stringResource(R.string.appearance_home_items),
                         enabledHomeItems,
                         ImageVector.vectorResource(R.drawable.s_a_home_items),
                         toggleEvent = {
@@ -319,10 +311,10 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     )
 
                     SettingsDialogButton(
-                        stringResource(R.string.Setting_NowPlayingTitleAlignment),
+                        stringResource(R.string.appearance_now_playing_title_alignment),
                         stringResource(
                             alignmentLabels[nowPlayingTitleAlignment]
-                                ?: R.string.NowPlayingTitleAlignment_Left
+                                ?: R.string.alignment_setting_left
                         ),
                         ImageVector.vectorResource(R.drawable.rounded_sort_24),
                         toggleEvent = {
@@ -336,10 +328,10 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     SettingsDialogButton(
-                        stringResource(R.string.Setting_NowPlayingLyricsAlignment),
+                        stringResource(R.string.appearance_now_playing_lyrics_alignment),
                         stringResource(
                             alignmentLabels[nowPlayingLyricsAlignment]
-                                ?: R.string.NowPlayingTitleAlignment_Center
+                                ?: R.string.alignment_setting_center
                         ),
                         ImageVector.vectorResource(R.drawable.rounded_sort_24),
                         toggleEvent = {
@@ -347,51 +339,62 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         }
                     )
                     //Lyrics blur Info
-                    val nowPlayingLyricsBlur by AppearanceSettingsManager(context).nowPlayingLyricsBlurFlow.collectAsStateWithLifecycle(true)
+                    val nowPlayingLyricsBlur by appearanceSettingsManager.nowPlayingLyricsBlurFlow.collectAsStateWithLifecycle(true)
                     SettingsSwitch(
                         nowPlayingLyricsBlur,
-                        stringResource(R.string.Setting_NowPlayingLyricsBlur),
+                        stringResource(R.string.appearance_now_playing_lyrics_blur),
                         ImageVector.vectorResource(R.drawable.outline_line_weight_24),
                         toggleEvent = {
                             coroutineScope.launch {
-                                AppearanceSettingsManager(context).setNowPlayingLyricsBlur(!nowPlayingLyricsBlur)
+                                appearanceSettingsManager.setNowPlayingLyricsBlur(!nowPlayingLyricsBlur)
                             }
                         },
                         enabled = Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU
                     )
 
-                    val lyricsAutoScroll by AppearanceSettingsManager(context).lyricsAutoScroll.collectAsStateWithLifecycle(true)
+                    val lyricsAutoScroll by appearanceSettingsManager.lyricsAutoScroll.collectAsStateWithLifecycle(true)
                     SettingsSwitch(
                         lyricsAutoScroll,
-                        stringResource(R.string.Setting_LyricsAutoscroll),
+                        stringResource(R.string.appearance_lyrics_auto_scroll),
                         ImageVector.vectorResource(R.drawable.rounded_text_select_move_down_24),
                         toggleEvent = {
                             coroutineScope.launch {
-                                AppearanceSettingsManager(context).setLyricsAutoScroll(!lyricsAutoScroll)
+                                appearanceSettingsManager.setLyricsAutoScroll(!lyricsAutoScroll)
                             }
                         }
                     )
 
-                    val lyricsRecenterAfterScroll by AppearanceSettingsManager(context).lyricsRecenterAfterScroll.collectAsStateWithLifecycle(true)
+                    val lyricsRecenterAfterScroll by appearanceSettingsManager.lyricsRecenterAfterScroll.collectAsStateWithLifecycle(true)
                     SettingsSwitch(
                         lyricsRecenterAfterScroll,
-                        stringResource(R.string.Setting_LyricsRecenter),
+                        stringResource(R.string.appearance_lyrics_recenter),
                         ImageVector.vectorResource(R.drawable.rounded_vertical_align_center_24),
                         toggleEvent = {
                             coroutineScope.launch {
-                                AppearanceSettingsManager(context).setLyricsRecenterAfterScroll(!lyricsRecenterAfterScroll)
+                                appearanceSettingsManager.setLyricsRecenterAfterScroll(!lyricsRecenterAfterScroll)
+                            }
+                        }
+                    )
+
+                    val lyricsWordBounce by appearanceSettingsManager.lyricsBounce.collectAsStateWithLifecycle(true)
+                    SettingsSwitch(
+                        lyricsWordBounce,
+                        stringResource(R.string.appearance_lyrics_word_bounce),
+                        ImageVector.vectorResource(R.drawable.rounded_format_line_spacing_24),
+                        toggleEvent = {
+                            coroutineScope.launch {
+                                appearanceSettingsManager.setLyricsBounce(!lyricsWordBounce)
                             }
                         }
                     )
 
                     // Lyrics Animation Speed
                     val lyricsAnimationSpeed =
-                        AppearanceSettingsManager(context).lyricsAnimationSpeedFlow.collectAsState(
-                            1200
-                        )
-                    val interactionSource = remember { MutableInteractionSource() }
+                        appearanceSettingsManager.lyricsAnimationSpeedFlow.collectAsState(660)
 
-                    val sliderValue = 2400f - lyricsAnimationSpeed.value.toFloat() + 600f
+                    val minValue = 300f
+                    val maxValue = 1200f
+                    val sliderValue = maxValue - lyricsAnimationSpeed.value.toFloat() + minValue
 
                     Column(
                         Modifier
@@ -399,12 +402,14 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                             .background(MaterialTheme.colorScheme.surfaceBright)
                     ) {
                         Text(
-                            text = stringResource(R.string.Setting_LyricsAnimationSpeed),
+                            text = stringResource(R.string.appearance_lyrics_animation_speed),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Normal,
                             color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.fillMaxSize()
-                                .padding(horizontal = 20.dp, vertical = 6.dp).padding(top = 10.dp),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 20.dp, vertical = 6.dp)
+                                .padding(top = 10.dp),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Start
@@ -412,47 +417,16 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         Slider(
                             modifier = Modifier
                                 .padding(horizontal = 20.dp)
-                                .padding(bottom = 10.dp)
-                                .onKeyEvent { keyEvent ->
-                                    when (keyEvent.key) {
-                                        Key.DirectionRight if keyEvent.type == KeyEventType.KeyDown -> {
-                                            runBlocking {
-                                                AppearanceSettingsManager(context)
-                                                    .setLyricsAnimationSpeed(
-                                                        (lyricsAnimationSpeed.value - 300).coerceAtLeast(
-                                                            600
-                                                        )
-                                                    )
-                                            }
-                                            true
-                                        }
-
-                                        Key.DirectionLeft if keyEvent.type == KeyEventType.KeyDown -> {
-                                            runBlocking {
-                                                AppearanceSettingsManager(context)
-                                                    .setLyricsAnimationSpeed(
-                                                        (lyricsAnimationSpeed.value + 300).coerceAtMost(
-                                                            2400
-                                                        )
-                                                    )
-                                            }
-                                            true
-                                        }
-
-                                        else -> false
-                                    }
-                                },
-                            interactionSource = interactionSource,
+                                .padding(bottom = 10.dp),
                             value = sliderValue,
-                            steps = 5,
+                            steps = 4,
                             onValueChange = { uiValue ->
-                                val real = (2400f - (uiValue - 600f)).coerceIn(600f, 2400f)
+                                val real = (maxValue - (uiValue - minValue)).coerceIn(minValue, maxValue)
                                 runBlocking {
-                                    AppearanceSettingsManager(context).setLyricsAnimationSpeed(real.toInt())
+                                    appearanceSettingsManager.setLyricsAnimationSpeed(real.roundToInt())
                                 }
                             },
-
-                            valueRange = 600f..2400f
+                            valueRange = minValue..maxValue
                         )
                     }
                 }
@@ -463,58 +437,42 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                 ) {
                     //More Song Info
                     val showMoreInfo =
-                        AppearanceSettingsManager(context).showMoreInfoFlow.collectAsState(true)
+                        appearanceSettingsManager.showMoreInfoFlow.collectAsState(true)
                     SettingsSwitch(
                         showMoreInfo.value,
-                        stringResource(R.string.Setting_MoreInfo),
+                        stringResource(R.string.appearance_more_info),
                         ImageVector.vectorResource(R.drawable.s_a_moreinfo),
                         toggleEvent = {
                             coroutineScope.launch {
-                                AppearanceSettingsManager(context).setShowMoreInfo(!showMoreInfo.value)
+                                appearanceSettingsManager.setShowMoreInfo(!showMoreInfo.value)
                             }
                         }
                     )
 
                     //Show Navidrome Logo
                     val showNavidromeLogo =
-                        AppearanceSettingsManager(context).showNavidromeLogoFlow.collectAsState(true)
+                        appearanceSettingsManager.showNavidromeLogoFlow.collectAsState(true)
                     SettingsSwitch(
                         showNavidromeLogo.value,
-                        stringResource(R.string.Setting_NavidromeLogo),
+                        stringResource(R.string.appearance_provider_logo),
                         ImageVector.vectorResource(R.drawable.s_m_navidrome_bw),
                         toggleEvent = {
                             coroutineScope.launch {
-                                AppearanceSettingsManager(context).setShowNavidromeLogo(!showNavidromeLogo.value)
-                            }
-                        }
-                    )
-
-                    //Show Provider Dividers
-                    val showProviderDividers =
-                        AppearanceSettingsManager(context).showProviderDividersFlow.collectAsState(
-                            true
-                        )
-                    SettingsSwitch(
-                        showProviderDividers.value,
-                        stringResource(R.string.Setting_ProviderDividers),
-                        ImageVector.vectorResource(R.drawable.s_a_moreinfo),
-                        toggleEvent = {
-                            coroutineScope.launch {
-                                AppearanceSettingsManager(context).setShowProviderDividers(!showProviderDividers.value)
+                                appearanceSettingsManager.setShowNavidromeLogo(!showNavidromeLogo.value)
                             }
                         }
                     )
 
                     //Refresh Ripple
                     val refreshRipple =
-                        AppearanceSettingsManager(context).refreshAnimationFlow.collectAsState(true)
+                        appearanceSettingsManager.refreshAnimationFlow.collectAsState(true)
                     SettingsSwitch(
                         refreshRipple.value,
-                        stringResource(R.string.Setting_RefreshAnimation),
+                        stringResource(R.string.appearance_refresh_animation),
                         Icons.Rounded.Refresh,
                         toggleEvent = {
                             coroutineScope.launch {
-                                AppearanceSettingsManager(context).setUseRefreshAnimation(!refreshRipple.value)
+                                appearanceSettingsManager.setUseRefreshAnimation(!refreshRipple.value)
                             }
                         },
                         enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
@@ -522,15 +480,63 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
 
                     // Track numbers in album view
                     val showTrackNumbers =
-                        AppearanceSettingsManager(context).showTrackNumbersFlow.collectAsState(true)
+                        appearanceSettingsManager.showTrackNumbersFlow.collectAsState(true)
                     SettingsSwitch(
                         showTrackNumbers.value,
-                        stringResource(R.string.Setting_TrackNumbersAlbum),
+                        stringResource(R.string.appearance_track_numbers_in_album_view),
                         ImageVector.vectorResource(R.drawable.rounded_format_list_numbered_24),
                         toggleEvent = {
                             coroutineScope.launch {
-                                AppearanceSettingsManager(context).setShowTrackNumbers(!showTrackNumbers.value)
+                                appearanceSettingsManager.setShowTrackNumbers(!showTrackNumbers.value)
                             }
+                        }
+                    )
+                }
+                Column(
+                    modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    val albumDetailsButtons by appearanceSettingsManager.albumDetailsButtons.collectAsState(emptyList())
+                    val artistDetailsButtons by appearanceSettingsManager.artistDetailsButtons.collectAsState(emptyList())
+                    val playlistDetailsButtons by appearanceSettingsManager.playlistDetailsButtons.collectAsState(emptyList())
+
+                    val detailButtonsLocalizationMap = mapOf(
+                        ActionButtonType.SEPARATOR to stringResource(R.string.label_separator),
+                        ActionButtonType.SHUFFLE to stringResource(R.string.action_shuffle),
+                        ActionButtonType.FAVORITE to stringResource(R.string.action_add_to_favorites),
+                        ActionButtonType.ADD_TO_QUEUE to stringResource(R.string.action_add_to_queue),
+                        ActionButtonType.PLAY_NEXT to stringResource(R.string.action_play_next),
+                        ActionButtonType.ADD_TO_PLAYLIST to stringResource(R.string.action_add_to_playlist),
+                        ActionButtonType.DOWNLOAD to stringResource(R.string.action_download),
+                    )
+
+                    SettingsDialogButton(
+                        stringResource(R.string.appearance_album_details_action_buttons),
+                        albumDetailsButtons.filter { !it.inMenu }
+                            .joinToString(", ") { detailButtonsLocalizationMap[it.type].toString() },
+                        ImageVector.vectorResource(R.drawable.action_key_24px),
+                        toggleEvent = {
+                            showAlbumDetailsActionButtonsDialog = true
+                        }
+                    )
+
+                    SettingsDialogButton(
+                        stringResource(R.string.appearance_artist_details_action_buttons),
+                        artistDetailsButtons.filter { !it.inMenu }
+                            .joinToString(", ") { detailButtonsLocalizationMap[it.type].toString() },
+                        ImageVector.vectorResource(R.drawable.action_key_24px),
+                        toggleEvent = {
+                            showArtistDetailsActionButtonsDialog = true
+                        }
+                    )
+
+                    SettingsDialogButton(
+                        stringResource(R.string.appearance_playlist_details_action_buttons),
+                        playlistDetailsButtons.filter { !it.inMenu }
+                            .joinToString(", ") { detailButtonsLocalizationMap[it.type].toString() },
+                        ImageVector.vectorResource(R.drawable.action_key_24px),
+                        toggleEvent = {
+                            showPlaylistDetailsActionButtonsDialog = true
                         }
                     )
                 }
@@ -555,23 +561,87 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
         if(showNowPlayingTitleAlignmentDialog)
             NowPlayingTitleAlignmentDialog(
                 setShowDialog = { showNowPlayingTitleAlignmentDialog = it },
-                title = stringResource(R.string.Setting_NowPlayingTitleAlignment),
+                title = stringResource(R.string.appearance_now_playing_title_alignment),
                 selection = nowPlayingTitleAlignment,
                 onSet = {
                     runBlocking {
-                        AppearanceSettingsManager(context).setNowPlayingTitleAlignment(it)
+                        appearanceSettingsManager.setNowPlayingTitleAlignment(it)
                     }
                 }
             )
         if(showNowPlayingLyricsAlignmentDialog)
             NowPlayingTitleAlignmentDialog(
                 setShowDialog = { showNowPlayingLyricsAlignmentDialog = it },
-                title = stringResource(R.string.Setting_NowPlayingLyricsAlignment),
+                title = stringResource(R.string.appearance_now_playing_lyrics_alignment),
                 selection = nowPlayingLyricsAlignment,
                 onSet = {
                     runBlocking {
-                        AppearanceSettingsManager(context).setNowPlayingLyricsAlignment(it)
+                        appearanceSettingsManager.setNowPlayingLyricsAlignment(it)
                     }
+                }
+            )
+        if (showAlbumDetailsActionButtonsDialog)
+            SongListActionButtonsDialog(
+                title = stringResource(R.string.appearance_action_buttons_editor_title),
+                actionButtons = albumDetailsActionButtons,
+                supportedButtonTypes = listOf(
+                    ActionButtonType.SEPARATOR,
+                    ActionButtonType.SHUFFLE,
+                    ActionButtonType.FAVORITE,
+                    ActionButtonType.ADD_TO_QUEUE,
+                    ActionButtonType.PLAY_NEXT,
+                    ActionButtonType.ADD_TO_PLAYLIST,
+                    ActionButtonType.DOWNLOAD,
+                ),
+                onSet = {
+                    runBlocking {
+                        appearanceSettingsManager.setAlbumDetailsButtons(it)
+                    }
+                },
+                onDismissRequest = {
+                    showAlbumDetailsActionButtonsDialog = false
+                }
+            )
+        if (showArtistDetailsActionButtonsDialog)
+            SongListActionButtonsDialog(
+                title = stringResource(R.string.appearance_action_buttons_editor_title),
+                actionButtons = artistDetailsActionButtons,
+                supportedButtonTypes = listOf(
+                    ActionButtonType.SEPARATOR,
+                    ActionButtonType.SHUFFLE,
+                    ActionButtonType.FAVORITE,
+                    ActionButtonType.ADD_TO_QUEUE,
+                    ActionButtonType.PLAY_NEXT,
+                    ActionButtonType.ADD_TO_PLAYLIST,
+                    ActionButtonType.DOWNLOAD,
+                ),
+                onSet = {
+                    runBlocking {
+                        appearanceSettingsManager.setArtistDetailsButtons(it)
+                    }
+                },
+                onDismissRequest = {
+                    showArtistDetailsActionButtonsDialog = false
+                }
+            )
+        if (showPlaylistDetailsActionButtonsDialog)
+            SongListActionButtonsDialog(
+                title = stringResource(R.string.appearance_action_buttons_editor_title),
+                actionButtons = playlistDetailsActionButtons,
+                supportedButtonTypes = listOf(
+                    ActionButtonType.SEPARATOR,
+                    ActionButtonType.SHUFFLE,
+                    ActionButtonType.ADD_TO_QUEUE,
+                    ActionButtonType.PLAY_NEXT,
+                    ActionButtonType.DOWNLOAD,
+                ),
+                onSet = {
+                    runBlocking {
+                        appearanceSettingsManager.setPlaylistDetailsButtons(it)
+                    }
+                },
+                onDismissRequest = {
+                    showPlaylistDetailsActionButtonsDialog = false
                 }
             )
     }

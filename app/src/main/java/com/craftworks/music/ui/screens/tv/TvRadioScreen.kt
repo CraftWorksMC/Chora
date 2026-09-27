@@ -38,7 +38,9 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.StandardCardContainer
 import androidx.tv.material3.Text
 import com.craftworks.music.R
+import com.craftworks.music.data.model.ProviderType
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.providerType
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.tv.AddRadioDialog
 import com.craftworks.music.ui.elements.dialogs.tv.ModifyRadioDialog
@@ -87,7 +89,7 @@ fun TvRadioScreen(
                             0,
                             mediaController
                         )
-                        navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                        navHostController.navigate(Screen.NowPlayingLandscape) {
                             launchSingleTop = true
                         }
                     }
@@ -118,7 +120,7 @@ fun TvRadioScreen(
                 },
                 title = {
                     Text(
-                        text = stringResource(R.string.Dialog_Add_Radio),
+                        text = stringResource(R.string.radio_add_internet_radio),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 8.dp)
@@ -131,8 +133,8 @@ fun TvRadioScreen(
     if (showRadioAddDialog)
         AddRadioDialog(
             setShowDialog = { showRadioAddDialog = it },
-            onAdded = { name, url, homePageUrl, addToNavidrome ->
-                viewModel.addRadioStation(name, url, homePageUrl, addToNavidrome)
+            onAdded = { name, url, homePageUrl ->
+                viewModel.addRadioStation(name, url, homePageUrl)
             }
         )
 
@@ -141,11 +143,17 @@ fun TvRadioScreen(
         ModifyRadioDialog(
             setShowDialog = { showRadioModifyDialog = it },
             radio = selectedRadio,
-            onModified = { id, name, url, homepage ->
-                viewModel.modifyRadioStation(id, name, url, homepage)
+            onModified = { providerId, id, name, url, homepage ->
+                viewModel.modifyRadioStation(
+                    providerId,
+                    selectedRadio?.mediaMetadata?.providerType?: ProviderType.LOCAL_FOLDER,
+                    id,
+                    name,
+                    url,
+                    homepage)
             },
-            onDeleted = {
-                viewModel.deleteRadioStation(it)
+            onDeleted = { providerId, id ->
+                viewModel.deleteRadioStation(providerId, id)
             }
         )
     }

@@ -1,10 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Navigation -->
-    <string name="songs">Titres</string>
-    <string name="Albums">Albums</string>
-    <string name="Artists">Artistes</string>
-    <string name="settings">Paramètres</string>
-    <string name="radios">Radio Internet</string>
-    <string name="playlists">Playlists</string>
+
+    // Navigation
+    <string name="nav_home">Accueil</string>
+    <string name="nav_songs">Musiques</string>
+    <string name="nav_albums">Albums</string>
+    <string name="nav_artists">Artistes</string>
+    <string name="nav_radios">Radios</string>
+    <string name="nav_playlists">Playlists</string>
+
+    // Media Providers
+    <string name="source_local_folder">Fichiers locaux</string>
+    <string name="nav_playing">Lecture</string>
+    <string name="nav_search">Rechercher</string>
+    <string name="label_separator">Séparateur</string>
 </resources>

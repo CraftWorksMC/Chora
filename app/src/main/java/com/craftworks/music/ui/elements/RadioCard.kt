@@ -2,6 +2,7 @@ package com.craftworks.music.ui.elements
 
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
@@ -19,15 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.craftworks.music.R
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -40,7 +37,6 @@ fun RadioCard(
 ) {
     Column(
         modifier = Modifier
-            //.padding(12.dp)
             .clip(RoundedCornerShape(12.dp))
             .combinedClickable(
                 onClick = { onClick(); Log.d("Play", "Clicked Radio: " + radio.mediaMetadata.station) },
@@ -53,14 +49,10 @@ fun RadioCard(
             .clip(RoundedCornerShape(12.dp)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        AsyncImage(
-            // Use generic radio image as we cannot get the radio's logo reliably.
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(("android.resource://com.craftworks.music/" + R.drawable.radioplaceholder).toUri())
-                .crossfade(true).build(),
-            fallback = painterResource(R.drawable.placeholder),
-            contentScale = ContentScale.FillWidth,
-            contentDescription = "Album Image",
+        Image(
+            painter = painterResource(R.drawable.radioplaceholder),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(12.dp))

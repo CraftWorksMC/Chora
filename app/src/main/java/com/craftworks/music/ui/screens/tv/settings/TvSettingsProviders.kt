@@ -30,29 +30,26 @@ import androidx.tv.material3.Tab
 import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
 import com.craftworks.music.R
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
-import com.craftworks.music.ui.elements.dialogs.tv.CreateLocalProviderDialog
-import com.craftworks.music.ui.elements.dialogs.tv.CreateNavidromeProviderDialog
-import com.craftworks.music.ui.elements.dialogs.tv.ModifyLrcLibProviderDialog
-import com.craftworks.music.ui.elements.tv.LocalProviderCard
+import com.craftworks.music.ui.elements.dialogs.tv.provider.*
 import com.craftworks.music.ui.elements.tv.LrcLibProviderCard
-import com.craftworks.music.ui.elements.tv.NavidromeProviderCard
 import com.craftworks.music.ui.elements.tv.NetEaseProviderCard
+import com.craftworks.music.ui.elements.tv.TvProviderCard
 
 @Composable
 fun TvS_ProviderScreen() {
     val context = LocalContext.current.applicationContext
 
-    val localProviders by LocalProviderManager.allFolders.collectAsStateWithLifecycle()
-    val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
+    val providers by MediaProviderManager.allProviders.collectAsStateWithLifecycle()
 
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Navidrome", "Folders", "Lyrics")
+    val tabs = listOf(
+        "Media",
+        "Lyrics"
+    )
 
-    var showNavidromeServerDialog by remember { mutableStateOf(false) }
-    var showLocalFolderDialog by remember { mutableStateOf(false) }
+    var showAddProviderDialog by remember { mutableStateOf(false) }
     var showLrcLibEditDialog by remember { mutableStateOf(false) }
 
     val lrclibUrl by MediaProviderSettingsManager(context).lrcLibEndpointFlow.collectAsStateWithLifecycle("")
@@ -87,49 +84,27 @@ fun TvS_ProviderScreen() {
                 contentPadding = PaddingValues(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(navidromeServers, key = { it.id }) { server ->
-                    NavidromeProviderCard(server)
+                items(providers, key = { it.id }) { provider ->
+                    TvProviderCard(provider)
                 }
+
                 item {
                     ListItem(
                         selected = false,
                         onClick = {
-                            showNavidromeServerDialog = true
+                            showAddProviderDialog = true
                         },
                         leadingContent = {
                             Icon(Icons.Rounded.Add, contentDescription = null)
                         },
                         headlineContent = {
-                            Text(stringResource(R.string.Action_Add))
+                            Text(stringResource(R.string.action_add))
                         }
                     )
                 }
             }
 
-            1 -> LazyColumn(
-                contentPadding = PaddingValues(vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(localProviders, key = { it }) { local ->
-                    LocalProviderCard(local)
-                }
-                item {
-                    ListItem(
-                        selected = false,
-                        onClick = {
-                            showLocalFolderDialog = true
-                        },
-                        leadingContent = {
-                            Icon(Icons.Rounded.Add, contentDescription = null)
-                        },
-                        headlineContent = {
-                            Text(stringResource(R.string.Action_Add))
-                        }
-                    )
-                }
-            }
-
-            2 -> Column(
+            1 -> Column(
                 modifier = Modifier.padding(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -141,11 +116,8 @@ fun TvS_ProviderScreen() {
         }
     }
 
-    if(showNavidromeServerDialog)
-        CreateNavidromeProviderDialog(setShowDialog = { showNavidromeServerDialog = it })
-
-    if(showLocalFolderDialog)
-        CreateLocalProviderDialog(setShowDialog = { showLocalFolderDialog = it })
+    if(showAddProviderDialog)
+        TvCreateMediaProviderDialog(setShowDialog = { showAddProviderDialog = it })
 
     if(showLrcLibEditDialog)
         ModifyLrcLibProviderDialog(

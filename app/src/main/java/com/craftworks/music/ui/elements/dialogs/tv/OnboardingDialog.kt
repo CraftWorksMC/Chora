@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,11 +47,10 @@ import androidx.tv.material3.ListItem
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.craftworks.music.R
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.dialogs.OnboardingStep
-import com.craftworks.music.ui.elements.tv.LocalProviderCard
-import com.craftworks.music.ui.elements.tv.NavidromeProviderCard
+import com.craftworks.music.ui.elements.dialogs.tv.provider.TvCreateMediaProviderDialog
+import com.craftworks.music.ui.elements.tv.TvProviderCard
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Preview(
@@ -68,10 +66,7 @@ fun OnboardingDialog(
 
     var step by remember { mutableStateOf(OnboardingStep.OVERVIEW) }
 
-    var showNavidromeServerDialog by remember { mutableStateOf(false) }
-    var showLocalFolderDialog by remember { mutableStateOf(false) }
-    var showLrcLibEditDialog by remember { mutableStateOf(false) }
-
+    var showAddProviderDialog by remember { mutableStateOf(false) }
 
     Dialog(
         onDismissRequest = {  },
@@ -113,7 +108,7 @@ fun OnboardingDialog(
                             )
 
                             Text(
-                                text = stringResource(R.string.No_Providers_Splash),
+                                text = stringResource(R.string.onboarding_no_provider_splash),
                                 modifier = Modifier.width(320.dp),
                                 color = MaterialTheme.colorScheme.onBackground,
                             )
@@ -125,7 +120,7 @@ fun OnboardingDialog(
                                 }
                             ) {
                                 Text(
-                                    text = stringResource(R.string.Action_Next),
+                                    text = stringResource(R.string.action_next),
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -134,8 +129,7 @@ fun OnboardingDialog(
                         OnboardingStep.PROVIDER_SELECTION -> {
                             OnboardingSetupProviders(
                                 setDialogStep = { step = it },
-                                showNavidromeServerDialog = { showNavidromeServerDialog = true },
-                                showLocalFolderDialog = { showLocalFolderDialog = true }
+                                showAddProviderDialog = { showAddProviderDialog = true },
                             )
                         }
 
@@ -156,24 +150,19 @@ fun OnboardingDialog(
         }
     }
 
-    if(showNavidromeServerDialog)
-        CreateNavidromeProviderDialog(setShowDialog = { showNavidromeServerDialog = it })
-
-    if(showLocalFolderDialog)
-        CreateLocalProviderDialog(setShowDialog = { showLocalFolderDialog = it })
+    if(showAddProviderDialog)
+        TvCreateMediaProviderDialog(setShowDialog = { showAddProviderDialog = it })
 }
 
 @Composable
 private fun OnboardingSetupProviders(
     setDialogStep: (OnboardingStep) -> Unit = { },
-    showNavidromeServerDialog: () -> Unit = { },
-    showLocalFolderDialog: () -> Unit = { }
+    showAddProviderDialog: () -> Unit = { },
 ) {
-    val localProviders by LocalProviderManager.allFolders.collectAsStateWithLifecycle()
-    val navidromeServers by NavidromeManager.allServers.collectAsStateWithLifecycle()
+    val providers by MediaProviderManager.allProviders.collectAsStateWithLifecycle()
 
     Text(
-        text = stringResource(R.string.Dialog_Media_Source),
+        text = stringResource(R.string.media_providers_media_source),
         modifier = Modifier.width(320.dp),
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onBackground,
@@ -184,55 +173,21 @@ private fun OnboardingSetupProviders(
         contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        item {
-            Text(
-                text = stringResource(R.string.Source_Local),
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+        items(providers, key = { it.id }) { provider ->
+            TvProviderCard(provider)
         }
 
-        items(localProviders, key = { it }) { local ->
-            LocalProviderCard(local)
-        }
         item {
             ListItem(
                 selected = false,
-                headlineContent = { Text(stringResource(R.string.Action_Add)) },
+                headlineContent = { Text(stringResource(R.string.action_add)) },
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Rounded.Add,
-                        contentDescription = stringResource(R.string.Action_Login),
+                        contentDescription = stringResource(R.string.add_media_provider_login),
                     )
                 },
-                onClick = showLocalFolderDialog
-            )
-        }
-
-        item {
-            HorizontalDivider()
-        }
-
-        item {
-            Text(
-                text = stringResource(R.string.Source_Navidrome),
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-        }
-
-        items(navidromeServers, key = { it.id }) { server ->
-            NavidromeProviderCard(server)
-        }
-        item {
-            ListItem(
-                selected = false,
-                headlineContent = { Text(stringResource(R.string.Action_Add)) },
-                leadingContent = {
-                    Icon(
-                        imageVector = Icons.Rounded.Add,
-                        contentDescription = stringResource(R.string.Action_Login),
-                    )
-                },
-                onClick = showNavidromeServerDialog
+                onClick = showAddProviderDialog
             )
         }
     }
@@ -244,7 +199,7 @@ private fun OnboardingSetupProviders(
         }
     ) {
         Text(
-            text = stringResource(R.string.Action_Next),
+            text = stringResource(R.string.action_next),
             textAlign = TextAlign.Center
         )
     }
@@ -261,7 +216,7 @@ private fun OnboardingDoneScreen(
     )
 
     Text(
-        text = stringResource(R.string.No_Providers_Done),
+        text = stringResource(R.string.onboarding_all_done),
         modifier = Modifier.width(320.dp),
         textAlign = TextAlign.Center,
         color = MaterialTheme.colorScheme.onBackground,
@@ -272,7 +227,7 @@ private fun OnboardingDoneScreen(
         onClick = setFinished
     ) {
         Text(
-            text = stringResource(R.string.Action_Go),
+            text = stringResource(R.string.onboarding_lets_go),
             textAlign = TextAlign.Center
         )
     }

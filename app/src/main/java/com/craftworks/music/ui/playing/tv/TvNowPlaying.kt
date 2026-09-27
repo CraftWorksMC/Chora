@@ -71,6 +71,7 @@ import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.model.id
 import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.OLEDProtectionMode
@@ -195,12 +196,9 @@ fun TvNowPlaying(
                             ) {
                                 AsyncImage(
                                     model = ImageRequest.Builder(LocalContext.current)
-                                        .data(
-                                            metadata?.artworkUri.toString()
-                                                .replace("size=128", "size=500")
-                                        )
+                                        .data(metadata?.artworkUri)
+                                        .placeholderMemoryCacheKey(metadata?.id)
                                         .diskCachePolicy(CachePolicy.DISABLED)
-                                        .placeholderMemoryCacheKey(metadata?.artworkUri.toString())
                                         .crossfade(true)
                                         .build(),
                                     contentDescription = "Album Cover Art",
@@ -262,7 +260,7 @@ fun TvNowPlaying(
             }
 
             AnimatedVisibility(
-                visible = metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && lyrics.isNotEmpty() && oledProtectionMode != OLEDProtectionMode.MINIMAL,
+                visible = metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && lyrics != null && oledProtectionMode != OLEDProtectionMode.MINIMAL,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(

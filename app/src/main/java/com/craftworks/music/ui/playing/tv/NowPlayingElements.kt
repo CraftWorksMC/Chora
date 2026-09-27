@@ -65,10 +65,9 @@ import androidx.tv.material3.IconButtonDefaults
 import androidx.tv.material3.OutlinedIconButtonDefaults
 import androidx.tv.material3.Text
 import com.craftworks.music.R
-import com.craftworks.music.formatMilliseconds
-import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
+import com.craftworks.music.utils.StringUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -200,7 +199,7 @@ fun PlaybackProgressSlider(
                 .fillMaxWidth()
         ) {
             Text(
-                text = remember(currentValue) { formatMilliseconds(currentValue.toInt() / 1000) },
+                text = remember(currentValue) { StringUtils.formatSeconds(currentValue.toInt() / 1000) },
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.Start,
                 color = color.copy(alpha = 0.5f),
@@ -211,7 +210,7 @@ fun PlaybackProgressSlider(
             )
             Text(
                 text = remember(currentDuration) {
-                    formatMilliseconds(
+                    StringUtils.formatSeconds(
                         currentDuration?.toInt()?.div(1000) ?: (currentValue / 1000).toInt()
                     )
                 },
@@ -313,18 +312,12 @@ fun PlayQueueButton(
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun DownloadButton(size: Dp, metadata: MediaMetadata?, enabled: Boolean) {
+fun DownloadButton(size: Dp, metadata: MediaMetadata?, enabled: Boolean, onDownload: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
     Button(
-        onClick = {
-            coroutineScope.launch {
-                metadata?.let {
-                    downloadNavidromeSong(context, it)
-                }
-            }
-        },
+        onClick = onDownload,
         enabled = enabled,
         modifier = if (enabled) // Disable bounce click if song is local
             Modifier

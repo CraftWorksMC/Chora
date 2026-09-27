@@ -40,9 +40,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -53,7 +56,13 @@ import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
+import com.craftworks.music.data.model.MediaModel
+import com.craftworks.music.data.model.ProviderFeature
+import com.craftworks.music.data.model.artists
+import com.craftworks.music.data.model.id
+import com.craftworks.music.data.model.providerId
 import com.craftworks.music.data.repository.LyricsState
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.gigamole.composefadingedges.marqueeHorizontalFadingEdges
@@ -72,7 +81,9 @@ fun NowPlayingLandscape(
     sleepTimerMinutes: Int = 10,
     onOpenSleepTimer: () -> Unit = {},
     onToggleQueue: () -> Unit = {},
-    onRefreshLyrics: () -> Unit = {}
+    onRefreshLyrics: () -> Unit = {},
+    onArtistNav: (MediaModel.Artist) -> Unit = {},
+    onDownload: () -> Unit = {}
 ) {
     val iconTextColor by animateColorAsState(
         targetValue = iconColor,
@@ -106,23 +117,31 @@ fun NowPlayingLandscape(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(metadata?.artworkUri.toString().replace("size=128", "size=500"))
-                    .placeholderMemoryCacheKey(metadata?.artworkUri.toString())
-                    .crossfade(true)
-                    .diskCachePolicy(CachePolicy.DISABLED)
-                    .build(),
-                contentDescription = "Album Cover Art",
-                fallback = painterResource(R.drawable.placeholder),
-                contentScale = ContentScale.FillWidth,
-                alignment = Alignment.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f)
-                    .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-            )
+            Crossfade(
+                targetState = metadata?.artworkUri.toString(),
+                animationSpec = tween(
+                    durationMillis = 400,
+                    easing = FastOutSlowInEasing
+                ),
+                label = "Crossfade between albums"
+            ) { artworkUri ->
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(artworkUri)
+                        .placeholderMemoryCacheKey(metadata?.id)
+                        .diskCachePolicy(CachePolicy.DISABLED)
+                        .build(),
+                    contentDescription = "Album Cover Art",
+                    fallback = painterResource(R.drawable.placeholder),
+                    contentScale = ContentScale.FillWidth,
+                    alignment = Alignment.Center,
+                    modifier = Modifier
+                        .weight(1f)
+                        .aspectRatio(1f)
+                        .shadow(4.dp, RoundedCornerShape(24.dp), clip = true)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                )
+            }
             Column(
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
@@ -156,7 +175,7 @@ fun NowPlayingLandscape(
                 }
 
                 Crossfade(
-                    targetState = metadata?.artist.toString(),
+                    targetState = metadata?.artists,
                     animationSpec = tween(
                         durationMillis = 400,
                         easing = FastOutSlowInEasing
@@ -164,7 +183,21 @@ fun NowPlayingLandscape(
                     label = "Animated Artist"
                 ) { artistInfo ->
                     Text(
-                        text = artistInfo,
+                        text = buildAnnotatedString {
+                            artistInfo?.forEachIndexed { index, artist ->
+                                withLink(
+                                    LinkAnnotation.Clickable(
+                                        tag = "ARTIST",
+                                        linkInteractionListener = {
+                                            onArtistNav(artist)
+                                        }
+                                    )
+                                ) {
+                                    append(artist.name)
+                                }
+                                if (index != artistInfo.size - 1) append(" • ")
+                            }
+                        },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Normal,
                         color = iconTextColor.copy(alpha = 0.7f),
@@ -192,12 +225,7 @@ fun NowPlayingLandscape(
                             append(" · ")
                             append(metadata?.extras?.getLong("bitrate") ?: "")
                             append(" · ")
-                            append(
-                                if (metadata?.extras?.getString("navidromeID")
-                                        ?.startsWith("Local_") == true
-                                ) stringResource(R.string.Source_Local)
-                                else stringResource(R.string.Source_Navidrome)
-                            )
+                            append(MediaProviderManager.getProvider(metadata?.providerId?:"")?.providerName?.let { stringResource(it) } ?:"")
                         },
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Medium,
@@ -267,8 +295,11 @@ fun NowPlayingLandscape(
                     iconTextColor,
                     32.dp,
                     metadata,
-                    !(metadata?.extras?.getString("navidromeID")?.startsWith("Local_") ?: true)
-                )
+                    MediaProviderManager.getProvider(metadata?.providerId?:"")
+                        ?.featureFlags?.contains(ProviderFeature.DOWNLOADS)?:false
+                ) {
+
+                }
                 SleepTimerButton(iconTextColor, 32.dp, sleepTimerMinutes, onOpenSleepTimer)
                 PlayQueueButton(iconTextColor, 32.dp, onToggleQueue)
             }
@@ -277,7 +308,7 @@ fun NowPlayingLandscape(
         val lyrics by LyricsState.lyrics.collectAsStateWithLifecycle()
 
         AnimatedVisibility(
-            metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && lyrics.isNotEmpty()
+            metadata?.mediaType != MediaMetadata.MEDIA_TYPE_RADIO_STATION && lyrics != null
         ) {
             Box(Modifier
                 .widthIn(max = 480.dp, min = 256.dp)

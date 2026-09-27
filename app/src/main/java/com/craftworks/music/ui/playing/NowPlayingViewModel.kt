@@ -22,6 +22,7 @@ import coil.request.SuccessResult
 import com.craftworks.music.data.repository.LyricsRepository
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.managers.settings.MiscSettingsManager
 import com.craftworks.music.managers.settings.PlaybackSettingsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -30,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -40,6 +42,7 @@ class NowPlayingViewModel @Inject constructor (
     val lyricsRepository: LyricsRepository,
     val appearanceSettingsManager: AppearanceSettingsManager,
     val playbackSettingsManager: PlaybackSettingsManager,
+    val miscSettingsManager: MiscSettingsManager,
 ) : ViewModel() {
     private val _lyricsOpen = MutableStateFlow(false)
     val lyricsOpen = _lyricsOpen.asStateFlow()
@@ -162,5 +165,11 @@ class NowPlayingViewModel @Inject constructor (
                 )
             }
         } ?: listOf()
+    }
+
+    fun downloadSong(metadata: MediaMetadata) {
+        viewModelScope.launch {
+            songRepository.downloadSong(metadata, miscSettingsManager.downloadTemplateFlow.first())
+        }
     }
 }

@@ -51,6 +51,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -69,13 +70,11 @@ import androidx.media3.ui.compose.state.rememberRepeatButtonState
 import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import com.craftworks.music.R
 import com.craftworks.music.data.repository.LyricsState
-import com.craftworks.music.formatMilliseconds
-import com.craftworks.music.providers.navidrome.downloadNavidromeSong
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.elements.moveClick
+import com.craftworks.music.utils.StringUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
@@ -204,7 +203,7 @@ fun PlaybackProgressSlider(
                 .fillMaxWidth()
         ) {
             Text(
-                text = remember(currentValue) { formatMilliseconds(currentValue.toInt() / 1000) },
+                text = remember(currentValue) { StringUtils.formatSeconds(currentValue.toInt() / 1000) },
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.Start,
                 color = color.copy(alpha = 0.5f),
@@ -214,7 +213,7 @@ fun PlaybackProgressSlider(
                 maxLines = 1
             )
             Text(
-                text = remember(currentDuration) { formatMilliseconds(currentDuration?.toInt()?.div(1000) ?: (currentValue/1000).toInt()) },
+                text = remember(currentDuration) { StringUtils.formatSeconds(currentDuration?.toInt()?.div(1000) ?: (currentValue/1000).toInt()) },
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.End,
                 color = color.copy(alpha = 0.5f),
@@ -299,7 +298,7 @@ fun LyricsButton(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         modifier = // Disable bounce click if no lyrics are present
-        if (lyrics.isNotEmpty() || loading)
+        if (lyrics != null || loading)
             Modifier
                 .bounceClick()
                 .size(size + 12.dp)
@@ -313,9 +312,9 @@ fun LyricsButton(
             contentColor = color.copy(0.5f),
             disabledContentColor = color.copy(0.25f)
         ),
-        enabled = lyrics.isNotEmpty() || loading
+        enabled = lyrics != null || loading
     ) {
-        Crossfade(targetState = isActive && lyrics.isNotEmpty(), label = "Lyrics Icon Crossfade") { open ->
+        Crossfade(targetState = isActive && lyrics != null, label = "Lyrics Icon Crossfade") { open ->
             when (open) {
                 true -> Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.lyrics_active),
@@ -365,18 +364,12 @@ fun PlayQueueButton(
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun DownloadButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Boolean) {
+fun DownloadButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Boolean, onDownload: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
     Button(
-        onClick = {
-            coroutineScope.launch {
-                metadata?.let {
-                    downloadNavidromeSong(context, it)
-                }
-            }
-        },
+        onClick = onDownload,
         enabled = enabled,
         shape = RoundedCornerShape(12.dp),
         modifier = if (enabled)
@@ -396,7 +389,7 @@ fun DownloadButton(color: Color, size: Dp, metadata: MediaMetadata?, enabled: Bo
     ) {
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
-            contentDescription = "Download Song",
+            contentDescription = stringResource(R.string.action_download),
             modifier = Modifier
                 .size(size)
         )

@@ -1,21 +1,29 @@
 package com.craftworks.music.ui.viewmodels
 
 import android.content.Context
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
+import com.craftworks.music.data.model.LibraryType
+import com.craftworks.music.data.model.MediaQuery
+import com.craftworks.music.data.model.PlaylistListSort
+import com.craftworks.music.data.model.SortOrder
+import com.craftworks.music.data.model.getProvider
+import com.craftworks.music.data.model.id
 import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.DataRefreshManager
-import com.craftworks.music.providers.local.localPlaylistImageGenerator
+import com.craftworks.music.managers.settings.AppearanceSettingsManager
+import com.craftworks.music.managers.settings.MiscSettingsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,6 +31,8 @@ import javax.inject.Inject
 class PlaylistScreenViewModel @Inject constructor(
     private val playlistRepository: PlaylistRepository,
     private val songRepository: SongRepository,
+    private val miscSettingsManager: MiscSettingsManager,
+    appearanceSettingsManager: AppearanceSettingsManager
 ) : ViewModel() {
     private val _allPlaylists = MutableStateFlow<List<MediaItem>>(emptyList())
     val allPlaylists: StateFlow<List<MediaItem>> = _allPlaylists.asStateFlow()
@@ -35,6 +45,8 @@ class PlaylistScreenViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    val actionButtons = appearanceSettingsManager.playlistDetailsButtons
 
     init {
         loadPlaylists()
@@ -49,46 +61,39 @@ class PlaylistScreenViewModel @Inject constructor(
     fun loadPlaylists() {
         viewModelScope.launch {
             _isLoading.value = true
-            _allPlaylists.value = playlistRepository.getPlaylists(true)
+            _allPlaylists.value = playlistRepository.getPlaylists(
+                MediaQuery.PlaylistListQuery(
+                    PlaylistListSort.NAME,
+                    SortOrder.ASC,
+                    startIndex = 0
+                )
+            )
             _isLoading.value = false
         }
     }
 
-    fun setCurrentPlaylist(playlist: MediaItem) {
+    fun loadPlaylistDetails(playlistId: String) {
         _selectedPlaylistSongs.value = emptyList<MediaItem>()
-        _selectedPlaylist.value = playlist
+        _selectedPlaylist.value = _allPlaylists.value.first { it.mediaMetadata.id == playlistId}
         fetchPlaylistDetails() // Fetch details when playlist is set
     }
 
     suspend fun updatePlaylistsImages(context: Context) {
         _allPlaylists.value = _allPlaylists.value.map {
-            if (it.mediaMetadata.extras?.getString("navidromeID")
-                    ?.startsWith("Local_") == true && it.mediaMetadata.artworkData == null
-            ) {
-                val songs = playlistRepository.getPlaylistSongs(
-                    it.mediaMetadata.extras?.getString("navidromeID") ?: "", true
+            it.buildUpon()
+                .setMediaMetadata(
+                    it.mediaMetadata.buildUpon()
+                        .setArtworkUri(it.mediaMetadata.getProvider()?.getImageUrl(it.mediaMetadata.id?:"", LibraryType.PLAYLIST)?.toUri())
+                        .build()
                 )
-                it.buildUpon()
-                    .setMediaMetadata(
-                        it.mediaMetadata.buildUpon()
-                            .setArtworkData(
-                                localPlaylistImageGenerator(songs, context),
-                                MediaMetadata.PICTURE_TYPE_OTHER
-                            )
-                            .build()
-                    )
-                    .build()
-            } else {
-                it
-            }
+                .build()
         }
     }
 
     fun fetchPlaylistDetails() {
         if (_selectedPlaylist.value == null) return
 
-        val playlistId = _selectedPlaylist.value?.mediaMetadata?.extras?.getString("navidromeID")
-        if (playlistId == null) return
+        val playlistId = _selectedPlaylist.value?.mediaMetadata?.extras?.getString("id") ?: return
 
         println("Fetching playlist details for playlist ID: $playlistId")
 
@@ -108,26 +113,20 @@ class PlaylistScreenViewModel @Inject constructor(
         }
     }
 
-    fun createPlaylist(
-        name: String,
-        songstoAdd: String,
-        addToNavidrome: Boolean,
-        context: Context
-    ) {
+    fun createPlaylist(name: String, songstoAdd: List<String>, context: Context) {
         viewModelScope.launch {
             _isLoading.value = true
-            playlistRepository.createPlaylist(name, songstoAdd, addToNavidrome)
+            playlistRepository.createPlaylist(name, "", songstoAdd, false)
             DataRefreshManager.notifyDataSourcesChanged()
             _isLoading.value = false
-            updatePlaylistsImages(context)
             loadPlaylists()
         }
     }
 
-    fun addSongToPlaylist(playlistId: String, songId: String) {
+    fun addSongsToPlaylist(playlistId: String, songIds: List<String>) {
         viewModelScope.launch {
             _isLoading.value = true
-            playlistRepository.addSongToPlaylist(playlistId, songId)
+            playlistRepository.addSongsToPlaylist(playlistId, songIds)
             _isLoading.value = false
             loadPlaylists()
         }
@@ -135,20 +134,14 @@ class PlaylistScreenViewModel @Inject constructor(
 
     fun removeSongFromPlaylist(playlistId: String, songId: String) {
         viewModelScope.launch {
-            val index = _selectedPlaylistSongs.value.indexOfFirst {
-                it.mediaMetadata.extras?.getString("navidromeID") == songId
-            }
-
-            if (_selectedPlaylistSongs.value.size == 1 && index == 0) {
+            if (_selectedPlaylistSongs.value.size == 1 && _selectedPlaylistSongs.value.any { it.mediaMetadata.id == songId }) {
                 deletePlaylist(playlistId)
                 return@launch
             }
 
-            playlistRepository.removeSongFromPlaylist(playlistId, index)
+            playlistRepository.removeSongsFromPlaylist(playlistId, listOf(songId))
 
-            _selectedPlaylistSongs.value = _selectedPlaylistSongs.value.filter {
-                it.mediaMetadata.extras?.getString("navidromeID") != songId
-            }
+            _selectedPlaylistSongs.value = _selectedPlaylistSongs.value.filter { it.mediaMetadata.id != songId }
         }
     }
 
@@ -167,7 +160,7 @@ class PlaylistScreenViewModel @Inject constructor(
         rating: Int,
     ) {
         val song = _selectedPlaylistSongs.value.first {
-            it.mediaMetadata.extras?.getString("navidromeID") == songId
+            it.mediaMetadata.id == songId
         }
         val maxStars = (song.mediaMetadata.userRating as? StarRating)?.maxStars ?: 5
 
@@ -183,6 +176,25 @@ class PlaylistScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             songRepository.setSongRating(songId, rating)
+        }
+    }
+
+    fun downloadSong(song: MediaItem) {
+        viewModelScope.launch {
+            songRepository.downloadSong(song.mediaMetadata, miscSettingsManager.downloadTemplateFlow.first())
+        }
+    }
+
+    fun downloadPlaylist(songs: List<MediaItem>, playlistName: String) {
+        viewModelScope.launch {
+            songs.forEachIndexed { index, song ->
+                songRepository.downloadSong(
+                    song.mediaMetadata,
+                    miscSettingsManager.playlistDownloadTemplateFlow.first(),
+                    playlistName,
+                    (index + 1).toString()
+                )
+            }
         }
     }
 }

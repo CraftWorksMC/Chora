@@ -1,30 +1,53 @@
 package com.craftworks.music.data.model
 
-sealed class Screen(val route: String) {
-    data object Home : Screen("home_screen")
-    data object HomeLists : Screen("home_lists")
+import kotlinx.serialization.Serializable
 
-    data object Song : Screen("songs_screen")
-    data object Radio : Screen("radio_screen")
-
-    data object NowPlayingLandscape : Screen("playing_tv_screen")
-    data object Search : Screen("search_tv_screen")
-
-    //Albums
-    data object Albums : Screen("album_screen")
-    data object AlbumDetails : Screen("album_details")
-
-    //Artists
-    data object Artists : Screen("artists_screen")
-    data object ArtistDetails : Screen("artist_details")
-
-    //Playlists
-    data object Playlists : Screen("playlist_screen")
-    data object PlaylistDetails : Screen("playlist_details")
-
-    //Settings
-    data object Setting : Screen("setting_screen")
-    data object S_Appearance : Screen("s_appearance_screen")
-    data object S_Providers : Screen("s_providers_screen")
-    data object S_Playback : Screen("s_playback_screen")
+@Serializable
+sealed interface Screen {
+    @Serializable
+    object MainGraph : Screen
+    @Serializable
+    object Home : Screen
+    @Serializable
+    data class HomeLists(val category: String) : Screen
+    @Serializable
+    object Songs : Screen
+    @Serializable
+    object Radios : Screen
+    @Serializable
+    object NowPlayingLandscape : Screen
+    @Serializable
+    object Search : Screen
+    @Serializable
+    object Albums : Screen
+    @Serializable
+    object AlbumList : Screen
+    @Serializable
+    data class AlbumDetails(val albumId: String, val imageUri: String) : Screen
+    @Serializable
+    object Artists : Screen
+    @Serializable
+    object ArtistsList : Screen
+    @Serializable
+    data class ArtistDetails(val artistId: String, val imageUri: String?) : Screen
+    @Serializable
+    object Playlists : Screen
+    @Serializable
+    object PlaylistList : Screen
+    @Serializable
+    data class PlaylistDetails(val playlistId: String, val imageUri: String) : Screen
+    @Serializable
+    object Settings : Screen
+    @Serializable
+    object SettingsList : Screen
+    @Serializable
+    object S_Appearance : Screen
+    @Serializable
+    object S_Media_Providers : Screen
+    @Serializable
+    object S_Lyrics_Providers : Screen
+    @Serializable
+    object S_Playback : Screen
+    @Serializable
+    object S_Misc : Screen
 }

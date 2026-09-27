@@ -19,5 +19,14 @@ class SongHelper {
                 mediaController?.play()
             }
         }
+        fun enqueue(mediaItems: List<MediaItem>, mediaController: MediaController?) {
+            mediaController?.addMediaItems(mediaItems)
+        }
+        fun playNext(mediaItems: List<MediaItem>, mediaController: MediaController?) {
+            mediaController?.addMediaItems(
+                mediaController.currentMediaItemIndex + 1,
+                mediaItems
+            )
+        }
     }
 }

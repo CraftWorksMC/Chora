@@ -43,17 +43,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media.utils.MediaConstants.METADATA_KEY_IS_EXPLICIT
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
+import androidx.media3.session.MediaController
 import coil.compose.SubcomposeAsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
-import com.craftworks.music.formatMilliseconds
-import com.craftworks.music.providers.navidrome.downloadNavidromeSong
-import com.craftworks.music.ui.elements.dialogs.showAddSongToPlaylistDialog
-import com.craftworks.music.ui.elements.dialogs.songToAddToPlaylist
+import com.craftworks.music.data.model.LibraryType
+import com.craftworks.music.data.model.ProviderFeature
+import com.craftworks.music.data.model.getProvider
+import com.craftworks.music.data.model.id
+import com.craftworks.music.player.SongHelper
+import com.craftworks.music.ui.elements.dialogs.AddToPlaylist
+import com.craftworks.music.ui.elements.dialogs.RatingDialog
+import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
+import com.craftworks.music.utils.StringUtils
 import kotlinx.coroutines.launch
 
 @Composable
@@ -62,11 +70,14 @@ fun HorizontalSongCard(
     modifier: Modifier = Modifier,
     showTrackNumber: Boolean = false,
     onClick: () -> Unit,
-    onAddToQueue: () -> Unit,
-    onSetRating: () -> Unit,
-    extraMenuItems: @Composable (onDismiss: () -> Unit) -> Unit = {}
+    extraMenuItems: @Composable (onDismiss: () -> Unit) -> Unit = {},
+    viewModel: SongsScreenViewModel = hiltViewModel(),
+    mediaController: MediaController?
 ) {
     val context = LocalContext.current
+
+    var showAddSongToPlaylistDialog by remember { mutableStateOf(false) }
+    var showSongRatingDialog by remember { mutableStateOf(false) }
 
     Card(
         onClick = onClick,
@@ -88,8 +99,8 @@ fun HorizontalSongCard(
                     modifier = Modifier
                         .size(32.dp)
                         .padding(8.dp, 0.dp, 0.dp, 0.dp),
-                        //.clip(CircleShape)
-                        //.background(MaterialTheme.colorScheme.primaryContainer),
+                    //.clip(CircleShape)
+                    //.background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -103,12 +114,15 @@ fun HorizontalSongCard(
             else {
                 SubcomposeAsyncImage(
                     model = ImageRequest.Builder(context)
-                        .data(song.mediaMetadata.artworkUri)
+                        .data(song.mediaMetadata.getProvider()?.getImageUrl(
+                            id = song.mediaMetadata.id ?: "",
+                            itemType = LibraryType.SONG,
+                            size = 128
+                        ))
                         .crossfade(true)
-                        .size(64)
-                        .diskCacheKey(
-                            song.mediaMetadata.extras?.getString("navidromeID") ?: song.mediaId
-                        )
+                        .diskCacheKey(song.mediaMetadata.id)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .placeholderMemoryCacheKey(song.mediaMetadata.id)
                         .build(),
                     contentDescription = "Album Image",
                     contentScale = ContentScale.FillHeight,
@@ -170,7 +184,7 @@ fun HorizontalSongCard(
             }
             val formattedDuration by remember(song.mediaMetadata.durationMs) {
                 derivedStateOf {
-                    formatMilliseconds((song.mediaMetadata.durationMs?.div(1000))?.toInt() ?: 0)
+                    StringUtils.formatSeconds((song.mediaMetadata.durationMs?.div(1000))?.toInt() ?: 0)
                 }
             }
             Text(
@@ -211,10 +225,10 @@ fun HorizontalSongCard(
                 ) {
                     DropdownMenuItem(
                         text = {
-                            Text(stringResource(R.string.Dialog_Set_Rating))
+                            Text(stringResource(R.string.action_set_rating))
                         },
                         onClick = {
-                            onSetRating()
+                            showSongRatingDialog = true
                             expanded = false
                         },
                         leadingIcon = {
@@ -226,10 +240,10 @@ fun HorizontalSongCard(
                     )
                     DropdownMenuItem(
                         text = {
-                            Text(stringResource(R.string.Action_Add_To_Queue))
+                            Text(stringResource(R.string.action_add_to_queue))
                         },
                         onClick = {
-                            onAddToQueue()
+                            SongHelper.enqueue(listOf(song), mediaController)
                             expanded = false
                         },
                         leadingIcon = {
@@ -241,55 +255,85 @@ fun HorizontalSongCard(
                     )
                     DropdownMenuItem(
                         text = {
-                            Text(
-                                stringResource(R.string.Dialog_Add_To_Playlist).replace(
-                                    "/ ",
-                                    ""
+                            Text(stringResource(R.string.action_play_next))
+                        },
+                        onClick = {
+                            SongHelper.playNext(listOf(song), mediaController)
+                            expanded = false
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.play_next_24px),
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    if (song.mediaMetadata.getProvider()?.featureFlags?.contains(ProviderFeature.PLAYLISTS) ?: false) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(stringResource(R.string.action_add_to_playlist))
+                            },
+                            onClick = {
+                                println("Add Song To Playlist")
+                                showAddSongToPlaylistDialog = true
+                                expanded = false
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.Add,
+                                    contentDescription = null
                                 )
-                            )
-                        },
-                        onClick = {
-                            println("Add Song To Playlist")
-                            showAddSongToPlaylistDialog.value = true
-                            songToAddToPlaylist.value = song
-                            expanded = false
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Rounded.Add,
-                                contentDescription = null
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        enabled = !song.mediaMetadata.extras?.getString("navidromeID")!!.startsWith("Local_"),
-                        text = {
-                            Text(stringResource(R.string.Action_Download))
-                        },
-                        onClick = {
-                            coroutineScope.launch {
-                                downloadNavidromeSong(context, song.mediaMetadata)
                             }
-                            expanded = false
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
-                                contentDescription = null
-                            )
-                        }
-                    )
+                        )
+                    }
+                    if (song.mediaMetadata.getProvider()?.featureFlags?.contains(ProviderFeature.DOWNLOADS) ?: false) {
+                        DropdownMenuItem(
+                            enabled = (song.mediaMetadata.getProvider()?.featureFlags?.contains(
+                                ProviderFeature.DOWNLOADS)?:false),
+                            text = {
+                                Text(stringResource(R.string.action_download))
+                            },
+                            onClick = {
+                                coroutineScope.launch {
+                                    viewModel.downloadSong(song)
+                                }
+                                expanded = false
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(R.drawable.rounded_download_24),
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
 
                     extraMenuItems { expanded = false }
                 }
             }
         }
     }
+
+    if (showAddSongToPlaylistDialog) {
+        AddToPlaylist(
+            onDismissRequest = {showAddSongToPlaylistDialog = false},
+            mediaToAddToPlaylist = listOf(song)
+        )
+    }
+    if (showSongRatingDialog) {
+        RatingDialog(
+            currentRating = (song.mediaMetadata.userRating as? StarRating)?.starRating?.toInt() ?: 0,
+            onDismiss = { showSongRatingDialog = false },
+            onSetRating = { rating ->
+                viewModel.setSongRating(song.mediaMetadata.id ?: "", rating)
+            }
+        )
+    }
 }
 
 @Preview(showSystemUi = false, showBackground = true)
 @Composable
-fun PReviewHorizontalSongCard() {
+fun PreviewHorizontalSongCard() {
     HorizontalSongCard(
         song = MediaItem.Builder()
             .setMediaMetadata(
@@ -298,7 +342,6 @@ fun PReviewHorizontalSongCard() {
                     .build()
             ).build(),
         onClick = {},
-        onAddToQueue = {},
-        onSetRating = {}
+        mediaController = null
     )
 }

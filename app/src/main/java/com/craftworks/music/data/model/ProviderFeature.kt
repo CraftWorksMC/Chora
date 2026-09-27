@@ -1,0 +1,5 @@
+package com.craftworks.music.data.model
+
+enum class ProviderFeature {
+    REPORT_PLAYBACK, FAVORITES, DOWNLOADS, SELECT_MULTIPLE_MUSIC_FOLDERS, OFFLINE_PLAYBACK, INTERNET_RADIO, PLAYLISTS, RATINGS
+}

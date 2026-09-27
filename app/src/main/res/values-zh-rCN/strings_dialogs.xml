@@ -1,69 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Now-Playing Background Dialog -->
-    <string name="Dialog_Background_Type">背景样式</string>
-    <string name="Background_Plain">纯色</string>
-    <string name="Background_Blur">模糊</string>
-    <string name="Background_Anim">动画</string>
-    <string name="Background_Anim_Simple">简易动画</string>
-    <!-- App Theme Dialog -->
-    <string name="Dialog_Theme">主题</string>
-    <string name="Theme_Dark">深色</string>
-    <string name="Theme_Light">浅色</string>
-    <string name="Theme_System">系统设置</string>
-    <!-- Provider Dialog -->
-    <string name="Dialog_Media_Source">媒体源</string>
-    <string name="No_Providers_Splash">您还没有添加媒体源。现在添加一个来开始收听吧！</string>
-    <string name="No_Providers_Done">一切就绪！现在您可以开始收听了！</string>
-    <string name="Source_Local">本地目录</string>
-    <!-- Local -->
-    <string name="Label_Local_Directory">目录：</string>
-    <!-- Navidrome -->
-    <string name="Label_Navidrome_URL">Navidrome 地址：</string>
-    <string name="Label_Navidrome_Username">用户名：</string>
-    <string name="Label_Navidrome_Password">密码：</string>
-    <string name="Label_Allow_Self_Signed_Certs">允许自签名证书</string>
-    <!-- LRCLIB Dialog -->
-    <string name="Dialog_LRCLIB_Url">LRCLIB 地址</string>
-    <!-- Transcoding -->
-    <string name="Dialog_Transcoding">转码</string>
-    <string name="Option_No_Transcoding">不转码</string>
-    <!-- Radios -->
-    <string name="Dialog_Add_Radio">添加网络电台</string>
-    <string name="Dialog_Modify_Radio">修改 </string>
-    <string name="Label_Radio_Name">电台名称：</string>
-    <string name="Label_Radio_URL">电台地址：</string>
-    <string name="Label_Radio_Homepage">电台主页地址：</string>
-    <string name="Label_Radio_Add_To_Navidrome">添加至 Navidrome</string>
-    <!-- Playlists -->
-    <string name="Dialog_New_Playlist">新歌单</string>
-    <string name="Dialog_Delete_Playlist">删除歌单</string>
-    <string name="Label_Confirm_Delete_Playlist">您确定要删除该歌单吗？</string>
-    <string name="Dialog_Add_To_Playlist">添加至歌单</string>
-    <string name="Label_Playlist_Name">歌单名称：</string>
-    <!-- Albums -->
-    <string name="Label_MoreSongsFrom">More Songs From</string>
-    <!-- Artists -->
-    <string name="Label_NoDescription">No Description Available.</string>
-    <!-- Sorting -->
-    <string name="Label_Sorting">排序方式</string>
-    <string name="Label_Sort_Alphabetical">字母序</string>
-    <string name="Label_Sort_Starred">收藏</string>
-    <!-- Connection Errors -->
-    <string name="Navidrome_Error">无法连接 Navidrome 服务器。</string>
-    <string name="Navidrome_Sync">加载中…</string>
-    <!-- Downloading -->
-    <string name="Notification_Download_Name">Download Notifications</string>
-    <string name="Notification_Download_Desc">Notifications for download status</string>
-    <string name="Notification_Download_Progress">Downloading</string>
-    <string name="Notification_Download_Success">downloaded successfully!</string>
-    <string name="Notification_Download_Failure">Uh oh, something went wrong while downloading</string>
-    <!-- Now Playing Title Alignment -->
-    <string name="Setting_NowPlayingTitleAlignment">正在播放标题的位置</string>
-    <string name="Setting_NowPlayingLyricsAlignment">Now Playing Lyrics Alignment</string>
-    <string name="NowPlayingTitleAlignment_Left">左对齐</string>
-    <string name="NowPlayingTitleAlignment_Center">居中对齐</string>
-    <string name="NowPlayingTitleAlignment_Right">右对齐</string>
-    <!-- Now Playing Title Alignment -->
-    <string name="Dialog_SetSleepTimer">Set Sleep Timer</string>
+    // Onboarding
+    <string name="onboarding_no_provider_splash">您还没有添加媒体源。现在添加一个来开始收听吧！</string>
+    <string name="onboarding_all_done">一切就绪！现在您可以开始收听了！</string>
+
+    // Radios
+    <string name="radio_add_internet_radio">添加网络电台</string>
+    <string name="radio_modify_internet_radio">修改 %s</string>
+        <string name="label_radio_name">电台名称</string>
+        <string name="label_radio_url">电台地址</string>
+        <string name="label_radio_homepage">将 &lt;i&gt;%s&lt;/i&gt; 添加到播放列表中</string>
+
+    // Playlists
+    <string name="button_new_playlist">新歌单</string>
+    <string name="playlist_delete_playlist">删除歌单</string>
+        <string name="delete_playlist_are_you_sure">您确定要删除该歌单吗？</string>
+    <string name="add_to_playlist_title">添加至歌单</string>
+        <string name="new_playlist_playlist_name">歌单名称</string>
+
+    // Sorting
+    <string name="button_sort_by">排序方式</string>
+    <string name="sort_by_favorite">收藏</string>
+
+
+    // Downloading
+
+    // Set Sleep Timer
 </resources>

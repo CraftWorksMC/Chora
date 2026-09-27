@@ -12,7 +12,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +30,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.id
 import com.craftworks.music.ui.elements.PlaylistGrid
 import com.craftworks.music.ui.elements.RippleEffect
 import com.craftworks.music.ui.elements.dialogs.DeletePlaylist
@@ -66,10 +66,6 @@ fun PlaylistScreen(
         showRipple++
     }
 
-    LaunchedEffect(playlists) {
-        viewModel.updatePlaylistsImages(context)
-    }
-
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     PullToRefreshBox(
@@ -81,7 +77,7 @@ fun PlaylistScreen(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 TopAppBar(
-                    title = { Text(text = stringResource(R.string.playlists),) },
+                    title = { Text(text = stringResource(R.string.nav_playlists),) },
                     scrollBehavior = scrollBehavior
                 )
             },
@@ -93,8 +89,7 @@ fun PlaylistScreen(
                     )
             ) {
                 PlaylistGrid(playlists, onPlaylistSelected = { playlist ->
-                    viewModel.setCurrentPlaylist(playlist)
-                    navHostController.navigate(Screen.PlaylistDetails.route) {
+                    navHostController.navigate(Screen.PlaylistDetails(playlist.mediaMetadata.id?:"", playlist.mediaMetadata.artworkUri.toString())) {
                         launchSingleTop = true
                     }
                 })

@@ -40,7 +40,9 @@ import androidx.compose.ui.zIndex
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import coil.compose.SubcomposeAsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.craftworks.music.data.model.id
 import com.craftworks.music.player.ChoraMediaLibraryService
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -66,18 +68,18 @@ fun NowPlayingMiniPlayer(
         .background(MaterialTheme.colorScheme.surfaceContainer)
         .height(72.dp)
         .fillMaxWidth()
-        .padding(horizontal = 12.dp)
         .clickable {
             onClick.invoke()
         }
+        .padding(horizontal = 12.dp)
     ) {
         // Album Image
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(metadata?.artworkUri)
-                .diskCacheKey(
-                    metadata?.extras?.getString("navidromeID")
-                )
+                .diskCacheKey(metadata?.id)
+                .diskCachePolicy(CachePolicy.READ_ONLY)
+                .placeholderMemoryCacheKey(metadata?.id)
                 .crossfade(true)
                 .build(),
             contentDescription = "Album Cover",

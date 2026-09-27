@@ -65,12 +65,14 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.formatMilliseconds
+import com.craftworks.music.data.model.favorite
+import com.craftworks.music.data.model.id
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
 import com.craftworks.music.ui.elements.tv.TvHorizontalSongCard
 import com.craftworks.music.ui.viewmodels.AlbumDetailsViewModel
+import com.craftworks.music.utils.StringUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -126,8 +128,7 @@ fun TvAlbumDetails(
 
         var isStarred by remember {
             mutableStateOf(
-                currentAlbum[0].mediaMetadata.extras
-                    ?.getString("starred")?.isNotEmpty() ?: false
+                currentAlbum[0].mediaMetadata.favorite ?: false
             )
         }
 
@@ -183,7 +184,7 @@ fun TvAlbumDetails(
                     Text(
                         text = (currentAlbum[0].mediaMetadata.artist?.toString() ?: "") +
                                 " · " +
-                                formatMilliseconds(
+                                StringUtils.formatSeconds(
                                     currentAlbum[0].mediaMetadata.durationMs
                                         ?.div(1000)?.toInt() ?: 0
                                 ),
@@ -216,7 +217,7 @@ fun TvAlbumDetails(
                                     0,
                                     mediaController
                                 )
-                                navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                                navHostController.navigate(Screen.NowPlayingLandscape) {
                                     launchSingleTop = true
                                 }
                             }
@@ -232,7 +233,7 @@ fun TvAlbumDetails(
                             modifier = Modifier.size(ButtonDefaults.IconSize),
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(stringResource(R.string.Action_Play))
+                        Text(stringResource(R.string.action_play))
                     }
 
                     OutlinedButton(
@@ -245,7 +246,7 @@ fun TvAlbumDetails(
                                     random,
                                     mediaController
                                 )
-                                navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                                navHostController.navigate(Screen.NowPlayingLandscape) {
                                     launchSingleTop = true
                                 }
                             }
@@ -259,7 +260,7 @@ fun TvAlbumDetails(
                             modifier = Modifier.size(ButtonDefaults.IconSize),
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(stringResource(R.string.Action_Shuffle))
+                        Text(stringResource(R.string.action_shuffle))
                     }
                 }
             }
@@ -280,8 +281,7 @@ fun TvAlbumDetails(
                         item {
                             Column {
                                 Text(
-                                    text = stringResource(R.string.Album_Disc_Number) +
-                                            discNumber.toString(),
+                                    text = stringResource(R.string.album_details_disc, discNumber.toString()),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface.copy(0.5f),
                                     modifier = Modifier
@@ -301,7 +301,7 @@ fun TvAlbumDetails(
                                 onClick = {
                                     coroutineScope.launch {
                                         SongHelper.play(songs, songs.indexOf(song), mediaController)
-                                        navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                                        navHostController.navigate(Screen.NowPlayingLandscape) {
                                             launchSingleTop = true
                                         }
                                     }
@@ -321,7 +321,7 @@ fun TvAlbumDetails(
                             onClick = {
                                 coroutineScope.launch {
                                     SongHelper.play(songs, songs.indexOf(song), mediaController)
-                                    navHostController.navigate(Screen.NowPlayingLandscape.route) {
+                                    navHostController.navigate(Screen.NowPlayingLandscape) {
                                         launchSingleTop = true
                                     }
                                 }
@@ -342,9 +342,12 @@ fun TvAlbumDetails(
             song = selectedSong,
             onSetRating = { rating ->
                 viewModel.setSongRating(
-                    songId = selectedSong.mediaMetadata.extras?.getString("navidromeID") ?: "",
+                    songId = selectedSong.mediaMetadata.id ?: "",
                     rating = rating
                 )
+            },
+            onDownload = {
+                viewModel.downloadSong(it)
             },
             setShowDialog = { showSongDialog = it }
         )

@@ -1,8 +1,90 @@
 package com.craftworks.music.data.model
 
-enum class SortOrder(val key: String) {
-    ALPHABETICAL("alphabeticalByName"),
-    NEWEST("newest"),
-    RECENT("recent"),
-    FREQUENT("frequent")
+enum class SortOrder {
+    ASC,
+    DESC;
+
+    fun invert(): SortOrder = if (this == ASC) DESC else ASC
+}
+enum class AlbumListSort {
+    ALBUM_ARTIST,
+    ARTIST,
+    COMMUNITY_RATING,
+    CRITIC_RATING,
+    DURATION,
+    EXPLICIT_STATUS,
+    FAVORITE,
+    ID,
+    NAME,
+    PLAY_COUNT,
+    RANDOM,
+    RATING,
+    RECENTLY_ADDED,
+    RECENTLY_PLAYED,
+    RELEASE_DATE,
+    SONG_COUNT,
+    SORT_NAME,
+    YEAR
+}
+enum class AlbumArtistListSort {
+    ALBUM,
+    ALBUM_COUNT,
+    DURATION,
+    FAVORITE,
+    NAME,
+    PLAY_COUNT,
+    RANDOM,
+    RATING,
+    RECENTLY_ADDED,
+    RELEASE_DATE,
+    SONG_COUNT
+}
+enum class ArtistListSort {
+    ALBUM,
+    ALBUM_COUNT,
+    DURATION,
+    FAVORITE,
+    NAME,
+    PLAY_COUNT,
+    RANDOM,
+    RATING,
+    RECENTLY_ADDED,
+    RELEASE_DATE,
+    SONG_COUNT
+}
+enum class SongListSort {
+    ALBUM,
+    ALBUM_ARTIST,
+    ARTIST,
+    BPM,
+    CHANNELS,
+    COMMENT,
+    DURATION,
+    EXPLICIT_STATUS,
+    FAVORITE,
+    GENRE,
+    ID,
+    NAME,
+    PLAY_COUNT,
+    RANDOM,
+    RATING,
+    RECENTLY_ADDED,
+    RECENTLY_PLAYED,
+    RELEASE_DATE,
+    SORT_NAME,
+    YEAR
+}
+enum class GenreListSort {
+    NAME,
+}
+enum class PlaylistListSort {
+    DURATION,
+    NAME,
+    OWNER,
+    PUBLIC,
+    SONG_COUNT,
+    UPDATED_AT
+}
+enum class UserListSort {
+    NAME,
 }

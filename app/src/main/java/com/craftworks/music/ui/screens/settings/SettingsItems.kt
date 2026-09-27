@@ -51,7 +51,7 @@ fun SettingsSwitch(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .clip(RoundedCornerShape(2.dp))
+            .clip(RoundedCornerShape(4.dp))
             .background(MaterialTheme.colorScheme.surfaceBright)
             .selectable(
                 selected = selected,
@@ -76,15 +76,16 @@ fun SettingsSwitch(
             modifier = Modifier
                 .padding(vertical = 20.dp)
                 .weight(1f),
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Start
         )
+
         Switch(
             checked = selected,
             onCheckedChange = { toggleEvent() },
             enabled = enabled,
-            modifier = Modifier.padding(end = 20.dp)
+            modifier = Modifier.padding(start = 4.dp, end = 20.dp)
         )
     }
 }
@@ -100,6 +101,7 @@ fun SettingsDialogButton(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
+            .clip(RoundedCornerShape(4.dp))
             .background(
                 if (enabled == true)
                     MaterialTheme.colorScheme.surfaceBright
@@ -111,7 +113,6 @@ fun SettingsDialogButton(
                 toggleEvent()
             }
             .focusProperties { left = FocusRequester.Cancel }
-            .clip(androidx.compose.foundation.shape.RoundedCornerShape(2.dp))
     ) {
         Icon(
             imageVector = settingsIcon,
@@ -125,12 +126,14 @@ fun SettingsDialogButton(
                 .size(32.dp)
         )
         Column(
-            modifier = Modifier.padding(vertical = 10.dp)
+            modifier = Modifier.padding(top = 10.dp, bottom = 10.dp, end = 8.dp)
         ) {
             Text(
                 text = settingsName,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Normal,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 color = if (enabled == true)
                     MaterialTheme.colorScheme.onBackground
                 else
@@ -145,6 +148,8 @@ fun SettingsDialogButton(
                     else
                         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 fontWeight = FontWeight.Normal,
             )
         }
@@ -158,7 +163,7 @@ fun preview() {
         Modifier.background(MaterialTheme.colorScheme.surfaceContainer).fillMaxSize()
     ) {
         SettingsDialogButton(
-            settingsName = stringResource(R.string.Setting_Transcoding_Format),
+            settingsName = stringResource(R.string.playback_transcoding_format),
             settingsSubtitle = "transcodingFormat",
             settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
             enabled = true,
@@ -166,7 +171,7 @@ fun preview() {
         )
 
         SettingsDialogButton(
-            settingsName = stringResource(R.string.Setting_Transcoding_Format),
+            settingsName = stringResource(R.string.playback_transcoding_format),
             settingsSubtitle = "transcodingFormat",
             settingsIcon = ImageVector.vectorResource(R.drawable.s_p_transcoding),
             enabled = false,
@@ -196,7 +201,7 @@ fun SettingsSlider(
             fontWeight = FontWeight.Normal,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 6.dp).padding(top = 10.dp),
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Start
         )

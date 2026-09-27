@@ -1,9 +1,6 @@
 package com.craftworks.music
 
-import android.app.Activity
-import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
@@ -65,7 +62,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
@@ -77,11 +73,7 @@ import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
@@ -103,6 +95,9 @@ import androidx.media3.common.util.NotificationUtil.IMPORTANCE_LOW
 import androidx.media3.common.util.NotificationUtil.createNotificationChannel
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -111,12 +106,11 @@ import androidx.tv.material3.NavigationDrawer
 import androidx.tv.material3.NavigationDrawerItem
 import androidx.tv.material3.rememberDrawerState
 import com.craftworks.music.data.BottomNavItem
+import com.craftworks.music.data.model.ProviderFeature
 import com.craftworks.music.data.model.Screen
-import com.craftworks.music.managers.LocalProviderManager
-import com.craftworks.music.managers.NavidromeManager
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppTheme
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
-import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.dialogs.tv.OnboardingDialog
 import com.craftworks.music.ui.playing.NowPlayingContent
@@ -129,7 +123,6 @@ import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollCon
 import com.gigamole.composefadingedges.verticalFadingEdges
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -141,9 +134,6 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val serviceIntent = Intent(applicationContext, ChoraMediaLibraryService::class.java)
-        this@MainActivity.startService(serviceIntent)
 
         enableEdgeToEdge()
 
@@ -244,7 +234,8 @@ class MainActivity : ComponentActivity() {
                             AnimatedBottomNavBar(navController, scaffoldState)
                         },
                         contentColor = MaterialTheme.colorScheme.onBackground,
-                        containerColor = Color.Transparent
+                        containerColor = Color.Transparent,
+                        modifier = Modifier.fillMaxSize()
                     ) { paddingValues ->
                         if (LocalWindowInfo.current.containerSize.width < dpToPx(640)) {
                             BottomSheetScaffold(
@@ -272,7 +263,13 @@ class MainActivity : ComponentActivity() {
                                         println("Recomposing sheetcontent")
                                         NowPlayingContent(
                                             mediaController = mediaController,
-                                            metadata = metadata
+                                            metadata = metadata,
+                                            navController,
+                                            onHide = {
+                                                coroutineScope.launch {
+                                                    scaffoldState.bottomSheetState.partialExpand()
+                                                }
+                                            }
                                         )
                                     }
 
@@ -334,17 +331,14 @@ class MainActivity : ComponentActivity() {
                 var showNoProvidersDialog by rememberSaveable { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
-                    val folders = LocalProviderManager.getAllFolders()
-                    val servers = NavidromeManager.getAllServers()
-
-                    showNoProvidersDialog = !(folders.isEmpty() && servers.isEmpty())
+                    showNoProvidersDialog = MediaProviderManager.allProviders.value.isEmpty()
                 }
 
-                if (!showNoProvidersDialog) {
+                if (showNoProvidersDialog) {
                     if (isTv) {
-                        OnboardingDialog { showNoProvidersDialog = true }
+                        OnboardingDialog { showNoProvidersDialog = it }
                     } else {
-                        com.craftworks.music.ui.elements.dialogs.OnboardingDialog() { showNoProvidersDialog = true }
+                        com.craftworks.music.ui.elements.dialogs.OnboardingDialog() { showNoProvidersDialog = it }
 //                        NoMediaProvidersDialog(
 //                            setShowDialog = { showNoProvidersDialog = true },
 //                            navController
@@ -391,31 +385,10 @@ class MainActivity : ComponentActivity() {
         createNotificationChannel(
             this,
             "download_channel",
-            R.string.Notification_Download_Name,
-            R.string.Notification_Download_Desc,
+            R.string.notification_download_name,
+            R.string.notification_download_desc,
             IMPORTANCE_LOW
         )
-
-        // SAVE SETTINGS ON APP EXIT
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
-                override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) { }
-                override fun onActivityStarted(activity: Activity) { }
-                override fun onActivityResumed(activity: Activity) { }
-                override fun onActivityPaused(activity: Activity) { }
-                override fun onActivityPreStopped(activity: Activity) { }
-                override fun onActivityStopped(activity: Activity) { }
-                override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) { }
-
-                @androidx.annotation.OptIn(UnstableApi::class)
-                override fun onActivityDestroyed(activity: Activity) {
-                    ChoraMediaLibraryService.getInstance()?.saveState()
-
-                    this@MainActivity.stopService(serviceIntent)
-                    println("Destroyed, Goodbye :(")
-                }
-            })
-        }
     }
 }
 
@@ -436,22 +409,22 @@ fun TvSideNavigation(
     val orderedNavItems = AppearanceSettingsManager(context).bottomNavItemsFlow.collectAsState(
         initial = listOf(
             BottomNavItem(
-                "Home", R.drawable.rounded_home_24, "home_screen"
+                "Home", R.drawable.rounded_home_24, Screen.Home
             ),
             BottomNavItem(
-                stringResource((R.string.Albums)), R.drawable.rounded_library_music_24, "album_screen"
+                stringResource((R.string.nav_albums)), R.drawable.rounded_library_music_24, Screen.Albums
             ),
             BottomNavItem(
-                stringResource((R.string.songs)), R.drawable.round_music_note_24, "songs_screen", false
+                stringResource((R.string.nav_songs)), R.drawable.round_music_note_24, Screen.Songs, false
             ),
             BottomNavItem(
-                stringResource((R.string.Artists)), R.drawable.rounded_artist_24, "artists_screen"
+                stringResource((R.string.nav_artists)), R.drawable.rounded_artist_24, Screen.Artists
             ),
             BottomNavItem(
-                stringResource((R.string.radios)), R.drawable.rounded_radio, "radio_screen"
+                stringResource((R.string.nav_radios)), R.drawable.rounded_radio, Screen.Radios
             ),
             BottomNavItem(
-                stringResource((R.string.playlists)), R.drawable.placeholder, "playlist_screen"
+                stringResource((R.string.nav_playlists)), R.drawable.placeholder, Screen.Playlists
             ),
         )
     ).value
@@ -469,11 +442,11 @@ fun TvSideNavigation(
                             when (currentRoute) {
                                 Screen.Home -> home
                                 Screen.Albums -> albums
-                                Screen.Song -> songs
+                                Screen.Songs -> songs
                                 Screen.Artists -> artists
-                                Screen.Radio -> radios
+                                Screen.Radios -> radios
                                 Screen.Playlists -> playlists
-                                Screen.Setting -> settings
+                                Screen.Settings -> settings
                                 else -> FocusRequester.Default
                             }
                         }
@@ -483,15 +456,15 @@ fun TvSideNavigation(
             ) {
                 NavigationDrawerItem(
                     modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
-                    selected = Screen.Search.route == backStackEntry?.destination?.route,
+                    selected = backStackEntry?.destination.isRouteSelected(Screen.Search),
                     onClick = {
-                        if (Screen.Search.route != backStackEntry?.destination?.route) {
-                            navController.navigate(Screen.Search.route) {
+                        if (!backStackEntry?.destination.isRouteSelected(Screen.Search)) {
+                            navController.navigate(Screen.Search) {
                                 launchSingleTop = true
                                 restoreState = true
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
-                                }
+//                                popUpTo(navController.graph.startDestinationId) {
+//                                    saveState = true
+//                                }
                             }
                         }
                     },
@@ -503,34 +476,25 @@ fun TvSideNavigation(
                         )
                     }
                 ) {
-                    androidx.tv.material3.Text(text = "Search")
+                    androidx.tv.material3.Text(text = stringResource(R.string.nav_search))
                 }
 
                 orderedNavItems.forEach { item ->
                     if (!item.enabled) return@forEach
 
-                    val isSelected = item.screenRoute == backStackEntry?.destination?.route
-                    val icon = when (item.screenRoute) {
-                        "home_screen"    -> R.drawable.rounded_home_24
-                        "album_screen"   -> R.drawable.rounded_library_music_24
-                        "songs_screen"   -> R.drawable.round_music_note_24
-                        "artists_screen" -> R.drawable.rounded_artist_24
-                        "radio_screen"   -> R.drawable.rounded_radio
-                        "playlist_screen"-> R.drawable.placeholder
-                        else             -> R.drawable.placeholder
-                    }
+                    val isSelected = backStackEntry?.destination.isRouteSelected(item.screenRoute)
                     NavigationDrawerItem(
                         modifier = Modifier
                             .padding(vertical = 4.dp, horizontal = 8.dp)
                             .focusRequester(
                                 when (item.screenRoute) {
-                                    Screen.Home.route -> home
-                                    Screen.Albums.route -> albums
-                                    Screen.Song.route -> songs
-                                    Screen.Artists.route -> artists
-                                    Screen.Radio.route -> radios
-                                    Screen.Playlists.route -> playlists
-                                    Screen.Setting.route -> settings
+                                    Screen.Home -> home
+                                    Screen.Albums -> albums
+                                    Screen.Songs -> songs
+                                    Screen.Artists -> artists
+                                    Screen.Radios -> radios
+                                    Screen.Playlists -> playlists
+                                    Screen.Settings -> settings
                                     else -> FocusRequester.Default
                                 }
                             ),
@@ -540,15 +504,15 @@ fun TvSideNavigation(
                                 navController.navigate(item.screenRoute) {
                                     launchSingleTop = true
                                     restoreState = true
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
+//                                    popUpTo(navController.graph.startDestinationId) {
+//                                        saveState = true
+//                                    }
                                 }
                             }
                         },
                         leadingContent = {
                             androidx.tv.material3.Icon(
-                                imageVector = ImageVector.vectorResource(icon),
+                                imageVector = ImageVector.vectorResource(item.icon),
                                 contentDescription = item.title,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -559,7 +523,7 @@ fun TvSideNavigation(
                 }
 
                 val isPlayingSelected =
-                    Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route
+                    backStackEntry?.destination.isRouteSelected(Screen.NowPlayingLandscape)
 
                 var isPlayingVisible by remember { mutableStateOf(mediaController?.currentMediaItem != null) }
                 LaunchedEffect(mediaController?.mediaMetadata) {
@@ -572,12 +536,12 @@ fun TvSideNavigation(
                         selected = isPlayingSelected,
                         onClick = {
                             if (!isPlayingSelected) {
-                                navController.navigate(Screen.NowPlayingLandscape.route) {
+                                navController.navigate(Screen.NowPlayingLandscape) {
                                     launchSingleTop = true
                                     restoreState = true
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
+//                                    popUpTo(navController.graph.startDestinationId) {
+//                                        saveState = true
+//                                    }
                                 }
                             }
                         },
@@ -589,7 +553,7 @@ fun TvSideNavigation(
                             )
                         }
                     ) {
-                        androidx.tv.material3.Text(text = "Playing")
+                        androidx.tv.material3.Text(text = stringResource(R.string.nav_playing))
                     }
                 }
 
@@ -601,15 +565,15 @@ fun TvSideNavigation(
                 ) {
                     NavigationDrawerItem(
                         modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
-                        selected = Screen.Setting.route == backStackEntry?.destination?.route,
+                        selected = backStackEntry?.destination.isRouteSelected(Screen.Settings),
                         onClick = {
-                            if (Screen.Setting.route != backStackEntry?.destination?.route)
-                                navController.navigate(Screen.Setting.route) {
+                            if (!backStackEntry?.destination.isRouteSelected(Screen.Settings))
+                                navController.navigate(Screen.Settings) {
                                     launchSingleTop = true
                                     restoreState = true
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
+//                                    popUpTo(navController.graph.startDestinationId) {
+//                                        saveState = true
+//                                    }
                                 }
                         },
                         leadingContent = {
@@ -620,7 +584,7 @@ fun TvSideNavigation(
                             )
                         }
                     ) {
-                        androidx.tv.material3.Text(text = stringResource(R.string.settings))
+                        androidx.tv.material3.Text(text = stringResource(R.string.home_settings))
                     }
                     /*
                     NavigationDrawerItem(
@@ -668,24 +632,30 @@ fun AnimatedBottomNavBar(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
 
     val orderedNavItems = AppearanceSettingsManager(context).bottomNavItemsFlow.collectAsState(
         initial = listOf(
             BottomNavItem(
-                "Home", R.drawable.rounded_home_24, "home_screen"
+                stringResource(R.string.nav_home), R.drawable.rounded_home_24, Screen.Home
             ), BottomNavItem(
-                stringResource(R.string.Albums), R.drawable.rounded_library_music_24, "album_screen"
+                stringResource(R.string.nav_albums), R.drawable.rounded_library_music_24, Screen.Albums
             ), BottomNavItem(
-                stringResource(R.string.songs), R.drawable.round_music_note_24, "songs_screen"
+                stringResource(R.string.nav_songs), R.drawable.round_music_note_24, Screen.Songs
             ), BottomNavItem(
-                stringResource(R.string.Artists), R.drawable.rounded_artist_24, "artists_screen"
+                stringResource(R.string.nav_artists), R.drawable.rounded_artist_24, Screen.Artists
             ), BottomNavItem(
-                stringResource(R.string.radios), R.drawable.rounded_radio, "radio_screen"
+                stringResource(R.string.nav_radios), R.drawable.rounded_radio, Screen.Radios
             ), BottomNavItem(
-                stringResource(R.string.playlists), R.drawable.placeholder, "playlist_screen"
+                stringResource(R.string.nav_playlists), R.drawable.placeholder, Screen.Playlists
             )
         )
     ).value
+
+    orderedNavItems.first {it.screenRoute == Screen.Radios}.enabled =
+        currentProvider?.featureFlags?.contains(ProviderFeature.INTERNET_RADIO) ?: false
+    orderedNavItems.first {it.screenRoute == Screen.Playlists}.enabled =
+        currentProvider?.featureFlags?.contains(ProviderFeature.PLAYLISTS) ?: false
 
     if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
         val expanded by remember { derivedStateOf { scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded } }
@@ -702,19 +672,10 @@ fun AnimatedBottomNavBar(
             orderedNavItems.forEachIndexed { _, item ->
                 if (!item.enabled) return@forEachIndexed
 
-                val icon = when (item.screenRoute) {
-                    "home_screen"    -> R.drawable.rounded_home_24
-                    "album_screen"   -> R.drawable.rounded_library_music_24
-                    "songs_screen"   -> R.drawable.round_music_note_24
-                    "artists_screen" -> R.drawable.rounded_artist_24
-                    "radio_screen"   -> R.drawable.rounded_radio
-                    "playlist_screen"-> R.drawable.placeholder
-                    else             -> R.drawable.placeholder
-                }
                 NavigationBarItem(
-                    selected = item.screenRoute == backStackEntry?.destination?.route,
+                    selected = backStackEntry?.destination.isRouteSelected(item.screenRoute),
                     onClick = {
-                        if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationBarItem
+                        if (backStackEntry?.destination.isRouteSelected(item.screenRoute)) return@NavigationBarItem
                         navController.navigate(item.screenRoute) {
                             launchSingleTop = true
                         }
@@ -725,27 +686,27 @@ fun AnimatedBottomNavBar(
                     label = { Text(text = item.title) },
                     alwaysShowLabel = false,
                     icon = {
-                        Icon(ImageVector.vectorResource(icon), contentDescription = null)
+                        Icon(ImageVector.vectorResource(item.icon), contentDescription = null)
                     })
             }
             if (LocalWindowInfo.current.containerSize.width > dpToPx(640))
                 NavigationBarItem(
-                    selected = Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route,
+                    selected = backStackEntry?.destination.isRouteSelected(Screen.NowPlayingLandscape),
                     onClick = {
-                        if (Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route) return@NavigationBarItem
-                        navController.navigate(Screen.NowPlayingLandscape.route) {
+                        if (backStackEntry?.destination.isRouteSelected(Screen.NowPlayingLandscape)) return@NavigationBarItem
+                        navController.navigate(Screen.NowPlayingLandscape) {
                             launchSingleTop = true
                         }
                         coroutineScope.launch {
                             if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
                         }
                     },
-                    label = { Text(text = "Playing") },
+                    label = { Text(text = stringResource(R.string.nav_playing)) },
                     alwaysShowLabel = false,
                     icon = {
                         Icon(
                             ImageVector.vectorResource(R.drawable.s_m_playback),
-                            contentDescription = "Playing"
+                            contentDescription = null
                         )
                     },
                 )
@@ -766,19 +727,12 @@ fun AnimatedBottomNavBar(
                 items(orderedNavItems) { item ->
                     if (!item.enabled) return@items
 
-                    val icon = when (item.screenRoute) {
-                        "home_screen"    -> R.drawable.rounded_home_24
-                        "album_screen"   -> R.drawable.rounded_library_music_24
-                        "songs_screen"   -> R.drawable.round_music_note_24
-                        "artists_screen" -> R.drawable.rounded_artist_24
-                        "radio_screen"   -> R.drawable.rounded_radio
-                        "playlist_screen"-> R.drawable.placeholder
-                        else             -> R.drawable.placeholder
-                    }
                     NavigationRailItem(
-                        selected = item.screenRoute == backStackEntry?.destination?.route,
+                        selected = backStackEntry?.destination.isRouteSelected(item.screenRoute),
                         onClick = {
-                            if (item.screenRoute == backStackEntry?.destination?.route) return@NavigationRailItem
+                            if (backStackEntry?.destination.isRouteSelected(item.screenRoute))
+                                return@NavigationRailItem
+
                             navController.navigate(item.screenRoute) {
                                 launchSingleTop = true
                             }
@@ -789,28 +743,31 @@ fun AnimatedBottomNavBar(
                         label = { Text(text = item.title) },
                         alwaysShowLabel = false,
                         icon = {
-                            Icon(ImageVector.vectorResource(icon), contentDescription = null)
+                            Icon(ImageVector.vectorResource(item.icon), contentDescription = null)
                         },
                     )
                 }
                 item {
                     NavigationRailItem(
-                        selected = Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route,
+                        selected = backStackEntry?.destination.isRouteSelected(Screen.NowPlayingLandscape),
                         onClick = {
-                            if (Screen.NowPlayingLandscape.route == backStackEntry?.destination?.route) return@NavigationRailItem
-                            navController.navigate(Screen.NowPlayingLandscape.route) {
+                            if (backStackEntry?.destination.isRouteSelected(Screen.NowPlayingLandscape))
+                                return@NavigationRailItem
+
+                            navController.navigate(Screen.NowPlayingLandscape) {
                                 launchSingleTop = true
                             }
                             coroutineScope.launch {
-                                if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) scaffoldState.bottomSheetState.partialExpand()
+                                if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded)
+                                    scaffoldState.bottomSheetState.partialExpand()
                             }
                         },
-                        label = { Text(text = "Playing") },
+                        label = { Text(text = stringResource(R.string.nav_playing)) },
                         alwaysShowLabel = false,
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.s_m_playback),
-                                contentDescription = "Playing"
+                                contentDescription = null
                             )
                         },
                     )
@@ -820,13 +777,6 @@ fun AnimatedBottomNavBar(
     }
 }
 
-fun formatMilliseconds(seconds: Int): String {
-    return String.format(Locale.getDefault(), "%02d:%02d", seconds / 60, seconds % 60)
-}
+private fun NavDestination?.isRouteSelected(route: Screen): Boolean =
+    this?.hierarchy?.any { it.hasRoute(route::class) } == true
 
-fun Modifier.fadingEdge(brush: Brush) = this
-    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-    .drawWithContent {
-        drawContent()
-        drawRect(brush = brush, blendMode = BlendMode.DstIn)
-    }
