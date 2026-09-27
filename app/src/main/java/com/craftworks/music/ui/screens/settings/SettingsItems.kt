@@ -51,7 +51,7 @@ fun SettingsSwitch(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .clip(RoundedCornerShape(2.dp))
+            .clip(RoundedCornerShape(4.dp))
             .background(MaterialTheme.colorScheme.surfaceBright)
             .selectable(
                 selected = selected,
@@ -101,6 +101,7 @@ fun SettingsDialogButton(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
+            .clip(RoundedCornerShape(4.dp))
             .background(
                 if (enabled == true)
                     MaterialTheme.colorScheme.surfaceBright
@@ -112,7 +113,6 @@ fun SettingsDialogButton(
                 toggleEvent()
             }
             .focusProperties { left = FocusRequester.Cancel }
-            .clip(androidx.compose.foundation.shape.RoundedCornerShape(2.dp))
     ) {
         Icon(
             imageVector = settingsIcon,
