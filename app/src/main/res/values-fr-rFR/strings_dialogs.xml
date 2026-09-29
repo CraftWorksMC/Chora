@@ -1,26 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    // Onboarding
     <string name="onboarding_no_provider_splash">Aucune source de médias pour le moment. Pour commencer la lecture, ajoutez-en une !</string>
     <string name="onboarding_all_done">Terminé! Vous pouvez maintenant commencer à écouter des musiques!</string>
-
-    // Radios
     <string name="onboarding_lets_go">C\'est parti !</string>
     <string name="radio_add_internet_radio">Ajouter une radio internet</string>
     <string name="radio_modify_internet_radio">Modifier %s</string>
-        <string name="label_radio_name">Nom de la radio</string>
-        <string name="label_radio_url">URL de la radio</string>
-        <string name="label_radio_homepage">URL de la page d\'accueil de la radio</string>
-
-    // Playlists
+    <string name="label_radio_name">Nom de la radio</string>
+    <string name="label_radio_url">URL de la radio</string>
+    <string name="label_radio_homepage">URL de la page d\'accueil de la radio</string>
     <string name="button_new_playlist">Nouvelle playlist</string>
     <string name="playlist_delete_playlist">Supprimer playlist</string>
-        <string name="delete_playlist_are_you_sure">Êtes-vous sûr de vouloir supprimer cette playlist?</string>
+    <string name="delete_playlist_are_you_sure">Êtes-vous sûr de vouloir supprimer cette playlist?</string>
     <string name="add_to_playlist_title">Ajouter &lt;i&gt;%s&lt;/i&gt; à la playlist</string>
     <string name="add_to_playlist_songs">%s pistes</string>
     <string name="new_playlist_playlist_name">Nom de la playlist</string>
-
-    // Sorting
     <string name="button_sort_by">Trier par</string>
     <string name="sort_by_album">Album</string>
     <string name="sort_by_album_artist">Artist d\'album</string>
@@ -43,12 +36,7 @@
     <string name="sort_by_release_date">Date de sortie</string>
     <string name="sort_by_song_count">Nombre de pistes</string>
     <string name="sort_by_year">Année</string>
-
-
-    // Downloading
     <string name="notification_download_name">Notification de téléchargement</string>
     <string name="notification_download_desc">Notifications pour l\'état du téléchargement</string>
-
-    // Set Sleep Timer
     <string name="now_playing_set_sleep_timer">Régler la minuterie de mise en veille</string>
 </resources>

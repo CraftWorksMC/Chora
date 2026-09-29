@@ -2,23 +2,27 @@
 <resources>
     <!-- Common -->
     <string name="action_done">完成</string>
+    <string name="action_close">Close</string>
+    <string name="action_save">Save</string>
     <string name="action_remove">Remove</string>
     <string name="action_reset">Reset</string>
-
     <string name="action_search">搜索</string>
-
     <string name="action_play">Play</string>
     <string name="action_shuffle">Shuffle</string>
-
     <string name="action_add">Add</string>
     <string name="action_add_to_queue">Add To Queue</string>
+    <string name="action_play_next">Play Next</string>
+    <string name="action_add_to_playlist">Add To Playlist</string>
+    <string name="action_add_to_favorites">Add To Favorites</string>
+    <string name="action_remove_from_favorites">Remove From Favorites</string>
+    <string name="action_set_rating">Set Rating</string>
     <string name="action_next">Next</string>
+    <string name="action_skip_for_now">Skip for now</string>
     <string name="action_download">下载</string>
-
-    // Playlists
+    <string name="action_more">More</string>
+    <string name="action_add_radio">Add Radio</string>
     <string name="action_create_playlist">Create Playlist</string>
-
-    // Favorites
-
-    // Sort order
+    <string name="action_remove_from_playlist">Remove From Playlist</string>
+    <string name="button_toggle_favorites">Toggle Favorites</string>
+    <string name="button_toggle_sort_order">Toggle Sort Order</string>
 </resources>
