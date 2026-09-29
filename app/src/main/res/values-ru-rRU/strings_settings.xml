@@ -1,27 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_appearance">Внешний вид</string>
-        <string name="appearance_username">Никнейм</string>
-        <string name="appearance_navbar_items">Элементы Панели Навигации</string>
-        <string name="appearance_home_items">Элементы Главной Страницы</string>
-        <string name="appearance_now_playing_lyrics_blur">Эффект Блюра Субтитров</string>
-        <string name="appearance_lyrics_auto_scroll">Автоматически Скроллить Стандартные Субтитры</string>
-        <string name="appearance_lyrics_recenter">Поставить По Центру После Скролла</string>
-        <string name="appearance_lyrics_animation_speed">Скорость Анимации Субтитров</string>
-        <string name="appearance_more_info">Показывать Дополнительную Информацию</string>
-        <string name="appearance_provider_logo">Отображать Navidrome Лого На Главном Экране</string>
-        <string name="appearance_refresh_animation">Показывать Анимацию Обновления</string>
-        <string name="appearance_track_numbers_in_album_view">Показывать Номера Песен В Альбоме</string>
+    <string name="appearance_username">Никнейм</string>
+    <string name="appearance_theme">Theme</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_system">System</string>
+    <string name="appearance_background_style">Background Style</string>
+    <string name="background_style_plain">Plain</string>
+    <string name="background_style_blur">Blurred</string>
+    <string name="background_style_anim">Animated</string>
+    <string name="appearance_screen_standby">Disable Screen Standby</string>
+    <string name="appearance_oled_mode">OLED Protection</string>
+    <string name="appearance_oled_protection_mode">OLED Protection Mode</string>
+    <string name="oled_protection_mode_off">Off</string>
+    <string name="oled_protection_mode_lyrics_only">Lyrics Only</string>
+    <string name="oled_protection_mode_minimal">Minimal</string>
+    <string name="appearance_navbar_items">Элементы Панели Навигации</string>
+    <string name="appearance_home_items">Элементы Главной Страницы</string>
+    <string name="appearance_now_playing_title_alignment">Now Playing Title Alignment</string>
+    <string name="appearance_now_playing_lyrics_alignment">Now Playing Lyrics Alignment</string>
+    <string name="alignment_setting_left">Left</string>
+    <string name="alignment_setting_center">Center</string>
+    <string name="alignment_setting_right">Right</string>
+    <string name="appearance_now_playing_lyrics_blur">Эффект Блюра Субтитров</string>
+    <string name="appearance_lyrics_auto_scroll">Автоматически Скроллить Стандартные Субтитры</string>
+    <string name="appearance_lyrics_recenter">Поставить По Центру После Скролла</string>
+    <string name="appearance_lyrics_word_bounce">Lyrics Word Bounce</string>
+    <string name="appearance_lyrics_animation_speed">Скорость Анимации Субтитров</string>
+    <string name="appearance_more_info">Показывать Дополнительную Информацию</string>
+    <string name="appearance_provider_logo">Отображать Navidrome Лого На Главном Экране</string>
+    <string name="appearance_refresh_animation">Показывать Анимацию Обновления</string>
+    <string name="appearance_track_numbers_in_album_view">Показывать Номера Песен В Альбоме</string>
+    <string name="appearance_album_details_action_buttons">Album Details Buttons</string>
+    <string name="appearance_artist_details_action_buttons">Artist Details Buttons</string>
+    <string name="appearance_playlist_details_action_buttons">Playlist Details Buttons</string>
+    <string name="appearance_action_buttons_editor_title">Edit Buttons</string>
     <string name="settings_media_providers">Медиа-провайдеры</string>
-            // Local
-            // Server
+    <string name="media_providers_media_source">Media Source</string>
+    <string name="add_media_provider_local_directory">Directory</string>
+    <string name="add_media_provider_server_url">Server URL</string>
+    <string name="add_media_provider_server_username">Username</string>
+    <string name="add_media_provider_server_password">Password</string>
+    <string name="add_media_provider_server_allow_self_signed_certs">Allow self-signed certs</string>
+    <string name="add_media_provider_login">Login</string>
+    <string name="settings_lyrics_providers">Lyrics Providers</string>
+    <string name="media_providers_lrclib_url">LRCLIB Url</string>
     <string name="settings_playback">Проигрывание</string>
-        // Transcoding
-        <string name="playback_max_bitrate">Максимальный Битрейт</string>
-        <string name="playback_max_bitrate_wifi">Максимальный Битрейт (от WiFi)</string>
-        <string name="playback_max_bitrate_mobile_data">Максимальный Битрейт (от Мобильного Интернета)</string>
-        <string name="playback_transcoding_format">Формат Транскодирования</string>
-
-        // Scrobble
-        <string name="playback_min_scrobble_percentage">Минимальный Процент Скробблинга (Отслеживание Музыки)</string>
+    <string name="playback_max_bitrate">Максимальный Битрейт</string>
+    <string name="playback_max_bitrate_wifi">Максимальный Битрейт (от WiFi)</string>
+    <string name="playback_max_bitrate_mobile_data">Максимальный Битрейт (от Мобильного Интернета)</string>
+    <string name="playback_transcoding_format">Формат Транскодирования</string>
+    <string name="playback_no_transcoding">No Transcoding</string>
+    <string name="playback_min_scrobble_percentage">Минимальный Процент Скробблинга (Отслеживание Музыки)</string>
+    <string name="settings_misc">Miscellaneous</string>
+    <string name="misc_download_template">Download Template</string>
+    <string name="misc_download_template_description">
+            {title} - Song title\n
+            {album} - Album title\n
+            {artist} - Song artist\n
+            {album_artist} - Album artist\n
+            {ext} - Extension\n
+            {track} - Track number\n
+            {disc} - Disc number
+        </string>
+    <string name="misc_playlist_download_template">Playlist Download Template</string>
+    <string name="misc_playlist_download_template_description">
+            {title} - Song title\n
+            {album} - Album title\n
+            {artist} - Song artist\n
+            {album_artist} - Album artist\n
+            {ext} - Extension\n
+            {track} - Track number\n
+            {disc} - Disc number\n
+            {playlist} - Playlist title\n
+            {playlist_index} - Playlist track index
+        </string>
 </resources>

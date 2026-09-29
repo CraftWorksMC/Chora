@@ -1,32 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    // Onboarding
     <string name="onboarding_no_provider_splash">Du hast noch keinen Medienanbieter hinzugefügt. Füge jetzt einen hinzu, um Musik zu hören!</string>
     <string name="onboarding_all_done">Fertig! Du kannst jetzt anfangen, Musik zu hören!</string>
-
-    // Radios
+    <string name="onboarding_lets_go">Let\'s Go!</string>
     <string name="radio_add_internet_radio">Internet Radio hinzufügen</string>
     <string name="radio_modify_internet_radio">Bearbeiten %s</string>
-        <string name="label_radio_name">Radioname</string>
-        <string name="label_radio_url">Radio-URL</string>
-        <string name="label_radio_homepage">URL der Radio Homepage</string>
-
-    // Playlists
+    <string name="label_radio_name">Radioname</string>
+    <string name="label_radio_url">Radio-URL</string>
+    <string name="label_radio_homepage">URL der Radio Homepage</string>
     <string name="button_new_playlist">Neue Wiedergabeliste</string>
     <string name="playlist_delete_playlist">Wiedergabeliste löschen</string>
-        <string name="delete_playlist_are_you_sure">Möchtest du diese Wiedergabeliste wirklich löschen?</string>
+    <string name="delete_playlist_are_you_sure">Möchtest du diese Wiedergabeliste wirklich löschen?</string>
     <string name="add_to_playlist_title">Hinzufügen &lt;i&gt;%s&lt;/i&gt; zur Playlist</string>
-        <string name="new_playlist_playlist_name">Name der Wiedergabeliste</string>
-
-    // Sorting
+    <string name="add_to_playlist_songs">%s Songs</string>
+    <string name="new_playlist_playlist_name">Name der Wiedergabeliste</string>
     <string name="button_sort_by">Sortieren nach</string>
+    <string name="sort_by_album">Album</string>
+    <string name="sort_by_album_artist">Album Artist</string>
+    <string name="sort_by_album_count">Album Count</string>
+    <string name="sort_by_artist">Artist</string>
+    <string name="sort_by_bpm">BPM</string>
+    <string name="sort_by_channels">Channels</string>
+    <string name="sort_by_comment">Comment</string>
+    <string name="sort_by_duration">Duration</string>
+    <string name="sort_by_explicit_status">Explicit</string>
     <string name="sort_by_favorite">Markiert</string>
-
-
-    // Downloading
+    <string name="sort_by_genre">Genre</string>
+    <string name="sort_by_id">ID</string>
+    <string name="sort_by_name">Name</string>
+    <string name="sort_by_play_count">Play Count</string>
+    <string name="sort_by_random">Random</string>
+    <string name="sort_by_rating">Rating</string>
+    <string name="sort_by_recently_added">Recently Added</string>
+    <string name="sort_by_recently_played">Recently Played</string>
+    <string name="sort_by_release_date">Release Date</string>
+    <string name="sort_by_song_count">Song Count</string>
+    <string name="sort_by_year">Year</string>
     <string name="notification_download_name">Download-Benachrichtigung</string>
     <string name="notification_download_desc">Benachrichtigungen für den Downloadstatus</string>
-
-    // Set Sleep Timer
     <string name="now_playing_set_sleep_timer">Sleep-Timer setzen</string>
 </resources>
