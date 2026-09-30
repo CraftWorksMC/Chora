@@ -2,23 +2,27 @@
 <resources>
     <!-- Common -->
     <string name="action_done">Fatto</string>
+    <string name="action_close">Chiudi</string>
+    <string name="action_save">Salva</string>
     <string name="action_remove">Rimuovi</string>
     <string name="action_reset">Reimposta</string>
-
     <string name="action_search">Cerca</string>
-
     <string name="action_play">Riproduci</string>
     <string name="action_shuffle">Shuffle</string>
-
     <string name="action_add">Aggiungi</string>
-    <string name="action_add_to_queue">Aggiungi Alla Coda</string>
-    <string name="action_next">Avanti</string>
+    <string name="action_add_to_queue">Aggiungi alla coda</string>
+    <string name="action_play_next">Riproduci successivo</string>
+    <string name="action_add_to_playlist">Aggiungi alla playlist</string>
+    <string name="action_add_to_favorites">Aggiungi ai preferiti</string>
+    <string name="action_remove_from_favorites">Rimuovi dai preferiti</string>
+    <string name="action_set_rating">Imposta valutazione</string>
+    <string name="action_next">Prossimo</string>
+    <string name="action_skip_for_now">Salta per ora</string>
     <string name="action_download">Scarica</string>
-
-    // Playlists
-    <string name="action_create_playlist">Crea Playlist</string>
-
-    // Favorites
-
-    // Sort order
+    <string name="action_more">Altro</string>
+    <string name="action_add_radio">Aggiungi radio</string>
+    <string name="action_create_playlist">Crea playlist</string>
+    <string name="action_remove_from_playlist">Rimuovi dalla playlist</string>
+    <string name="button_toggle_favorites">Aggiungi/Rimuovi dai preferiti</string>
+    <string name="button_toggle_sort_order">Alterna ordine di ordinamento</string>
 </resources>

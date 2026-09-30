@@ -1,28 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_appearance">Aspetto</string>
-        <string name="appearance_username">Nome</string>
-        <string name="appearance_oled_mode">Protezione OLED</string>
-        <string name="appearance_navbar_items">Schede Della Barra Di Navigazione</string>
-        <string name="appearance_home_items">Elementi Schermata Home</string>
-        <string name="appearance_now_playing_lyrics_blur">Sfocatura Testi</string>
-        <string name="appearance_lyrics_auto_scroll">Scorri i Testi Non Sincronizzati</string>
-        <string name="appearance_lyrics_recenter">Ricentra dopo lo scorrimento</string>
-        <string name="appearance_lyrics_animation_speed">Velocità Animazione Testo</string>
-        <string name="appearance_more_info">Mostra Altre Info</string>
-        <string name="appearance_provider_logo">Mostra Logo Navidrome</string>
-        <string name="appearance_refresh_animation">Mostra Animazione Refresh</string>
-        <string name="appearance_track_numbers_in_album_view">Mostra Numero di Traccia negli Album</string>
+    <string name="appearance_username">Nome</string>
+    <string name="appearance_theme">Tema</string>
+    <string name="theme_dark">Scuro</string>
+    <string name="theme_light">Chiaro</string>
+    <string name="theme_system">Sistema</string>
+    <string name="appearance_background_style">Stile Sfondo</string>
+    <string name="background_style_plain">Semplice</string>
+    <string name="background_style_blur">Sfocato</string>
+    <string name="background_style_anim">Animato</string>
+    <string name="appearance_screen_standby">Disabilita standby schermo</string>
+    <string name="appearance_oled_mode">Protezione OLED</string>
+    <string name="appearance_oled_protection_mode">Modalità protezione OLED</string>
+    <string name="oled_protection_mode_off">Nessuna</string>
+    <string name="oled_protection_mode_lyrics_only">Solo testi</string>
+    <string name="oled_protection_mode_minimal">Minima</string>
+    <string name="appearance_navbar_items">Schede della barra di navigazione</string>
+    <string name="appearance_home_items">Elementi schermata home</string>
+    <string name="appearance_now_playing_title_alignment">Allineamento titolo</string>
+    <string name="appearance_now_playing_lyrics_alignment">Allineamento testi</string>
+    <string name="alignment_setting_left">Sinistra</string>
+    <string name="alignment_setting_center">Centro</string>
+    <string name="alignment_setting_right">Destra</string>
+    <string name="appearance_now_playing_lyrics_blur">Sfocatura testi</string>
+    <string name="appearance_lyrics_auto_scroll">Scorri automaticamente i testi non sincronizzati</string>
+    <string name="appearance_lyrics_recenter">Ricentra dopo lo scorrimento</string>
+    <string name="appearance_lyrics_word_bounce">Rimbalzo parole del testo</string>
+    <string name="appearance_lyrics_animation_speed">Animazione velocità testo</string>
+    <string name="appearance_more_info">Mostra più info</string>
+    <string name="appearance_provider_logo">Mostra logo provider</string>
+    <string name="appearance_refresh_animation">Mostra animazione di ricarica</string>
+    <string name="appearance_track_numbers_in_album_view">Mostra numero di traccia negli album</string>
+    <string name="appearance_album_details_action_buttons">Pulsanti schermata album</string>
+    <string name="appearance_artist_details_action_buttons">Pulsanti schermata artisti</string>
+    <string name="appearance_playlist_details_action_buttons">Pulsanti schermata playlist</string>
+    <string name="appearance_action_buttons_editor_title">Modifica pulsanti</string>
     <string name="settings_media_providers">Fonti Media</string>
-            // Local
-            // Server
+    <string name="media_providers_media_source">Sorgente media</string>
+    <string name="add_media_provider_local_directory">Directory</string>
+    <string name="add_media_provider_server_url">Url server</string>
+    <string name="add_media_provider_server_username">Nome utente</string>
+    <string name="add_media_provider_server_password">Password</string>
+    <string name="add_media_provider_server_allow_self_signed_certs">Consenti certificati auto-firmati</string>
+    <string name="add_media_provider_login">Login</string>
+    <string name="settings_lyrics_providers">Fonti Testi</string>
+    <string name="media_providers_lrclib_url">Url LRCLIB</string>
     <string name="settings_playback">Riproduzione</string>
-        // Transcoding
-        <string name="playback_max_bitrate">Bitrate Massimo</string>
-        <string name="playback_max_bitrate_wifi">Bitrate Massimo (WiFi)</string>
-        <string name="playback_max_bitrate_mobile_data">Bitrate Massimo (Dati mobili)</string>
-        <string name="playback_transcoding_format">Formato Codifica</string>
-
-        // Scrobble
-        <string name="playback_min_scrobble_percentage">Min. Percentuale Scrobble</string>
+    <string name="playback_max_bitrate">Bitrate massimo</string>
+    <string name="playback_max_bitrate_wifi">Bitrate massimo (Wi-Fi)</string>
+    <string name="playback_max_bitrate_mobile_data">Bitrate Massimo (Dati Mobili)</string>
+    <string name="playback_transcoding_format">Formato transcodifica</string>
+    <string name="playback_no_transcoding">Nessuna transcodifica</string>
+    <string name="playback_min_scrobble_percentage">Percentuale minima per scrobbling</string>
+    <string name="settings_misc">Varie</string>
+    <string name="misc_download_template">Template download</string>
+    <string name="misc_download_template_description">
+            {title} - Titolo\n
+            {album} - Album\n
+            {artist} - Artista canzone\n
+            {album_artist} - Artista album\n
+            {ext} - Estensione\n
+            {track} - Numero traccia\n
+            {disc} - Numero disco\n
+        </string>
+    <string name="misc_playlist_download_template">Template download playlist</string>
+    <string name="misc_playlist_download_template_description">
+            {title} - Titolo\n
+            {album} - Album\n
+            {artist} - Artista canzone\n
+            {album_artist} - Artista album\n
+            {ext} - Estensione\n
+            {track} - Numero traccia\n
+            {disc} - Numero disco\n
+            {playlist} - Nome playlist\n
+            {playlist_index} - Indice nella playlist
+        </string>
 </resources>

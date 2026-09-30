@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_welcome">Welcome,\n%s!</string>
+    <string name="home_recently_added">Recently Added</string>
+    <string name="home_most_played">Most Played</string>
+    <string name="home_recently_played">Recently Played</string>
+    <string name="home_explore_library">Explore From Your Library</string>
+    <string name="home_settings">Settings</string>
+    <string name="artist_details_discography">Discography</string>
+    <string name="album_details_disc">Disc %s</string>
+</resources>

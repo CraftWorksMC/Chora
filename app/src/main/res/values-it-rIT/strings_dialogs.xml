@@ -1,32 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    // Onboarding
-    <string name="onboarding_no_provider_splash">Non hai aggiunto nessun media provider. Aggiungine uno ora per iniziare ad ascoltare!</string>
-    <string name="onboarding_all_done">Tutto fatto! Ora puoi iniziare ad ascoltare a della buona musica!</string>
-
-    // Radios
-    <string name="radio_add_internet_radio">Aggiungi Radio Internet</string>
+    <string name="onboarding_no_provider_splash">Non hai ancora aggiunto una fonte media. Aggiungine una ora per iniziare ad ascoltare a qualche brano!</string>
+    <string name="onboarding_all_done">Tutto fatto! Ora puoi ascoltare a tutta la musica che vuoi!</string>
+    <string name="onboarding_lets_go">Andiamo!</string>
+    <string name="radio_add_internet_radio">Aggiungi radio</string>
     <string name="radio_modify_internet_radio">Modifica %s</string>
-        <string name="label_radio_name">Nome Radio</string>
-        <string name="label_radio_url">URL Radio</string>
-        <string name="label_radio_homepage">Sito della Radio</string>
-
-    // Playlists
-    <string name="button_new_playlist">Nuova Playlist</string>
-    <string name="playlist_delete_playlist">Cancella Playlist</string>
-        <string name="delete_playlist_are_you_sure">Sei sicuro/a di voler cancellare questa playlist?</string>
-    <string name="add_to_playlist_title">Aggiungi &lt;i&gt;%s&lt;/i&gt; Alla Playlist</string>
-        <string name="new_playlist_playlist_name">Nome Playlist</string>
-
-    // Sorting
-    <string name="button_sort_by">Ordina Per</string>
+    <string name="label_radio_name">Nome radio</string>
+    <string name="label_radio_url">Url radio</string>
+    <string name="label_radio_homepage">Sito web della radio</string>
+    <string name="button_new_playlist">Nuova playlist</string>
+    <string name="playlist_delete_playlist">Cancella playlist</string>
+    <string name="delete_playlist_are_you_sure">Sei sicuro/a di voler cancellare questa playlist?</string>
+    <string name="add_to_playlist_title">Aggiungi &lt;i&gt;%s&lt;/i&gt; alla playlist</string>
+    <string name="add_to_playlist_songs">%s canzoni</string>
+    <string name="new_playlist_playlist_name">Nome playlist</string>
+    <string name="button_sort_by">Ordina per</string>
+    <string name="sort_by_album">Album</string>
+    <string name="sort_by_album_artist">Artista Album</string>
+    <string name="sort_by_album_count">Numero Album</string>
+    <string name="sort_by_artist">Artista</string>
+    <string name="sort_by_bpm">BPM</string>
+    <string name="sort_by_channels">Canali</string>
+    <string name="sort_by_comment">Commento</string>
+    <string name="sort_by_duration">Durata</string>
+    <string name="sort_by_explicit_status">Esplicito</string>
     <string name="sort_by_favorite">Preferiti</string>
-
-
-    // Downloading
-    <string name="notification_download_name">Notifiche di download</string>
+    <string name="sort_by_genre">Genere</string>
+    <string name="sort_by_id">ID</string>
+    <string name="sort_by_name">Nome</string>
+    <string name="sort_by_play_count">Riproduzioni</string>
+    <string name="sort_by_random">Casuale</string>
+    <string name="sort_by_rating">Valutazione</string>
+    <string name="sort_by_recently_added">Aggiunte recentemente</string>
+    <string name="sort_by_recently_played">Ascoltate recentemente</string>
+    <string name="sort_by_release_date">Data di uscita</string>
+    <string name="sort_by_song_count">Numero di brani</string>
+    <string name="sort_by_year">Anno</string>
+    <string name="notification_download_name">Notifiche download</string>
     <string name="notification_download_desc">Notifiche per lo stato di download</string>
-
-    // Set Sleep Timer
-    <string name="now_playing_set_sleep_timer">Imposta Timer</string>
+    <string name="now_playing_set_sleep_timer">Imposta timer auto-spegnimento</string>
 </resources>

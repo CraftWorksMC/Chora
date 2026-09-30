@@ -8,6 +8,7 @@ import com.craftworks.music.data.model.Lyrics
 import com.craftworks.music.data.model.LyricsLine
 import com.craftworks.music.data.model.SyncType
 import com.craftworks.music.data.model.UnisonLyricsResponse
+import com.craftworks.music.data.model.UnisonSearchResponse
 import com.craftworks.music.utils.getTimeStamps
 import com.craftworks.music.utils.mmssToMilliseconds
 import com.craftworks.music.utils.parseTtml
@@ -63,7 +64,7 @@ class UnisonLyricsDataSource @Inject constructor(
             logger = Logger.SIMPLE
         }
 
-        expectSuccess = true
+        expectSuccess = false
     }
 
     suspend fun getLyrics(
@@ -74,12 +75,12 @@ class UnisonLyricsDataSource @Inject constructor(
         val title = metadata?.title
         val album = metadata?.albumTitle
         val duration = metadata?.durationMs?.div(1000)
+        val isrc = metadata?.extras?.getString("isrc")?.split(",")
 
         try {
             val response = client.get("https://unison.boidu.dev/lyrics") {
                 parameter("song", title)
                 parameter("artist", artist)
-                parameter("album", album)
                 parameter("duration", duration)
 
                 header(HttpHeaders.UserAgent, "Chora - Navidrome Client (https://github.com/CraftWorksMC/Chora)")
@@ -90,7 +91,39 @@ class UnisonLyricsDataSource @Inject constructor(
                     header(HttpHeaders.CacheControl, "max-stale=2592000")
             }
 
-            val data = response.body<UnisonLyricsResponse>().data ?: return@withContext null
+            println("isrc: $isrc")
+
+            var data = response.body<UnisonLyricsResponse>().data
+
+            println("got unison data: $data")
+
+            if (data == null && isrc != null)  {
+                val isrcSearchResponse = client.get("https://unison.boidu.dev/lyrics/search") {
+                    parameter("q", isrc.first())
+
+                    header(HttpHeaders.UserAgent, "Chora - Navidrome Client (https://github.com/CraftWorksMC/Chora)")
+
+                    if (ignoreCachedResponse)
+                        header(HttpHeaders.CacheControl, "no-cache")
+                    else
+                        header(HttpHeaders.CacheControl, "max-stale=2592000")
+                }.body<UnisonSearchResponse>()
+
+                if (isrcSearchResponse.data.isNullOrEmpty())
+                    return@withContext null
+
+                data = client.get("https://unison.boidu.dev/lyrics/${isrcSearchResponse.data.first().id}") {
+                    header(HttpHeaders.UserAgent, "Chora - Navidrome Client (https://github.com/CraftWorksMC/Chora)")
+
+                    if (ignoreCachedResponse)
+                        header(HttpHeaders.CacheControl, "no-cache")
+                    else
+                        header(HttpHeaders.CacheControl, "max-stale=2592000")
+                }.body<UnisonLyricsResponse>().data
+            }
+
+            if (data == null || data.lyrics == null)
+                return@withContext null
 
             when (data.format) {
                 "ttml" -> return@withContext parseTtml(data.lyrics, LyricSource.UNISON)
