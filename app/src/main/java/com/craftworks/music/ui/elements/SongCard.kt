@@ -1,11 +1,13 @@
 package com.craftworks.music.ui.elements
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -55,6 +57,7 @@ import coil.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.ProviderFeature
+import com.craftworks.music.data.model.favorite
 import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.model.id
 import com.craftworks.music.player.SongHelper
@@ -78,6 +81,8 @@ fun HorizontalSongCard(
 
     var showAddSongToPlaylistDialog by remember { mutableStateOf(false) }
     var showSongRatingDialog by remember { mutableStateOf(false) }
+
+    var isStarred by remember { mutableStateOf(song.mediaMetadata.favorite ?: false) }
 
     Card(
         onClick = onClick,
@@ -196,6 +201,35 @@ fun HorizontalSongCard(
                 textAlign = TextAlign.End
             )
 
+            IconButton(
+                modifier = Modifier,
+                onClick = {
+                    if (isStarred)
+                        song.mediaMetadata.id?.let {
+                            viewModel.unstarSong(it)
+                        }
+                    else
+                        song.mediaMetadata.id?.let {
+                            viewModel.starSong(it)
+                        }
+                    isStarred = !isStarred
+                },
+            ) {
+                Crossfade(
+                    targetState = isStarred
+                ) {
+                    if (it) Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
+                        contentDescription = stringResource(R.string.action_remove_from_favorites)
+                    )
+                    else
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.round_favorite_border_24),
+                            contentDescription = stringResource(R.string.action_add_to_favorites)
+                        )
+                }
+            }
+
             var expanded by remember { mutableStateOf(false) }
             Box(
                 modifier = Modifier.width(48.dp)
@@ -223,6 +257,39 @@ fun HorizontalSongCard(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
+                    DropdownMenuItem (
+                        text = {
+                            Text(
+                                if (isStarred) stringResource(R.string.action_remove_from_favorites) else stringResource(
+                                    R.string.action_add_to_favorites
+                                )
+                            )
+                        },
+                        onClick = {
+                            if (isStarred)
+                                song.mediaMetadata.id?.let {
+                                    viewModel.unstarSong(it)
+                                }
+                            else
+                                song.mediaMetadata.id?.let {
+                                    viewModel.starSong(it)
+                                }
+                            isStarred = !isStarred
+                            expanded = false
+                        },
+                        leadingIcon = {
+                             Icon(
+                                 imageVector = if (isStarred) ImageVector.vectorResource(
+                                    R.drawable.round_favorite_24
+                                 ) else ImageVector.vectorResource(
+                                     R.drawable.round_favorite_border_24
+                                 ),
+                                 contentDescription = stringResource(
+                                     R.string.action_remove_from_favorites
+                                 )
+                             )
+                        }
+                    )
                     DropdownMenuItem(
                         text = {
                             Text(stringResource(R.string.action_set_rating))
