@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("com.google.devtools.ksp")
@@ -6,6 +8,15 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ktorfit)
+}
+
+// Release signing: read from $CHORA_KEYSTORE_PROPERTIES, or keystore.properties in the project root.
+// Expected keys: storeFile, storePassword, keyAlias, keyPassword.
+// When neither exists, release builds fall back to the debug key so fresh clones and CI still build.
+val releaseKeystoreProps: Properties? = run {
+    val explicit = System.getenv("CHORA_KEYSTORE_PROPERTIES")
+    val candidate = if (!explicit.isNullOrBlank()) file(explicit) else rootProject.file("keystore.properties")
+    if (candidate.isFile) Properties().apply { candidate.inputStream().use(::load) } else null
 }
 
 android {
@@ -33,6 +44,17 @@ android {
         }
     }
 
+    signingConfigs {
+        if (releaseKeystoreProps != null) {
+            create("release") {
+                storeFile = rootProject.file(releaseKeystoreProps.getProperty("storeFile"))
+                storePassword = releaseKeystoreProps.getProperty("storePassword")
+                keyAlias = releaseKeystoreProps.getProperty("keyAlias")
+                keyPassword = releaseKeystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -41,7 +63,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
         debug {
             isDebuggable = false
