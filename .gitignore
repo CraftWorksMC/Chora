@@ -13,3 +13,7 @@ local.properties
 /crowdin.yml
 /.idea/
 /.kotlin/
+# Release signing (see app/build.gradle.kts)
+keystore.properties
+*.jks
+*.keystore

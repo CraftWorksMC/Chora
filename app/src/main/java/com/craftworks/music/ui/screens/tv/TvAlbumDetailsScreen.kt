@@ -238,12 +238,9 @@ fun TvAlbumDetails(
 
                     OutlinedButton(
                         onClick = {
-                            mediaController?.shuffleModeEnabled = true
                             coroutineScope.launch {
-                                val random = currentAlbum.subList(1, currentAlbum.size).indices.random()
-                                SongHelper.play(
+                                SongHelper.shuffle(
                                     currentAlbum.subList(1, currentAlbum.size),
-                                    random,
                                     mediaController
                                 )
                                 navHostController.navigate(Screen.NowPlayingLandscape) {

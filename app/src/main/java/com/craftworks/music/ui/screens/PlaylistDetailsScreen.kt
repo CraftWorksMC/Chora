@@ -234,10 +234,8 @@ fun PlaylistDetails(
 
                                 val actions: Map<ActionButtonType, ()->Unit> = mapOf(
                                     ActionButtonType.SHUFFLE to {
-                                        mediaController?.shuffleModeEnabled = true
                                         coroutineScope.launch {
-                                            val random = playlistSongs.indices.random()
-                                            SongHelper.play(playlistSongs, random, mediaController)
+                                            SongHelper.shuffle(playlistSongs, mediaController)
                                         }
                                     },
                                     ActionButtonType.ADD_TO_QUEUE to {

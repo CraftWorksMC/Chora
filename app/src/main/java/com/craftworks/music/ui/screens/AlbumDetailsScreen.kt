@@ -258,16 +258,11 @@ fun AlbumDetails(
                                 val actions: Map<ActionButtonType, ()->Unit> = mapOf(
                                     ActionButtonType.SHUFFLE to {
                                         coroutineScope.launch {
-                                            val random = currentAlbum.subList(
-                                                1,
-                                                currentAlbum.size
-                                            ).indices.random()
-                                            SongHelper.play(
+                                            SongHelper.shuffle(
                                                 currentAlbum.subList(
                                                     1,
                                                     currentAlbum.size
                                                 ),
-                                                random,
                                                 mediaController
                                             )
                                         }

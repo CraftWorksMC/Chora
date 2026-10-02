@@ -201,9 +201,8 @@ fun TvArtistDetailsScreen(
 
                             OutlinedButton(
                                 onClick = {
-                                    mediaController?.shuffleModeEnabled = true
                                     coroutineScope.launch {
-                                        val allArtistSongsList = artistAlbums.map {
+                                        val allArtistSongsList = artistAlbums.flatMap {
                                             it.mediaMetadata.id.let { id ->
                                                 val album = viewModel.getAlbum(id ?: "")
                                                 if (album.isNotEmpty())
@@ -213,13 +212,7 @@ fun TvArtistDetailsScreen(
                                             }
                                         }
 
-                                        mediaController?.shuffleModeEnabled = true
-                                        val random = allArtistSongsList.indices.random()
-                                        SongHelper.play(
-                                            allArtistSongsList.flatten(),
-                                            random,
-                                            mediaController
-                                        )
+                                        SongHelper.shuffle(allArtistSongsList, mediaController)
                                         navHostController.navigate(Screen.NowPlayingLandscape) {
                                             launchSingleTop = true
                                         }

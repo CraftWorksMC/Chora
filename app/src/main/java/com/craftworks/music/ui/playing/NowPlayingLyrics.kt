@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
@@ -56,9 +57,6 @@ import com.gigamole.composefadingedges.FadingEdgesGravity
 import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
 import com.gigamole.composefadingedges.verticalFadingEdges
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -127,70 +125,47 @@ fun LyricsView(
         }
     }
 
-    // Update current position only each lyrics change.
-    LaunchedEffect(mediaController, lyrics) {
-        var lyricsTrackingJon: Job = Job()
-        var scrollTrackingJob: Job = Job()
-        val scope = CoroutineScope(Dispatchers.Main)
-
-        if (mediaController?.isPlaying == true) {
-            lyricsTrackingJon = scope.launch {
-                var position = mediaController.currentPosition.toInt()
-                currentPositionLyrics = position
-
-                while (isActive) {
-                    position = mediaController.currentPosition.toInt()
-                    currentPositionLyrics = position
-                    delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
-                }
+    // Track play/pause state. The listener is removed when the controller changes or the view leaves composition.
+    var isPlaying by remember { mutableStateOf(mediaController?.isPlaying == true) }
+    DisposableEffect(mediaController) {
+        val listener = object : Player.Listener {
+            override fun onIsPlayingChanged(playing: Boolean) {
+                isPlaying = playing
             }
+        }
+        isPlaying = mediaController?.isPlaying == true
+        mediaController?.addListener(listener)
 
-            scrollTrackingJob = scope.launch {
-                var position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed
-                currentPositionScroll = position
+        onDispose {
+            mediaController?.removeListener(listener)
+        }
+    }
 
-                while (isActive) {
-                    position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed
-                    currentPositionScroll = position
-                    delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
-                }
+    // Poll the playback position while playing. Restarted (and the previous loops cancelled)
+    // whenever the lyrics, play state or animation speed change.
+    LaunchedEffect(mediaController, lyrics, isPlaying, lyricsAnimationSpeed) {
+        if (mediaController == null) return@LaunchedEffect
+
+        currentPositionLyrics = mediaController.currentPosition.toInt()
+        currentPositionScroll = mediaController.currentPosition.toInt() + lyricsAnimationSpeed
+
+        if (!isPlaying) return@LaunchedEffect
+
+        launch {
+            while (isActive) {
+                val position = mediaController.currentPosition.toInt()
+                currentPositionLyrics = position
+                delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
             }
         }
 
-        mediaController?.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                super.onIsPlayingChanged(isPlaying)
-                if (isPlaying) {
-                    if (lyricsTrackingJon.isActive) return
-                    if (scrollTrackingJob.isActive) return
-
-                    lyricsTrackingJon = scope.launch {
-                        var position = mediaController.currentPosition.toInt()
-                        currentPositionLyrics = position
-
-                        while (isActive) {
-                            position = mediaController.currentPosition.toInt()
-                            currentPositionLyrics = position
-                            delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
-                        }
-                    }
-
-                    scrollTrackingJob = scope.launch {
-                        var position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed / 2
-                        currentPositionScroll = position
-
-                        while (isActive) {
-                            position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed / 2
-                            currentPositionScroll = position
-                            delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
-                        }
-                    }
-                } else {
-                    lyricsTrackingJon.cancel()
-                    scrollTrackingJob.cancel()
-                }
+        launch {
+            while (isActive) {
+                val position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed
+                currentPositionScroll = position
+                delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
             }
-        })
+        }
     }
 
     // Lyrics index update
