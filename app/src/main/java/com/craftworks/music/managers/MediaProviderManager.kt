@@ -48,6 +48,10 @@ object MediaProviderManager {
     fun getProvider(providerId: String) = providers[providerId]
 
     suspend fun addProvider(mediaProvider: MediaProvider) {
+        // Callers may hand over a provider that was never initialised (e.g. the TV dialog swaps in a
+        // fresh NavidromeMediaProvider after authenticating), which leaves stream/cover-art URLs without credentials.
+        mediaProvider.init(appContext)
+
         val id = UUID.randomUUID().toString()
         providers[id] = mediaProvider
         currentProviderId = id
