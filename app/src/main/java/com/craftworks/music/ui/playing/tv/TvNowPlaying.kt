@@ -129,6 +129,19 @@ fun TvNowPlaying(
             .focusable(true)
             .onKeyEvent { keyEvent ->
                 if (keyEvent.type == KeyEventType.KeyDown) {
+                    // Remotes with channel buttons skip tracks, whether or not the controls are shown.
+                    when (keyEvent.nativeKeyEvent.keyCode) {
+                        KeyEvent.KEYCODE_CHANNEL_UP -> {
+                            mediaController?.seekToNext()
+                            return@onKeyEvent true
+                        }
+
+                        KeyEvent.KEYCODE_CHANNEL_DOWN -> {
+                            mediaController?.seekToPrevious()
+                            return@onKeyEvent true
+                        }
+                    }
+
                     if (!controlsVisible) {
                         when (keyEvent.nativeKeyEvent.keyCode) {
                             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_UP -> {
