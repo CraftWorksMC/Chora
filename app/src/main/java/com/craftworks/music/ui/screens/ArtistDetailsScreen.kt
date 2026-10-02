@@ -264,15 +264,7 @@ fun ArtistDetails(
                                 val actions: Map<ActionButtonType, () -> Unit> = mapOf(
                                     ActionButtonType.SHUFFLE to {
                                         coroutineScope.launch {
-                                            val allArtistSongsList = getArtistSongs()
-
-                                            mediaController?.shuffleModeEnabled = true
-                                            val random = allArtistSongsList.indices.random()
-                                            SongHelper.play(
-                                                allArtistSongsList,
-                                                random,
-                                                mediaController
-                                            )
+                                            SongHelper.shuffle(getArtistSongs(), mediaController)
                                         }
                                     },
                                     ActionButtonType.FAVORITE to {
