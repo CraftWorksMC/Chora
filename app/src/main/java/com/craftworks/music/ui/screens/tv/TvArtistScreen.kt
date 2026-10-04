@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -50,6 +51,7 @@ import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.ui.elements.dialogs.tv.GenericListDialog
 import com.craftworks.music.ui.elements.tv.TvArtistCard
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
+import kotlinx.coroutines.flow.filter
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -84,6 +86,21 @@ fun TvArtistScreen(
     }
 
     val gridState = rememberLazyGridState()
+
+    LaunchedEffect(allArtistList.size) {
+        if (allArtistList.size % 50 != 0) return@LaunchedEffect
+        if (allArtistList.size < 50) return@LaunchedEffect
+
+        snapshotFlow {
+            val lastVisible = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                ?: return@snapshotFlow false
+            val total = gridState.layoutInfo.totalItemsCount
+            if (total < allArtistList.size - 5) return@snapshotFlow false
+            (total - lastVisible) <= 15
+        }.filter { it }.collect {
+            viewModel.getMoreArtists()
+        }
+    }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),
