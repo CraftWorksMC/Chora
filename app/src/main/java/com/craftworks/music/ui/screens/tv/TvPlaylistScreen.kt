@@ -28,6 +28,9 @@ import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.id
+import com.craftworks.music.ui.elements.dialogs.playlistToDelete
+import com.craftworks.music.ui.elements.dialogs.showDeletePlaylistDialog
+import com.craftworks.music.ui.elements.dialogs.tv.PlaylistDeletionConfirmationDialog
 import com.craftworks.music.ui.elements.tv.TvPlaylistCard
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 
@@ -65,17 +68,32 @@ fun TvPlaylistScreen(
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         items(playlists) { playlist ->
-            TvPlaylistCard (
+            TvPlaylistCard(
                 playlist = playlist,
                 onClick = {
-                    navHostController.navigate(Screen.PlaylistDetails(playlist.mediaMetadata.id?:"", playlist.mediaMetadata.artworkUri.toString())) {
+                    navHostController.navigate(
+                        Screen.PlaylistDetails(
+                            playlist.mediaMetadata.id ?: "",
+                            playlist.mediaMetadata.artworkUri.toString()
+                        )
+                    ) {
                         launchSingleTop = true
                     }
                 },
                 onLongClick = {
-                    playlist.mediaMetadata.id?.let { viewModel.deletePlaylist(it) }
+                    playlist.mediaMetadata.id?.let {
+                        playlistToDelete.value = it
+                        showDeletePlaylistDialog.value = true
+                    }
                 }
             )
         }
     }
+
+    if (showDeletePlaylistDialog.value)
+        PlaylistDeletionConfirmationDialog(
+            setShowDialog = { showDeletePlaylistDialog.value = it },
+            viewModel
+        )
+
 }
