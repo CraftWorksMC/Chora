@@ -302,6 +302,7 @@ fun CreateSubsonicProviderDialog(
                                                 if (res.providerType == ProviderType.NAVIDROME)
                                                     provider = NavidromeMediaProvider().apply {
                                                         this.providerData = provider.providerData
+                                                        init(context)
                                                     }
 
                                                 MediaProviderManager.addProvider(provider)
@@ -366,6 +367,7 @@ fun CreateSubsonicProviderDialog(
                                             if (res.providerType == ProviderType.NAVIDROME)
                                                 provider = NavidromeMediaProvider().apply {
                                                     this.providerData = provider.providerData
+                                                    init(context)
                                                 }
 
                                             MediaProviderManager.addProvider(provider)
