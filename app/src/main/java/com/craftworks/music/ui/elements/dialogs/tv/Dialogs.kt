@@ -55,7 +55,7 @@ fun <T> GenericListDialog(
             Text(
                 text = stringResource(titleRes),
                 color = MaterialTheme.colorScheme.onSurface,
-                style =  MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleLarge
             )
         },
         text = {
@@ -78,10 +78,10 @@ fun <T> GenericListDialog(
                 state = lazyColumnState,
                 modifier = Modifier
                     .verticalFadingEdges(
-                    FadingEdgesContentType.Dynamic.Lazy.List(
-                        FadingEdgesScrollConfig.Dynamic(), lazyColumnState
-                    ), FadingEdgesGravity.All, 64.dp
-                ),
+                        FadingEdgesContentType.Dynamic.Lazy.List(
+                            FadingEdgesScrollConfig.Dynamic(), lazyColumnState
+                        ), FadingEdgesGravity.All, 64.dp
+                    ),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(8.dp)
             ) {
@@ -132,7 +132,7 @@ fun <T> GenericCheckDialog(
             Text(
                 text = stringResource(titleRes),
                 color = MaterialTheme.colorScheme.onSurface,
-                style =  MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleLarge
             )
         },
         text = {
@@ -182,3 +182,4 @@ fun <T> GenericCheckDialog(
         }
     )
 }
+
