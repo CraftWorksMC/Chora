@@ -13,4 +13,7 @@
 
     // Album Details
     <string name="album_details_disc">Disc %s</string>
+
+    // Now Playing Details
+    <string name="now_playing_details_favorite">Favorite</string>
 </resources>
