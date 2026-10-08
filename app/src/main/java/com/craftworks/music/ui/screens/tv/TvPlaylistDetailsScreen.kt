@@ -155,7 +155,7 @@ fun TvPlaylistDetails(
 
                     // duration
                     Text(
-                        text = StringUtils.formatSeconds((playlistDuration / 1000).toInt()),
+                        text = StringUtils.formatSeconds(playlistDuration / 1000),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center,

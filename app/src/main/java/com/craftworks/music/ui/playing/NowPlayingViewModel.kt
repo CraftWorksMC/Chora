@@ -62,6 +62,7 @@ class NowPlayingViewModel @Inject constructor (
     fun setSleepTimerDialogOpen(open: Boolean) { _sleepTimerDialogOpen.value = open }
 
     val backgroundStyle = appearanceSettingsManager.npBackgroundFlow
+    val useAdvancedQueue = appearanceSettingsManager.useAdvancedQueue
     val oledProtectionMode = appearanceSettingsManager.oledProtectionMode
 
     private val _paletteColors = MutableStateFlow<List<Color>>(emptyList())

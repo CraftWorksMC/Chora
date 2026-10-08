@@ -203,7 +203,7 @@ fun PlaybackProgressSlider(
                 .fillMaxWidth()
         ) {
             Text(
-                text = remember(currentValue) { StringUtils.formatSeconds(currentValue.toInt() / 1000) },
+                text = remember(currentValue) { StringUtils.formatSeconds(currentValue / 1000) },
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.Start,
                 color = color.copy(alpha = 0.5f),
@@ -213,7 +213,7 @@ fun PlaybackProgressSlider(
                 maxLines = 1
             )
             Text(
-                text = remember(currentDuration) { StringUtils.formatSeconds(currentDuration?.toInt()?.div(1000) ?: (currentValue/1000).toInt()) },
+                text = remember(currentDuration) { StringUtils.formatSeconds(currentDuration?.div(1000) ?: (currentValue/1000)) },
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.End,
                 color = color.copy(alpha = 0.5f),

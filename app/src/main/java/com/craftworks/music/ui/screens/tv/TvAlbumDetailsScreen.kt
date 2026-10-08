@@ -186,7 +186,7 @@ fun TvAlbumDetails(
                                 " · " +
                                 StringUtils.formatSeconds(
                                     currentAlbum[0].mediaMetadata.durationMs
-                                        ?.div(1000)?.toInt() ?: 0
+                                        ?.div(1000) ?: 0
                                 ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
