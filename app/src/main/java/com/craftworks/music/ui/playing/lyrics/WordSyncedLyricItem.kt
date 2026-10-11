@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.craftworks.music.data.model.LyricsLine
 import com.craftworks.music.data.model.LyricsRole
+import com.craftworks.music.data.model.SyncedWord
 import com.craftworks.music.ui.playing.NowPlayingAlignment
 import com.craftworks.music.ui.playing.calculateLyricBlur
 import kotlinx.coroutines.coroutineScope
@@ -133,20 +135,30 @@ fun WordSyncedLyricItem(
                         NowPlayingAlignment.RIGHT -> Arrangement.End
                     }
                 ) {
-                    line.words?.forEachIndexed { i, word ->
-                        val nextWordStart = line.words.getOrNull(i + 1)?.startMs ?: line.endMs ?: lyric.endMs!!
-                        val duration = word.endMs?.let { it - word.startMs } ?: (nextWordStart - word.startMs)
-                        val isThisWordActive = currentPosition >= word.startMs && currentPosition < (line.endMs ?: lyric.endMs!!)
+                    val wordGroups = remember(line.words) { line.words?.groupByFullWord().orEmpty() }
 
-                        AnimatedWord(
-                            wordText = word.text,
-                            isActive = isThisWordActive,
-                            durationMillis = duration,
-                            role = line.role,
-                            isOnlyBackgroundLine = !lyric.lines.any { it.role == LyricsRole.MAIN },
-                            color = color,
-                            useWordBounce = useWordBounce
-                        )
+                    wordGroups.forEach { syllables ->
+                        Row {
+                            syllables.forEach { (i, word) ->
+                                val nextWordStart = line.words?.getOrNull(i + 1)?.startMs
+                                    ?: line.endMs
+                                    ?: lyric.endMs!!
+                                val duration = word.endMs?.let { it - currentPosition }
+                                    ?: (nextWordStart - currentPosition)
+                                val isThisWordActive = currentPosition >= word.startMs &&
+                                        currentPosition < (line.endMs ?: lyric.endMs!!)
+
+                                AnimatedWord(
+                                    wordText = word.text,
+                                    isActive = isThisWordActive,
+                                    durationMillis = duration,
+                                    role = line.role,
+                                    isOnlyBackgroundLine = !lyric.lines.any { it.role == LyricsRole.MAIN },
+                                    color = color,
+                                    useWordBounce = useWordBounce
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -165,11 +177,11 @@ fun AnimatedWord(
     color: Color,
     useWordBounce: Boolean
 ) {
-    val targetAlpha = if (role == LyricsRole.MAIN) 1f else 0.7f
+    val targetAlpha = if (role == LyricsRole.MAIN) 1f else 0.85f
 
     val inactiveColor = color.copy(alpha = 0.4f)
     val wipeProgress = remember { Animatable(0f) }
-    val textAlpha = remember { Animatable(targetAlpha) }
+    val textAlpha = remember { Animatable(0.4f) }
 
     val textStyle = (if (role == LyricsRole.MAIN || isOnlyBackgroundLine) MaterialTheme.typography.headlineMediumEmphasized else MaterialTheme.typography.titleLargeEmphasized)
         .copy(textMotion = TextMotion.Animated)
@@ -193,13 +205,15 @@ fun AnimatedWord(
         if (isActive) {
             coroutineScope {
                 launch { textAlpha.snapTo(targetAlpha) }
-                launch { wipeProgress.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(
-                        durationMillis = durationMillis,
-                        easing = LinearEasing
+                launch {
+                    wipeProgress.animateTo(
+                        targetValue = 1f,
+                        animationSpec = tween(
+                            durationMillis = durationMillis,
+                            easing = LinearEasing
+                        )
                     )
-                )}
+                }
                 launch {
                     wobbleProgress.animateTo(
                         targetValue = 1f,
@@ -263,4 +277,21 @@ fun AnimatedWord(
                 }
             },
     )
+}
+
+fun List<SyncedWord>.groupByFullWord(): List<List<Pair<Int, SyncedWord>>> {
+    val groups = mutableListOf<MutableList<Pair<Int, SyncedWord>>>()
+    var currentGroup = mutableListOf<Pair<Int, SyncedWord>>()
+
+    forEachIndexed { index, word ->
+        currentGroup.add(index to word)
+        if (word.text.endsWith(" ")) {
+            groups.add(currentGroup)
+            currentGroup = mutableListOf()
+        }
+    }
+    if (currentGroup.isNotEmpty()) {
+        groups.add(currentGroup)
+    }
+    return groups
 }

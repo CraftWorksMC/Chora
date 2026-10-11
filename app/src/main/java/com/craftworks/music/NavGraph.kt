@@ -2,6 +2,8 @@ package com.craftworks.music
 
 import android.content.res.Configuration
 import android.util.Log
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -123,6 +125,12 @@ fun SetupNavGraph(
             fadeIn(animationSpec)
         },
         popExitTransition = {
+            fadeOut(animationSpec)
+        },
+        predictivePopEnterTransition = {
+            fadeIn(animationSpec)
+        },
+        predictivePopExitTransition = {
             fadeOut(animationSpec)
         }
     ) {
@@ -288,6 +296,16 @@ fun SetupNavGraph(
 
             //Settings
             navigation<Screen.Settings>(startDestination = Screen.SettingsList) {
+                val enterSpec = tween<Float>(durationMillis = 210, delayMillis = 90, easing = LinearOutSlowInEasing)
+                val exitSpec = tween<Float>(durationMillis = 90, easing = FastOutLinearInEasing)
+
+                val enterTransition = slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                    fullWidth / 4
+                } + fadeIn(enterSpec)
+                val exitTransition = slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
+                    fullWidth / 4
+                } + fadeOut(exitSpec)
+
                 composable<Screen.SettingsList> {
                     if (isTv)
                         TvSideNavigation(navController, mediaController) {
@@ -297,16 +315,8 @@ fun SetupNavGraph(
                         SettingScreen(navController)
                 }
                 composable<Screen.S_Appearance>(
-                    enterTransition = {
-                        slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
-                            fullWidth / 4
-                        } + fadeIn(animationSpec)
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
-                            fullWidth / 4
-                        } + fadeOut(animationSpec)
-                    }
+                    enterTransition = { enterTransition },
+                    exitTransition = { exitTransition }
                 ) {
                     if (isTv)
                         TvS_AppearanceScreen()
@@ -314,16 +324,8 @@ fun SetupNavGraph(
                         S_AppearanceScreen(navController)
                 }
                 composable<Screen.S_Media_Providers>(
-                    enterTransition = {
-                        slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
-                            fullWidth / 4
-                        } + fadeIn(animationSpec)
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
-                            fullWidth / 4
-                        } + fadeOut(animationSpec)
-                    }
+                    enterTransition = { enterTransition },
+                    exitTransition = { exitTransition }
                 ) {
                     if (isTv)
                         TvS_ProviderScreen()
@@ -331,16 +333,8 @@ fun SetupNavGraph(
                         S_ProviderScreen(navController)
                 }
                 composable<Screen.S_Lyrics_Providers>(
-                    enterTransition = {
-                        slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
-                            fullWidth / 4
-                        } + fadeIn(animationSpec)
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
-                            fullWidth / 4
-                        } + fadeOut(animationSpec)
-                    }
+                    enterTransition = { enterTransition },
+                    exitTransition = { exitTransition }
                 ) {
                     if (isTv)
                         TvS_ProviderScreen()
@@ -348,16 +342,8 @@ fun SetupNavGraph(
                         S_LyricsProviderScreen(navController)
                 }
                 composable<Screen.S_Playback>(
-                    enterTransition = {
-                        slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
-                            fullWidth / 4
-                        } + fadeIn(tween(300))
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
-                            fullWidth / 4
-                        } + fadeOut(tween(300))
-                    }
+                    enterTransition = { enterTransition },
+                    exitTransition = { exitTransition }
                 ) {
                     if (isTv)
                         TvS_PlaybackScreen()
@@ -365,16 +351,8 @@ fun SetupNavGraph(
                         S_PlaybackScreen(navController)
                 }
                 composable<Screen.S_Misc>(
-                    enterTransition = {
-                        slideInHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
-                            fullWidth / 4
-                        } + fadeIn(tween(300))
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(animationSpec = tween(durationMillis = 300)) { fullWidth ->
-                            fullWidth / 4
-                        } + fadeOut(tween(300))
-                    }
+                    enterTransition = { enterTransition },
+                    exitTransition = { exitTransition }
                 ) {
                     S_MiscScreen(navController)
                 }

@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "com.craftworks.music"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 37
         versionCode = 311
         versionName = "1.31.1"
@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.media3.datasource.okhttp)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)

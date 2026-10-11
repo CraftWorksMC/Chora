@@ -367,6 +367,11 @@ abstract class MediaModel
                 .setMediaId(this@Song.id)
                 .setUri(mediaUri)
                 .setMediaMetadata(mediaMetadata)
+                .setClippingConfiguration(
+                    MediaItem.ClippingConfiguration.Builder()
+                        .setEndPositionMs(this.durationMs.toLong())
+                        .build()
+                )
                 .build()
         }
     }

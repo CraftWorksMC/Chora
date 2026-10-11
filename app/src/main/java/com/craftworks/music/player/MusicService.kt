@@ -18,10 +18,12 @@ import androidx.media3.common.Player
 import androidx.media3.common.Rating
 import androidx.media3.common.StarRating
 import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.util.ExperimentalApi
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.ResolvingDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -75,7 +77,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import okhttp3.OkHttpClient
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import javax.inject.Inject
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.seconds
 
@@ -221,7 +230,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             Log.d("AA", "MediaSession already initialized, not recreating")
     }
 
-    @OptIn(UnstableApi::class)
+    @OptIn(ExperimentalApi::class)
     fun initializePlayer() {
         serviceIOScope.launch {
             appearanceSettingsManager.bottomNavItemsFlow.collect { items ->
@@ -242,8 +251,30 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             }
         }
 
+        val trustAllCerts = arrayOf<TrustManager>(
+            object : X509TrustManager {
+                override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+            }
+        )
+
+        val sslContext = SSLContext.getInstance("SSL").apply {
+            init(null, trustAllCerts, SecureRandom())
+        }
+
+        val okHttpDataSourceFactory = OkHttpDataSource.Factory(
+            OkHttpClient.Builder()
+                .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+                .hostnameVerifier(HostnameVerifier { _, _ -> true })
+                .followRedirects(true)
+                .followSslRedirects(true)
+                .build()
+        )
+
+        var seekPosMs: Long? = null
         val resolvingDataSourceFactory = ResolvingDataSource.Factory(
-            DefaultDataSource.Factory(this),
+            DefaultDataSource.Factory(this, okHttpDataSourceFactory),
             object : ResolvingDataSource.Resolver {
                 override fun resolveDataSpec(dataSpec: DataSpec): DataSpec {
                     val uri = dataSpec.uri
@@ -263,7 +294,12 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     if (bitrate != "No Transcoding") {
                         val format = runBlocking { transcodeManager.currentFormatFlow.first() }
 
-                        actualStreamUrl = provider.getStreamUrl(songId, true, bitrate.toInt(), format)
+                        if (seekPosMs != null) {
+                            actualStreamUrl = provider.getStreamUrl(songId, true, bitrate.toInt(), format, offset = seekPosMs!!.div(1000).toInt())
+                            seekPosMs = null
+                        }
+                        else
+                            actualStreamUrl = provider.getStreamUrl(songId, true, bitrate.toInt(), format)
                     }
 
                     return dataSpec.withUri(actualStreamUrl.toUri())
@@ -289,6 +325,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             )
             .setHandleAudioBecomingNoisy(true)
             .setAudioAttributes(AudioAttributes.DEFAULT, true)
+            .experimentalSetDynamicSchedulingEnabled(false) // Temporary fix for lyrics. refer to https://github.com/androidx/media/issues/3286
             .build()
 
         // todo: make it a setting
@@ -342,6 +379,17 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     PlaybackException.getErrorCodeName(error.errorCode),
                     Toast.LENGTH_SHORT
                 ).show()
+            }
+
+            override fun onPositionDiscontinuity(
+                oldPosition: Player.PositionInfo,
+                newPosition: Player.PositionInfo,
+                reason: Int
+            ) {
+                if (reason == Player.DISCONTINUITY_REASON_SEEK) {
+                    seekPosMs = newPosition.positionMs
+                }
+                super.onPositionDiscontinuity(oldPosition, newPosition, reason)
             }
         })
 

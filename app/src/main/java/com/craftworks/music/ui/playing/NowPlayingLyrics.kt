@@ -47,7 +47,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import com.craftworks.music.data.model.LyricsAgentType
-import com.craftworks.music.data.model.LyricsLine
 import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.ui.playing.lyrics.SyncedLyricItem
@@ -56,9 +55,8 @@ import com.gigamole.composefadingedges.FadingEdgesGravity
 import com.gigamole.composefadingedges.content.FadingEdgesContentType
 import com.gigamole.composefadingedges.content.scrollconfig.FadingEdgesScrollConfig
 import com.gigamole.composefadingedges.verticalFadingEdges
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -127,70 +125,94 @@ fun LyricsView(
         }
     }
 
+    val timestamps = remember (lyrics) {
+        lyrics.lines.asSequence()
+            .flatMap { lyric ->
+                val timestamps = mutableListOf(lyric.startMs)
+                lyric.endMs?.let { timestamps.add(it) }
+                lyric.lines.forEach { line ->
+                    line.words?.forEach { word ->
+                        timestamps.add(word.startMs)
+                        //word.endMs?.let { timestamps.add(it) }
+                    }
+                }
+                timestamps
+            }
+            .distinct()
+            .sorted()
+            .toList()
+    }
+
     // Update current position only each lyrics change.
     LaunchedEffect(mediaController, lyrics) {
-        var lyricsTrackingJon: Job = Job()
-        var scrollTrackingJob: Job = Job()
-        val scope = CoroutineScope(Dispatchers.Main)
+        if (mediaController == null)
+            return@LaunchedEffect
 
-        if (mediaController?.isPlaying == true) {
-            lyricsTrackingJon = scope.launch {
+        var lyricsTrackingJob: Job? = null
+        var scrollTrackingJob: Job? = null
+
+        if (mediaController.isPlaying) {
+            lyricsTrackingJob = launch {
                 var position = mediaController.currentPosition.toInt()
                 currentPositionLyrics = position
 
                 while (isActive) {
                     position = mediaController.currentPosition.toInt()
                     currentPositionLyrics = position
-                    delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
+                    delay(getNextUpdateDelay(position, timestamps).milliseconds)
                 }
             }
 
-            scrollTrackingJob = scope.launch {
+            scrollTrackingJob = launch {
                 var position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed
                 currentPositionScroll = position
 
                 while (isActive) {
                     position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed
                     currentPositionScroll = position
-                    delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
+                    delay(getNextUpdateDelay(position, timestamps).milliseconds)
                 }
             }
         }
 
-        mediaController?.addListener(object : Player.Listener {
+        val listener = object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
                 if (isPlaying) {
-                    if (lyricsTrackingJon.isActive) return
-                    if (scrollTrackingJob.isActive) return
+                    if (lyricsTrackingJob?.isActive == true) return
+                    if (scrollTrackingJob?.isActive == true) return
 
-                    lyricsTrackingJon = scope.launch {
+                    lyricsTrackingJob = launch {
                         var position = mediaController.currentPosition.toInt()
                         currentPositionLyrics = position
 
                         while (isActive) {
                             position = mediaController.currentPosition.toInt()
                             currentPositionLyrics = position
-                            delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
+                            delay(getNextUpdateDelay(position, timestamps).milliseconds)
                         }
                     }
 
-                    scrollTrackingJob = scope.launch {
+                    scrollTrackingJob = launch {
                         var position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed / 2
                         currentPositionScroll = position
 
                         while (isActive) {
                             position = mediaController.currentPosition.toInt() + lyricsAnimationSpeed / 2
                             currentPositionScroll = position
-                            delay(getNextUpdateDelay(position, lyrics.lines).milliseconds)
+                            delay(getNextUpdateDelay(position, timestamps).milliseconds)
                         }
                     }
                 } else {
-                    lyricsTrackingJon.cancel()
-                    scrollTrackingJob.cancel()
+                    lyricsTrackingJob?.cancel()
+                    scrollTrackingJob?.cancel()
                 }
             }
-        })
+        }
+
+        mediaController.addListener(listener)
+        try { awaitCancellation() }
+        finally { mediaController.removeListener(listener) }
     }
 
     // Lyrics index update
@@ -450,22 +472,10 @@ fun calculateLyricBlur(
     }
 }
 
-private fun getNextUpdateDelay(currentTime: Int, lyrics: List<LyricsLine>): Long {
-    val nextTimestamp = lyrics.asSequence()
-        .flatMap { lyric ->
-            val timestamps = mutableListOf(lyric.startMs)
-            lyric.endMs?.let { timestamps.add(it) }
-            lyric.lines.forEach { line ->
-                line.words?.forEach { word ->
-                    timestamps.add(word.startMs)
-                    word.endMs?.let { timestamps.add(it) }
-                }
-            }
-            timestamps
-        }
-        .filter { it > currentTime }
-        .minOrNull()
+private fun getNextUpdateDelay(currentTime: Int, lyrics: List<Int>): Long {
+    val nextTimestamp = lyrics
+        .firstOrNull { it > currentTime }
         ?: return 1000L
 
-    return (nextTimestamp - currentTime).toLong()
+    return (nextTimestamp - currentTime).toLong().coerceIn(1L, 1000L)
 }
