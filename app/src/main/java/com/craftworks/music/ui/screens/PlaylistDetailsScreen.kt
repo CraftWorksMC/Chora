@@ -217,7 +217,7 @@ fun PlaylistDetails(
                             )
 
                             Text(
-                                text = StringUtils.formatSeconds((playlistDuration / 1000).toInt()),
+                                text = StringUtils.formatSeconds(playlistDuration / 1000),
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
                                 style = MaterialTheme.typography.titleMedium,
                                 textAlign = TextAlign.Left

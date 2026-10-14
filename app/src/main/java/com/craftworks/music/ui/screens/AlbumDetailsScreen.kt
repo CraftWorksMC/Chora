@@ -230,7 +230,7 @@ fun AlbumDetails(
                                         }
                                         append(" • ")
                                     }
-                                    append("${currentAlbum[0].mediaMetadata.recordingYear.toString()} • ${StringUtils.formatSeconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0)}")
+                                    append("${currentAlbum[0].mediaMetadata.recordingYear.toString()} • ${StringUtils.formatSeconds(currentAlbum[0].mediaMetadata.durationMs?.div(1000) ?: 0)}")
                                 },
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
                                 style = MaterialTheme.typography.titleMedium,
