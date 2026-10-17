@@ -1,16 +1,14 @@
 package com.craftworks.music.data.repository
 
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.model.LyricSource
 import com.craftworks.music.data.model.Lyrics
 import com.craftworks.music.data.model.SyncType
 import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.model.id
-import com.craftworks.music.data.providers.lyrics.binimum.BiniLyricsDataSource
 import com.craftworks.music.data.providers.lyrics.lrclib.LrclibDataSource
+import com.craftworks.music.data.providers.lyrics.lrcred.LrcRedDataSource
 import com.craftworks.music.data.providers.lyrics.netease.NeteaseDataSource
 import com.craftworks.music.data.providers.lyrics.unison.UnisonLyricsDataSource
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
@@ -28,16 +26,13 @@ object LyricsState {
     val lyrics = MutableStateFlow<Lyrics?>(null)
     val loading = MutableStateFlow(false)
     var open = mutableStateOf(false)
-    var useLrcLib by mutableStateOf(true)
-    var useBiniLyrics by mutableStateOf(false)
-    var useNetEase by mutableStateOf(false)
 }
 
 @Singleton
 class LyricsRepository @Inject constructor(
     val mediaProviderSettingsManager: MediaProviderSettingsManager,
     val lrclibDataSource: LrclibDataSource,
-    val biniLyricsDataSource: BiniLyricsDataSource,
+    val lrcRedDataSource: LrcRedDataSource,
     val unisonLyricsDataSource: UnisonLyricsDataSource,
     val neteaseDataSource: NeteaseDataSource
 ) {
@@ -63,7 +58,7 @@ class LyricsRepository @Inject constructor(
                             when (it.source) {
                                 LyricSource.MEDIA_PROVIDER -> metadata?.id?.let { metadata.getProvider()?.getLyrics(it) }?.firstOrNull()
                                 LyricSource.LRCLIB -> lrclibDataSource.getLyrics(metadata, ignoreCachedResponse)
-                                LyricSource.BINI_LYRICS -> biniLyricsDataSource.getLyrics(metadata, ignoreCachedResponse)
+                                LyricSource.LRCRED -> lrcRedDataSource.getLyrics(metadata, ignoreCachedResponse)
                                 LyricSource.UNISON -> unisonLyricsDataSource.getLyrics(metadata, ignoreCachedResponse)
                                 LyricSource.NETEASE -> neteaseDataSource.getLyrics(metadata)
                             }

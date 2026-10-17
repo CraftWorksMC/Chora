@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.elements.tv
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,22 +8,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Checkbox
@@ -30,67 +29,20 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.FilterChip
 import androidx.tv.material3.FilterChipDefaults
 import androidx.tv.material3.Icon
+import androidx.tv.material3.IconButton
 import androidx.tv.material3.ListItem
 import androidx.tv.material3.ListItemDefaults
 import androidx.tv.material3.ListItemScale
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.craftworks.music.R
+import com.craftworks.music.data.model.LyricSource
+import com.craftworks.music.data.model.LyricsProvider
 import com.craftworks.music.data.providers.media.MediaProvider
 import com.craftworks.music.data.providers.media.local.LocalMediaProvider
 import com.craftworks.music.data.providers.media.subsonic.SubsonicMediaProvider
-import com.craftworks.music.data.repository.LyricsState
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.managers.MediaProviderManager
-import kotlinx.coroutines.launch
-
-@Composable
-private fun ProviderItem(
-    icon: Int,
-    title: String,
-    subtitle: String,
-    trailingContent: @Composable () -> Unit = { },
-    enabled: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit = { }
-) {
-    ListItem(
-        selected = enabled,
-        scale = ListItemScale.None,
-        leadingContent = {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = null,
-                modifier = Modifier.size(ListItemDefaults.IconSize)
-            )
-        },
-        headlineContent = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier
-            )
-        },
-        supportingContent = {
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        },
-        trailingContent = {
-            Row {
-                trailingContent()
-
-                Checkbox(
-                    checked = enabled,
-                    onCheckedChange = { }
-                )
-            }
-        },
-        onClick = onClick,
-        onLongClick = onLongClick
-    )
-}
 
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalTvMaterial3Api::class)
 @Composable
@@ -208,45 +160,80 @@ fun TvProviderCard(provider: MediaProvider) {
 }
 
 @Composable
-fun LrcLibProviderCard(
-    url: String,
-    onLongClick: () -> Unit = { }
+fun TvLyricsProviderCard(
+    provider: LyricsProvider,
+    onCheckedChange: (Boolean) -> Unit,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
+    onEditClick: (() -> Unit) = { }
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
+    val (itemFocus, upFocus, downFocus) = remember { FocusRequester.createRefs() }
 
-    ProviderItem(
-        icon = R.drawable.lrclib_logo,
-        title = "LRCLIB",
-        subtitle = url,
-        enabled = LyricsState.useLrcLib,
-        onClick = {
-            LyricsState.useLrcLib = !LyricsState.useLrcLib
-            coroutineScope.launch {
-                //TODO: FIX TV LYRICS PROVIDERS
-                //MediaProviderSettingsManager(context).setUseLrcLib(LyricsState.useLrcLib)
+    ListItem(
+        modifier = Modifier
+            .focusRequester(itemFocus)
+            .focusProperties {
+                right = upFocus
+            },
+        selected = provider.enabled,
+        scale = ListItemScale.None,
+        leadingContent = {
+            Image(
+                painter = painterResource(provider.source.icon),
+                contentDescription = null,
+                modifier = Modifier.size(ListItemDefaults.IconSize)
+            )
+        },
+        headlineContent = {
+            Text(
+                text = provider.source.displayName,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier
+            )
+        },
+        trailingContent = {
+            Row (
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                IconButton(
+                    onClick = onMoveUp,
+                    modifier = Modifier.focusRequester(upFocus)
+                        .focusProperties{
+                            left = itemFocus
+                            right = downFocus
+                        },
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.KeyboardArrowUp,
+                        contentDescription = null
+                    )
+                }
+
+                IconButton(
+                    onClick = onMoveDown,
+                    modifier = Modifier.focusRequester(downFocus)
+                        .focusProperties {
+                            left = upFocus
+                            right = itemFocus
+                        },
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = null
+                    )
+                }
+
+                Checkbox(
+                    checked = provider.enabled,
+                    onCheckedChange = { }
+                )
             }
         },
-        onLongClick = onLongClick
-    )
-}
-
-@Preview
-@Composable
-fun NetEaseProviderCard() {
-    val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-    ProviderItem(
-        icon = R.drawable.netease_cloud_music,
-        title = "NetEase",
-        subtitle = "Lyrics",
-        enabled = LyricsState.useNetEase,
-        onClick = {
-            LyricsState.useNetEase = !LyricsState.useNetEase
-            coroutineScope.launch {
-                //TODO: FIX TV LYRICS PROVIDERS
-                //MediaProviderSettingsManager(context).setUseNetEase(LyricsState.useNetEase)
-            }
-        },
+        onClick = { onCheckedChange(!provider.enabled) },
+        onLongClick = {
+            if (provider.source == LyricSource.LRCLIB)
+                onEditClick()
+        }
     )
 }

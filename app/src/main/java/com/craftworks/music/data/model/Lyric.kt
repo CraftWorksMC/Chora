@@ -20,14 +20,14 @@ enum class SyncType {
 }
 
 enum class LyricSource{
-    MEDIA_PROVIDER, LRCLIB, BINI_LYRICS, UNISON, NETEASE;
+    MEDIA_PROVIDER, LRCLIB, LRCRED, UNISON, NETEASE;
 
     val displayName: String
         @Composable
         get() = when (this) {
             MEDIA_PROVIDER -> stringResource(R.string.settings_media_providers)
             LRCLIB -> "LRCLIB"
-            BINI_LYRICS -> "BiniLyrics"
+            LRCRED -> "Lrc.Red"
             UNISON -> "Unison"
             NETEASE -> "NetEase"
         }
@@ -36,7 +36,7 @@ enum class LyricSource{
         get() = when (this) {
             MEDIA_PROVIDER -> R.drawable.s_m_media_providers
             LRCLIB -> R.drawable.lrclib_logo
-            BINI_LYRICS -> R.drawable.binilyrics_logo
+            LRCRED -> R.drawable.lrcred_logo
             UNISON -> R.drawable.unison_logo
             NETEASE -> R.drawable.netease_cloud_music
         }
@@ -109,16 +109,16 @@ data class NeteaseLrc(
     val lyric: String? = null
 )
 
-// Binimum Lyrics
-@Serializable
-data class BiniLyricsResponse(
-    val results: List<BiniLyricsResult>
-)
-@Serializable
-data class BiniLyricsResult(
-    val timing_type: String,
-    val lyricsUrl: String
-)
+// LrcRed Lyrics
+//@Serializable
+//data class LrcRedSearchResponse(
+//    val results: List<BiniLyricsResult>
+//)
+//@Serializable
+//data class LrcRedResult(
+//    val timing_type: String,
+//    val lyricsUrl: String
+//)
 
 // Unison Lyrics
 @Serializable

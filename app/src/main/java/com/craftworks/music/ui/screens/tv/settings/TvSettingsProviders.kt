@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
@@ -32,16 +33,21 @@ import androidx.tv.material3.Text
 import com.craftworks.music.R
 import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.MediaProviderSettingsManager
-import com.craftworks.music.ui.elements.dialogs.tv.provider.*
-import com.craftworks.music.ui.elements.tv.LrcLibProviderCard
-import com.craftworks.music.ui.elements.tv.NetEaseProviderCard
+import com.craftworks.music.ui.elements.dialogs.tv.provider.ModifyLrcLibProviderDialog
+import com.craftworks.music.ui.elements.dialogs.tv.provider.TvCreateMediaProviderDialog
+import com.craftworks.music.ui.elements.tv.TvLyricsProviderCard
 import com.craftworks.music.ui.elements.tv.TvProviderCard
+import kotlinx.coroutines.launch
 
 @Composable
 fun TvS_ProviderScreen() {
     val context = LocalContext.current.applicationContext
+    val coroutineScope = rememberCoroutineScope()
+    val settingsManager = MediaProviderSettingsManager(context)
 
     val providers by MediaProviderManager.allProviders.collectAsStateWithLifecycle()
+    val lyricProviders by settingsManager.lyricProvidersFlow.collectAsStateWithLifecycle(emptyList())
+    val lrclibUrl by settingsManager.lrcLibEndpointFlow.collectAsStateWithLifecycle("")
 
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf(
@@ -52,7 +58,6 @@ fun TvS_ProviderScreen() {
     var showAddProviderDialog by remember { mutableStateOf(false) }
     var showLrcLibEditDialog by remember { mutableStateOf(false) }
 
-    val lrclibUrl by MediaProviderSettingsManager(context).lrcLibEndpointFlow.collectAsStateWithLifecycle("")
 
     Column(
         modifier = Modifier
@@ -104,14 +109,44 @@ fun TvS_ProviderScreen() {
                 }
             }
 
-            1 -> Column(
-                modifier = Modifier.padding(vertical = 8.dp),
+            1 -> LazyColumn(
+                contentPadding = PaddingValues(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                LrcLibProviderCard(lrclibUrl) {
-                    showLrcLibEditDialog = true
+                items(
+                    items = lyricProviders,
+                    key = { it.source }
+                ) { provider ->
+                    TvLyricsProviderCard(
+                        provider = provider,
+                        onCheckedChange = { checked ->
+                            coroutineScope.launch {
+                                settingsManager.setLyricProviders(
+                                    lyricProviders.map { p ->
+                                        if (p == provider) p.copy(enabled = checked) else p
+                                    }
+                                )
+                            }
+                        },
+                        onMoveUp = {
+                            val thisIndex = lyricProviders.indexOf(provider)
+                            coroutineScope.launch {
+                                settingsManager.setLyricProviders(lyricProviders.toMutableList().apply {
+                                    add((thisIndex - 1 ).coerceAtLeast(0), removeAt(thisIndex))
+                                })
+                            }
+                        },
+                        onMoveDown = {
+                            val thisIndex = lyricProviders.indexOf(provider)
+                            coroutineScope.launch {
+                                settingsManager.setLyricProviders(lyricProviders.toMutableList().apply {
+                                    add((thisIndex + 1 ).coerceAtMost(lyricProviders.lastIndex), removeAt(thisIndex))
+                                })
+                            }
+                        },
+                        onEditClick = { showLrcLibEditDialog = true }
+                    )
                 }
-                NetEaseProviderCard()
             }
         }
     }

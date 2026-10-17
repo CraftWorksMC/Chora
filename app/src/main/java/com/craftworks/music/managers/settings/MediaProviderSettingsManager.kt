@@ -51,7 +51,7 @@ class MediaProviderSettingsManager @Inject constructor(
         val defaultValue = listOf(
             LyricsProvider(LyricSource.MEDIA_PROVIDER, true),
             LyricsProvider(LyricSource.LRCLIB, true),
-            LyricsProvider(LyricSource.BINI_LYRICS, false),
+            LyricsProvider(LyricSource.LRCRED, false),
             LyricsProvider(LyricSource.UNISON, true),
             LyricsProvider(LyricSource.NETEASE, false),
         )
