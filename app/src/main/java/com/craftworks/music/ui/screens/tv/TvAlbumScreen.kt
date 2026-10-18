@@ -119,8 +119,8 @@ fun TvAlbumScreen(
             .focusRequester(focusRequester)
             .focusRestorer(focusRequester),
         contentPadding = PaddingValues(horizontal = 48.dp, vertical = 24.dp),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(20.dp),
-        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(24.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         item(span = { GridItemSpan(5) }) {
             Row(

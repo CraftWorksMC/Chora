@@ -55,11 +55,15 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.OutlinedButton
 import androidx.tv.material3.Text
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.R
+import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.id
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.player.rememberManagedMediaController
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
@@ -84,6 +88,8 @@ fun TvPlaylistDetails(
 
     val playlistMetadata =
         viewModel.selectedPlaylist.collectAsStateWithLifecycle().value?.mediaMetadata
+
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
 
     val playlistSongs = viewModel.selectedPlaylistSongs.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
@@ -125,11 +131,19 @@ fun TvPlaylistDetails(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(selectedPlaylistImage)
+                        .data(
+                            currentProvider?.getImageUrl(
+                                id = selectedPlaylistId ?: "",
+                                itemType = LibraryType.PLAYLIST
+                            )
+                        )
                         .diskCacheKey(selectedPlaylistId)
+                        .placeholderMemoryCacheKey(selectedPlaylistId)
+                        .memoryCacheKey(selectedPlaylistId)
+                        .diskCachePolicy(CachePolicy.DISABLED)
+                        .memoryCachePolicy(CachePolicy.DISABLED)
                         .crossfade(true)
                         .build(),
-                    placeholder = painterResource(R.drawable.placeholder),
                     fallback = painterResource(R.drawable.placeholder),
                     contentScale = ContentScale.Crop,
                     contentDescription = null,

@@ -60,13 +60,16 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.OutlinedButton
 import androidx.tv.material3.Text
-import coil.compose.AsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.R
+import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.favorite
 import com.craftworks.music.data.model.id
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.tv.SongDialog
@@ -87,6 +90,7 @@ fun TvAlbumDetails(
     viewModel: AlbumDetailsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
     val currentAlbum = viewModel.songsInAlbum.collectAsStateWithLifecycle().value
     val showTrackNumbers by AppearanceSettingsManager(context)
         .showTrackNumbersFlow.collectAsStateWithLifecycle(false)
@@ -152,9 +156,16 @@ fun TvAlbumDetails(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(selectedAlbumImage.toString().replace("size=128", "size=500"))
+                        .data(
+                            currentProvider?.getImageUrl(
+                                id = selectedAlbumId,
+                                itemType = LibraryType.ALBUM
+                            )
+                        )
+                        .memoryCacheKey(selectedAlbumId)
+                        .placeholderMemoryCacheKey(selectedAlbumId)
                         .diskCachePolicy(CachePolicy.DISABLED)
-                        .placeholderMemoryCacheKey(selectedAlbumImage.toString())
+                        .memoryCachePolicy(CachePolicy.DISABLED)
                         .crossfade(true)
                         .build(),
                     fallback = painterResource(R.drawable.placeholder),

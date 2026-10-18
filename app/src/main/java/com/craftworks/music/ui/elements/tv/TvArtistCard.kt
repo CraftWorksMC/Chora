@@ -12,14 +12,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.CompactCard
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.R
 import com.craftworks.music.data.model.MediaModel
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvArtistCard(
     artist: MediaModel.Artist,
@@ -34,7 +34,11 @@ fun TvArtistCard(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(artist.imageUrl ?: artist.imageId?.let {artist.getProvider()?.getImageUrl(it)})
                     .diskCacheKey(artist.id)
-                    .crossfade(true).build(),
+                    .placeholderMemoryCacheKey(artist.id)
+                    .memoryCacheKey(artist.id)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .crossfade(true)
+                    .build(),
                 placeholder = painterResource(R.drawable.placeholder),
                 fallback = painterResource(R.drawable.placeholder),
                 contentDescription = null,

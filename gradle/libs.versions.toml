@@ -27,6 +27,7 @@ tvFoundation = "1.0.0"
 snakeYaml = "3.2"
 ktorfit = "2.7.5"
 media3DatasourceOkhttp = "1.11.1"
+coil = "3.6.3"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -56,7 +57,7 @@ androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
-coil-compose = { module = "io.coil-kt:coil-compose", version = "2.7.0" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 composefadingedges = { module = "com.github.GIGAMOLE:ComposeFadingEdges", version.ref = "githubComposefadingedges" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 junit = { module = "junit:junit", version.ref = "junit" }

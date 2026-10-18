@@ -44,8 +44,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.R
 import com.craftworks.music.data.model.ProviderType
 import com.craftworks.music.data.model.id
@@ -54,7 +55,6 @@ import com.craftworks.music.data.model.providerType
 import com.craftworks.music.ui.elements.bounceClick
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 import com.craftworks.music.utils.fadingEdge
-import kotlinx.coroutines.flow.any
 
 //region PREVIEWS
 @Preview(showBackground = true)

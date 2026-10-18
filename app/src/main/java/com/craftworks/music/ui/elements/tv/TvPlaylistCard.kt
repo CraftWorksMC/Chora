@@ -13,15 +13,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.tv.material3.Card
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.StandardCardContainer
 import androidx.tv.material3.Text
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.R
 import com.craftworks.music.data.model.id
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvPlaylistCard(
     playlist: MediaItem,
@@ -42,6 +42,10 @@ fun TvPlaylistCard(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(playlist.mediaMetadata.artworkUri)
                             .diskCacheKey(playlist.mediaMetadata.id ?: playlist.mediaId)
+                            .placeholderMemoryCacheKey(playlist.mediaMetadata.id ?: playlist.mediaId)
+                            .memoryCacheKey(playlist.mediaMetadata.id ?: playlist.mediaId)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
                             .crossfade(true)
                             .build(),
                         fallback = painterResource(R.drawable.placeholder),

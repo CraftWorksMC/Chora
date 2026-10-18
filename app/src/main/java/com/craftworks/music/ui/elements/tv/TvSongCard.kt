@@ -26,8 +26,10 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import androidx.tv.material3.WideCardContainer
-import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.R
 import com.craftworks.music.data.model.id
 
@@ -66,11 +68,11 @@ fun TvHorizontalSongCard(
                         SubcomposeAsyncImage(
                             model = ImageRequest.Builder(context)
                                 .data(song.mediaMetadata.artworkUri)
+                                .diskCacheKey(song.mediaMetadata.id ?: song.mediaId)
+                                .placeholderMemoryCacheKey(song.mediaMetadata.id ?: song.mediaId)
+                                .memoryCacheKey(song.mediaMetadata.id ?: song.mediaId)
+                                .diskCachePolicy(CachePolicy.ENABLED)
                                 .crossfade(true)
-                                .size(64)
-                                .diskCacheKey(
-                                    song.mediaMetadata.id ?: song.mediaId
-                                )
                                 .build(),
                             contentDescription = null,
                             contentScale = ContentScale.FillHeight,

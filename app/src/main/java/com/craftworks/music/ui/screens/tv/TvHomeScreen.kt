@@ -69,11 +69,13 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import androidx.tv.material3.rememberCarouselState
-import coil.compose.AsyncImage
-import coil.imageLoader
-import coil.request.CachePolicy
-import coil.request.ImageRequest
-import coil.request.SuccessResult
+import coil3.compose.AsyncImage
+import coil3.imageLoader
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.allowHardware
+import coil3.request.crossfade
 import com.craftworks.music.R
 import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.Screen
@@ -268,7 +270,6 @@ fun TvHomeScreen(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun CarouselItem(
     album: MediaItem,
@@ -304,16 +305,17 @@ private fun CarouselItem(
                 32
             ))
             .diskCacheKey(album.mediaMetadata.id ?: album.mediaId)
+            .memoryCacheKey(album.mediaMetadata.id ?: album.mediaId)
             .diskCachePolicy(CachePolicy.READ_ONLY)
+            .memoryCachePolicy(CachePolicy.READ_ONLY)
             .allowHardware(false)
             .build()
 
         val result = context.imageLoader.execute(colorRequest)
         if (result is SuccessResult) {
-            val bitmap = (result.drawable as? BitmapDrawable)?.bitmap
+            val bitmap = (result.image as? BitmapDrawable)?.bitmap
             bitmap?.let {
                 Palette.from(it).generate { palette ->
-                    // DarkVibrant is usually best for "Music App" backgrounds
                     val color = palette?.darkVibrantSwatch?.rgb ?: palette?.dominantSwatch?.rgb
                     color?.let { dominantColor = Color(it) }
                 }

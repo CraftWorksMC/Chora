@@ -100,6 +100,7 @@ class ArtistsScreenViewModel @Inject constructor(
                         sortBy = _sort.value,
                         sortOrder = _sortOrder.value,
                         startIndex = 0,
+                        limit = 50,
                         favorite = if (_showFavoritesOnly.value) true else null
                     )
                 )

@@ -14,7 +14,6 @@ import com.craftworks.music.data.providers.media.MediaProvider
 import com.craftworks.music.managers.MediaProviderManager
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import kotlin.uuid.ExperimentalUuidApi
 
 abstract class MediaModel
 {
@@ -314,7 +313,6 @@ abstract class MediaModel
         fun toMediaItem(): MediaItem {
             return toMediaItem(getProvider())
         }
-        @OptIn(ExperimentalUuidApi::class)
         fun toMediaItem(provider: MediaProvider?): MediaItem {
             val mediaUri = Uri.Builder()
                 .scheme("media")

@@ -26,9 +26,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.SubcomposeAsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.R
 import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.MediaModel
@@ -51,7 +52,9 @@ fun ArtistCard(artist: MediaModel.Artist, onClick: () -> Unit) {
                 .data(artist.imageUrl ?: artist.imageId?.let {artist.getProvider()?.getImageUrl(it, LibraryType.ALBUM_ARTIST, 300)})
                 .crossfade(true)
                 .diskCacheKey(artist.id)
+                .memoryCacheKey(artist.id)
                 .diskCachePolicy(CachePolicy.ENABLED)
+                .memoryCachePolicy(CachePolicy.ENABLED)
                 .placeholderMemoryCacheKey(artist.id)
                 .build(),
             contentScale = ContentScale.Crop,

@@ -54,11 +54,15 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.OutlinedButton
 import androidx.tv.material3.Text
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.R
+import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.Screen
 import com.craftworks.music.data.model.id
+import com.craftworks.music.managers.MediaProviderManager
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.tv.TvAlbumCard
 import com.craftworks.music.ui.viewmodels.ArtistsScreenViewModel
@@ -76,6 +80,8 @@ fun TvArtistDetailsScreen(
     LaunchedEffect(selectedArtistId) {
         if (selectedArtistId != null) viewModel.loadArtistDetails(selectedArtistId)
     }
+
+    val currentProvider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
 
     val showLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val artist = viewModel.selectedArtist.collectAsStateWithLifecycle().value
@@ -125,8 +131,17 @@ fun TvArtistDetailsScreen(
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(selectedArtistImage ?: "android.resource://com.craftworks.music/${R.drawable.placeholder}")
+                            .data(
+                                currentProvider?.getImageUrl(
+                                    id = selectedArtistId ?: "",
+                                    itemType = LibraryType.ALBUM_ARTIST
+                                ) ?: "android.resource://com.craftworks.music/${R.drawable.placeholder}"
+                            )
                             .diskCacheKey(selectedArtistId)
+                            .placeholderMemoryCacheKey(selectedArtistId)
+                            .memoryCacheKey(selectedArtistId)
+                            .diskCachePolicy(CachePolicy.DISABLED)
+                            .memoryCachePolicy(CachePolicy.DISABLED)
                             .crossfade(true)
                             .build(),
                         fallback = painterResource(R.drawable.rounded_artist_24),

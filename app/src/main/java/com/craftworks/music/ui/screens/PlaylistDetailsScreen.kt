@@ -56,9 +56,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.R
 import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.model.id
@@ -169,7 +170,9 @@ fun PlaylistDetails(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(selectedPlaylistImage)
                             .diskCacheKey(selectedPlaylistId)
+                            .memoryCacheKey(selectedPlaylistId)
                             .diskCachePolicy(CachePolicy.READ_ONLY)
+                            .memoryCachePolicy(CachePolicy.READ_ONLY)
                             .crossfade(true)
                             .build(),
                         fallback = painterResource(R.drawable.placeholder),

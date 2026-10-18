@@ -49,14 +49,17 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
 import androidx.media3.session.MediaController
-import coil.compose.SubcomposeAsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.R
 import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.ProviderFeature
+import com.craftworks.music.data.model.ProviderType
 import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.model.id
+import com.craftworks.music.data.model.providerType
 import com.craftworks.music.player.SongHelper
 import com.craftworks.music.ui.elements.dialogs.AddToPlaylist
 import com.craftworks.music.ui.elements.dialogs.RatingDialog
@@ -114,14 +117,21 @@ fun HorizontalSongCard(
             else {
                 SubcomposeAsyncImage(
                     model = ImageRequest.Builder(context)
-                        .data(song.mediaMetadata.getProvider()?.getImageUrl(
-                            id = song.mediaMetadata.id ?: "",
-                            itemType = LibraryType.SONG,
-                            size = 128
-                        ))
+                        .data(
+                            song.mediaMetadata.getProvider()?.getImageUrl(
+                                id = if (song.mediaMetadata.providerType == ProviderType.LOCAL_FOLDER)
+                                    song.mediaMetadata.extras?.getString("imageId") ?: ""
+                                else
+                                    song.mediaMetadata.id ?: "",
+                                itemType = LibraryType.SONG,
+                                size = 128
+                            )
+                        )
                         .crossfade(true)
                         .diskCacheKey(song.mediaMetadata.id)
+                        .memoryCacheKey(song.mediaMetadata.id)
                         .diskCachePolicy(CachePolicy.ENABLED)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
                         .placeholderMemoryCacheKey(song.mediaMetadata.id)
                         .build(),
                     contentDescription = "Album Image",

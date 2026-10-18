@@ -34,9 +34,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import coil.compose.SubcomposeAsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.data.model.id
 
 @Stable
@@ -68,7 +69,9 @@ fun AlbumCard(
                     .data(album.mediaMetadata.artworkUri)
                     .crossfade(true)
                     .diskCacheKey(album.mediaMetadata.id)
+                    .memoryCacheKey(album.mediaMetadata.id)
                     .diskCachePolicy(CachePolicy.ENABLED)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
                     .placeholderMemoryCacheKey(album.mediaMetadata.id)
                     .listener(
                         onError = { request, result ->

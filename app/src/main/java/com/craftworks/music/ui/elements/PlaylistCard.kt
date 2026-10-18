@@ -23,9 +23,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
-import coil.compose.SubcomposeAsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.data.model.ProviderType
 import com.craftworks.music.data.model.id
 import com.craftworks.music.data.model.providerType
@@ -62,7 +63,9 @@ fun PlaylistCard(playlist: MediaItem, onClick: () -> Unit) {
                 )
                 .crossfade(true)
                 .diskCacheKey(metadata.id)
+                .memoryCacheKey(metadata.id)
                 .diskCachePolicy(CachePolicy.ENABLED)
+                .memoryCachePolicy(CachePolicy.ENABLED)
                 .placeholderMemoryCacheKey(metadata.id)
                 .build(),
             contentScale = ContentScale.FillWidth,

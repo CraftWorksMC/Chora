@@ -9,16 +9,17 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.ColorUtils
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.palette.graphics.Palette
-import coil.imageLoader
-import coil.request.CachePolicy
-import coil.request.ImageRequest
-import coil.request.SuccessResult
+import coil3.imageLoader
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.allowHardware
+import coil3.toBitmap
 import com.craftworks.music.data.repository.LyricsRepository
 import com.craftworks.music.data.repository.SongRepository
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
@@ -126,12 +127,13 @@ class NowPlayingViewModel @Inject constructor (
     private suspend fun extractColorsFromUri(uri: String, context: Context): List<Color?> = coroutineScope {
         val loader = context.imageLoader
         val request = ImageRequest.Builder(context)
-            .data(uri.replace("size=128", "size=32"))
+            .data(uri)
             .allowHardware(false)
             .diskCachePolicy(CachePolicy.DISABLED)
+            .memoryCachePolicy(CachePolicy.DISABLED)
             .build()
 
-        val result = (loader.execute(request) as? SuccessResult)?.drawable
+        val result = (loader.execute(request) as? SuccessResult)?.image
         val bitmap = result?.toBitmap()
 
         bitmap?.let { bitmapImage ->

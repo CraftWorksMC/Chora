@@ -39,9 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
-import coil.compose.SubcomposeAsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.craftworks.music.data.model.id
 import com.craftworks.music.player.ChoraMediaLibraryService
 
@@ -78,7 +79,9 @@ fun NowPlayingMiniPlayer(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(metadata?.artworkUri)
                 .diskCacheKey(metadata?.id)
-                .diskCachePolicy(CachePolicy.READ_ONLY)
+                .memoryCacheKey(metadata?.id)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .memoryCachePolicy(CachePolicy.ENABLED)
                 .placeholderMemoryCacheKey(metadata?.id)
                 .crossfade(true)
                 .build(),

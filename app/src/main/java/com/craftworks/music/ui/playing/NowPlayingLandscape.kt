@@ -52,9 +52,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
-import coil.compose.AsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
 import com.craftworks.music.R
 import com.craftworks.music.data.model.MediaModel
 import com.craftworks.music.data.model.ProviderFeature
@@ -130,6 +130,7 @@ fun NowPlayingLandscape(
                         .data(artworkUri)
                         .placeholderMemoryCacheKey(metadata?.id)
                         .diskCachePolicy(CachePolicy.DISABLED)
+                        .memoryCachePolicy(CachePolicy.DISABLED)
                         .build(),
                     contentDescription = "Album Cover Art",
                     fallback = painterResource(R.drawable.placeholder),
