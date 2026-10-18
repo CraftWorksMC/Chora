@@ -36,6 +36,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.craftworks.music.R
 import com.craftworks.music.data.model.Screen
+import com.craftworks.music.data.model.favorite
+import com.craftworks.music.data.model.id
 import com.craftworks.music.managers.settings.OLEDProtectionMode
 import com.craftworks.music.player.ChoraMediaLibraryService
 import com.craftworks.music.ui.elements.dialogs.RatingDialog
@@ -70,11 +72,16 @@ fun NowPlayingContent(
     val colors by viewModel.paletteColors.collectAsStateWithLifecycle()
     val iconTextColor by viewModel.iconTextColor.collectAsStateWithLifecycle()
 
+    var isStarred by remember { mutableStateOf(metadata?.favorite?:false) }
+
     val isSystemDark = if (oledProtectionMode != OLEDProtectionMode.OFF) true
         else isSystemInDarkTheme()
 
     LaunchedEffect(metadata?.artworkUri, backgroundStyle) {
         viewModel.updatePaletteFromUri(metadata?.artworkUri, backgroundStyle, isSystemDark)
+    }
+    LaunchedEffect(metadata) {
+        isStarred = metadata?.favorite?:false
     }
 
     val targetOverlayColor = when {
@@ -147,9 +154,20 @@ fun NowPlayingContent(
             sheetState = playQueueSheetState,
         ) {
             NowPlayingDetails(
-                isStarred = false,
+                isStarred = isStarred,
                 currentRating = (metadata?.userRating as? StarRating)?.starRating?.toInt() ?: 0,
-                onOpenRating = { showRatingDialog = true }
+                onOpenRating = { showRatingDialog = true },
+                onToggleFavorite = {
+                    if (isStarred)
+                        metadata?.id?.let {
+                            viewModel.unstarSong(it)
+                        }
+                    else
+                        metadata?.id?.let {
+                            viewModel.starSong(it)
+                        }
+                    isStarred = !isStarred
+                }
             )
             Spacer(modifier = Modifier.height(16.dp))
         }

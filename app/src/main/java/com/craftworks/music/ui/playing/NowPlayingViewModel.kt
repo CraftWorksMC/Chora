@@ -19,8 +19,10 @@ import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.repository.LyricsRepository
 import com.craftworks.music.data.repository.SongRepository
+import com.craftworks.music.data.repository.StarredRepository
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MiscSettingsManager
 import com.craftworks.music.managers.settings.PlaybackSettingsManager
@@ -39,6 +41,7 @@ import kotlinx.coroutines.withContext
 class NowPlayingViewModel @Inject constructor (
     @ApplicationContext private val context: Context,
     val songRepository: SongRepository,
+    val starredRepository: StarredRepository,
     val lyricsRepository: LyricsRepository,
     val appearanceSettingsManager: AppearanceSettingsManager,
     val playbackSettingsManager: PlaybackSettingsManager,
@@ -170,6 +173,18 @@ class NowPlayingViewModel @Inject constructor (
     fun downloadSong(metadata: MediaMetadata) {
         viewModelScope.launch {
             songRepository.downloadSong(metadata, miscSettingsManager.downloadTemplateFlow.first())
+        }
+    }
+
+    fun starSong(id: String) {
+        viewModelScope.launch {
+            starredRepository.starItem(listOf(id), LibraryType.SONG)
+        }
+    }
+
+    fun unstarSong(id: String) {
+        viewModelScope.launch {
+            starredRepository.unStarItem(listOf(id), LibraryType.SONG)
         }
     }
 }

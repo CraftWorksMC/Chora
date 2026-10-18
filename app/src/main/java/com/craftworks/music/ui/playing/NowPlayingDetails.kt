@@ -1,5 +1,6 @@
 package com.craftworks.music.ui.playing
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
@@ -33,6 +35,7 @@ fun NowPlayingDetails(
     isStarred: Boolean = false,
     currentRating: Int = 0,
     onOpenRating: () -> Unit = {},
+    onToggleFavorite: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -65,6 +68,33 @@ fun NowPlayingDetails(
                             imageVector = ImageVector.vectorResource(R.drawable.rounded_star_outline_24),
                             contentDescription = "not rated"
                         )
+                    }
+                }
+            }
+        )
+
+        ListItem(
+            modifier = Modifier.clickable { onToggleFavorite() },
+            colors = ListItemDefaults.colors(
+                containerColor = Color.Transparent
+            ),
+            headlineContent = { Text(stringResource(R.string.now_playing_details_favorite)) },
+            trailingContent = {
+                Row (
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Crossfade(
+                        targetState = isStarred
+                    ) {
+                        if (it) Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
+                            contentDescription = stringResource(R.string.action_remove_from_favorites)
+                        )
+                        else
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.round_favorite_border_24),
+                                contentDescription = stringResource(R.string.action_add_to_favorites)
+                            )
                     }
                 }
             }
