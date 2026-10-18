@@ -95,6 +95,7 @@ dependencies {
     implementation(libs.org.snakeyaml)
 
     implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.palette.ktx)
     implementation(libs.androidx.media3.exoplayer)
