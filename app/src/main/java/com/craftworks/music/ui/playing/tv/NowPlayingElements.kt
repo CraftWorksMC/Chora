@@ -70,7 +70,6 @@ import com.craftworks.music.ui.elements.moveClick
 import com.craftworks.music.utils.StringUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
@@ -199,7 +198,7 @@ fun PlaybackProgressSlider(
                 .fillMaxWidth()
         ) {
             Text(
-                text = remember(currentValue) { StringUtils.formatSeconds(currentValue.toInt() / 1000) },
+                text = remember(currentValue) { StringUtils.formatSeconds(currentValue / 1000) },
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.Start,
                 color = color.copy(alpha = 0.5f),
@@ -211,7 +210,7 @@ fun PlaybackProgressSlider(
             Text(
                 text = remember(currentDuration) {
                     StringUtils.formatSeconds(
-                        currentDuration?.toInt()?.div(1000) ?: (currentValue / 1000).toInt()
+                        currentDuration?.div(1000) ?: (currentValue / 1000)
                     )
                 },
                 fontWeight = FontWeight.Light,

@@ -281,7 +281,7 @@ private fun CarouselItem(
     val artist = album.mediaMetadata.artist?.toString() ?: ""
     val genre = album.mediaMetadata.genre?.toString() ?: ""
     val duration = StringUtils.formatSeconds(
-        album.mediaMetadata.durationMs?.div(1000)?.toInt() ?: 0
+        album.mediaMetadata.durationMs?.div(1000) ?: 0
     )
     val subtitle = listOf(genre, artist, duration)
         .filter { it.isNotBlank() }

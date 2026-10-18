@@ -72,6 +72,7 @@ enum class SongListSort {
     RECENTLY_PLAYED,
     RELEASE_DATE,
     SORT_NAME,
+    TRACK_NUMBER,
     YEAR
 }
 enum class GenreListSort {

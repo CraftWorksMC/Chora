@@ -184,7 +184,7 @@ fun HorizontalSongCard(
             }
             val formattedDuration by remember(song.mediaMetadata.durationMs) {
                 derivedStateOf {
-                    StringUtils.formatSeconds((song.mediaMetadata.durationMs?.div(1000))?.toInt() ?: 0)
+                    StringUtils.formatSeconds((song.mediaMetadata.durationMs?.div(1000)) ?: 0)
                 }
             }
             Text(
