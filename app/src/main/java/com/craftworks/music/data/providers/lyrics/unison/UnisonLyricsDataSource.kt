@@ -111,7 +111,12 @@ class UnisonLyricsDataSource @Inject constructor(
                 if (isrcSearchResponse.data.isNullOrEmpty())
                     return@withContext null
 
-                data = client.get("https://unison.boidu.dev/lyrics/${isrcSearchResponse.data.first().id}") {
+                val matchedLyric = isrcSearchResponse.data.firstOrNull { it.matchScore!! > 0.9 }
+
+                if (matchedLyric == null)
+                    return@withContext null
+
+                data = client.get("https://unison.boidu.dev/lyrics/${matchedLyric.id}") {
                     header(HttpHeaders.UserAgent, "Chora - Navidrome Client (https://github.com/CraftWorksMC/Chora)")
 
                     if (ignoreCachedResponse)
@@ -119,11 +124,6 @@ class UnisonLyricsDataSource @Inject constructor(
                     else
                         header(HttpHeaders.CacheControl, "max-stale=2592000")
                 }.body<UnisonLyricsResponse>().data
-
-                data?.matchScore?.let {
-                    if (it < 0.9)
-                        return@withContext null
-                }
             }
 
             if (data?.lyrics == null)
