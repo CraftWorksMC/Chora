@@ -2,11 +2,12 @@ package com.craftworks.music.data.providers.media.subsonic
 
 import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.Query
+import io.ktor.client.statement.HttpResponse
 
 interface SubsonicService {
 
     @GET("rest/ping.view")
-    suspend fun ping(): SubsonicResponse
+    suspend fun ping(): HttpResponse
 
     @GET("rest/createInternetRadioStation.view")
     suspend fun createInternetRadioStation(

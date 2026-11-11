@@ -35,6 +35,7 @@ import com.craftworks.music.utils.PagingUtils
 import com.craftworks.music.utils.StringUtils
 import de.jensklingenberg.ktorfit.Ktorfit
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.api.createClientPlugin
@@ -234,19 +235,23 @@ open class SubsonicMediaProvider : MediaProvider() {
         _salt = StringUtils.generateSalt(8)
         _token = StringUtils.md5Hash(providerData.password + _salt)
 
-        val res = try {
-            service.ping()
+        try {
+            val response = service.ping()
+
+            val finalUrl = response.call.request.url.toString().substringBefore("rest/ping.view")
+            val res = response.body<SubsonicResponse>()
+
+            return AuthenticationResponse(
+                endpointUrl = finalUrl,
+                isAdmin = res.subsonicResponse.user?.adminRole ?: false,
+                providerType = when (res.subsonicResponse.type) {
+                    "navidrome" -> ProviderType.NAVIDROME
+                    else -> ProviderType.SUBSONIC
+                }
+            )
         } catch (e: Exception) {
             throw Exception("Failed to ping provider", e)
         }
-
-        return AuthenticationResponse(
-            isAdmin = res.subsonicResponse.user?.adminRole ?: false,
-            providerType = when (res.subsonicResponse.type) {
-                "navidrome" -> ProviderType.NAVIDROME
-                else -> ProviderType.SUBSONIC
-            }
-        )
     }
 
     override suspend fun createFavorite(
@@ -700,7 +705,7 @@ open class SubsonicMediaProvider : MediaProvider() {
 
     override suspend fun ping(): Boolean {
         return try {
-            service.ping().subsonicResponse.openSubsonic == true
+            service.ping().body<SubsonicResponse>().subsonicResponse.openSubsonic == true
         } catch (ex: Exception) {
             false
         }

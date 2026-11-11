@@ -26,9 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component3
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -299,6 +296,12 @@ fun CreateSubsonicProviderDialog(
                                             try {
                                                 val res = provider.authenticate(username, password)
 
+                                                res.endpointUrl?.let { url ->
+                                                    provider = provider.apply {
+                                                        providerData.url = url
+                                                    }
+                                                }
+
                                                 if (res.providerType == ProviderType.NAVIDROME)
                                                     provider = NavidromeMediaProvider().apply {
                                                         this.providerData = provider.providerData
@@ -363,6 +366,12 @@ fun CreateSubsonicProviderDialog(
 
                                         try {
                                             val res = provider.authenticate(username, password)
+
+                                            res.endpointUrl?.let { url ->
+                                                provider = provider.apply {
+                                                    providerData.url = url
+                                                }
+                                            }
 
                                             if (res.providerType == ProviderType.NAVIDROME)
                                                 provider = NavidromeMediaProvider().apply {

@@ -225,13 +225,15 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         Log.d("AA", "onCreate Android Auto")
 
         if (session == null)
-            initializePlayer()
+            serviceMainScope.launch {
+                initializePlayer()
+            }
         else
             Log.d("AA", "MediaSession already initialized, not recreating")
     }
 
     @OptIn(ExperimentalApi::class)
-    fun initializePlayer() {
+    suspend fun initializePlayer() {
         serviceIOScope.launch {
             appearanceSettingsManager.bottomNavItemsFlow.collect { items ->
                 val routeToItem = mapOf(
@@ -272,7 +274,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 .build()
         )
 
-        var seekPosMs: Long? = null
         val resolvingDataSourceFactory = ResolvingDataSource.Factory(
             DefaultDataSource.Factory(this@ChoraMediaLibraryService, okHttpDataSourceFactory),
             object : ResolvingDataSource.Resolver {
@@ -293,13 +294,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                     val bitrate = runBlocking { transcodeManager.currentBitrateFlow.first() }
                     if (bitrate != "No Transcoding") {
                         val format = runBlocking { transcodeManager.currentFormatFlow.first() }
-
-                        if (seekPosMs != null) {
-                            actualStreamUrl = provider.getStreamUrl(songId, true, bitrate.toInt(), format, offset = seekPosMs!!.div(1000).toInt())
-                            seekPosMs = null
-                        }
-                        else
-                            actualStreamUrl = provider.getStreamUrl(songId, true, bitrate.toInt(), format)
+                        actualStreamUrl = provider.getStreamUrl(songId, true, bitrate.toInt(), format)
                     }
 
                     return dataSpec.withUri(actualStreamUrl.toUri())
@@ -323,15 +318,10 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             .experimentalSetDynamicSchedulingEnabled(false) // Temporary fix for lyrics. refer to https://github.com/androidx/media/issues/3286
             .build()
 
-        val audioOffload = runBlocking { playbackSettingsManager.audioOffloadEnabled.first() }
+        val initialOffloadEnabled = playbackSettingsManager.audioOffloadEnabled.first()
         val audioOffloadPreferences =
             TrackSelectionParameters.AudioOffloadPreferences.Builder()
-                .setAudioOffloadMode(
-                    if (audioOffload)
-                        TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED
-                    else
-                        TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED
-                ).build()
+                .setAudioOffloadMode(TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED).build()
         player.trackSelectionParameters =
             player.trackSelectionParameters
                 .buildUpon()
@@ -384,16 +374,16 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 ).show()
             }
 
-            override fun onPositionDiscontinuity(
-                oldPosition: Player.PositionInfo,
-                newPosition: Player.PositionInfo,
-                reason: Int
-            ) {
-                if (reason == Player.DISCONTINUITY_REASON_SEEK) {
-                    seekPosMs = newPosition.positionMs
-                }
-                super.onPositionDiscontinuity(oldPosition, newPosition, reason)
-            }
+//            override fun onPositionDiscontinuity(
+//                oldPosition: Player.PositionInfo,
+//                newPosition: Player.PositionInfo,
+//                reason: Int
+//            ) {
+//                if (reason == Player.DISCONTINUITY_REASON_SEEK) {
+//                    seekPosMs = newPosition.positionMs
+//                }
+//                super.onPositionDiscontinuity(oldPosition, newPosition, reason)
+//            }
         })
 
         val mainActivityIntent = Intent(this, MainActivity::class.java).apply {

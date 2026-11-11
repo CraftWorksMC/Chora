@@ -417,6 +417,12 @@ fun CreateMediaProviderDialog(
                                         try {
                                             val res = provider.authenticate(username, password)
 
+                                            res.endpointUrl?.let {
+                                                provider = provider.apply {
+                                                    providerData.url = it
+                                                }
+                                            }
+
                                             if (res.providerType == ProviderType.NAVIDROME) {
                                                 provider = NavidromeMediaProvider().apply {
                                                     this.providerData = provider.providerData

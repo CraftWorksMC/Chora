@@ -1,6 +1,7 @@
 package com.craftworks.music.data.model
 
 data class AuthenticationResponse(
+    val endpointUrl: String? = null,
     val isAdmin: Boolean? = null,
     val providerType: ProviderType
 )
