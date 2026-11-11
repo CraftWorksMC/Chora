@@ -53,7 +53,7 @@ fun SyncedLyricItem(
     )
 
     val lyricBlur: Dp by animateDpAsState(
-        targetValue = if (useBlur) calculateLyricBlur(
+        targetValue = if (useBlur && index != currentLyricIndex) calculateLyricBlur(
             index, currentLyricIndex, visibleItemsInfo
         ) else 0.dp,
         label = "Lyric Blur",
@@ -63,7 +63,11 @@ fun SyncedLyricItem(
     val scale by animateFloatAsState(
         targetValue = if (currentLyricIndex == index) 1f else 0.9f,
         label = "Lyric Scale Animation",
-        animationSpec = tween(lyricsAnimationSpeed, 0, CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f))
+        animationSpec =
+            if (currentLyricIndex == index)
+                tween(lyricsAnimationSpeed / 2, 0, CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f))
+            else
+                tween(lyricsAnimationSpeed, 0, CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f))
     )
 
     if (lyric.lines[0].text.isEmpty()) {

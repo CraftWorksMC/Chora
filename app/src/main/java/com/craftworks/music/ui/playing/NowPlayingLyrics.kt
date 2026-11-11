@@ -2,20 +2,18 @@ package com.craftworks.music.ui.playing
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -258,7 +256,8 @@ fun LyricsView(
                     if (targetItemAfter != null) {
                         var finalScrollDelta = targetItemAfter.offset - scrollOffset
 
-                        if (lyrics.lines[(targetIndex - 1).coerceAtLeast(0)].lines[0].text == "")
+                        if (lyrics.lines[(targetIndex - 1).coerceAtLeast(0)].lines.isEmpty() ||
+                            lyrics.lines[(targetIndex - 1).coerceAtLeast(0)].lines[0].text == "")
                             finalScrollDelta -= interludeHeight
 
                         state.animateScrollBy(
@@ -403,7 +402,7 @@ fun LyricsView(
                     if (lyrics.lines.size > 1) {
                         itemsIndexed(
                             lyrics.lines,
-                            key = { index, lyric -> "${index}:${lyric.lines[0].text}" }
+                            key = { index, lyric -> "${index}:${lyric.startMs}" }
                         ) { index, lyric ->
                             val alignment = agentAlignment[lyric.agentId] ?: lyricsAlignment
 
@@ -446,13 +445,6 @@ fun LyricsView(
                             }
                         }
                         item {
-                            val blur: Dp by animateDpAsState(
-                                targetValue = if (useBlur) calculateLyricBlur(
-                                    lyrics.lines.size, currentLyricIndex.intValue + 1, visibleItemsInfo
-                                ) else 0.dp,
-                                label = "Lyric Blur",
-                                animationSpec = tween(lyricsAnimationSpeed / 2, 0, FastOutSlowInEasing)
-                            )
                             val provider by MediaProviderManager.currentProvider.collectAsStateWithLifecycle()
                             val url = when (lyrics.source) {
                                 LyricSource.MEDIA_PROVIDER -> {
@@ -460,22 +452,18 @@ fun LyricsView(
                                 }
                                 LyricSource.LRCLIB -> MediaProviderSettingsManager(LocalContext.current).lrcLibEndpointFlow.collectAsStateWithLifecycle("https://lrclib.net").value
                                 LyricSource.LRCRED -> "https://lrc.red"
-                                LyricSource.UNISON -> "https://unison.boidu.dev"
+                                LyricSource.UNISON -> lyrics.credit?.songUrl ?: "https://unison.betterlyrics.org"
                                 LyricSource.NETEASE -> "https://music.163.com"
                             }
 
                             val uriHandler = LocalUriHandler.current
 
-                            Box(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 12.dp)
-                                    .height(48.dp)
-                                    .clickable(
-                                        enabled = !(lyrics.source == LyricSource.MEDIA_PROVIDER && provider is LocalMediaProvider),
-                                        onClick = { uriHandler.openUri(url) }
-                                    ),
-                                contentAlignment = Alignment.Center
+                                    .padding(top = 12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
                             ) {
                                 Text(
                                     text = stringResource(
@@ -484,8 +472,24 @@ fun LyricsView(
                                     ),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = color.copy(0.5f),
-                                    textAlign = TextAlign.Center
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.clickable(
+                                        enabled = !(lyrics.source == LyricSource.MEDIA_PROVIDER && provider is LocalMediaProvider),
+                                        onClick = { uriHandler.openUri(url) }
+                                    )
                                 )
+                                if (lyrics.credit != null) {
+                                    Text(
+                                        text = stringResource(
+                                            R.string.now_playing_lyrics_uploader_credit,
+                                            lyrics.credit.curatorName
+                                        ),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = color.copy(0.5f),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.clickable{ uriHandler.openUri(lyrics.credit.curatorUrl) }
+                                    )
+                                }
                             }
                         }
                     } else if (lyrics.lines.isNotEmpty()) {

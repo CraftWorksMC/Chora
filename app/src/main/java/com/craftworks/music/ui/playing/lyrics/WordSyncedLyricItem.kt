@@ -64,8 +64,13 @@ fun WordSyncedLyricItem(
     lyricsAlignment: NowPlayingAlignment,
     onClick: () -> Unit = {},
 ) {
+
+    val isCurrentLyric =
+        currentPosition >= lyric.startMs &&
+                lyric.endMs?.let { currentPosition < it } ?: (currentLyricIndex == index)
+
     val lyricBlur: Dp by animateDpAsState(
-        targetValue = if (useBlur) calculateLyricBlur(
+        targetValue = if (useBlur && !isCurrentLyric) calculateLyricBlur(
             index, currentLyricIndex, visibleItemsInfo
         ) else 0.dp,
         label = "Lyric Blur",
@@ -73,12 +78,16 @@ fun WordSyncedLyricItem(
     )
 
     val scale by animateFloatAsState(
-        targetValue = if (currentLyricIndex == index) 1f else 0.95f,
+        targetValue = if (isCurrentLyric) 1f else 0.95f,
         label = "Lyric Scale Animation",
-        animationSpec = tween(lyricsAnimationSpeed, 0, CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f))
+        animationSpec =
+            if (isCurrentLyric)
+                tween(lyricsAnimationSpeed / 2, 0, CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f))
+            else
+                tween(lyricsAnimationSpeed, 0, CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f))
     )
 
-    if (lyric.lines[0].text.isEmpty()) {
+    if (lyric.lines.isEmpty() || lyric.lines[0].text.isEmpty()) {
         AnimatedContent(
             targetState = currentLyricIndex == index
         ) {

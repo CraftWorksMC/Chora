@@ -53,6 +53,7 @@ data class LyricsProvider(
 data class Lyrics(
     val syncType: SyncType,
     val source: LyricSource,
+    val credit: LyricSourceCredit? = null,
     val lines: List<LyricsLine>,
     val agents: List<LyricsAgent> = emptyList()
 )
@@ -85,6 +86,13 @@ data class LyricsAgent(
     val id: String,
     val type: LyricsAgentType = LyricsAgentType.PERSON,
     val name: String? = null
+)
+@Stable
+data class LyricSourceCredit(
+    val songUrl: String,
+    val curatorUrl: String,
+    val curatorName: String,
+    val curatorAvatar: String? = null
 )
 
 // LRCLIB Lyrics
@@ -140,8 +148,18 @@ data class UnisonSearchResponse(
 @Serializable
 data class UnisonLyricsData(
     val id: Int,
+    val videoId: String,
     val lyrics: String? = null,
-    val format: String
+    val format: String,
+    val submitter: UnisonSubmitter,
+    val matchScore: Double? = null,
+)
+
+@Serializable
+data class UnisonSubmitter(
+    val keyId: String,
+    val displayName: String,
+    val avatarUrl: String? = null
 )
 
 fun LrcLibLyrics.toLyrics(): Lyrics? {

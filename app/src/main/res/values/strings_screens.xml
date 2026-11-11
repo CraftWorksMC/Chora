@@ -16,4 +16,5 @@
 
     // Lyrics Credits
     <string name="now_playing_lyrics_credit">Lyrics provided by %s</string>
+    <string name="now_playing_lyrics_uploader_credit">Submitted by %s</string>
 </resources>

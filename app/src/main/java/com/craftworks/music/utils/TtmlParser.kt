@@ -60,10 +60,23 @@ fun parseTtml(ttml: String, source: LyricSource): Lyrics {
         }
         println("lyrics agents: $agents")
 
+        for (i in 0 until lines.size - 1) {
+            val current = lines[i]
+
+            val currentEnd = current.endMs ?: continue
+            val next = lines[i + 1]
+
+            if (next.startMs - currentEnd > 3000) {
+                lines.add(i+1,LyricsLine(startMs = currentEnd, endMs = next.startMs, lines = emptyList()))
+            }
+        }
+
+        val newLines = addInterludeLines(lines, 3000)
+
         Lyrics(
             syncType = syncType,
             source = source,
-            lines = lines,
+            lines = newLines.toList(),
             agents = agents
         )
     }
@@ -145,4 +158,24 @@ private fun parseWords(
             }
         }
     }
+}
+
+fun addInterludeLines(
+    lyrics: List<LyricsLine>,
+    maxGapMs: Int = 3000
+): Sequence<LyricsLine> = sequence {
+    if (lyrics.isEmpty()) return@sequence
+
+    for (i in 0 until lyrics.size - 1) {
+        val current = lyrics[i]
+        yield(current)
+
+        val currentEnd = current.endMs ?: current.startMs
+        val next = lyrics[i + 1]
+
+        if (next.startMs - currentEnd > maxGapMs) {
+            yield(LyricsLine(startMs = currentEnd, endMs = next.startMs, lines = emptyList()))
+        }
+    }
+    yield(lyrics.last())
 }

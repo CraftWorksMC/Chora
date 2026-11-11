@@ -274,7 +274,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         var seekPosMs: Long? = null
         val resolvingDataSourceFactory = ResolvingDataSource.Factory(
-            DefaultDataSource.Factory(this, okHttpDataSourceFactory),
+            DefaultDataSource.Factory(this@ChoraMediaLibraryService, okHttpDataSourceFactory),
             object : ResolvingDataSource.Resolver {
                 override fun resolveDataSpec(dataSpec: DataSpec): DataSpec {
                     val uri = dataSpec.uri
@@ -502,7 +502,8 @@ class ChoraMediaLibraryService : MediaLibraryService() {
                 }
 
                 // Not found in the current folder
-                val cachedItem = aPlaylistScreenItems.find { it.mediaId == requestedId }
+                val cachedItem = aHomeScreenItems.find { it.mediaId == requestedId }
+                    ?: aPlaylistScreenItems.find { it.mediaId == requestedId }
                     ?: aRadioScreenItems.find { it.mediaId == requestedId }
                     ?: aAlbumScreenItems.find { it.mediaId == requestedId }
                     ?: aArtistsScreenItems.find { it.mediaId == requestedId }
@@ -804,26 +805,37 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         println("GETTING ANDROID AUTO SCREEN ITEMS")
         runBlocking {
             if (aHomeScreenItems.isEmpty()) {
-                val recentlyPlayedAlbums = async { albumRepository.getAlbums(MediaQuery.AlbumListQuery(sortBy = AlbumListSort.RECENTLY_PLAYED, sortOrder = SortOrder.DESC, limit = 6, startIndex = 0)) }.await()
-                val mostPlayedAlbums = async { albumRepository.getAlbums(MediaQuery.AlbumListQuery(sortBy = AlbumListSort.PLAY_COUNT, sortOrder = SortOrder.DESC, limit = 6, startIndex = 0)) }.await()
+                val randomSongs = async {
+                    songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RANDOM, sortOrder = SortOrder.ASC, startIndex = 0, limit = 6))
+                }.await()
+                val newSongs = async {
+                    songRepository.getSongs(MediaQuery.SongListQuery(sortBy = SongListSort.RECENTLY_ADDED, sortOrder = SortOrder.DESC, startIndex = 0, limit = 6))
+                }.await()
 
-                recentlyPlayedAlbums.forEach { album ->
+                randomSongs.forEach { song ->
                     aHomeScreenItems.add(
-                        album.apply {
+                        song.apply {
                             this.mediaMetadata.extras?.putString(
                                 MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE,
-                                this@ChoraMediaLibraryService.getString(R.string.home_recently_played)
+                                this@ChoraMediaLibraryService.getString(R.string.home_explore_library)
+                            )
+                            this.mediaMetadata.extras?.putInt(
+                                MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE,
+                                MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM
                             )
                         }
                     )
                 }
-
-                mostPlayedAlbums.forEach { album ->
+                newSongs.forEach { song ->
                     aHomeScreenItems.add(
-                        album.apply {
+                        song.apply {
                             this.mediaMetadata.extras?.putString(
                                 MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE,
-                                this@ChoraMediaLibraryService.getString(R.string.home_most_played)
+                                this@ChoraMediaLibraryService.getString(R.string.home_recently_added)
+                            )
+                            this.mediaMetadata.extras?.putInt(
+                                MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE,
+                                MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM
                             )
                         }
                     )

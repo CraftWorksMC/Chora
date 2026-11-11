@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.media3.common.MediaMetadata
 import com.craftworks.music.data.model.Lyric
 import com.craftworks.music.data.model.LyricSource
+import com.craftworks.music.data.model.LyricSourceCredit
 import com.craftworks.music.data.model.Lyrics
 import com.craftworks.music.data.model.LyricsLine
 import com.craftworks.music.data.model.SyncType
@@ -79,6 +80,8 @@ class UnisonLyricsDataSource @Inject constructor(
 
         try {
             val response = client.get("https://unison.boidu.dev/lyrics") {
+                if (isrc != null)
+                    parameter("isrc", isrc.first())
                 parameter("song", title)
                 parameter("artist", artist)
                 parameter("duration", duration)
@@ -90,16 +93,12 @@ class UnisonLyricsDataSource @Inject constructor(
                 else
                     header(HttpHeaders.CacheControl, "max-stale=2592000")
             }
-
-            println("isrc: $isrc")
-
             var data = response.body<UnisonLyricsResponse>().data
 
-            println("got unison data: $data")
-
+            // Search Fallback
             if (data == null && isrc != null)  {
                 val isrcSearchResponse = client.get("https://unison.boidu.dev/lyrics/search") {
-                    parameter("q", isrc.first())
+                    parameter("q", "$title $artist")
 
                     header(HttpHeaders.UserAgent, "Chora - Navidrome Client (https://github.com/CraftWorksMC/Chora)")
 
@@ -120,13 +119,25 @@ class UnisonLyricsDataSource @Inject constructor(
                     else
                         header(HttpHeaders.CacheControl, "max-stale=2592000")
                 }.body<UnisonLyricsResponse>().data
+
+                data?.matchScore?.let {
+                    if (it < 0.9)
+                        return@withContext null
+                }
             }
 
-            if (data == null || data.lyrics == null)
+            if (data?.lyrics == null)
                 return@withContext null
 
+            val credit = LyricSourceCredit(
+                songUrl = "https://unison.betterlyrics.org/song/${data.videoId}",
+                curatorUrl = "https://unison.betterlyrics.org/curator/${data.submitter.keyId}",
+                curatorName = data.submitter.displayName,
+                curatorAvatar = data.submitter.avatarUrl
+            )
+
             when (data.format) {
-                "ttml" -> return@withContext parseTtml(data.lyrics, LyricSource.UNISON)
+                "ttml" -> return@withContext parseTtml(data.lyrics, LyricSource.UNISON).copy(credit = credit)
                 "lrc" -> {
                     val lines = mutableListOf<LyricsLine>()
 
@@ -142,6 +153,7 @@ class UnisonLyricsDataSource @Inject constructor(
                     return@withContext Lyrics(
                         syncType = SyncType.LINE,
                         source = LyricSource.UNISON,
+                        credit = credit,
                         lines = lines
                     )
                 }
@@ -149,6 +161,7 @@ class UnisonLyricsDataSource @Inject constructor(
                     return@withContext Lyrics(
                         syncType = SyncType.NONE,
                         source = LyricSource.UNISON,
+                        credit = credit,
                         lines = listOf(
                             LyricsLine(
                                 startMs = -1,
