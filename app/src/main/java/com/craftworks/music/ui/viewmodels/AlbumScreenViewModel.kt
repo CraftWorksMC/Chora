@@ -9,6 +9,7 @@ import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.data.repository.AlbumRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
+import com.craftworks.music.utils.PagingUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,22 +68,34 @@ class AlbumScreenViewModel @Inject constructor(
     }
 
     private var getAlbumsJob: Job? = null
+    private var getMoreAlbumsJob: Job? = null
+    private var nextAlbumOffset = 0
+    private var isEndReached = false
+    private var isLoadingMore = false
+
     fun getAlbums() {
         getAlbumsJob?.cancel()
+        getMoreAlbumsJob?.cancel()
+        isLoadingMore = false
+        nextAlbumOffset = 0
+        isEndReached = false
         _allAlbums.value = emptyList()
 
         getAlbumsJob = viewModelScope.launch {
             try {
                 _isLoading.value = true
-                _allAlbums.value = albumRepository.getAlbums(
+                val albums = albumRepository.getAlbums(
                     MediaQuery.AlbumListQuery(
                         _sort.value,
                         _sortOrder.value,
-                        limit = 50,
+                        limit = PAGE_SIZE,
                         startIndex = 0,
                         favorite = if (_showFavoritesOnly.value) true else null
                     )
                 )
+                nextAlbumOffset = albums.size
+                isEndReached = albums.size < PAGE_SIZE
+                _allAlbums.value = PagingUtils.appendDistinct(emptyList(), albums) { it.mediaId }
             }
             finally {
                 _isLoading.value = false
@@ -94,12 +107,14 @@ class AlbumScreenViewModel @Inject constructor(
         return albumRepository.getAlbum(id) ?: emptyList()
     }
 
-    fun getMoreAlbums(size: Int){
-        println("GETTING MORE ALBUMS")
-        viewModelScope.launch {
+    fun getMoreAlbums(size: Int = PAGE_SIZE) {
+        if (isLoadingMore || isEndReached || getAlbumsJob?.isActive == true) return
+
+        isLoadingMore = true
+        getMoreAlbumsJob = viewModelScope.launch {
             try {
                 _isLoading.value = true
-                val albumOffset = _allAlbums.value.size
+                val albumOffset = nextAlbumOffset
                 val newAlbums = albumRepository.getAlbums(
                     MediaQuery.AlbumListQuery(
                         _sort.value,
@@ -109,9 +124,12 @@ class AlbumScreenViewModel @Inject constructor(
                         favorite = if (_showFavoritesOnly.value) true else null
                     )
                 )
-                _allAlbums.value += newAlbums
+                nextAlbumOffset = albumOffset + newAlbums.size
+                if (newAlbums.size < size) isEndReached = true
+                _allAlbums.value = PagingUtils.appendDistinct(_allAlbums.value, newAlbums) { it.mediaId }
             }
             finally {
+                isLoadingMore = false
                 _isLoading.value = false
             }
         }
@@ -155,5 +173,9 @@ class AlbumScreenViewModel @Inject constructor(
         viewModelScope.launch {
             localDataSettingsManager.saveShowFavoriteAlbum(showFavorites)
         }
+    }
+
+    companion object {
+        private const val PAGE_SIZE = 50
     }
 }
