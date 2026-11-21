@@ -19,8 +19,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.cache.HttpCache
-import io.ktor.client.plugins.cache.storage.FileStorage
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -29,35 +27,35 @@ import io.ktor.client.plugins.logging.SIMPLE
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private data class CachedUnisonEntry(
+    val etag: String?,
+    val lyrics: Lyrics
+)
 
 @Singleton
 class UnisonLyricsDataSource @Inject constructor(
     @ApplicationContext context: Context
 ) {
-    @OptIn(InternalAPI::class)
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+    }
+
     private val client = HttpClient(OkHttp) {
         install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            })
-        }
-
-        install(HttpCache) {
-            val cacheDir = File(context.cacheDir, "unison_http_cache")
-            if (!cacheDir.exists()) cacheDir.mkdirs()
-
-            publicStorage(FileStorage(cacheDir))
+            json(json)
         }
 
         install(Logging) {
@@ -66,6 +64,25 @@ class UnisonLyricsDataSource @Inject constructor(
         }
 
         expectSuccess = false
+    }
+
+    private class UnisonCache(val etag: String, val body: String)
+    private val cacheDir = File(context.cacheDir, "unison_lyrics").apply { mkdirs() }
+
+    private fun cacheFile(key: String) = File(
+        cacheDir,
+        MessageDigest.getInstance("SHA-256")
+            .digest(key.toByteArray())
+            .joinToString("") { "%02x".format(it) }
+    )
+
+    private fun readCache(key: String): UnisonCache? = runCatching {
+        val text = cacheFile(key).readText()
+        UnisonCache(text.substringBefore('\n'), text.substringAfter('\n'))
+    }.getOrNull()
+
+    private fun writeCache(key: String, etag: String, body: String) {
+        runCatching { cacheFile(key).writeText("$etag\n$body") }
     }
 
     suspend fun getLyrics(
@@ -78,6 +95,9 @@ class UnisonLyricsDataSource @Inject constructor(
         val duration = metadata?.durationMs?.div(1000)
         val isrc = metadata?.extras?.getString("isrc")?.split(",")
 
+        val cacheKey = "${isrc?.first()}|$title|$artist|$duration"
+        val cached = if (ignoreCachedResponse) null else readCache(cacheKey)
+
         try {
             val response = client.get("https://unison.boidu.dev/lyrics") {
                 if (isrc != null)
@@ -88,12 +108,18 @@ class UnisonLyricsDataSource @Inject constructor(
 
                 header(HttpHeaders.UserAgent, "Chora - Navidrome Client (https://github.com/CraftWorksMC/Chora)")
 
-                if (ignoreCachedResponse)
-                    header(HttpHeaders.CacheControl, "no-cache")
-                else
-                    header(HttpHeaders.CacheControl, "max-stale=2592000")
+                cached?.let { header(HttpHeaders.IfNoneMatch, it.etag) }
             }
-            var data = response.body<UnisonLyricsResponse>().data
+
+            var data = if (response.status == HttpStatusCode.NotModified && cached != null) {
+                json.decodeFromString<UnisonLyricsResponse>(cached.body).data
+            } else {
+                val body = response.bodyAsText()
+                val parsed = json.decodeFromString<UnisonLyricsResponse>(body)
+                val etag = response.headers[HttpHeaders.ETag]
+                if (etag != null && parsed.data != null) writeCache(cacheKey, etag, body)
+                parsed.data
+            }
 
             // Search Fallback
             if (data == null && isrc != null)  {
@@ -101,11 +127,6 @@ class UnisonLyricsDataSource @Inject constructor(
                     parameter("q", "$title $artist")
 
                     header(HttpHeaders.UserAgent, "Chora - Navidrome Client (https://github.com/CraftWorksMC/Chora)")
-
-                    if (ignoreCachedResponse)
-                        header(HttpHeaders.CacheControl, "no-cache")
-                    else
-                        header(HttpHeaders.CacheControl, "max-stale=2592000")
                 }.body<UnisonSearchResponse>()
 
                 if (isrcSearchResponse.data.isNullOrEmpty())
@@ -118,12 +139,7 @@ class UnisonLyricsDataSource @Inject constructor(
 
                 data = client.get("https://unison.boidu.dev/lyrics/${matchedLyric.id}") {
                     header(HttpHeaders.UserAgent, "Chora - Navidrome Client (https://github.com/CraftWorksMC/Chora)")
-
-                    if (ignoreCachedResponse)
-                        header(HttpHeaders.CacheControl, "no-cache")
-                    else
-                        header(HttpHeaders.CacheControl, "max-stale=2592000")
-                }.body<UnisonLyricsResponse>().data
+                }.body()
             }
 
             if (data?.lyrics == null)

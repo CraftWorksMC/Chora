@@ -225,15 +225,13 @@ class ChoraMediaLibraryService : MediaLibraryService() {
         Log.d("AA", "onCreate Android Auto")
 
         if (session == null)
-            serviceMainScope.launch {
-                initializePlayer()
-            }
+            initializePlayer()
         else
             Log.d("AA", "MediaSession already initialized, not recreating")
     }
 
     @OptIn(ExperimentalApi::class)
-    suspend fun initializePlayer() {
+    fun initializePlayer() {
         serviceIOScope.launch {
             appearanceSettingsManager.bottomNavItemsFlow.collect { items ->
                 val routeToItem = mapOf(
@@ -318,7 +316,6 @@ class ChoraMediaLibraryService : MediaLibraryService() {
             .experimentalSetDynamicSchedulingEnabled(false) // Temporary fix for lyrics. refer to https://github.com/androidx/media/issues/3286
             .build()
 
-        val initialOffloadEnabled = playbackSettingsManager.audioOffloadEnabled.first()
         val audioOffloadPreferences =
             TrackSelectionParameters.AudioOffloadPreferences.Builder()
                 .setAudioOffloadMode(TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED).build()
