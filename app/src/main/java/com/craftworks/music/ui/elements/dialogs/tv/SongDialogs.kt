@@ -2,15 +2,20 @@ package com.craftworks.music.ui.elements.dialogs.tv
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -29,7 +34,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -55,9 +62,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.StarRating
+import androidx.tv.material3.Border
 import androidx.tv.material3.Card
+import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.Icon
 import androidx.tv.material3.ListItem
+import androidx.tv.material3.ListItemDefaults
+import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import androidx.tv.material3.WideCardContainer
@@ -65,6 +76,7 @@ import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.craftworks.music.R
+import com.craftworks.music.data.model.favorite
 import com.craftworks.music.ui.viewmodels.PlaylistScreenViewModel
 
 private enum class DialogMenu { MAIN, ADD_TO_PLAYLIST, NEW_PLAYLIST, SET_RATING }
@@ -79,7 +91,10 @@ fun SongDialog(
     song: MediaItem = MediaItem.EMPTY,
     onSetRating: (Int) -> Unit = { },
     onDownload: (MediaItem) -> Unit = { },
-    setShowDialog: (Boolean) -> Unit = { }
+    setShowDialog: (Boolean) -> Unit = { },
+    onPlayNext: (MediaItem) -> Unit = { },
+    onEnqeue: (MediaItem) -> Unit = { },
+    onSetFavorite: (Boolean) -> Unit = { }
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -88,8 +103,27 @@ fun SongDialog(
 
     var dialogMenu by remember { mutableStateOf(DialogMenu.MAIN) }
 
+    val (mainFocus, ratingFocus, playlistFocus, newPlaylistFocus) = remember { FocusRequester.createRefs() }
+    LaunchedEffect(dialogMenu) {
+        when (dialogMenu) {
+            DialogMenu.MAIN -> mainFocus.requestFocus()
+            DialogMenu.ADD_TO_PLAYLIST -> playlistFocus.requestFocus()
+            DialogMenu.NEW_PLAYLIST -> newPlaylistFocus.requestFocus()
+            DialogMenu.SET_RATING -> ratingFocus.requestFocus()
+        }
+    }
+
+    var currentRating = (song.mediaMetadata.userRating as? StarRating)?.starRating?.toInt()?.takeIf { it > 0 } ?: 0
+
+    var isFavorite = remember(song.mediaMetadata) { song.mediaMetadata.favorite ?: false }
+
     Dialog(
-        onDismissRequest = { setShowDialog(false) },
+        onDismissRequest = {
+            if (dialogMenu == DialogMenu.MAIN)
+                setShowDialog(false)
+            else
+                dialogMenu = DialogMenu.MAIN
+        },
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Row(
@@ -108,10 +142,12 @@ fun SongDialog(
             ) {
                 WideCardContainer(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .focusProperties { canFocus = false },
                     imageCard = {
                         Card(
                             onClick = { },
+                            modifier = Modifier,
                             content = {
                                 SubcomposeAsyncImage(
                                     model = ImageRequest.Builder(context)
@@ -126,8 +162,7 @@ fun SongDialog(
                                     contentScale = ContentScale.FillHeight,
                                     modifier = Modifier
                                         .size(52.dp)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                                        .focusable(false),
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
                                 )
                             }
                         )
@@ -152,65 +187,115 @@ fun SongDialog(
 
                 when (dialogMenu) {
                     DialogMenu.MAIN -> {
-                        ListItem(
-                            selected = false,
-                            headlineContent = {
-                                Text(stringResource(R.string.action_set_rating))
-                            },
-                            onClick = {
-                                dialogMenu = DialogMenu.SET_RATING
-                            }
-                        )
+                        Column(
+                            Modifier.focusGroup().focusRestorer().focusRequester(mainFocus)
+                        ) {
+                            ListItem(
+                                selected = false,
+                                headlineContent = {
+                                    Text(stringResource(R.string.action_play_next))
+                                },
+                                onClick = {
+                                    onPlayNext(song)
+                                }
+                            )
 
-                        ListItem(
-                            selected = false,
-                            headlineContent = { Text(stringResource(R.string.action_download)) },
-                            onClick = {
-                                onDownload(song)
-                                setShowDialog(false)
-                            }
-                        )
+                            ListItem(
+                                selected = false,
+                                headlineContent = {
+                                    Text(stringResource(R.string.action_add_to_queue))
+                                },
+                                onClick = {
+                                    onEnqeue(song)
+                                }
+                            )
 
-                        ListItem(
-                            selected = false,
-                            headlineContent = {
-                                Text(
-                                    text = AnnotatedString.fromHtml(
-                                        stringResource(
-                                            R.string.add_to_playlist_title,
-                                            song.mediaMetadata.title.toString().htmlEncode()
+                            ListItem(
+                                selected = false,
+                                headlineContent = {
+                                    Text(stringResource(R.string.action_set_rating))
+                                },
+                                onClick = {
+                                    dialogMenu = DialogMenu.SET_RATING
+                                }
+                            )
+
+                            ListItem(
+                                selected = false,
+                                headlineContent = {
+                                    if (isFavorite)
+                                        Text(stringResource(R.string.action_remove_from_favorites))
+                                    else
+                                        Text(stringResource(R.string.action_add_to_favorites))
+                                },
+                                onClick = {
+                                    onSetFavorite(!isFavorite)
+                                }
+                            )
+
+                            ListItem(
+                                selected = false,
+                                headlineContent = { Text(stringResource(R.string.action_download)) },
+                                onClick = {
+                                    onDownload(song)
+                                    setShowDialog(false)
+                                }
+                            )
+
+                            ListItem(
+                                selected = false,
+                                headlineContent = {
+                                    Text(
+                                        text = AnnotatedString.fromHtml(
+                                            stringResource(
+                                                R.string.add_to_playlist_title,
+                                                song.mediaMetadata.title.toString().htmlEncode()
+                                            )
                                         )
                                     )
-                                )
-                            },
-                            onClick = {
-                                dialogMenu = DialogMenu.ADD_TO_PLAYLIST
-                            }
-                        )
+                                },
+                                onClick = {
+                                    dialogMenu = DialogMenu.ADD_TO_PLAYLIST
+                                }
+                            )
+                        }
                     }
                     DialogMenu.ADD_TO_PLAYLIST -> {
-                        AddSongToPlaylist(
-                            song = song,
-                            setShowDialog = { setShowDialog(it) },
-                            setDialogMenu = { dialogMenu = it }
-                        )
+                        Box(
+                            Modifier.focusGroup().focusRestorer().focusRequester(playlistFocus)
+                        ) {
+                            AddSongToPlaylist(
+                                song = song,
+                                setShowDialog = { setShowDialog(it) },
+                                setDialogMenu = { dialogMenu = it }
+                            )
+                        }
                     }
                     DialogMenu.NEW_PLAYLIST -> {
-                        NewPlaylist(
-                            song = song,
-                            setDialogMenu = { dialogMenu = it }
-                        )
+                        Box(
+                            Modifier.focusGroup().focusRestorer().focusRequester(newPlaylistFocus)
+                        ) {
+                            NewPlaylist(
+                                song = song,
+                                setDialogMenu = { dialogMenu = it }
+                            )
+                        }
                     }
 
                     DialogMenu.SET_RATING -> {
-                        SetRating(
-                            currentRating = (song.mediaMetadata.userRating as? StarRating)?.starRating?.toInt() ?: 0,
-                            onSetRating = { rating ->
-                                onSetRating(rating)
-                                dialogMenu = DialogMenu.MAIN
-                            },
-                            onDismiss = { dialogMenu = DialogMenu.MAIN }
-                        )
+                        Box(
+                            Modifier.focusGroup().focusRestorer().focusRequester(ratingFocus)
+                        ) {
+                            SetRating(
+                                currentRating = currentRating,
+                                onSetRating = { rating ->
+                                    onSetRating(rating)
+                                    currentRating = rating
+                                    dialogMenu = DialogMenu.MAIN
+                                },
+                                onDismiss = { dialogMenu = DialogMenu.MAIN }
+                            )
+                        }
                     }
                 }
             }
@@ -378,61 +463,125 @@ private fun SetRating(
 ) {
     var selectedRating by remember { mutableIntStateOf(currentRating) }
 
-    val focusRequester = remember { FocusRequester() }
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
     Column (
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(
-            horizontalArrangement = Arrangement.Center,
+        Card(
+            onClick = { onSetRating(selectedRating) },
             modifier = Modifier
                 .fillMaxWidth()
-                .focusable()
-                .focusRequester(focusRequester)
                 .onKeyEvent { keyEvent ->
-                    if (keyEvent.type == KeyEventType.KeyDown) {
-                        when (keyEvent.key) {
-                            Key.DirectionLeft -> {
-                                if (selectedRating > 1) {
-                                    selectedRating--
-                                    true
-                                } else false
-                            }
-
-                            Key.DirectionRight -> {
-                                if (selectedRating < 5) {
-                                    selectedRating++
-                                    true
-                                } else false
-                            }
-
-                            Key.DirectionCenter -> {
-                                onSetRating(selectedRating)
+                    keyEvent.type == KeyEventType.KeyDown && when (keyEvent.key) {
+                        Key.DirectionLeft -> {
+                            if (selectedRating > 1) {
+                                selectedRating--
                                 true
-                            }
-
-                            else -> false
+                            } else false
                         }
-                    } else {
-                        false
+
+                        Key.DirectionRight -> {
+                            if (selectedRating < 5) {
+                                selectedRating++
+                                true
+                            } else false
+                        }
+
+                        Key.DirectionCenter -> {
+                            onSetRating(selectedRating)
+                            true
+                        }
+
+                        else -> false
                     }
-                }
+                },
+            shape = CardDefaults.shape(shape = RoundedCornerShape(12.dp)),
+            colors = CardDefaults.colors(
+                containerColor = ListItemDefaults.colors().containerColor,
+                contentColor = ListItemDefaults.colors().contentColor,
+                focusedContainerColor = ListItemDefaults.colors().focusedContainerColor,
+                focusedContentColor = ListItemDefaults.colors().focusedContentColor,
+            ),
+            scale = CardDefaults.scale(
+                scale = 1f,
+                focusedScale = ListItemDefaults.scale().focusedScale,
+            ),
+            border = CardDefaults.border(
+                focusedBorder = Border.None,
+                pressedBorder = Border.None
+            )
         ) {
-            for (star in 1..5) {
-                Icon(
-                    imageVector = if (star <= selectedRating) Icons.Rounded.Star
-                    else ImageVector.vectorResource(R.drawable.rounded_star_outline_24),
-                    contentDescription = "Star $star",
-                    tint = if (star <= selectedRating) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(32.dp)
-                )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 56.dp)
+                    .padding(PaddingValues(horizontal = 16.dp, vertical = 12.dp)),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                for (star in 1..5) {
+                    Icon(
+                        imageVector = if (star <= selectedRating) Icons.Rounded.Star
+                        else ImageVector.vectorResource(R.drawable.rounded_star_outline_24),
+                        contentDescription = "Star $star",
+                        tint = if (star <= selectedRating) LocalContentColor.current
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+
+                if (selectedRating > 0)
+                    Text(
+                        text = "$selectedRating / 5"
+                    )
             }
         }
+//
+//        Row(
+//            horizontalArrangement = Arrangement.Center,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .focusable()
+//                .focusRequester(focusRequester)
+//                .onKeyEvent { keyEvent ->
+//                    if (keyEvent.type == KeyEventType.KeyDown) {
+//                        when (keyEvent.key) {
+//                            Key.DirectionLeft -> {
+//                                if (selectedRating > 1) {
+//                                    selectedRating--
+//                                    true
+//                                } else false
+//                            }
+//
+//                            Key.DirectionRight -> {
+//                                if (selectedRating < 5) {
+//                                    selectedRating++
+//                                    true
+//                                } else false
+//                            }
+//
+//                            Key.DirectionCenter -> {
+//                                onSetRating(selectedRating)
+//                                true
+//                            }
+//
+//                            else -> false
+//                        }
+//                    } else {
+//                        false
+//                    }
+//                }
+//        ) {
+//            for (star in 1..5) {
+//                Icon(
+//                    imageVector = if (star <= selectedRating) Icons.Rounded.Star
+//                    else ImageVector.vectorResource(R.drawable.rounded_star_outline_24),
+//                    contentDescription = "Star $star",
+//                    tint = if (star <= selectedRating) MaterialTheme.colorScheme.primary
+//                    else MaterialTheme.colorScheme.onSurfaceVariant,
+//                    modifier = Modifier.size(32.dp)
+//                )
+//            }
+//        }
 
         ListItem(
             selected = false,

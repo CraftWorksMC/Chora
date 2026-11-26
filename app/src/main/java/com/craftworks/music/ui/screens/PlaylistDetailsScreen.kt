@@ -61,6 +61,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.craftworks.music.R
+import com.craftworks.music.data.model.favorite
 import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.model.id
 import com.craftworks.music.player.SongHelper
@@ -311,6 +312,12 @@ fun PlaylistDetails(
                                     contentDescription = null
                                 )
                             }
+                        )
+                    },
+                    onSetFavorite = {
+                        viewModel.setSongFavorite(
+                            songId = song.mediaMetadata.id ?: "",
+                            favorite = !(song.mediaMetadata.favorite ?: false)
                         )
                     },
                     mediaController = mediaController

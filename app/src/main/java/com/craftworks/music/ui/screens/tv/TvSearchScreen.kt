@@ -31,8 +31,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
@@ -260,6 +258,18 @@ fun TvSearchScreen(
             onDownload = {
                 songsViewModel.downloadSong(it)
             },
-            setShowDialog = { showSongDialog = it }
+            setShowDialog = { showSongDialog = it },
+            onPlayNext = {
+                SongHelper.playNext(listOf(it), mediaController)
+            },
+            onEnqeue = {
+                SongHelper.enqueue(listOf(it), mediaController)
+            },
+            onSetFavorite = {
+                songsViewModel.setSongFavorite(
+                    songId = selectedSong.mediaMetadata.id ?: "",
+                    favorite = it
+                )
+            }
         )
 }

@@ -21,12 +21,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -41,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailDefaults
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
@@ -63,21 +67,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component3
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component4
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component5
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component6
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component7
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
@@ -229,14 +232,36 @@ class MainActivity : ComponentActivity() {
 
                     onBackPressedDispatcher.addCallback(this, backCallback)
 
+                    val density = LocalDensity.current
                     Scaffold(
                         bottomBar = {
-                            AnimatedBottomNavBar(navController, scaffoldState)
+                            Box(Modifier.onSizeChanged {
+                                println("INSETS railWidthPx=${it.width} (${with(density) { it.width.toDp() }})")
+                            }.onGloballyPositioned {
+                                println("INSETS railX=${it.positionInWindow().x} railRight=${it.boundsInWindow().right}")
+                            }) {
+                                AnimatedBottomNavBar(navController, scaffoldState)
+                            }
                         },
                         contentColor = MaterialTheme.colorScheme.onBackground,
                         containerColor = Color.Transparent,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout),
                     ) { paddingValues ->
+                        val dir = LocalLayoutDirection.current
+                        val view = LocalView.current
+
+                        println("INSETS ---------------------------------")
+                        println("INSETS orientation=${LocalConfiguration.current.orientation} widthPx=${LocalWindowInfo.current.containerSize.width}")
+                        println("INSETS cutout      L=${WindowInsets.displayCutout.getLeft(density, dir)} R=${WindowInsets.displayCutout.getRight(density, dir)}")
+                        println("INSETS systemBars  L=${WindowInsets.systemBars.getLeft(density, dir)} R=${WindowInsets.systemBars.getRight(density, dir)}")
+                        println("INSETS railDefault L=${NavigationRailDefaults.windowInsets.getLeft(density, dir)}")
+                        println("INSETS scaffold    L=${paddingValues.calculateLeftPadding(dir)} R=${paddingValues.calculateRightPadding(dir)}")
+
+                        val loc = IntArray(2)
+                        view.getLocationOnScreen(loc)
+                        println("INSETS view onScreen x=${loc[0]} width=${view.width} rootCutout=${view.rootWindowInsets?.displayCutout?.safeInsetLeft}/${view.rootWindowInsets?.displayCutout?.safeInsetRight}")
+
                         if (LocalWindowInfo.current.containerSize.width < dpToPx(640)) {
                             BottomSheetScaffold(
                                 sheetContainerColor = Color.Transparent,
@@ -279,29 +304,11 @@ class MainActivity : ComponentActivity() {
                                         if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
                                             if (disableScreenStandy)
                                                 currentView.keepScreenOn = true
-
                                             backCallback.isEnabled  = true
-
-                                            /* Restore nav bars.
-                                            @Suppress("DEPRECATION")
-                                            currentView.systemUiVisibility =
-                                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                                                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                                                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                                                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                                                        View.SYSTEM_UI_FLAG_FULLSCREEN or
-                                                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                                            */
-
                                             Log.d("NOW-PLAYING", "KeepScreenOn: True")
                                         } else {
                                             currentView.keepScreenOn = false
                                             backCallback.isEnabled = false
-
-                                            /* Restore nav bars.
-                                            @Suppress("DEPRECATION")
-                                            currentView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                            */
                                             Log.d("NOW-PLAYING", "KeepScreenOn: False")
                                         }
 
@@ -313,16 +320,17 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }) {
                                 SetupNavGraph(
-                                    navController,
-                                    peekHeight + paddingValues.calculateBottomPadding(),
-                                    mediaController
+                                    navController = navController,
+                                    bottomPadding = peekHeight + paddingValues.calculateBottomPadding(),
+                                    mediaController = mediaController
                                 )
                             }
                         } else {
                             SetupNavGraph(
-                                navController,
-                                0.dp,
-                                mediaController
+                                navController = navController,
+                                bottomPadding = 0.dp,
+                                mediaController = mediaController,
+                                paddingValues = paddingValues
                             )
                         }
                     }

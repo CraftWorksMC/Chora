@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.StarRating
+import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.MediaQuery
 import com.craftworks.music.data.model.SongListSort
 import com.craftworks.music.data.model.SortOrder
 import com.craftworks.music.data.model.id
 import com.craftworks.music.data.repository.SongRepository
+import com.craftworks.music.data.repository.StarredRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.managers.settings.LocalDataSettingsManager
 import com.craftworks.music.managers.settings.MiscSettingsManager
@@ -27,6 +29,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SongsScreenViewModel @Inject constructor(
     private val songRepository: SongRepository,
+    private val starredRepository: StarredRepository,
     private val localDataSettingsManager: LocalDataSettingsManager,
     private val miscSettingsManager: MiscSettingsManager
 ) : ViewModel() {
@@ -184,6 +187,43 @@ class SongsScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             songRepository.setSongRating(songId, rating)
+        }
+    }
+
+    fun setSongFavorite(
+        songId: String,
+        favorite: Boolean
+    ) {
+        val song = _allSongs.value.firstOrNull {
+            it.mediaMetadata.id == songId
+        } ?: _searchResults.value.firstOrNull {
+            it.mediaMetadata.id == songId
+        }
+
+        val updatedSong = song?.buildUpon()?.setMediaMetadata(
+            song.mediaMetadata.buildUpon()
+                .setExtras(
+                    song.mediaMetadata.extras?.apply {
+                        putBoolean("userFavorite", favorite)
+                    }
+                )
+                .build()
+        )?.build()
+
+        if (updatedSong != null) {
+            _allSongs.value = _allSongs.value.map { item ->
+                if (item.mediaId == song.mediaId) updatedSong else item
+            }
+            _searchResults.value = _searchResults.value.map { item ->
+                if (item.mediaId == song.mediaId) updatedSong else item
+            }
+        }
+
+        viewModelScope.launch {
+            if (favorite)
+                starredRepository.starItem(listOf(songId), LibraryType.SONG)
+            else
+                starredRepository.unStarItem(listOf(songId), LibraryType.SONG)
         }
     }
 }

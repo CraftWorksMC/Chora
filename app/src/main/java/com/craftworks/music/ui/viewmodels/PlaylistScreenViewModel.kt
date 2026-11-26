@@ -14,6 +14,7 @@ import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.model.id
 import com.craftworks.music.data.repository.PlaylistRepository
 import com.craftworks.music.data.repository.SongRepository
+import com.craftworks.music.data.repository.StarredRepository
 import com.craftworks.music.managers.DataRefreshManager
 import com.craftworks.music.managers.settings.AppearanceSettingsManager
 import com.craftworks.music.managers.settings.MiscSettingsManager
@@ -31,6 +32,7 @@ import javax.inject.Inject
 class PlaylistScreenViewModel @Inject constructor(
     private val playlistRepository: PlaylistRepository,
     private val songRepository: SongRepository,
+    private val starredRepository: StarredRepository,
     private val miscSettingsManager: MiscSettingsManager,
     appearanceSettingsManager: AppearanceSettingsManager
 ) : ViewModel() {
@@ -176,6 +178,36 @@ class PlaylistScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             songRepository.setSongRating(songId, rating)
+        }
+    }
+
+    fun setSongFavorite(
+        songId: String,
+        favorite: Boolean
+    ) {
+        val song = _selectedPlaylistSongs.value.first {
+            it.mediaMetadata.id == songId
+        }
+
+        val updatedSong = song.buildUpon().setMediaMetadata(
+            song.mediaMetadata.buildUpon()
+                .setExtras(
+                    song.mediaMetadata.extras?.apply {
+                        putBoolean("userFavorite", favorite)
+                    }
+                )
+                .build()
+        ).build()
+
+        _selectedPlaylistSongs.value = _selectedPlaylistSongs.value.map { item ->
+            if (item.mediaId == song.mediaId) updatedSong else item
+        }
+
+        viewModelScope.launch {
+            if (favorite)
+                starredRepository.starItem(listOf(songId), LibraryType.SONG)
+            else
+                starredRepository.unStarItem(listOf(songId), LibraryType.SONG)
         }
     }
 

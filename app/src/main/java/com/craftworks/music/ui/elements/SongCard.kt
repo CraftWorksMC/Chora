@@ -21,6 +21,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,6 +58,7 @@ import com.craftworks.music.R
 import com.craftworks.music.data.model.LibraryType
 import com.craftworks.music.data.model.ProviderFeature
 import com.craftworks.music.data.model.ProviderType
+import com.craftworks.music.data.model.favorite
 import com.craftworks.music.data.model.getProvider
 import com.craftworks.music.data.model.id
 import com.craftworks.music.data.model.providerType
@@ -73,6 +75,7 @@ fun HorizontalSongCard(
     modifier: Modifier = Modifier,
     showTrackNumber: Boolean = false,
     onClick: () -> Unit,
+    onSetFavorite: (Boolean) -> Unit,
     extraMenuItems: @Composable (onDismiss: () -> Unit) -> Unit = {},
     viewModel: SongsScreenViewModel = hiltViewModel(),
     mediaController: MediaController?
@@ -153,21 +156,33 @@ fun HorizontalSongCard(
                 verticalArrangement = Arrangement.SpaceAround
             ) {
                 Row (
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
                         text = song.mediaMetadata.title.toString(),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier,
+                        modifier = Modifier.weight(1f, fill = false),
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start
                     )
                     if (song.mediaMetadata.extras?.getBoolean(METADATA_KEY_IS_EXPLICIT) == true)
                         Icon(
                             imageVector = ImageVector.vectorResource(R.drawable.rounded_explicit_24),
-                            contentDescription = "Explicit"
+                            contentDescription = stringResource(R.string.sort_by_explicit_status),
+                            tint = LocalContentColor.current.copy(0.5f),
+                            modifier = Modifier.size(16.dp)
                         )
+
+                    if (song.mediaMetadata.favorite == true && (song.mediaMetadata.userRating as StarRating).starRating <= 0) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
+                            contentDescription = stringResource(R.string.sort_by_favorite),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
 
                 Text(
@@ -179,8 +194,22 @@ fun HorizontalSongCard(
                     textAlign = TextAlign.Start
                 )
 
-                if (song.mediaMetadata.userRating != null) {
+                if ((song.mediaMetadata.userRating as StarRating).starRating > 0) {
                     Row {
+                        if (song.mediaMetadata.favorite == true) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.round_favorite_24),
+                                contentDescription = stringResource(R.string.sort_by_favorite),
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = " • ",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onBackground.copy(0.75f)
+                            )
+                        }
+
                         repeat((song.mediaMetadata.userRating as StarRating).starRating.toInt()) {
                             Icon(
                                 imageVector = Icons.Rounded.Star,
@@ -233,6 +262,28 @@ fun HorizontalSongCard(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
+                    DropdownMenuItem(
+                        text = {
+                            if (song.mediaMetadata.favorite == true)
+                                Text(stringResource(R.string.action_remove_from_favorites))
+                            else
+                                Text(stringResource(R.string.action_add_to_favorites))
+                        },
+                        onClick = {
+                            onSetFavorite(!(song.mediaMetadata.favorite ?: false))
+                            expanded = false
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector =
+                                    if (song.mediaMetadata.favorite == true)
+                                        ImageVector.vectorResource(R.drawable.round_favorite_24)
+                                    else
+                                        ImageVector.vectorResource(R.drawable.round_favorite_border_24),
+                                contentDescription = null
+                            )
+                        }
+                    )
                     DropdownMenuItem(
                         text = {
                             Text(stringResource(R.string.action_set_rating))
@@ -352,6 +403,7 @@ fun PreviewHorizontalSongCard() {
                     .build()
             ).build(),
         onClick = {},
+        onSetFavorite = {},
         mediaController = null
     )
 }

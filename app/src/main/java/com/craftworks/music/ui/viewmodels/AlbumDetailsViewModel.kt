@@ -85,6 +85,36 @@ class AlbumDetailsViewModel @Inject constructor(
         }
     }
 
+    fun setSongFavorite(
+        songId: String,
+        favorite: Boolean
+    ) {
+        val song = _songsInAlbum.value.first {
+            it.mediaMetadata.id == songId
+        }
+
+        val updatedSong = song.buildUpon().setMediaMetadata(
+            song.mediaMetadata.buildUpon()
+                .setExtras(
+                    song.mediaMetadata.extras?.apply {
+                        putBoolean("userFavorite", favorite)
+                    }
+                )
+                .build()
+        ).build()
+
+        _songsInAlbum.value = _songsInAlbum.value.map { item ->
+            if (item.mediaId == song.mediaId) updatedSong else item
+        }
+
+        viewModelScope.launch {
+            if (favorite)
+                starredRepository.starItem(listOf(songId), LibraryType.SONG)
+            else
+                starredRepository.unStarItem(listOf(songId), LibraryType.SONG)
+        }
+    }
+
     fun downloadSong(song: MediaItem) {
         viewModelScope.launch {
             songRepository.downloadSong(song.mediaMetadata, miscSettingsManager.downloadTemplateFlow.first())

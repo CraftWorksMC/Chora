@@ -29,6 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import com.craftworks.music.data.model.MediaModel
+import com.craftworks.music.data.model.favorite
 import com.craftworks.music.data.model.id
 import com.craftworks.music.data.model.providerId
 import com.craftworks.music.player.SongHelper
@@ -84,6 +85,12 @@ fun SongsHorizontalColumn(
                     scope.launch {
                         SongHelper.play(songList, index, mediaController)
                     }
+                },
+                onSetFavorite = {
+                    viewModel?.setSongFavorite(
+                        songId = song.mediaMetadata.id ?: "",
+                        favorite = !(song.mediaMetadata.favorite ?: false)
+                    )
                 },
                 mediaController = mediaController
             )

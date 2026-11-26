@@ -360,6 +360,18 @@ fun TvAlbumDetails(
             onDownload = {
                 viewModel.downloadSong(it)
             },
-            setShowDialog = { showSongDialog = it }
+            setShowDialog = { showSongDialog = it },
+            onPlayNext = {
+                SongHelper.playNext(listOf(it), mediaController)
+            },
+            onEnqeue = {
+                SongHelper.enqueue(listOf(it), mediaController)
+            },
+            onSetFavorite = {
+                viewModel.setSongFavorite(
+                    songId = selectedSong.mediaMetadata.id ?: "",
+                    favorite = it
+                )
+            }
         )
 }

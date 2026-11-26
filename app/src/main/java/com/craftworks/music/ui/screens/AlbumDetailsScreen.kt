@@ -390,6 +390,12 @@ fun AlbumDetails(
                                     )
                                 }
                             },
+                            onSetFavorite = {
+                                viewModel.setSongFavorite(
+                                    songId = song.mediaMetadata.id ?: "",
+                                    favorite = !(song.mediaMetadata.favorite ?: false)
+                                )
+                            },
                             mediaController = mediaController
                         )
                     }
@@ -410,6 +416,12 @@ fun AlbumDetails(
                                     mediaController
                                 )
                             }
+                        },
+                        onSetFavorite = {
+                            viewModel.setSongFavorite(
+                                songId = song.mediaMetadata.id ?: "",
+                                favorite = !(song.mediaMetadata.favorite ?: false)
+                            )
                         },
                         mediaController = mediaController
                     )

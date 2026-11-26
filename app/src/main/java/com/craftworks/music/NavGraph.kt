@@ -10,11 +10,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -27,10 +25,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -91,21 +89,20 @@ import com.craftworks.music.ui.viewmodels.SongsScreenViewModel
 fun SetupNavGraph(
     navController: NavHostController,
     bottomPadding: Dp,
-    mediaController: MediaController?
+    mediaController: MediaController?,
+    paddingValues: PaddingValues = PaddingValues.Zero
 ) {
     val isTv = LocalConfiguration.current.uiMode and
             Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION
 
     val orientation = LocalConfiguration.current.orientation
 
-    val insets = WindowInsets.safeDrawing.asPaddingValues()
-    val leftPadding = remember(LocalConfiguration.current.orientation, isTv) {
-        if (orientation != Configuration.ORIENTATION_LANDSCAPE || isTv) {
+    val dir = LocalLayoutDirection.current
+    val leftPadding =
+        if (orientation != Configuration.ORIENTATION_LANDSCAPE || isTv)
             0.dp
-        } else {
-            80.dp + insets.calculateLeftPadding(LayoutDirection.Ltr)
-        }
-    }
+        else
+            80.dp + paddingValues.calculateLeftPadding(dir)
 
     val animationSpec = MaterialTheme.LocalMaterialTheme.current.motionScheme.slowSpatialSpec<Float>()
 
