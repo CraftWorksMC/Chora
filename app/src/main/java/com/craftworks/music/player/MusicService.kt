@@ -385,6 +385,7 @@ class ChoraMediaLibraryService : MediaLibraryService() {
 
         val mainActivityIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(MainActivity.EXTRA_OPEN_PLAYER, true)
         }
 
         val sessionActivityPendingIntent = PendingIntent.getActivity(

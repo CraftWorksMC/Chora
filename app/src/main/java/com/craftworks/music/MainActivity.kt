@@ -1,6 +1,7 @@
 package com.craftworks.music
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
@@ -133,10 +134,26 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 class MainActivity : ComponentActivity() {
     lateinit var navController: NavHostController
 
+    /** Set by EXTRA_OPEN_PLAYER: shows the player once something is loaded. */
+    private val openPlayer = mutableStateOf(false)
+
+    companion object {
+        /** Boolean extra: open the player instead of the home screen (the session activity and other apps set it). */
+        const val EXTRA_OPEN_PLAYER = "com.craftworks.music.OPEN_PLAYER"
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(EXTRA_OPEN_PLAYER, false)) openPlayer.value = true
+    }
+
     @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // A recreated activity (rotation, process death) gets the launch intent again,
+        // extra included; reading it only on a fresh start keeps a closed player closed.
+        openPlayer.value = savedInstanceState == null && intent.getBooleanExtra(EXTRA_OPEN_PLAYER, false)
 
         enableEdgeToEdge()
 
@@ -208,6 +225,15 @@ class MainActivity : ComponentActivity() {
 
                 val isTv = LocalConfiguration.current.uiMode and
                         Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION
+
+                // Narrow screens show the player as a bottom sheet, the others as a screen of its own.
+                val sheetPlayer = !isTv && LocalWindowInfo.current.containerSize.width < dpToPx(640)
+                LaunchedEffect(openPlayer.value, mediaController, metadata) {
+                    if (!openPlayer.value || mediaController?.currentMediaItem == null) return@LaunchedEffect
+                    openPlayer.value = false
+                    if (sheetPlayer) scaffoldState.bottomSheetState.expand()
+                    else navController.navigate(Screen.NowPlayingLandscape) { launchSingleTop = true }
+                }
 
                 if (isTv) {
                     // Set background color to colorScheme.background
