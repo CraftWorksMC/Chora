@@ -17,4 +17,16 @@ object PagingUtils {
         if (startIndex > items.size) return emptyList()
         return items.slice(startIndex..<items.size.coerceAtMost(startIndex+(limit?:BASE_PAGE_LENGTH)))
     }
+
+    fun <T, K> appendDistinct(existing: List<T>, page: List<T>, key: (T) -> K): List<T> {
+        if (page.isEmpty()) return existing
+
+        val seen = existing.mapTo(HashSet<K>(), key)
+        val result = ArrayList<T>(existing.size + page.size)
+        result.addAll(existing)
+        page.forEach { item ->
+            if (seen.add(key(item))) result.add(item)
+        }
+        return result
+    }
 }

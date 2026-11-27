@@ -96,17 +96,13 @@ fun TvAlbumScreen(
     val gridState = rememberLazyGridState()
 
     LaunchedEffect(albums.size) {
-        if (albums.size % 50 != 0) return@LaunchedEffect
-        if (albums.size < 50) return@LaunchedEffect
-
         snapshotFlow {
             val lastVisible = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
                 ?: return@snapshotFlow false
             val total = gridState.layoutInfo.totalItemsCount
-            if (total < albums.size - 5) return@snapshotFlow false
-            (total - lastVisible) <= 15
+            total > 0 && (total - lastVisible) <= 15
         }.filter { it }.collect {
-            viewModel.getMoreAlbums(50)
+            viewModel.getMoreAlbums()
         }
     }
 
@@ -174,7 +170,7 @@ fun TvAlbumScreen(
                 }
             }
         }
-        items(albums) { album ->
+        items(albums, key = { it.mediaId }) { album ->
             TvAlbumCard(
                 album = album,
                 modifier = Modifier.onFocusChanged {
