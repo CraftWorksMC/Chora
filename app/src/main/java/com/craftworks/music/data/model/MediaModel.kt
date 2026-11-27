@@ -351,6 +351,8 @@ abstract class MediaModel
                             putString("imageId", this@Song.imageId)
                             putString("format", this@Song.format)
                             putLong("bitrate", this@Song.bitRate?.toLong() ?: 0)
+                            putInt("bpm", this@Song.bpm ?: 0)
+                            putInt("playCount", this@Song.playCount ?: 0)
                             if (this@Song.isrc != null) putString("isrc", this@Song.isrc.joinToString(","))
                             putParcelableArrayList("artists", ArrayList(this@Song.artists))
                             putBoolean("userFavorite", this@Song.userFavorite ?: false)

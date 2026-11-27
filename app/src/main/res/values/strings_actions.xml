@@ -2,6 +2,7 @@
 <resources>
     <!-- Common -->
     <string name="action_done">Done</string>
+    <string name="action_cancel">Cancel</string>
     <string name="action_close">Close</string>
     <string name="action_save">Save</string>
     <string name="action_remove">Remove</string>
@@ -14,7 +15,12 @@
 
     <string name="action_add">Add</string>
     <string name="action_add_to_queue">Add To Queue</string>
+    <string name="action_remove_from_queue">Remove From Queue</string>
+    <string name="action_clear_queue">Clear Queue</string>
     <string name="action_play_next">Play Next</string>
+    <string name="action_move_to_start">Move To Start</string>
+    <string name="action_move_next">Move Next</string>
+    <string name="action_move_to_end">Move To End</string>
     <string name="action_add_to_playlist">Add To Playlist</string>
     <string name="action_add_to_favorites">Add To Favorites</string>
     <string name="action_remove_from_favorites">Remove From Favorites</string>

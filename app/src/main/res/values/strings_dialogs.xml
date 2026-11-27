@@ -21,6 +21,8 @@
         <string name="new_playlist_playlist_name">Playlist Name</string>
 
     // Sorting
+    <string name="button_sort_order_ascending">Ascending</string>
+    <string name="button_sort_order_descending">Descending</string>
     <string name="button_sort_by">Sort By</string>
     <string name="sort_by_album">Album</string>
     <string name="sort_by_album_artist">Album Artist</string>
@@ -42,6 +44,7 @@
     <string name="sort_by_recently_played">Recently Played</string>
     <string name="sort_by_release_date">Release Date</string>
     <string name="sort_by_song_count">Song Count</string>
+    <string name="sort_by_track_number">Track Number</string>
     <string name="sort_by_year">Year</string>
 
 
@@ -51,4 +54,10 @@
 
     // Set Sleep Timer
     <string name="now_playing_set_sleep_timer">Set Sleep Timer</string>
+
+    // Queue
+    <string name="clear_queue_confirm">Are you sure you want to clear this queue?</string>
+    <string name="sort_queue_title">Sort Queue</string>
+    <string name="sort_queue_reverse">Reverse</string>
+    <string name="sort_queue_sort">Sort</string>
 </resources>

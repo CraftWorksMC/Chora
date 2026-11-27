@@ -310,6 +310,21 @@ fun S_AppearanceScreen(navHostController: NavHostController = rememberNavControl
                         }
                     )
 
+
+                    //Advanced Queue
+                    val useAdvancedQueue =
+                        AppearanceSettingsManager(context).useAdvancedQueue.collectAsState(false)
+                    SettingsSwitch(
+                        useAdvancedQueue.value,
+                        stringResource(R.string.appearance_advanced_queue),
+                        ImageVector.vectorResource(R.drawable.rounded_format_list_numbered_24),
+                        toggleEvent = {
+                            coroutineScope.launch {
+                                AppearanceSettingsManager(context).setUseAdvancedQueue(!useAdvancedQueue.value)
+                            }
+                        }
+                    )
+
                     SettingsDialogButton(
                         stringResource(R.string.appearance_now_playing_title_alignment),
                         stringResource(
